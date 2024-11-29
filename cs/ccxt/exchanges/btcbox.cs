@@ -48,12 +48,15 @@ public partial class btcbox : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
-                { "fetchTickers", false },
+                { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
@@ -68,7 +71,7 @@ public partial class btcbox : Exchange
                 { "ws", false },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/1e2cb499-8d0f-4f8f-9464-3c015cfbc76b" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://www.btcbox.co.jp/api" },
                 } },
@@ -78,61 +81,11 @@ public partial class btcbox : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"depth", "orders", "ticker"} },
+                    { "get", new List<object>() {"depth", "orders", "ticker", "tickers"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"} },
                 } },
-            } },
-            { "markets", new Dictionary<string, object>() {
-                { "BTC/JPY", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "btc" },
-                    { "symbol", "BTC/JPY" },
-                    { "base", "BTC" },
-                    { "quote", "JPY" },
-                    { "baseId", "btc" },
-                    { "quoteId", "jpy" },
-                    { "taker", this.parseNumber("0.0005") },
-                    { "maker", this.parseNumber("0.0005") },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "ETH/JPY", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "eth" },
-                    { "symbol", "ETH/JPY" },
-                    { "base", "ETH" },
-                    { "quote", "JPY" },
-                    { "baseId", "eth" },
-                    { "quoteId", "jpy" },
-                    { "taker", this.parseNumber("0.0010") },
-                    { "maker", this.parseNumber("0.0010") },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "LTC/JPY", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "ltc" },
-                    { "symbol", "LTC/JPY" },
-                    { "base", "LTC" },
-                    { "quote", "JPY" },
-                    { "baseId", "ltc" },
-                    { "quoteId", "jpy" },
-                    { "taker", this.parseNumber("0.0010") },
-                    { "maker", this.parseNumber("0.0010") },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
-                { "BCH/JPY", this.safeMarketStructure(new Dictionary<string, object>() {
-                    { "id", "bch" },
-                    { "symbol", "BCH/JPY" },
-                    { "base", "BCH" },
-                    { "quote", "JPY" },
-                    { "baseId", "bch" },
-                    { "quoteId", "jpy" },
-                    { "taker", this.parseNumber("0.0010") },
-                    { "maker", this.parseNumber("0.0010") },
-                    { "type", "spot" },
-                    { "spot", true },
-                }) },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -148,6 +101,146 @@ public partial class btcbox : Exchange
                 { "402", typeof(DDoSProtection) },
             } },
         });
+    }
+
+    /**
+     * @method
+     * @name btcbox#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    public async override Task<object> fetchMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicGetTickers();
+        //
+        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object markets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object baseCurr = this.safeString(symbolParts, 0);
+            object quote = this.safeString(symbolParts, 1);
+            object quoteId = ((string)quote).ToLower();
+            object id = ((string)baseCurr).ToLower();
+            object res = getValue(response, marketId);
+            object symbol = add(add(baseCurr, "/"), quote);
+            object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "uppercaseId", null },
+                { "symbol", symbol },
+                { "base", baseCurr },
+                { "baseId", id },
+                { "quote", quote },
+                { "quoteId", quoteId },
+                { "settle", null },
+                { "settleId", null },
+                { "type", "spot" },
+                { "spot", true },
+                { "margin", false },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+                { "taker", fee },
+                { "maker", fee },
+                { "contract", false },
+                { "linear", null },
+                { "inverse", null },
+                { "contractSize", null },
+                { "expiry", null },
+                { "expiryDatetime", null },
+                { "strike", null },
+                { "optionType", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "precision", new Dictionary<string, object>() {
+                    { "price", null },
+                    { "amount", null },
+                } },
+                { "active", null },
+                { "created", null },
+                { "info", res },
+            }));
+        }
+        return markets;
+    }
+
+    public override object parseMarket(object market)
+    {
+        object baseId = this.safeString(market, "base");
+        object bs = this.safeCurrencyCode(baseId);
+        object quoteId = this.safeString(market, "quote");
+        object quote = this.safeCurrencyCode(quoteId);
+        object symbol = add(add(bs, "/"), quote);
+        return new Dictionary<string, object>() {
+            { "id", this.safeString(market, "symbol") },
+            { "uppercaseId", null },
+            { "symbol", symbol },
+            { "base", bs },
+            { "baseId", baseId },
+            { "quote", quote },
+            { "quoteId", quoteId },
+            { "settle", null },
+            { "settleId", null },
+            { "type", "spot" },
+            { "spot", true },
+            { "margin", false },
+            { "swap", false },
+            { "future", false },
+            { "option", false },
+            { "contract", false },
+            { "linear", null },
+            { "inverse", null },
+            { "contractSize", null },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "minLimitBaseAmount") },
+                    { "max", this.safeNumber(market, "maxLimitBaseAmount") },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "precision", new Dictionary<string, object>() {
+                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
+                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
+            } },
+            { "active", null },
+            { "created", null },
+            { "info", market },
+        };
     }
 
     public override object parseBalance(object response)
@@ -174,34 +267,34 @@ public partial class btcbox : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://blog.btcbox.jp/en/archives/8762#toc13
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://blog.btcbox.jp/en/archives/8762#toc13
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostBalance(parameters);
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://blog.btcbox.jp/en/archives/8762#toc6
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://blog.btcbox.jp/en/archives/8762#toc6
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -243,17 +336,17 @@ public partial class btcbox : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://blog.btcbox.jp/en/archives/8762#toc5
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://blog.btcbox.jp/en/archives/8762#toc5
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -265,6 +358,22 @@ public partial class btcbox : Exchange
         }
         object response = await this.publicGetTicker(this.extend(request, parameters));
         return this.parseTicker(response, market);
+    }
+
+    /**
+     * @method
+     * @name btcbox#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.publicGetTickers(parameters);
+        return this.parseTickers(response, symbols);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -304,19 +413,19 @@ public partial class btcbox : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://blog.btcbox.jp/en/archives/8762#toc7
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://blog.btcbox.jp/en/archives/8762#toc7
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -341,21 +450,21 @@ public partial class btcbox : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name btcbox#createOrder
+     * @description create a trade order
+     * @see https://blog.btcbox.jp/en/archives/8762#toc18
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#createOrder
-        * @description create a trade order
-        * @see https://blog.btcbox.jp/en/archives/8762#toc18
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -375,18 +484,18 @@ public partial class btcbox : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name btcbox#cancelOrder
+     * @description cancels an open order
+     * @see https://blog.btcbox.jp/en/archives/8762#toc17
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#cancelOrder
-        * @description cancels an open order
-        * @see https://blog.btcbox.jp/en/archives/8762#toc17
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
@@ -481,17 +590,18 @@ public partial class btcbox : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://blog.btcbox.jp/en/archives/8762#toc16
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://blog.btcbox.jp/en/archives/8762#toc16
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
@@ -560,36 +670,36 @@ public partial class btcbox : Exchange
         return orders;
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://blog.btcbox.jp/en/archives/8762#toc15
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://blog.btcbox.jp/en/archives/8762#toc15
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByType("all", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name btcbox#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://blog.btcbox.jp/en/archives/8762#toc15
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcbox#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://blog.btcbox.jp/en/archives/8762#toc15
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByType("open", symbol, since, limit, parameters);
     }
@@ -620,7 +730,7 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             object request = this.urlencode(query);
-            object secret = this.hash(this.encode(this.secret), sha256);
+            object secret = this.hash(this.encode(this.secret), md5);
             ((IDictionary<string,object>)query)["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = new Dictionary<string, object>() {

@@ -16,6 +16,7 @@ public partial class probit : ccxt.probit
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -45,20 +46,19 @@ public partial class probit : ccxt.probit
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
-            { "exceptions", new Dictionary<string, object>() {} },
         });
     }
 
+    /**
+     * @method
+     * @name probit#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs-en.probit.com/reference/balance-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs-en.probit.com/reference/balance-1
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object messageHash = "balance";
@@ -124,23 +124,24 @@ public partial class probit : ccxt.probit
         this.balance = this.safeBalance(this.balance);
     }
 
+    /**
+     * @method
+     * @name probit#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs-en.probit.com/reference/marketdata
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "filter", "ticker");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         return await this.subscribeOrderBook(symbol, "ticker", filter, parameters);
     }
 
@@ -174,25 +175,27 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs-en.probit.com/reference/trade_history
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "filter", "recent_trades");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
         object trades = await this.subscribeOrderBook(symbol, "trades", filter, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -246,26 +249,26 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchMyTrades
+     * @description get the list of trades associated with the user
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchMyTrades
-        * @description get the list of trades associated with the user
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate(parameters);
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -337,28 +340,27 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchOrders
+     * @description watches information on an order made by the user
+     * @see https://docs-en.probit.com/reference/open_order
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum amount of orders to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchOrders
-        * @description watches information on an order made by the user
-        * @see https://docs-en.probit.com/reference/open_order
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {int} [since] timestamp in ms of the earliest order to watch
-        * @param {int} [limit] the maximum amount of orders to watch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object channel = null;
@@ -437,23 +439,24 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs-en.probit.com/reference/marketdata
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         object orderbook = await this.subscribeOrderBook(symbol, "orderbook", filter, parameters);
         return (orderbook as IOrderBook).limit();
     }
@@ -479,7 +482,8 @@ public partial class probit : ccxt.probit
             filters = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if (!isTrue((inOp(filters, filter))))
             {
-
+                // resubscribe
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
             }
         }
         ((IDictionary<string,object>)filters)[(string)filter] = true;
@@ -514,12 +518,12 @@ public partial class probit : ccxt.probit
         object symbol = this.safeSymbol(marketId);
         object dataBySide = this.groupBy(orderBook, "side");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object reset = this.safeBool(message, "reset", false);
         if (isTrue(reset))
         {
@@ -566,7 +570,16 @@ public partial class probit : ccxt.probit
         object code = this.safeString(message, "errorCode");
         object errMessage = this.safeString(message, "message", "");
         object details = this.safeValue(message, "details");
-        throw new ExchangeError ((string)add(add(add(add(add(add(this.id, " "), code), " "), errMessage), " "), this.json(details))) ;
+        object feedback = add(add(add(add(add(add(this.id, " "), code), " "), errMessage), " "), this.json(details));
+        if (isTrue(inOp(this.exceptions, "exact")))
+        {
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        if (isTrue(inOp(this.exceptions, "broad")))
+        {
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMessage, feedback);
+        }
+        throw new ExchangeError ((string)feedback) ;
     }
 
     public virtual void handleAuthenticate(WebSocketClient client, object message)
@@ -578,11 +591,12 @@ public partial class probit : ccxt.probit
         var future = getValue(((WebSocketClient)client).subscriptions, "authenticated");
         if (isTrue(isEqual(result, "ok")))
         {
-            (future as Future).resolve(true);
+            object messageHash = "authenticated";
+            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
         } else
         {
             ((Future)future).reject(message);
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
         }
     }
 
@@ -594,12 +608,14 @@ public partial class probit : ccxt.probit
             this.handleTicker(client as WebSocketClient, message);
         }
         object trades = this.safeValue(message, "recent_trades", new List<object>() {});
-        if (isTrue(getArrayLength(trades)))
+        object tradesLength = getArrayLength(trades);
+        if (isTrue(tradesLength))
         {
             this.handleTrades(client as WebSocketClient, message);
         }
         object orderBook = this.safeValueN(message, new List<object>() {"order_books", "order_books_l1", "order_books_l2", "order_books_l3", "order_books_l4"}, new List<object>() {});
-        if (isTrue(getArrayLength(orderBook)))
+        object orderBookLength = getArrayLength(orderBook);
+        if (isTrue(orderBookLength))
         {
             this.handleOrderBook(client as WebSocketClient, message, orderBook);
         }
@@ -669,7 +685,7 @@ public partial class probit : ccxt.probit
                 { "type", "authorization" },
                 { "token", accessToken },
             };
-            future = this.watch(url, messageHash, this.extend(request, parameters));
+            future = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

@@ -34,6 +34,7 @@ class paymium extends Exchange {
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -137,7 +138,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -151,7 +154,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1depth/get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -162,12 +167,12 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $response = Async\await($this->publicGetDataCurrencyDepth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDataCurrencyDepth ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -220,7 +225,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1ticker/get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -230,7 +237,7 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetDataCurrencyTicker (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetDataCurrencyTicker ($this->extend($request, $params)));
             //
             // {
             //     "high":"33740.82",
@@ -253,7 +260,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -282,7 +289,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1trades/get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -294,7 +303,7 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $response = Async\await($this->publicGetDataCurrencyTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDataCurrencyTrades ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -303,7 +312,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
+             *
              * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/post
+             *
              * @param {string} $code unified currency $code of the currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -322,11 +333,13 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
+             *
              * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses~1%7Baddress%7D/get
+             *
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -335,7 +348,7 @@ class paymium extends Exchange {
             $request = array(
                 'address' => $code,
             );
-            $response = Async\await($this->privateGetUserAddressesAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserAddressesAddress ($this->extend($request, $params)));
             //
             //     {
             //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -348,11 +361,13 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit addresses for multiple currencies and chain types
+             *
              * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
+             *
              * @param {string[]|null} $codes list of unified currency $codes, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
@@ -373,7 +388,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -387,9 +402,9 @@ class paymium extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
         );
     }
 
@@ -397,12 +412,14 @@ class paymium extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -417,7 +434,7 @@ class paymium extends Exchange {
             if ($type !== 'market') {
                 $request['price'] = $price;
             }
-            $response = Async\await($this->privatePostUserOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserOrders ($this->extend($request, $params)));
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['uuid'],
@@ -429,8 +446,10 @@ class paymium extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D/delete
              * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D~1cancel/delete
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by paymium cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -439,7 +458,10 @@ class paymium extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            return Async\await($this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params)));
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -447,7 +469,9 @@ class paymium extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -469,7 +493,7 @@ class paymium extends Exchange {
                 'email' => $toAccount,
                 // 'comment' => 'a small note explaining the transfer'
             );
-            $response = Async\await($this->privatePostUserEmailTransfers (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserEmailTransfers ($this->extend($request, $params)));
             //
             //     {
             //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -506,7 +530,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -558,7 +582,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
             // what are the other $statuses?
@@ -599,7 +623,7 @@ class paymium extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

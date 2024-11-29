@@ -17,6 +17,7 @@ var misc = require('./functions/misc.js');
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;
 exports.isWebWorker = platform.isWebWorker;
@@ -155,4 +156,5 @@ exports.extractParams = misc.extractParams;
 exports.implodeParams = misc.implodeParams;
 exports.parseTimeframe = misc.parseTimeframe;
 exports.roundTimeframe = misc.roundTimeframe;
+exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;

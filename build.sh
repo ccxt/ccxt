@@ -34,14 +34,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node test-commonjs.cjs && node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      npm run live-tests -- --js --python-async --php-async --csharp $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async --csharp --useProxy $ws_args &
+      npm run live-tests -- --js --python-async --php-async --csharp --ws $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -76,12 +76,22 @@ build_and_test_all () {
       #   cd python
       #   if ! tox run-parallel; then
       #     exit 1
-      #   fi 
+      #   fi
       #   cd  ..
       # fi
     fi
-    npm run test-base
+    npm run test-base-rest
     npm run test-base-ws
+    npm run id-tests
+    npm run request-tests
+    npm run response-tests
+    npm run commonjs-test
+    npm run package-test
+    npm run test-freshness
+    if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+      echo "Travis built all files and static/base tests passed, will push to master before running live tests"
+      env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=false ./build/push.sh;
+    fi
     last_commit_message=$(git log -1 --pretty=%B)
     echo "Last commit: $last_commit_message" # for debugging
     if [[ "$last_commit_message" == *"skip-tests"* ]]; then
@@ -116,7 +126,7 @@ diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static 
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
-#echo $diff
+#echo $diff 
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 if [[ "$diff" =~ $critical_pattern ]]; then
@@ -155,7 +165,7 @@ PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
   node build/transpile.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange
+  npm run transpileCsSingle -- $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
 done
@@ -163,7 +173,7 @@ echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
   node build/transpileWS.js $exchange --force --child
-  node --loader ts-node/esm build/csharpTranspiler.ts $exchange --ws
+  npm run transpileCsSingle -- $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
 # faster version of post-transpile
@@ -172,7 +182,7 @@ npm run check-php-syntax
 # only run the python linter if exchange related files are changed
 if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
   echo "$msgPrefix Linting python files: ${PYTHON_FILES[*]}"
-  ruff "${PYTHON_FILES[@]}"
+  ruff check "${PYTHON_FILES[@]}"
 fi
 
 
@@ -190,7 +200,7 @@ npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
-npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+npm run test-base-rest && npm run test-base-ws && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
@@ -201,16 +211,16 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
-  npm run request-py -- $exchange
-  php php/test/test_async.php $exchange --requestTests
+  npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
+  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py -- $exchange
-  php php/test/test_async.php $exchange --responseTests
+  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 

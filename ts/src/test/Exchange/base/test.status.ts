@@ -1,8 +1,6 @@
+import { Exchange } from "../../../../ccxt";
 
-import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
-
-function testStatus (exchange, skippedProperties, method, entry, now : number) {
+function testStatus (exchange: Exchange, skippedProperties: object, method: string, entry: object, now : number) {
     const format = {
         'info': { },
         'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'

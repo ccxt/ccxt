@@ -13,6 +13,7 @@ public partial class wavesexchange : Exchange
             { "countries", new List<object>() {"CH"} },
             { "certified", false },
             { "pro", false },
+            { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -37,6 +38,8 @@ public partial class wavesexchange : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
@@ -59,8 +62,11 @@ public partial class wavesexchange : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -69,6 +75,7 @@ public partial class wavesexchange : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -110,7 +117,7 @@ public partial class wavesexchange : Exchange
                     { "forward", "https://wx.network/api/v1/forward/matcher" },
                     { "market", "https://wx.network/api/v1/forward/marketdata/api/v1" },
                 } },
-                { "doc", "https://docs.wx.network" },
+                { "doc", new List<object>() {"https://docs.wx.network", "https://docs.waves.tech", "https://api.wavesplatform.com/v0/docs/", "https://nodes.wavesnodes.com/api-docs/index.html", "https://matcher.waves.exchange/api-docs/index.html"} },
                 { "www", "https://wx.network" },
             } },
             { "api", new Dictionary<string, object>() {
@@ -145,10 +152,10 @@ public partial class wavesexchange : Exchange
                     { "id", "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc" },
                     { "numericId", null },
                     { "code", "WX" },
-                    { "precision", this.parseToInt("8") },
+                    { "precision", this.parseNumber("1e-8") },
                 }) },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "allowedCandles", 1440 },
                 { "accessToken", null },
@@ -159,7 +166,7 @@ public partial class wavesexchange : Exchange
                 { "wavesAddress", null },
                 { "withdrawFeeUSDN", 7420 },
                 { "withdrawFeeWAVES", 100000 },
-                { "wavesPrecision", 8 },
+                { "wavesPrecision", 1e-8 },
                 { "messagePrefix", "W" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -212,8 +219,8 @@ public partial class wavesexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        amount = this.customAmountToPrecision(symbol, amount);
-        price = this.customPriceToPrecision(symbol, price);
+        amount = this.toRealSymbolAmount(symbol, amount);
+        price = this.toRealSymbolPrice(symbol, price);
         object request = this.extend(new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
             { "quoteId", getValue(market, "quoteId") },
@@ -251,7 +258,7 @@ public partial class wavesexchange : Exchange
         object matcherFee = this.safeString(mode, "matcherFee");
         object feeAssetId = this.safeString(mode, "feeAssetId");
         object feeAsset = this.safeCurrencyCode(feeAssetId);
-        object adjustedMatcherFee = this.currencyFromPrecision(feeAsset, matcherFee);
+        object adjustedMatcherFee = this.fromRealCurrencyAmount(feeAsset, matcherFee);
         object amountAsString = this.numberToString(amount);
         object priceAsString = this.numberToString(price);
         object feeCost = this.feeToPrecision(symbol, this.parseNumber(adjustedMatcherFee));
@@ -336,15 +343,15 @@ public partial class wavesexchange : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchMarkets
+     * @description retrieves data on all markets for wavesexchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchMarkets
-        * @description retrieves data on all markets for wavesexchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.marketGetTickers();
         //
@@ -414,8 +421,8 @@ public partial class wavesexchange : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeInteger(entry, "amountAssetDecimals") },
-                    { "price", this.safeInteger(entry, "priceAssetDecimals") },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "amountAssetDecimals"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "priceAssetDecimals"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -442,17 +449,18 @@ public partial class wavesexchange : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -477,12 +485,11 @@ public partial class wavesexchange : Exchange
     public virtual object parseOrderBookSide(object bookSide, object market = null, object limit = null)
     {
         object precision = getValue(market, "precision");
-        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "8");
-        object amountPrecision = add("1e", this.numberToString(getValue(precision, "amount")));
-        object amountPrecisionString = this.numberToString(getValue(precision, "amount"));
-        object pricePrecisionString = this.numberToString(getValue(precision, "price"));
-        object difference = Precise.stringSub(amountPrecisionString, pricePrecisionString);
-        object pricePrecision = add("1e", Precise.stringSub(wavesPrecision, difference));
+        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "1e-8");
+        object amountPrecisionString = this.safeString(precision, "amount");
+        object pricePrecisionString = this.safeString(precision, "price");
+        object difference = Precise.stringDiv(amountPrecisionString, pricePrecisionString);
+        object pricePrecision = Precise.stringDiv(wavesPrecision, difference);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bookSide)); postFixIncrement(ref i))
         {
@@ -493,11 +500,11 @@ public partial class wavesexchange : Exchange
             object amount = null;
             if (isTrue(isTrue((!isEqual(pricePrecision, null))) && isTrue((!isEqual(entryPrice, null)))))
             {
-                price = Precise.stringDiv(entryPrice, pricePrecision);
+                price = Precise.stringMul(entryPrice, pricePrecision);
             }
-            if (isTrue(isTrue((!isEqual(amountPrecision, null))) && isTrue((!isEqual(entryAmount, null)))))
+            if (isTrue(isTrue((!isEqual(amountPrecisionString, null))) && isTrue((!isEqual(entryAmount, null)))))
             {
-                amount = Precise.stringDiv(entryAmount, amountPrecision);
+                amount = Precise.stringMul(entryAmount, amountPrecisionString);
             }
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThan(i, limit)))))
             {
@@ -622,15 +629,16 @@ public partial class wavesexchange : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name wavesexchange#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://docs.wx.network/en/api/auth/oauth2-token
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
     public async override Task<object> signIn(object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#signIn
-        * @description sign in, must be called prior to using other authenticated methods
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns response from exchange
-        */
         // W for production, T for testnet
         // { access_token: "eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan",
         //   "token_type": "bearer",
@@ -741,16 +749,17 @@ public partial class wavesexchange : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -783,20 +792,20 @@ public partial class wavesexchange : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object dataTicker = this.safeValue(ticker, "data", new Dictionary<string, object>() {});
+        object dataTicker = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
         return this.parseTicker(dataTicker, market);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.marketGetTickers(parameters);
@@ -831,19 +840,20 @@ public partial class wavesexchange : Exchange
         return this.parseTickers(response, symbols);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.wavesplatform.com/v0/docs/#/candles/getCandles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -959,16 +969,16 @@ public partial class wavesexchange : Exchange
         return new List<object> {this.parse8601(this.safeString(data, "time")), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume", 0)};
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.signIn();
         object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
@@ -1055,12 +1065,11 @@ public partial class wavesexchange : Exchange
                 object responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 object addressInner = this.safeString(response, "address");
                 return new Dictionary<string, object>() {
-                    { "address", addressInner },
-                    { "code", code },
+                    { "info", responseInner },
                     { "currency", code },
                     { "network", network },
+                    { "address", addressInner },
                     { "tag", null },
-                    { "info", responseInner },
                 };
             } else
             {
@@ -1101,12 +1110,11 @@ public partial class wavesexchange : Exchange
         object addresses = this.safeValue(response, "deposit_addresses");
         object address = this.safeString(addresses, 0);
         return new Dictionary<string, object>() {
-            { "address", address },
-            { "code", code },
-            { "currency", code },
-            { "tag", null },
-            { "network", unifiedNetwork },
             { "info", response },
+            { "currency", code },
+            { "network", unifiedNetwork },
+            { "address", address },
+            { "tag", null },
         };
     }
 
@@ -1146,65 +1154,48 @@ public partial class wavesexchange : Exchange
         return currencyId;
     }
 
-    public virtual object customPriceToPrecision(object symbol, object price)
+    public virtual object toRealCurrencyAmount(object code, object amount, object networkCode = null)
     {
-        object market = getValue(this.markets, symbol);
-        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "8");
-        object amount = this.numberToString(getValue(getValue(market, "precision"), "amount"));
-        object precisionPrice = this.numberToString(getValue(getValue(market, "precision"), "price"));
-        object difference = Precise.stringSub(amount, precisionPrice);
-        object precision = Precise.stringSub(wavesPrecision, difference);
-        object pricePrecision = ((object)this.toPrecision(price, precision)).ToString();
-        return this.parseToInt(parseFloat(pricePrecision));
+        object currency = this.currency(code);
+        object stringValue = Precise.stringDiv(this.numberToString(amount), this.safeString(currency, "precision"));
+        return parseInt(stringValue);
     }
 
-    public virtual object customAmountToPrecision(object symbol, object amount)
+    public virtual object fromRealCurrencyAmount(object code, object amountString)
     {
-        object amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"))));
-        return this.parseToInt(parseFloat(amountPrecision));
-    }
-
-    public override object currencyToPrecision(object code, object amount, object networkCode = null)
-    {
-        object amountPrecision = this.numberToString(this.toPrecision(amount, getValue(getValue(this.currencies, code), "precision")));
-        return this.parseToInt(parseFloat(amountPrecision));
-    }
-
-    public virtual object fromPrecision(object amount, object scale)
-    {
-        if (isTrue(isEqual(amount, null)))
+        if (!isTrue((inOp(this.currencies, code))))
         {
-            return null;
+            return amountString;
         }
-        var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
-        precise.reduce();
-        return ((object)precise).ToString();
+        object currency = this.currency(code);
+        object precisionAmount = this.safeString(currency, "precision");
+        return Precise.stringMul(amountString, precisionAmount);
     }
 
-    public virtual object toPrecision(object amount, object scale)
+    public virtual object toRealSymbolPrice(object symbol, object price)
     {
-        object amountString = this.numberToString(amount);
-        var precise = new Precise(amountString);
-        // precise.decimals should be integer
-        precise.decimals = this.parseToInt(Precise.stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
-        precise.reduce();
-        object stringValue = ((object)precise).ToString();
-        return stringValue;
+        object market = this.market(symbol);
+        object stringValue = Precise.stringDiv(this.numberToString(price), this.safeString(getValue(market, "precision"), "price"));
+        return parseInt(stringValue);
     }
 
-    public virtual object currencyFromPrecision(object currency, object amount)
-    {
-        object scale = getValue(getValue(this.currencies, currency), "precision");
-        return this.fromPrecision(amount, scale);
-    }
-
-    public virtual object priceFromPrecision(object symbol, object price)
+    public virtual object fromRealSymbolPrice(object symbol, object priceString)
     {
         object market = getValue(this.markets, symbol);
-        object wavesPrecision = this.safeInteger(this.options, "wavesPrecision", 8);
-        object scale = subtract(this.sum(wavesPrecision, getValue(getValue(market, "precision"), "price")), getValue(getValue(market, "precision"), "amount"));
-        return this.fromPrecision(price, scale);
+        return Precise.stringMul(priceString, this.safeString(getValue(market, "precision"), "price"));
+    }
+
+    public virtual object toRealSymbolAmount(object symbol, object amount)
+    {
+        object market = this.market(symbol);
+        object stringValue = Precise.stringDiv(this.numberToString(amount), this.safeString(getValue(market, "precision"), "amount"));
+        return parseInt(stringValue);
+    }
+
+    public virtual object fromRealSymbolAmount(object symbol, object amountString)
+    {
+        object market = getValue(this.markets, symbol);
+        return Precise.stringMul(amountString, getValue(getValue(market, "precision"), "amount"));
     }
 
     public virtual object safeGetDynamic(object settings)
@@ -1231,21 +1222,22 @@ public partial class wavesexchange : Exchange
         return rates;
     }
 
+    /**
+     * @method
+     * @name wavesexchange#createOrder
+     * @description create a trade order
+     * @see https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] The price at which a stop order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#createOrder
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] The price at which a stop order is triggered at
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1262,7 +1254,10 @@ public partial class wavesexchange : Exchange
             throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders to determine the max price for buy and the min price for sell")) ;
         }
         object timestamp = this.milliseconds();
-        object defaultExpiryDelta = this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000);
+        object defaultExpiryDelta = null;
+        var defaultExpiryDeltaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "defaultExpiry", this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000));
+        defaultExpiryDelta = ((IList<object>)defaultExpiryDeltaparametersVariable)[0];
+        parameters = ((IList<object>)defaultExpiryDeltaparametersVariable)[1];
         object expiration = this.sum(timestamp, defaultExpiryDelta);
         object matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1301,7 +1296,7 @@ public partial class wavesexchange : Exchange
             }
             object matcherFeeAsset = this.safeCurrencyCode(matcherFeeAssetId);
             object rawMatcherFee = ((bool) isTrue((isEqual(matcherFeeAssetId, baseFeeAssetId)))) ? baseMatcherFee : discountMatcherFee;
-            object floatMatcherFee = parseFloat(this.currencyFromPrecision(matcherFeeAsset, rawMatcherFee));
+            object floatMatcherFee = parseFloat(this.fromRealCurrencyAmount(matcherFeeAsset, rawMatcherFee));
             if (isTrue(isTrue((inOp(balances, matcherFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, matcherFeeAsset), "free")), floatMatcherFee)))))
             {
                 matcherFee = parseInt(rawMatcherFee);
@@ -1310,18 +1305,18 @@ public partial class wavesexchange : Exchange
                 throw new InsufficientFunds ((string)add(this.id, " not enough funds of the selected asset fee")) ;
             }
         }
+        object floatBaseMatcherFee = this.fromRealCurrencyAmount(baseFeeAsset, baseMatcherFee);
+        object floatDiscountMatcherFee = this.fromRealCurrencyAmount(discountFeeAsset, discountMatcherFee);
         if (isTrue(isEqual(matcherFeeAssetId, null)))
         {
             // try to the pay the fee using the base first then discount asset
-            object floatBaseMatcherFee = parseFloat(this.currencyFromPrecision(baseFeeAsset, baseMatcherFee));
-            if (isTrue(isTrue((inOp(balances, baseFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, baseFeeAsset), "free")), floatBaseMatcherFee)))))
+            if (isTrue(isTrue((inOp(balances, baseFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, baseFeeAsset), "free")), parseFloat(floatBaseMatcherFee))))))
             {
                 matcherFeeAssetId = baseFeeAssetId;
                 matcherFee = parseInt(baseMatcherFee);
             } else
             {
-                object floatDiscountMatcherFee = parseFloat(this.currencyFromPrecision(discountFeeAsset, discountMatcherFee));
-                if (isTrue(isTrue((inOp(balances, discountFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, discountFeeAsset), "free")), floatDiscountMatcherFee)))))
+                if (isTrue(isTrue((inOp(balances, discountFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, discountFeeAsset), "free")), parseFloat(floatDiscountMatcherFee))))))
                 {
                     matcherFeeAssetId = discountFeeAssetId;
                     matcherFee = parseInt(discountMatcherFee);
@@ -1330,10 +1325,10 @@ public partial class wavesexchange : Exchange
         }
         if (isTrue(isEqual(matcherFeeAssetId, null)))
         {
-            throw new InsufficientFunds ((string)add(this.id, " not enough funds on none of the eligible asset fees")) ;
+            throw new InsufficientFunds ((string)add(add(add(add(add(add(add(add(this.id, " not enough funds on none of the eligible asset fees: "), baseFeeAsset), " "), floatBaseMatcherFee), " or "), discountFeeAsset), " "), floatDiscountMatcherFee)) ;
         }
-        amount = this.customAmountToPrecision(symbol, amount);
-        price = this.customPriceToPrecision(symbol, price);
+        amount = this.toRealSymbolAmount(symbol, amount);
+        price = this.toRealSymbolPrice(symbol, price);
         object assetPair = new Dictionary<string, object>() {
             { "amountAsset", amountAsset },
             { "priceAsset", priceAsset },
@@ -1372,7 +1367,7 @@ public partial class wavesexchange : Exchange
                 { "c", new Dictionary<string, object>() {
                     { "t", "sp" },
                     { "v", new Dictionary<string, object>() {
-                        { "p", this.customPriceToPrecision(symbol, stopPrice) },
+                        { "p", this.toRealSymbolPrice(symbol, stopPrice) },
                     } },
                 } },
             };
@@ -1422,28 +1417,29 @@ public partial class wavesexchange : Exchange
         //
         if (isTrue(isMarketOrder))
         {
-            object response = await this.matcherPostMatcherOrderbookMarket(body);
-            object value = this.safeValue(response, "message");
+            object response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, parameters));
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         } else
         {
-            object response = await this.matcherPostMatcherOrderbook(body);
-            object value = this.safeValue(response, "message");
+            object response = await this.matcherPostMatcherOrderbook(this.extend(body, parameters));
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         }
     }
 
+    /**
+     * @method
+     * @name wavesexchange#cancelOrder
+     * @description cancels an open order
+     * @see https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#cancelOrder
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1462,7 +1458,7 @@ public partial class wavesexchange : Exchange
         object firstMessage = this.safeValue(message, 0);
         object firstOrder = this.safeValue(firstMessage, 0);
         object returnedId = this.safeString(firstOrder, "orderId");
-        return new Dictionary<string, object>() {
+        return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", returnedId },
             { "clientOrderId", null },
@@ -1481,19 +1477,21 @@ public partial class wavesexchange : Exchange
             { "status", null },
             { "fee", null },
             { "trades", null },
-        };
+        });
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchOrder
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1518,18 +1516,18 @@ public partial class wavesexchange : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredDependencies();
         this.checkRequiredKeys();
@@ -1571,18 +1569,18 @@ public partial class wavesexchange : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.signIn();
@@ -1600,18 +1598,18 @@ public partial class wavesexchange : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.signIn();
@@ -1744,25 +1742,25 @@ public partial class wavesexchange : Exchange
             symbol = getValue(market, "symbol");
         }
         object amountCurrency = this.safeCurrencyCode(this.safeString(assetPair, "amountAsset", "WAVES"));
-        object price = this.priceFromPrecision(symbol, priceString);
-        object amount = this.currencyFromPrecision(amountCurrency, amountString);
-        object filled = this.currencyFromPrecision(amountCurrency, filledString);
-        object average = this.priceFromPrecision(symbol, this.safeString(order, "avgWeighedPrice"));
+        object price = this.fromRealSymbolPrice(symbol, priceString);
+        object amount = this.fromRealCurrencyAmount(amountCurrency, amountString);
+        object filled = this.fromRealCurrencyAmount(amountCurrency, filledString);
+        object average = this.fromRealSymbolPrice(symbol, this.safeString(order, "avgWeighedPrice"));
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object fee = null;
         if (isTrue(inOp(order, "type")))
         {
-            object currency = this.safeCurrencyCode(this.safeString(order, "feeAsset"));
+            object code = this.safeCurrencyCode(this.safeString(order, "feeAsset"));
             fee = new Dictionary<string, object>() {
-                { "currency", currency },
-                { "fee", this.parseNumber(this.currencyFromPrecision(currency, this.safeString(order, "filledFee"))) },
+                { "currency", code },
+                { "fee", this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(order, "filledFee"))) },
             };
         } else
         {
-            object currency = this.safeCurrencyCode(this.safeString(order, "matcherFeeAssetId", "WAVES"));
+            object code = this.safeCurrencyCode(this.safeString(order, "matcherFeeAssetId", "WAVES"));
             fee = new Dictionary<string, object>() {
-                { "currency", currency },
-                { "fee", this.parseNumber(this.currencyFromPrecision(currency, this.safeString(order, "matcherFee"))) },
+                { "currency", code },
+                { "fee", this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(order, "matcherFee"))) },
             };
         }
         object triggerPrice = null;
@@ -1826,15 +1824,15 @@ public partial class wavesexchange : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         // makes a lot of different requests to get all the data
         // in particular:
         // fetchMarkets, getWavesAddress,
@@ -1897,19 +1895,16 @@ public partial class wavesexchange : Exchange
             object issueTransaction = this.safeValue(entry, "issueTransaction");
             object currencyId = this.safeString(entry, "assetId");
             object balance = this.safeString(entry, "balance");
-            if (isTrue(isEqual(issueTransaction, null)))
+            object currencyExists = (inOp(this.currencies_by_id, currencyId));
+            if (isTrue(currencyExists))
+            {
+                object code = this.safeCurrencyCode(currencyId);
+                ((IDictionary<string,object>)result)[(string)code] = this.account();
+                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromRealCurrencyAmount(code, balance);
+            } else if (isTrue(isEqual(issueTransaction, null)))
             {
                 ((IList<object>)assetIds).Add(currencyId);
                 ((IList<object>)nonStandardBalances).Add(balance);
-                continue;
-            }
-            object decimals = this.safeInteger(issueTransaction, "decimals");
-            object code = null;
-            if (isTrue(inOp(this.currencies_by_id, currencyId)))
-            {
-                code = this.safeCurrencyCode(currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = this.account();
-                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromPrecision(balance, decimals);
             }
         }
         object nonStandardAssets = getArrayLength(assetIds);
@@ -1925,11 +1920,11 @@ public partial class wavesexchange : Exchange
                 object entry = getValue(data, i);
                 object balance = getValue(nonStandardBalances, i);
                 object inner = this.safeValue(entry, "data");
-                object decimals = this.safeInteger(inner, "precision");
+                object precision = this.parsePrecision(this.safeString(inner, "precision"));
                 object ticker = this.safeString(inner, "ticker");
                 object code = this.safeCurrencyCode(ticker);
                 ((IDictionary<string,object>)result)[(string)code] = this.account();
-                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromPrecision(balance, decimals);
+                ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringMul(balance, precision);
             }
         }
         object currentTimestamp = this.milliseconds();
@@ -1954,13 +1949,7 @@ public partial class wavesexchange : Exchange
                 ((IDictionary<string,object>)result)[(string)code] = this.account();
             }
             object amount = this.safeString(reservedBalance, currencyId);
-            if (isTrue(inOp(this.currencies, code)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = this.currencyFromPrecision(code, amount);
-            } else
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = amount;
-            }
+            ((IDictionary<string,object>)getValue(result, code))["used"] = this.fromRealCurrencyAmount(code, amount);
         }
         object wavesRequest = new Dictionary<string, object>() {
             { "address", wavesAddress },
@@ -1971,34 +1960,42 @@ public partial class wavesexchange : Exchange
         //   "confirmations": 0,
         //   "balance": 909085978
         // }
-        ((IDictionary<string,object>)result)["WAVES"] = this.safeValue(result, "WAVES", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)getValue(result, "WAVES"))["total"] = this.currencyFromPrecision("WAVES", this.safeString(wavesTotal, "balance"));
-        object codes = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
-        {
-            object code = getValue(codes, i);
-            if (isTrue(isEqual(this.safeValue(getValue(result, code), "used"), null)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = "0";
-            }
-        }
+        ((IDictionary<string,object>)result)["WAVES"] = this.safeValue(result, "WAVES", this.account());
+        ((IDictionary<string,object>)getValue(result, "WAVES"))["total"] = this.fromRealCurrencyAmount("WAVES", this.safeString(wavesTotal, "balance"));
+        result = this.setUndefinedBalancesToZero(result);
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
         return this.safeBalance(result);
     }
 
+    public virtual object setUndefinedBalancesToZero(object balances, object key = null)
+    {
+        key ??= "used";
+        object codes = new List<object>(((IDictionary<string,object>)balances).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            object code = getValue(codes, i);
+            if (isTrue(isEqual(this.safeValue(getValue(balances, code), "used"), null)))
+            {
+                ((IDictionary<string,object>)getValue(balances, code))[(string)key] = "0";
+            }
+        }
+        return balances;
+    }
+
+    /**
+     * @method
+     * @name wavesexchange#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object address = await this.getWavesAddress();
@@ -2083,18 +2080,19 @@ public partial class wavesexchange : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2361,18 +2359,18 @@ public partial class wavesexchange : Exchange
         return depositWithdrawFees;
     }
 
+    /**
+     * @method
+     * @name wavesexchange#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.wx.network/en/api/gateways/deposit/currencies
+     * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://docs.wx.network/en/api/gateways/deposit/currencies
-        * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object data = new List<object>() {};
@@ -2466,19 +2464,19 @@ public partial class wavesexchange : Exchange
         return null;
     }
 
+    /**
+     * @method
+     * @name wavesexchange#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name wavesexchange#withdraw
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2569,7 +2567,7 @@ public partial class wavesexchange : Exchange
         object feeAssetId = "WAVES";
         object type = 4; // transfer
         object version = 2;
-        object amountInteger = this.currencyToPrecision(code, amount);
+        object amountInteger = this.toRealCurrencyAmount(code, amount);
         object currency = this.currency(code);
         object timestamp = this.milliseconds();
         object byteArray = new List<object> {this.numberToBE(4, 1), this.numberToBE(2, 1), this.base58ToBinary(this.apiKey), this.getAssetBytes(getValue(currency, "id")), this.getAssetBytes(feeAssetId), this.numberToBE(timestamp, 8), this.numberToBE(amountInteger, 8), this.numberToBE(fee, 8), this.base58ToBinary(proxyAddress), this.numberToBE(0, 2)};
@@ -2618,18 +2616,45 @@ public partial class wavesexchange : Exchange
         //         "amount": 0
         //     }
         //
+        // withdraw new:
+        //     {
+        //         type: "4",
+        //         id: "2xnWTqG9ar7jEDrLxfbVyyspPZ6XZNrrw9ai9sQ81Eya",
+        //         fee: "100000",
+        //         feeAssetId: null,
+        //         timestamp: "1715786263807",
+        //         version: "2",
+        //         sender: "3P81LLX1kk2CSJC9L8C2enxdHB7XvnSGAEE",
+        //         senderPublicKey: "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJoXz",
+        //         proofs: [ "RyoKwdSYv3EqotJCYftfFM9JE2j1ZpDRxKwYfiRhLAFeyNp6VfJUXNDS884XfeCeHeNypNmTCZt5NYR1ekyjCX3", ],
+        //         recipient: "3P9tXxu38a8tgewNEKFzourVxeqHd11ppOc",
+        //         assetId: null,
+        //         feeAsset: null,
+        //         amount: "2000000",
+        //         attachment: "",
+        //     }
+        //
         currency = this.safeCurrency(null, currency);
+        object code = getValue(currency, "code");
+        object typeRaw = this.safeString(transaction, "type");
+        object type = ((bool) isTrue((isEqual(typeRaw, "4")))) ? "withdraw" : "deposit";
+        object amount = this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(transaction, "amount")));
+        object feeString = this.safeString(transaction, "fee");
+        object feeAssetId = this.safeString(transaction, "feeAssetId", "WAVES");
+        object feeCode = this.safeCurrencyCode(feeAssetId);
+        object feeAmount = this.parseNumber(this.fromRealCurrencyAmount(feeCode, feeString));
+        object timestamp = this.safeInteger(transaction, "timestamp");
         return new Dictionary<string, object>() {
-            { "id", null },
+            { "id", this.safeString(transaction, "id") },
             { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "network", null },
-            { "addressFrom", null },
+            { "addressFrom", this.safeString(transaction, "sender") },
             { "address", null },
-            { "addressTo", null },
-            { "amount", null },
-            { "type", null },
+            { "addressTo", this.safeString(transaction, "recipient") },
+            { "amount", amount },
+            { "type", type },
             { "currency", getValue(currency, "code") },
             { "status", null },
             { "updated", null },
@@ -2638,7 +2663,10 @@ public partial class wavesexchange : Exchange
             { "tagTo", null },
             { "comment", null },
             { "internal", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", feeCode },
+                { "cost", feeAmount },
+            } },
             { "info", transaction },
         };
     }

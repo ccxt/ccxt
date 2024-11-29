@@ -49,7 +49,7 @@ class idex(ccxt.async_support.idex):
 
     async def subscribe(self, subscribeObject, messageHash, subscription=True):
         url = self.urls['test']['ws']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscriptions': [
                 subscribeObject,
@@ -60,7 +60,7 @@ class idex(ccxt.async_support.idex):
     async def subscribe_private(self, subscribeObject, messageHash):
         token = await self.authenticate()
         url = self.urls['test']['ws']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'token': token,
             'subscriptions': [
@@ -72,6 +72,9 @@ class idex(ccxt.async_support.idex):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://api-docs-v4.idex.io/#tickers
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -79,7 +82,7 @@ class idex(ccxt.async_support.idex):
         await self.load_markets()
         market = self.market(symbol)
         name = 'tickers'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
@@ -141,6 +144,9 @@ class idex(ccxt.async_support.idex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://api-docs-v4.idex.io/#trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -151,7 +157,7 @@ class idex(ccxt.async_support.idex):
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'trades'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
@@ -231,6 +237,9 @@ class idex(ccxt.async_support.idex):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://api-docs-v4.idex.io/#candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -243,7 +252,7 @@ class idex(ccxt.async_support.idex):
         symbol = market['symbol']
         name = 'candles'
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
             'interval': interval,
@@ -383,6 +392,9 @@ class idex(ccxt.async_support.idex):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://api-docs-v4.idex.io/#l2-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -391,12 +403,12 @@ class idex(ccxt.async_support.idex):
         await self.load_markets()
         market = self.market(symbol)
         name = 'l2orderbook'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
         messageHash = name + ':' + market['id']
-        subscription = {
+        subscription: dict = {
             'fetchingOrderBookSnapshot': False,
             'numAttempts': 0,
             'startTime': None,
@@ -456,7 +468,7 @@ class idex(ccxt.async_support.idex):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
-        bookside.store(price, amount, count)
+        bookside.storeArray([price, amount, count])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -466,7 +478,7 @@ class idex(ccxt.async_support.idex):
         time = self.seconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         if time - lastAuthenticatedTime > 900:
-            request = {
+            request: dict = {
                 'wallet': self.walletAddress,
                 'nonce': self.uuidv1(),
             }
@@ -478,6 +490,9 @@ class idex(ccxt.async_support.idex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://api-docs-v4.idex.io/#orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -486,7 +501,7 @@ class idex(ccxt.async_support.idex):
         """
         await self.load_markets()
         name = 'orders'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
         }
         messageHash = name
@@ -602,7 +617,7 @@ class idex(ccxt.async_support.idex):
     async def watch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         name = 'balances'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
         }
         messageHash = name
@@ -629,7 +644,7 @@ class idex(ccxt.async_support.idex):
         messageHash = type + ':' + currencyId
         code = self.safe_currency_code(currencyId)
         address = self.safe_string(data, 'w')
-        transaction = {
+        transaction: dict = {
             'info': message,
             'id': None,
             'currency': code,
@@ -658,7 +673,7 @@ class idex(ccxt.async_support.idex):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'tickers': self.handle_ticker,
             'trades': self.handle_trade,
             'subscriptions': self.handle_subscribe_message,

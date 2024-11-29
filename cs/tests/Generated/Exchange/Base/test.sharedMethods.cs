@@ -11,7 +11,11 @@ public partial class testMainClass : BaseTest
     {
         public object logTemplate(Exchange exchange, object method, object entry)
         {
-            return add(add(add(add(add(add(" <<< ", exchange.id), " "), method), " ::: "), exchange.json(entry)), " >>> ");
+            // there are cases when exchange is undefined (eg. base tests)
+            object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
+            object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
+            object entryString = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
+            return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)
         {
@@ -49,9 +53,9 @@ public partial class testMainClass : BaseTest
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
-        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null)
+        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
         {
-            emptyAllowedFor ??= new List<object>();
+            deep ??= false;
             object logText = logTemplate(exchange, method, entry);
             assert(entry, add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -63,7 +67,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
                 for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
-                    object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     if (isTrue(inOp(skippedProperties, i)))
                     {
@@ -97,7 +101,7 @@ public partial class testMainClass : BaseTest
                     {
                         continue;
                     }
-                    object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -113,6 +117,13 @@ public partial class testMainClass : BaseTest
                     {
                         object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        if (isTrue(deep))
+                        {
+                            if (isTrue((value is IDictionary<string, object>)))
+                            {
+                                assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
+                            }
+                        }
                     }
                 }
             }
@@ -141,7 +152,7 @@ public partial class testMainClass : BaseTest
                 assert((ts is Int64 || ts is int || ts is float || ts is double), add("timestamp is not numeric", logText));
                 assert(((ts is int) || (ts is long) || (ts is Int32) || (ts is Int64)), add("timestamp should be an integer", logText));
                 object minTs = 1230940800000; // 03 Jan 2009 - first block
-                object maxTs = 2147483648000; // 03 Jan 2009 - first block
+                object maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), add(add(add("timestamp is impossible to be before ", ((object)minTs).ToString()), " (03.01.2009)"), logText)); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), add(add(add("timestamp more than ", ((object)maxTs).ToString()), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if (isTrue(!isEqual(nowToCheck, null)))
@@ -181,7 +192,7 @@ public partial class testMainClass : BaseTest
         }
         public void assertCurrencyCode(Exchange exchange, object skippedProperties, object method, object entry, object actualCode, object expectedCode = null)
         {
-            if (isTrue(inOp(skippedProperties, "currency")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -199,7 +210,7 @@ public partial class testMainClass : BaseTest
         public void assertValidCurrencyIdAndCode(Exchange exchange, object skippedProperties, object method, object entry, object currencyId, object currencyCode)
         {
             // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-            if (isTrue(inOp(skippedProperties, "currencyIdAndCode")))
+            if (isTrue(isTrue((inOp(skippedProperties, "currency"))) || isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
             {
                 return;
             }
@@ -338,6 +349,7 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
+                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
@@ -350,6 +362,11 @@ public partial class testMainClass : BaseTest
             if (isTrue(!isEqual(feeObject, null)))
             {
                 assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                if (isTrue(isEqual(getValue(feeObject, "cost"), null)))
+                {
+                    return;  // todo: remove undefined check to make stricter
+                }
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), add(add(add("\"", keyString), "\" fee object should contain \"currency\" key"), logText));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -410,7 +427,8 @@ public partial class testMainClass : BaseTest
                 }
             } else
             {
-                assertInteger(exchange, skippedProperties, method, entry, key); // should be integer
+                // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+                // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
                 assertLessOrEqual(exchange, skippedProperties, method, entry, key, "18"); // should be under 18 decimals
                 assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8"); // in real-world cases, there would not be less than that
             }
@@ -439,6 +457,39 @@ public partial class testMainClass : BaseTest
             exchange.httpProxy = httpProxy;
             exchange.httpsProxy = httpsProxy;
             exchange.socksProxy = socksProxy;
+        }
+        public void assertNonEmtpyArray(Exchange exchange, object skippedProperties, object method, object entry, object hint = null)
+        {
+            object logText = logTemplate(exchange, method, entry);
+            if (isTrue(!isEqual(hint, null)))
+            {
+                logText = add(add(logText, " "), hint);
+            }
+            assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("response is expected to be an array", logText));
+            if (!isTrue((inOp(skippedProperties, "emptyResponse"))))
+            {
+                return;
+            }
+            assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
+        }
+        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        {
+            if (isTrue(inOp(skippedProperties, key)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            object ts = exchange.safeString(entry, key);
+            assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
+        }
+        public object deepEqual(object a, object b)
+        {
+            return isEqual(json(a), json(b));
+        }
+        public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+        {
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
     }

@@ -41,6 +41,8 @@ public partial class phemex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
@@ -57,6 +59,7 @@ public partial class phemex : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -72,6 +75,7 @@ public partial class phemex : Exchange
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", true },
                 { "setMarginMode", true },
@@ -94,7 +98,7 @@ public partial class phemex : Exchange
                     { "private", "https://{hostname}" },
                 } },
                 { "www", "https://phemex.com" },
-                { "doc", "https://github.com/phemex/phemex-api-docs" },
+                { "doc", "https://phemex-docs.github.io/#overview" },
                 { "fees", "https://phemex.com/fees-conditions" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://phemex.com/register?referralCode=EDNVJ" },
@@ -152,6 +156,7 @@ public partial class phemex : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "public/products", 5 },
+                        { "public/products-plus", 5 },
                         { "md/v2/orderbook", 5 },
                         { "md/v2/trade", 5 },
                         { "md/v2/ticker/24hr", 5 },
@@ -449,6 +454,13 @@ public partial class phemex : Exchange
                 { "transfer", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
                 } },
+                { "triggerPriceTypesMap", new Dictionary<string, object>() {
+                    { "last", "ByLastPrice" },
+                    { "mark", "ByMarkPrice" },
+                    { "index", "ByIndexPrice" },
+                    { "ask", "ByAskPrice" },
+                    { "bid", "ByBidPrice" },
+                } },
             } },
         });
     }
@@ -469,7 +481,7 @@ public partial class phemex : Exchange
     {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -477,7 +489,7 @@ public partial class phemex : Exchange
         //         "markSymbol":".MBTC",
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
-        //         "contractUnderlyingAssets":"USD",
+        //         "contractUnderlyingAssets":"USD", // or eg. `1000 SHIB`
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
@@ -521,6 +533,7 @@ public partial class phemex : Exchange
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
+        bs = ((string)bs).Replace((string)" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object inverse = false;
@@ -706,20 +719,21 @@ public partial class phemex : Exchange
                     { "max", this.parseSafeNumber(this.safeString(market, "maxOrderValue")) },
                 } },
             } },
-            { "created", null },
+            { "created", this.safeInteger(market, "listTime") },
             { "info", market },
         });
     }
 
+    /**
+     * @method
+     * @name phemex#fetchMarkets
+     * @description retrieves data on all markets for phemex
+     * @see https://phemex-docs.github.io/#query-product-information-3
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchMarkets
-        * @description retrieves data on all markets for phemex
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object v2Products = await this.v2GetPublicProducts(parameters);
         //
@@ -947,15 +961,15 @@ public partial class phemex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name phemex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v2GetPublicProducts(parameters);
         //
@@ -1068,18 +1082,18 @@ public partial class phemex : Exchange
         return ((object)result);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1226,22 +1240,22 @@ public partial class phemex : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, 0), this.parseNumber(this.fromEp(this.safeString(ohlcv, 3), market)), this.parseNumber(this.fromEp(this.safeString(ohlcv, 4), market)), this.parseNumber(this.fromEp(this.safeString(ohlcv, 5), market)), this.parseNumber(this.fromEp(this.safeString(ohlcv, 6), market)), baseVolume};
     }
 
+    /**
+     * @method
+     * @name phemex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1325,7 +1339,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "rows", new List<object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
         return this.parseOHLCVs(rows, market, timeframe, since, userLimit);
     }
 
@@ -1420,17 +1434,17 @@ public partial class phemex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1495,23 +1509,23 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(result, market);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+     * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+     * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
-        * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
-        * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1540,23 +1554,23 @@ public partial class phemex : Exchange
         {
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTickers(result, symbols);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1754,6 +1768,26 @@ public partial class phemex : Exchange
         //         "execId": "8718cae",
         //         "execStatus": 6
         //     }
+        // spot with fees paid using PT token
+        //     "createdAt": "1714990724076",
+        //     "symbol": "BTCUSDT",
+        //     "currency": "USDT",
+        //     "action": "1",
+        //     "tradeType": "1",
+        //     "execQtyRq": "0.003",
+        //     "execPriceRp": "64935",
+        //     "side": "2",
+        //     "orderQtyRq": "0.003",
+        //     "priceRp": "51600",
+        //     "execValueRv": "194.805",
+        //     "feeRateRr": "0.000495",
+        //     "execFeeRv": "0",
+        //     "ordType": "3",
+        //     "execId": "XXXXXX",
+        //     "execStatus": "7",
+        //     "posSide": "1",
+        //     "ptFeeRv": "0.110012249248",
+        //     "ptPriceRp": "0.876524893"
         //
         object priceString = null;
         object amountString = null;
@@ -1817,10 +1851,21 @@ public partial class phemex : Exchange
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.safeString(trade, "execFeeRv");
+                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
                 feeRateString = this.safeString(trade, "feeRateRr");
-                object currencyId = this.safeString(trade, "currency");
-                feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                if (isTrue(!isEqual(feeCostString, null)))
+                {
+                    object currencyId = this.safeString(trade, "currency");
+                    feeCurrencyCode = this.safeCurrencyCode(currencyId);
+                } else
+                {
+                    object ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
+                    if (isTrue(!isEqual(ptFeeRv, null)))
+                    {
+                        feeCostString = ptFeeRv;
+                        feeCurrencyCode = "PT";
+                    }
+                }
             } else
             {
                 side = this.safeStringLower(trade, "side");
@@ -1834,7 +1879,7 @@ public partial class phemex : Exchange
                 amountString = this.fromEv(this.safeString(trade, "execBaseQtyEv"), market);
                 amountString = this.safeString(trade, "execQty", amountString);
                 costString = this.fromEr(this.safeString2(trade, "execQuoteQtyEv", "execValueEv"), market);
-                feeCostString = this.fromEr(this.safeString(trade, "execFeeEv"), market);
+                feeCostString = this.fromEr(this.omitZero(this.safeString(trade, "execFeeEv")), market);
                 if (isTrue(!isEqual(feeCostString, null)))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), market);
@@ -1849,6 +1894,13 @@ public partial class phemex : Exchange
                             object settlementCurrencyId = this.safeString(info, "settlementCurrency");
                             feeCurrencyCode = this.safeCurrencyCode(settlementCurrencyId);
                         }
+                    }
+                } else
+                {
+                    feeCostString = this.safeString(trade, "ptFeeRv");
+                    if (isTrue(!isEqual(feeCostString, null)))
+                    {
+                        feeCurrencyCode = "PT";
                     }
                 }
             }
@@ -1983,20 +2035,20 @@ public partial class phemex : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://phemex-docs.github.io/#query-wallets
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+     * @see https://phemex-docs.github.io/#query-trading-account-and-positions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap
+     * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://phemex-docs.github.io/#query-wallets
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-        * @see https://phemex-docs.github.io/#query-trading-account-and-positions
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] spot or swap
-        * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
@@ -2182,6 +2234,7 @@ public partial class phemex : Exchange
             { "PartiallyFilled", "open" },
             { "Filled", "closed" },
             { "Canceled", "canceled" },
+            { "Suspended", "canceled" },
             { "1", "open" },
             { "2", "canceled" },
             { "3", "closed" },
@@ -2307,7 +2360,7 @@ public partial class phemex : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", null },
+                { "currency", this.safeCurrencyCode(this.safeString(order, "feeCurrency")) },
             };
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
@@ -2459,6 +2512,7 @@ public partial class phemex : Exchange
         }
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
         object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         object side = this.parseOrderSide(this.safeStringLower(order, "side"));
         object type = this.parseOrderType(this.safeString(order, "orderType"));
@@ -2482,7 +2536,7 @@ public partial class phemex : Exchange
             lastTradeTimestamp = null;
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.omitZero(this.safeNumber2(order, "stopPx", "stopPxRp"));
+        object stopPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         object postOnly = (isEqual(timeInForce, "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object execInst = this.safeString(order, "execInst");
@@ -2492,6 +2546,22 @@ public partial class phemex : Exchange
         }
         object takeProfit = this.safeString(order, "takeProfitRp");
         object stopLoss = this.safeString(order, "stopLossRp");
+        object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
+        object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
+        object fee = null;
+        if (isTrue(!isEqual(feeValue, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeValue },
+                { "currency", getValue(market, "quote") },
+            };
+        } else if (isTrue(!isEqual(ptFeeRv, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", ptFeeRv },
+                { "currency", "PT" },
+            };
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2516,7 +2586,7 @@ public partial class phemex : Exchange
             { "cost", cost },
             { "average", null },
             { "status", status },
-            { "fee", null },
+            { "fee", fee },
             { "trades", null },
         });
     }
@@ -2532,31 +2602,35 @@ public partial class phemex : Exchange
         return this.parseSpotOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name phemex#createOrder
+     * @description create a trade order
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
+     * @see https://phemex-docs.github.io/#place-order-http-put-prefered-3
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trigger] trigger price for conditional orders
+     * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+     * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#createOrder
-        * @description create a trade order
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object requestSide = this.capitalize(side);
         type = this.capitalize(type);
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", requestSide },
@@ -2579,15 +2653,15 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["clOrdID"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"});
         }
-        object stopPrice = this.safeStringN(parameters, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
-                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPxRp"] = this.priceToPrecision(symbol, triggerPrice);
             } else
             {
-                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(stopPrice, market);
+                ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(triggerPrice, market);
             }
         }
         parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"});
@@ -2600,6 +2674,17 @@ public partial class phemex : Exchange
                 {
                     qtyType = "ByQuote";
                 }
+            }
+            if (isTrue(!isEqual(triggerPrice, null)))
+            {
+                if (isTrue(isEqual(type, "Limit")))
+                {
+                    ((IDictionary<string,object>)request)["ordType"] = "StopLimit";
+                } else if (isTrue(isEqual(type, "Market")))
+                {
+                    ((IDictionary<string,object>)request)["ordType"] = "Stop";
+                }
+                ((IDictionary<string,object>)request)["trigger"] = "ByLastPrice";
             }
             ((IDictionary<string,object>)request)["qtyType"] = qtyType;
             if (isTrue(isEqual(qtyType, "ByQuote")))
@@ -2629,17 +2714,25 @@ public partial class phemex : Exchange
             }
         } else if (isTrue(getValue(market, "swap")))
         {
+            object hedged = this.safeBool(parameters, "hedged", false);
+            parameters = this.omit(parameters, "hedged");
             object posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
-                posSide = "Merged";
+                if (isTrue(hedged))
+                {
+                    if (isTrue(reduceOnly))
+                    {
+                        side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                    }
+                    posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "Long" : "Short";
+                } else
+                {
+                    posSide = "Merged";
+                }
             }
             posSide = this.capitalize(posSide);
             ((IDictionary<string,object>)request)["posSide"] = posSide;
-            if (isTrue(!isEqual(reduceOnly, null)))
-            {
-                ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
-            }
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
                 ((IDictionary<string,object>)request)["orderQtyRq"] = amount;
@@ -2647,10 +2740,39 @@ public partial class phemex : Exchange
             {
                 ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(amount);
             }
-            if (isTrue(!isEqual(stopPrice, null)))
+            if (isTrue(!isEqual(triggerPrice, null)))
             {
                 object triggerType = this.safeString(parameters, "triggerType", "ByMarkPrice");
                 ((IDictionary<string,object>)request)["triggerType"] = triggerType;
+                // set direction & exchange specific order type
+                object triggerDirection = null;
+                var triggerDirectionparametersVariable = this.handleParamString(parameters, "triggerDirection");
+                triggerDirection = ((IList<object>)triggerDirectionparametersVariable)[0];
+                parameters = ((IList<object>)triggerDirectionparametersVariable)[1];
+                if (isTrue(isEqual(triggerDirection, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")) ;
+                }
+                // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
+                if (isTrue(isEqual(triggerDirection, "up")))
+                {
+                    if (isTrue(isEqual(side, "sell")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "MarketIfTouched" : "LimitIfTouched";
+                    } else if (isTrue(isEqual(side, "buy")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "Stop" : "StopLimit";
+                    }
+                } else if (isTrue(isEqual(triggerDirection, "down")))
+                {
+                    if (isTrue(isEqual(side, "sell")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "Stop" : "StopLimit";
+                    } else if (isTrue(isEqual(side, "buy")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "MarketIfTouched" : "LimitIfTouched";
+                    }
+                }
             }
             if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
             {
@@ -2659,7 +2781,7 @@ public partial class phemex : Exchange
                     object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(stopLossTriggerPrice, null)))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"] for a stop loss order")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                     }
                     if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
                     {
@@ -2671,20 +2793,12 @@ public partial class phemex : Exchange
                     object stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTrigger");
                     if (isTrue(!isEqual(stopLossTriggerPriceType, null)))
                     {
-                        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-                        {
-                            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByIndexPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByAskPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByBidPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPriceLimit")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPriceLimit")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", \"ByIndexPrice\", \"ByAskPrice\", \"ByBidPrice\", \"ByMarkPriceLimit\", \"ByLastPriceLimit\" or \"ByLastPrice\"")) ;
-                            }
-                        } else
-                        {
-                            if (isTrue(isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPrice")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", or \"ByLastPrice\"")) ;
-                            }
-                        }
-                        ((IDictionary<string,object>)request)["slTrigger"] = stopLossTriggerPriceType;
+                        ((IDictionary<string,object>)request)["slTrigger"] = this.safeString(getValue(this.options, "triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType);
+                    }
+                    object slLimitPrice = this.safeString(stopLoss, "price");
+                    if (isTrue(!isEqual(slLimitPrice, null)))
+                    {
+                        ((IDictionary<string,object>)request)["slPxRp"] = this.priceToPrecision(symbol, slLimitPrice);
                     }
                 }
                 if (isTrue(takeProfitDefined))
@@ -2692,7 +2806,7 @@ public partial class phemex : Exchange
                     object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(takeProfitTriggerPrice, null)))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"] for a take profit order")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
                     }
                     if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
                     {
@@ -2701,23 +2815,15 @@ public partial class phemex : Exchange
                     {
                         ((IDictionary<string,object>)request)["takeProfitEp"] = this.toEp(takeProfitTriggerPrice, market);
                     }
-                    object takeProfitTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "tpTrigger");
+                    object takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTrigger");
                     if (isTrue(!isEqual(takeProfitTriggerPriceType, null)))
                     {
-                        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-                        {
-                            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByIndexPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByAskPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByBidPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPriceLimit")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPriceLimit")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", \"ByIndexPrice\", \"ByAskPrice\", \"ByBidPrice\", \"ByMarkPriceLimit\", \"ByLastPriceLimit\" or \"ByLastPrice\"")) ;
-                            }
-                        } else
-                        {
-                            if (isTrue(isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPrice")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", or \"ByLastPrice\"")) ;
-                            }
-                        }
-                        ((IDictionary<string,object>)request)["tpTrigger"] = takeProfitTriggerPriceType;
+                        ((IDictionary<string,object>)request)["tpTrigger"] = this.safeString(getValue(this.options, "triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType);
+                    }
+                    object tpLimitPrice = this.safeString(takeProfit, "price");
+                    if (isTrue(!isEqual(tpLimitPrice, null)))
+                    {
+                        ((IDictionary<string,object>)request)["tpPxRp"] = this.priceToPrecision(symbol, tpLimitPrice);
                     }
                 }
             }
@@ -2845,27 +2951,27 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name phemex#editOrder
+     * @description edit a trade order
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type = null, object side = null, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#editOrder
-        * @description edit a trade order
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2908,7 +3014,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["baseQtyEV"] = this.toEv(amount, market);
             }
         }
-        object stopPrice = this.safeString2(parameters, "stopPx", "stopPrice");
+        object stopPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (isTrue(!isEqual(stopPrice, null)))
         {
             if (isTrue(isUSDTSettled))
@@ -2919,7 +3025,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(stopPrice, market);
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         object response = null;
         if (isTrue(isUSDTSettled))
         {
@@ -2936,23 +3042,23 @@ public partial class phemex : Exchange
         {
             response = await this.privatePutSpotOrders(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name phemex#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#cancelOrder
-        * @description cancels an open order
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2988,21 +3094,21 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrders(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name phemex#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
-        * @param {string} symbol unified market symbol of the market to cancel orders in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3010,9 +3116,15 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object stop = this.safeValue2(parameters, "stop", "trigger", false);
+        parameters = this.omit(parameters, "stop", "trigger");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
+        if (isTrue(stop))
+        {
+            ((IDictionary<string,object>)request)["untriggerred"] = stop;
+        }
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
         {
@@ -3024,19 +3136,23 @@ public partial class phemex : Exchange
         {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, parameters));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
+    /**
+     * @method
+     * @name phemex#fetchOrder
+     * @see https://phemex-docs.github.io/#query-orders-by-ids
+     * @description fetches information on an order made by the user
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchOrder
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3044,10 +3160,6 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-        {
-            throw new NotSupported ((string)add(this.id, "fetchOrder() is not supported yet for USDT settled swap markets")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3061,9 +3173,12 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
         {
-            response = await this.privateGetSpotOrdersActive(this.extend(request, parameters));
+            response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters));
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, parameters));
         } else
         {
             response = await this.privateGetExchangeOrder(this.extend(request, parameters));
@@ -3083,24 +3198,28 @@ public partial class phemex : Exchange
                     throw new OrderNotFound ((string)add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
                 }
             }
-            order = this.safeValue(data, 0, new Dictionary<string, object>() {});
+            order = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            object rows = this.safeList(data, "rows", new List<object>() {});
+            order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3129,28 +3248,28 @@ public partial class phemex : Exchange
             response = await this.privateGetExchangeOrderList(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetSpotOrders(this.extend(request, parameters));
+            response = await this.privateGetApiDataSpotsOrders(this.extend(request, parameters));
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "rows", data);
+        object rows = this.safeList(data, "rows", data);
         return this.parseOrders(rows, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotListAllOpenOrder
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(symbol, null)))
@@ -3189,28 +3308,28 @@ public partial class phemex : Exchange
             return this.parseOrders(data, market, since, limit);
         } else
         {
-            object rows = this.safeValue(data, "rows", new List<object>() {});
+            object rows = this.safeList(data, "rows", new List<object>() {});
             return this.parseOrders(rows, market, since, limit);
         }
     }
 
+    /**
+     * @method
+     * @name phemex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.settle] the settlement currency to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#queryorder
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedgedd-Perpetual-API.md#query-closed-orders-by-symbol
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataOrdersByIds
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.settle] the settlement currency to fetch orders for
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3285,26 +3404,26 @@ public partial class phemex : Exchange
             return this.parseOrders(data, market, since, limit);
         } else
         {
-            object rows = this.safeValue(data, "rows", new List<object>() {});
+            object rows = this.safeList(data, "rows", new List<object>() {});
             return this.parseOrders(rows, market, since, limit);
         }
     }
 
+    /**
+     * @method
+     * @name phemex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-trade
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#spotDataTradesHist
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3462,25 +3581,25 @@ public partial class phemex : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
+        object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network", defaultNetwork);
         network = this.safeString(networks, network, network);
         if (isTrue(isEqual(network, null)))
@@ -3506,26 +3625,26 @@ public partial class phemex : Exchange
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
+    /**
+     * @method
+     * @name phemex#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -3558,18 +3677,18 @@ public partial class phemex : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -3747,20 +3866,20 @@ public partial class phemex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name phemex#fetchPositions
+     * @description fetch all open positions
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
+     * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchPositions
-        * @description fetch all open positions
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
-        * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [param.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -4054,19 +4173,19 @@ public partial class phemex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name phemex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4086,7 +4205,8 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (isTrue(isUsdt))
         {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, parameters));
         } else
@@ -4102,13 +4222,13 @@ public partial class phemex : Exchange
         //                 {
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "execQty": 18,
+        //                     "execQty": 18, // "execQty" regular, but "execQtyRq" in hedge
         //                     "side": "Buy",
-        //                     "execPriceEp": 360086455,
-        //                     "execValueEv": 49987,
-        //                     "fundingRateEr": 10000,
-        //                     "feeRateEr": 10000,
-        //                     "execFeeEv": 5,
+        //                     "execPriceEp": 360086455, // "execPriceEp" regular, but "execPriceRp" in hedge
+        //                     "execValueEv": 49987, // "execValueEv" regular, but "execValueRv" in hedge
+        //                     "fundingRateEr": 10000, // "fundingRateEr" regular, but "fundingRateRr" in hedge
+        //                     "feeRateEr": 10000, // "feeRateEr" regular, but "feeRateRr" in hedge
+        //                     "execFeeEv": 5, // "execFeeEv" regular, but "execFeeRv" in hedge
         //                     "createTime": 1651881600000
         //                 }
         //             ]
@@ -4122,29 +4242,49 @@ public partial class phemex : Exchange
         {
             object entry = getValue(rows, i);
             object timestamp = this.safeInteger(entry, "createTime");
+            object execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
+            object currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeString(entry, "symbol") },
-                { "code", this.safeCurrencyCode(this.safeString(entry, "currency")) },
+                { "code", currencyCode },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", null },
-                { "amount", this.fromEv(this.safeString(entry, "execFeeEv"), market) },
+                { "amount", this.parseFundingFeeToPrecision(execFee, market, currencyCode) },
             });
         }
         return result;
     }
 
+    public virtual object parseFundingFeeToPrecision(object value, object market = null, object currencyCode = null)
+    {
+        if (isTrue(isTrue(isEqual(value, null)) || isTrue(isEqual(currencyCode, null))))
+        {
+            return value;
+        }
+        // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
+        object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+        if (!isTrue(isUsdt))
+        {
+            object currency = this.safeCurrency(currencyCode);
+            object scale = this.safeString(getValue(currency, "info"), "valueScale");
+            object tickPrecision = this.parsePrecision(scale);
+            value = Precise.stringMul(value, tickPrecision);
+        }
+        return value;
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchFundingRate
-        * @description fetch the current funding rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4250,21 +4390,22 @@ public partial class phemex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name phemex#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#setMargin
-        * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
-        * @param {string} symbol unified market symbol of the market to set margin in
-        * @param {float} amount the amount to set the margin to
-        * @param {object} [params] parameters specific to the exchange API endpoint
-        * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4293,7 +4434,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -4307,26 +4448,30 @@ public partial class phemex : Exchange
         object codeCurrency = ((bool) isTrue(inverse)) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
+            { "symbol", this.safeSymbol(null, market) },
             { "type", "set" },
+            { "marginMode", "isolated" },
             { "amount", null },
             { "total", null },
             { "code", getValue(market, codeCurrency) },
-            { "symbol", this.safeSymbol(null, market) },
             { "status", this.parseMarginStatus(this.safeString(data, "code")) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
+    /**
+     * @method
+     * @name phemex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://phemex-docs.github.io/#set-leverage
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @param {string} marginMode 'cross' or 'isolated'
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4359,18 +4504,18 @@ public partial class phemex : Exchange
         return await this.privatePutPositionsLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name phemex#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#setPositionMode
-        * @description set hedged to true or false for a market
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
-        * @param {bool} hedged set to true to use dualSidePosition
-        * @param {string} symbol not used by binance setPositionMode ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setPositionMode", symbol, "symbol");
         await this.loadMarkets();
@@ -4392,16 +4537,16 @@ public partial class phemex : Exchange
         return await this.privatePutGPositionsSwitchPosModeSync(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name phemex#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(!isEqual(symbols, null)))
@@ -4493,7 +4638,7 @@ public partial class phemex : Exchange
         //
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object riskLimits = this.safeValue(data, "riskLimits");
+        object riskLimits = this.safeList(data, "riskLimits");
         return this.parseLeverageTiers(riskLimits, symbols, "symbol");
     }
 
@@ -4514,7 +4659,8 @@ public partial class phemex : Exchange
         //         ]
         //     },
         //
-        market = this.safeMarket(null, market);
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         object tiers = new List<object>() {};
         object minNotional = 0;
@@ -4524,6 +4670,7 @@ public partial class phemex : Exchange
             object maxNotional = this.safeInteger(tier, "limit");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
@@ -4592,21 +4739,21 @@ public partial class phemex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name phemex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
+     * @param {float} leverage the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
+     * @param {float} [params.longLeverageRr] *hedged mode only* set the leverage for long positions
+     * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
-        * @param {float} leverage the rate of leverage, 100 > leverage > -100 excluding numbers between -1 to 1
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.hedged] set to true if hedged position mode is enabled (by default long and short leverage are set to the same value)
-        * @param {float} [params.longLeverageRr] *hedged mode only* set the leverage for long positions
-        * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
-        * @returns {object} response from the exchange
-        */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         parameters ??= new Dictionary<string, object>();
@@ -4648,20 +4795,22 @@ public partial class phemex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name phemex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://phemex-docs.github.io/#transfer-between-spot-and-futures
+     * @see https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -4745,18 +4894,19 @@ public partial class phemex : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name phemex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://phemex-docs.github.io/#query-transfer-history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchTransfers
-        * @description fetch a history of internal transfers made on an account
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of  transfers structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(code, null)))
@@ -4797,7 +4947,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transfers = this.safeValue(data, "rows", new List<object>() {});
+        object transfers = this.safeList(data, "rows", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -4871,21 +5021,21 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://phemex-docs.github.io/#query-funding-rate-history-2
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://phemex-docs.github.io/#query-funding-rate-history-2
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4971,21 +5121,21 @@ public partial class phemex : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name phemex#withdraw
+     * @description make a withdrawal
+     * @see https://phemex-docs.github.io/#create-withdraw-request
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the phemex api endpoint
+     * @param {string} [params.network] unified network code
+     * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name phemex#withdraw
-        * @description make a withdrawal
-        * @see https://phemex-docs.github.io/#create-withdraw-request
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the phemex api endpoint
-        * @param {string} [params.network] unified network code
-        * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -5051,8 +5201,88 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchOpenInterest
+     * @description retrieves the open interest of a trading pair
+     * @see https://phemex-docs.github.io/#query-24-hours-ticker
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v2GetMdV2Ticker24hr(this.extend(request, parameters));
+        //
+        //    {
+        //        error: null,
+        //        id: '0',
+        //        result: {
+        //          closeRp: '67550.1',
+        //          fundingRateRr: '0.0001',
+        //          highRp: '68400',
+        //          indexPriceRp: '67567.15389794',
+        //          lowRp: '66096.4',
+        //          markPriceRp: '67550.1',
+        //          openInterestRv: '1848.1144186',
+        //          openRp: '66330',
+        //          predFundingRateRr: '0.0001',
+        //          symbol: 'BTCUSDT',
+        //          timestamp: '1729114315443343001',
+        //          turnoverRv: '228863389.3237532',
+        //          volumeRq: '3388.5600312'
+        //        }
+        //    }
+        //
+        object result = this.safeDict(response, "result");
+        return this.parseOpenInterest(result, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //    {
+        //        closeRp: '67550.1',
+        //        fundingRateRr: '0.0001',
+        //        highRp: '68400',
+        //        indexPriceRp: '67567.15389794',
+        //        lowRp: '66096.4',
+        //        markPriceRp: '67550.1',
+        //        openInterestRv: '1848.1144186',
+        //        openRp: '66330',
+        //        predFundingRateRr: '0.0001',
+        //        symbol: 'BTCUSDT',
+        //        timestamp: '1729114315443343001',
+        //        turnoverRv: '228863389.3237532',
+        //        volumeRq: '3388.5600312'
+        //    }
+        //
+        object timestamp = divide(this.safeInteger(interest, "timestamp"), 1000000);
+        object id = this.safeString(interest, "symbol");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(id, market) },
+            { "baseVolume", this.safeString(interest, "volumeRq") },
+            { "quoteVolume", null },
+            { "openInterestAmount", this.safeString(interest, "openInterestRv") },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

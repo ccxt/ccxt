@@ -19,10 +19,10 @@
                 "method": "transfer",
                 "url": "https://api.bitfinex.com/v2/auth/w/transfer",
                 "input": [
-                  "USDT",
-                  5,
-                  "spot",
-                  "swap"
+                    "USDT",
+                    5,
+                    "spot",
+                    "swap"
                 ],
                 "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"exchange\",\"to\":\"margin\"}"
             },
@@ -31,10 +31,10 @@
                 "method": "transfer",
                 "url": "https://api.bitfinex.com/v2/auth/w/transfer",
                 "input": [
-                  "USDT",
-                  5,
-                  "margin",
-                  "spot"
+                    "USDT",
+                    5,
+                    "margin",
+                    "spot"
                 ],
                 "output": "{\"amount\":\"5\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"from\":\"margin\",\"to\":\"exchange\"}"
             }
@@ -45,7 +45,7 @@
                 "method": "fetchOrderBook",
                 "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             },
             {
@@ -53,8 +53,24 @@
                 "method": "fetchOrderBook",
                 "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0?len=25",
                 "input": [
-                  "BTC/USDT:USDT",
-                  25
+                    "BTC/USDT:USDT",
+                    25
+                ]
+            },
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCUST/R0",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-pub.bitfinex.com/v2/book/tBTCF0:USTF0/R0",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -70,10 +86,10 @@
                 "method": "fetchTickers",
                 "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCUST%2CtLTCUST",
                 "input": [
-                  [
-                    "BTC/USDT",
-                    "LTC/USDT"
-                  ]
+                    [
+                        "BTC/USDT",
+                        "LTC/USDT"
+                    ]
                 ]
             },
             {
@@ -81,10 +97,32 @@
                 "method": "fetchTickers",
                 "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCF0%3AUSTF0%2CtLTCF0%3AUSTF0",
                 "input": [
-                  [
-                    "BTC/USDT:USDT",
-                    "LTC/USDT:USDT"
-                  ]
+                    [
+                        "BTC/USDT:USDT",
+                        "LTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCUST%2CtETHUST",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCF0%3AUSTF0%2CtETHF0%3AUSTF0",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
                 ]
             }
         ],
@@ -94,7 +132,7 @@
                 "method": "fetchTicker",
                 "url": "https://api-pub.bitfinex.com/v2/ticker/tBTCUST",
                 "input": [
-                  "BTC/USDT"
+                    "BTC/USDT"
                 ]
             },
             {
@@ -102,7 +140,23 @@
                 "method": "fetchTicker",
                 "url": "https://api-pub.bitfinex.com/v2/ticker/tBTCF0:USTF0",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-pub.bitfinex.com/v2/ticker/tBTCF0:USTF0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api-pub.bitfinex.com/v2/ticker/tBTCUST",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -112,8 +166,8 @@
                 "method": "fetchTrades",
                 "url": "https://api-pub.bitfinex.com/v2/trades/tBTCUST/hist?start=1706837940723&sort=1",
                 "input": [
-                  "BTC/USDT",
-                  1706837940723
+                    "BTC/USDT",
+                    1706837940723
                 ]
             },
             {
@@ -121,9 +175,25 @@
                 "method": "fetchTrades",
                 "url": "https://api-pub.bitfinex.com/v2/trades/tBTCF0:USTF0/hist?limit=3&sort=-1",
                 "input": [
-                  "BTC/USDT:USDT",
-                  null,
-                  3
+                    "BTC/USDT:USDT",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api-pub.bitfinex.com/v2/trades/tBTCUST/hist?sort=-1",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api-pub.bitfinex.com/v2/trades/tBTCF0:USTF0/hist?sort=-1",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -157,9 +227,9 @@
                 "method": "fetchOHLCV",
                 "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?sort=1&start=1552298700000&limit=100",
                 "input": [
-                  "BTC/USDT",
-                  "1m",
-                  1552298700000
+                    "BTC/USDT",
+                    "1m",
+                    1552298700000
                 ]
             },
             {
@@ -167,10 +237,26 @@
                 "method": "fetchOHLCV",
                 "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&start=1552298700000&limit=150",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "1m",
-                  1552298700000,
-                  150
+                    "BTC/USDT:USDT",
+                    "1m",
+                    1552298700000,
+                    150
+                ]
+            },
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?sort=1&limit=100",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCF0:USTF0/hist?sort=1&limit=100",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -264,10 +350,10 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0.0001
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0001
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"type\":\"EXCHANGE MARKET\"}"
             },
@@ -276,10 +362,10 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "sell",
-                  0.0001
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"type\":\"EXCHANGE MARKET\"}"
             },
@@ -288,11 +374,11 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  40000
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    40000
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
             },
@@ -301,11 +387,11 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "sell",
-                  0.0001,
-                  40000
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    40000
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"-0.0001\",\"price\":\"40000\",\"type\":\"EXCHANGE LIMIT\"}"
             },
@@ -327,10 +413,10 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0.0001
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.0001
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\"}"
             },
@@ -339,14 +425,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null,
-                  {
-                    "reduceOnly": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
             },
@@ -355,14 +441,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0.0001,
-                  null,
-                  {
-                    "reduceOnly": true
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"flags\":1024}"
             },
@@ -371,11 +457,11 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "limit",
-                  "sell",
-                  0.0001,
-                  49000
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    49000
                 ],
                 "output": "{\"type\":\"LIMIT\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price\":\"49000\"}"
             },
@@ -384,10 +470,10 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0001
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\"}"
             },
@@ -396,14 +482,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null,
-                  {
-                    "trailingAmount": "500"
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "trailingAmount": "500"
+                    }
                 ],
                 "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
             },
@@ -412,14 +498,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  40000,
-                  {
-                    "triggerPrice": "41000"
-                  }
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    40000,
+                    {
+                        "triggerPrice": "41000"
+                    }
                 ],
                 "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
             },
@@ -428,14 +514,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "buy",
-                  0.0001,
-                  null,
-                  {
-                    "triggerPrice": "47000"
-                  }
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": "47000"
+                    }
                 ],
                 "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"47000\",\"type\":\"STOP\"}"
             },
@@ -444,14 +530,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  40000,
-                  {
-                    "triggerPrice": "41000"
-                  }
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    40000,
+                    {
+                        "triggerPrice": "41000"
+                    }
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
             },
@@ -460,14 +546,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "buy",
-                  0.0001,
-                  null,
-                  {
-                    "triggerPrice": "41000"
-                  }
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": "41000"
+                    }
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"type\":\"EXCHANGE STOP\"}"
             },
@@ -476,14 +562,14 @@
                 "method": "createOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "buy",
-                  0.1,
-                  50,
-                  {
-                    "clientOrderId": 1003434
-                  }
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "clientOrderId": 1003434
+                    }
                 ],
                 "output": "{\"symbol\":\"tLTCUST\",\"amount\":\"0.1\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\",\"cid\":1003434}"
             }
@@ -494,11 +580,11 @@
                 "method": "createReduceOnlyOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null
                 ],
                 "output": "{\"type\":\"MARKET\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"flags\":1024}"
             }
@@ -509,12 +595,12 @@
                 "method": "createTrailingAmountOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null,
-                  500
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    500
                 ],
                 "output": "{\"type\":\"TRAILING STOP\",\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"-0.0001\",\"price_trailing\":\"500\"}"
             }
@@ -525,12 +611,12 @@
                 "method": "createTriggerOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT:USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  40000,
-                  41000
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    40000,
+                    41000
                 ],
                 "output": "{\"symbol\":\"tBTCF0:USTF0\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"STOP LIMIT\"}"
             },
@@ -539,12 +625,12 @@
                 "method": "createTriggerOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
                 "input": [
-                  "BTC/USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  40000,
-                  41000
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    40000,
+                    41000
                 ],
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
             }
@@ -555,7 +641,7 @@
                 "method": "fetchOpenInterest",
                 "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -565,7 +651,7 @@
                 "method": "fetchOpenInterestHistory",
                 "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -575,7 +661,7 @@
                 "method": "fetchLiquidations",
                 "url": "https://api-pub.bitfinex.com/v2/liquidations/hist",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -585,8 +671,8 @@
                 "method": "setMargin",
                 "url": "https://api.bitfinex.com/v2/auth/w/deriv/collateral/set",
                 "input": [
-                  "BTC/USDT:USDT",
-                  0.5
+                    "BTC/USDT:USDT",
+                    0.5
                 ],
                 "output": "{\"symbol\":\"tBTCF0:USTF0\",\"collateral\":0.5}"
             }
@@ -597,8 +683,8 @@
                 "method": "cancelOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/cancel",
                 "input": [
-                  "139449164689",
-                  "BTC/USDT:USDT"
+                    "139449164689",
+                    "BTC/USDT:USDT"
                 ],
                 "output": "{\"id\":139449164689}"
             }
@@ -609,39 +695,39 @@
                 "method": "cancelOrders",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/cancel/multi",
                 "input": [
-                  [
-                    139535430656,
-                    139533608984
-                  ]
+                    [
+                        139535430656,
+                        139533608984
+                    ]
                 ],
                 "output": "{\"id\":[139535430656,139533608984]}"
             }
         ],
         "createOrders": [
-          {
-              "description": "Create multiple spot orders at once with different symbols",
-              "method": "createOrders",
-              "url": "https://api.bitfinex.com/v2/auth/w/order/multi",
-              "input": [
-                [
-                  {
-                    "symbol": "BTC/USDT",
-                    "type": "limit",
-                    "side": "buy",
-                    "amount": 0.0001,
-                    "price": 35000
-                  },
-                  {
-                    "symbol": "LTC/USDT",
-                    "type": "limit",
-                    "side": "buy",
-                    "amount": 0.25,
-                    "price": 50
-                  }
-                ]
-              ],
-              "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
-          }
+            {
+                "description": "Create multiple spot orders at once with different symbols",
+                "method": "createOrders",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/multi",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 35000
+                        },
+                        {
+                            "symbol": "LTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.25,
+                            "price": 50
+                        }
+                    ]
+                ],
+                "output": "{\"ops\":[[\"on\",{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"35000\",\"type\":\"EXCHANGE LIMIT\"}],[\"on\",{\"symbol\":\"tLTCUST\",\"amount\":\"0.25\",\"price\":\"50\",\"type\":\"EXCHANGE LIMIT\"}]]}"
+            }
         ],
         "fetchDepositAddress": [
             {
@@ -649,7 +735,7 @@
                 "method": "fetchDepositAddress",
                 "url": "https://api.bitfinex.com/v2/auth/w/deposit/address",
                 "input": [
-                  "BTC"
+                    "BTC"
                 ],
                 "output": "{\"method\":\"bitcoin\",\"wallet\":\"exchange\",\"op_renew\":0}"
             }
@@ -660,9 +746,9 @@
                 "method": "fetchDepositsWithdrawals",
                 "url": "https://api.bitfinex.com/v2/auth/r/movements/UST/hist",
                 "input": [
-                  "USDT",
-                  1670849733000,
-                  2
+                    "USDT",
+                    1670849733000,
+                    2
                 ],
                 "output": "{\"start\":1670849733000,\"limit\":2}"
             }
@@ -673,9 +759,9 @@
                 "method": "fetchPositions",
                 "url": "https://api.bitfinex.com/v2/auth/r/positions",
                 "input": [
-                  [
-                    "BTC/USDT:USDT"
-                  ]
+                    [
+                        "BTC/USDT:USDT"
+                    ]
                 ],
                 "output": "{}"
             }
@@ -686,9 +772,9 @@
                 "method": "fetchLedger",
                 "url": "https://api.bitfinex.com/v2/auth/r/ledgers/UST/hist",
                 "input": [
-                  "USDT",
-                  1699460471000,
-                  3
+                    "USDT",
+                    1699460471000,
+                    3
                 ],
                 "output": "{\"start\":1699460471000,\"limit\":3}"
             }
@@ -699,10 +785,10 @@
                 "method": "fetchFundingRates",
                 "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0%2CtLTCF0%3AUSTF0",
                 "input": [
-                  [
-                    "BTC/USDT:USDT",
-                    "LTC/USDT:USDT"
-                  ]
+                    [
+                        "BTC/USDT:USDT",
+                        "LTC/USDT:USDT"
+                    ]
                 ]
             }
         ],
@@ -712,7 +798,15 @@
                 "method": "fetchFundingRateHistory",
                 "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv/tBTCF0:USTF0/hist",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -722,7 +816,7 @@
                 "method": "fetchOrder",
                 "url": "https://api.bitfinex.com/v2/auth/r/orders",
                 "input": [
-                  139658969116
+                    139658969116
                 ],
                 "output": "{\"id\":[139658969116]}"
             },
@@ -731,8 +825,8 @@
                 "method": "fetchOrder",
                 "url": "https://api.bitfinex.com/v2/auth/r/orders/tLTCF0:USTF0",
                 "input": [
-                  139663481232,
-                  "LTC/USDT:USDT"
+                    139663481232,
+                    "LTC/USDT:USDT"
                 ],
                 "output": "{\"id\":[139663481232]}"
             }
@@ -743,12 +837,12 @@
                 "method": "editOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/update",
                 "input": [
-                  139658969116,
-                  "BTC/USDT",
-                  "limit",
-                  "buy",
-                  0.0001,
-                  35000
+                    139658969116,
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    35000
                 ],
                 "output": "{\"id\":139658969116,\"amount\":\"0.0001\",\"price\":\"35000\"}"
             },
@@ -757,14 +851,24 @@
                 "method": "editOrder",
                 "url": "https://api.bitfinex.com/v2/auth/w/order/update",
                 "input": [
-                  139663481232,
-                  "LTC/USDT:USDT",
-                  "limit",
-                  "buy",
-                  0.27,
-                  51
+                    139663481232,
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.27,
+                    51
                 ],
                 "output": "{\"id\":139663481232,\"amount\":\"0.27\",\"price\":\"51\"}"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

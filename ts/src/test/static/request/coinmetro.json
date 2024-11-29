@@ -97,12 +97,12 @@
             }
         ],
         "fetchBalance": [
-            {
-                "description": "fetch spot balance",
-                "method": "fetchBalance",
-                "url": "https://api.coinmetro.com/users/balances",
-                "input": []
-            }
+          {
+            "description": "fetchBalance",
+            "method": "fetchBalance",
+            "url": "https://api.coinmetro.com/users/wallets",
+            "input": []
+          }
         ],
         "fetchOpenOrders":[
             {

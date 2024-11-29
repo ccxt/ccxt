@@ -49,6 +49,7 @@ class onetrading extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -72,14 +73,17 @@ class onetrading extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTrades' => true,
+                'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFee' => false,
@@ -111,8 +115,8 @@ class onetrading extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api' => array(
-                    'public' => 'https://api.onetrading.com/public',
-                    'private' => 'https://api.onetrading.com/public',
+                    'public' => 'https://api.onetrading.com/fast',
+                    'private' => 'https://api.onetrading.com/fast',
                 ),
                 'www' => 'https://onetrading.com/',
                 'doc' => array(
@@ -130,7 +134,6 @@ class onetrading extends Exchange {
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
                         'time',
                     ),
                 ),
@@ -300,6 +303,9 @@ class onetrading extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://docs.onetrading.com/#time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -313,9 +319,12 @@ class onetrading extends Exchange {
         return $this->safe_integer($response, 'epoch_millis');
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://docs.onetrading.com/#currencies
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -353,9 +362,12 @@ class onetrading extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for onetrading
+         *
+         * @see https://docs.onetrading.com/#instruments
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -375,7 +387,7 @@ class onetrading extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $baseAsset = $this->safe_value($market, 'base', array());
         $quoteAsset = $this->safe_value($market, 'quote', array());
         $baseId = $this->safe_string($baseAsset, 'code');
@@ -435,9 +447,13 @@ class onetrading extends Exchange {
         );
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
+         *
+         * @see https://docs.onetrading.com/#fee-groups
+         * @see https://docs.onetrading.com/#fees
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -447,7 +463,13 @@ class onetrading extends Exchange {
             $options = $this->safe_value($this->options, 'fetchTradingFees', array());
             $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
         }
-        return $this->$method ($params);
+        if ($method === 'fetchPrivateTradingFees') {
+            return $this->fetch_private_trading_fees($params);
+        } elseif ($method === 'fetchPublicTradingFees') {
+            return $this->fetch_public_trading_fees($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchTradingFees() does not support ' . $method . ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
+        }
     }
 
     public function fetch_public_trading_fees($params = array ()) {
@@ -558,7 +580,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -614,6 +636,9 @@ class onetrading extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://docs.onetrading.com/#$market-ticker-for-instrument
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -623,7 +648,7 @@ class onetrading extends Exchange {
         $request = array(
             'instrument_code' => $market['id'],
         );
-        $response = $this->publicGetMarketTickerInstrumentCode (array_merge($request, $params));
+        $response = $this->publicGetMarketTickerInstrumentCode ($this->extend($request, $params));
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -648,7 +673,10 @@ class onetrading extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         *
+         * @see https://docs.onetrading.com/#market-$ticker
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -687,6 +715,9 @@ class onetrading extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.onetrading.com/#order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -706,7 +737,7 @@ class onetrading extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetOrderBookInstrumentCode (array_merge($request, $params));
+        $response = $this->publicGetOrderBookInstrumentCode ($this->extend($request, $params));
         //
         // level 1
         //
@@ -812,6 +843,9 @@ class onetrading extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.onetrading.com/#candlesticks
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -843,7 +877,7 @@ class onetrading extends Exchange {
             $request['from'] = $this->iso8601($since);
             $request['to'] = $this->iso8601($this->sum($since, $limit * $duration));
         }
-        $response = $this->publicGetCandlesticksInstrumentCode (array_merge($request, $params));
+        $response = $this->publicGetCandlesticksInstrumentCode ($this->extend($request, $params));
         //
         //     array(
         //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123),
@@ -854,7 +888,7 @@ class onetrading extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -936,46 +970,6 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
-         */
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_code' => $market['id'],
-            // 'from' => $this->iso8601($since),
-            // 'to' => $this->iso8601($this->milliseconds()),
-        );
-        if ($since !== null) {
-            // returns price ticks for a specific $market with an interval of maximum of 4 hours
-            // sorted by latest first
-            $request['from'] = $this->iso8601($since);
-            $request['to'] = $this->iso8601($this->sum($since, 14400000));
-        }
-        $response = $this->publicGetPriceTicksInstrumentCode (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "instrument_code":"BTC_EUR",
-        //             "price":"8137.28",
-        //             "amount":"0.22269",
-        //             "taker_side":"BUY",
-        //             "volume":"1812.0908832",
-        //             "time":"2020-07-10T14:44:32.299Z",
-        //             "trade_timestamp":1594392272299,
-        //             "sequence":603047
-        //         }
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
-    }
-
     public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
@@ -1018,7 +1012,7 @@ class onetrading extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1027,11 +1021,11 @@ class onetrading extends Exchange {
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -1047,7 +1041,7 @@ class onetrading extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostAccountDepositCrypto (array_merge($request, $params));
+        $response = $this->privatePostAccountDepositCrypto ($this->extend($request, $params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1059,7 +1053,7 @@ class onetrading extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1071,7 +1065,7 @@ class onetrading extends Exchange {
         $request = array(
             'currency_code' => $currency['id'],
         );
-        $response = $this->privateGetAccountDepositCryptoCurrencyCode (array_merge($request, $params));
+        $response = $this->privateGetAccountDepositCryptoCurrencyCode ($this->extend($request, $params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1112,7 +1106,7 @@ class onetrading extends Exchange {
             }
             $request['from'] = $this->iso8601($since);
         }
-        $response = $this->privateGetAccountDeposits (array_merge($request, $params));
+        $response = $this->privateGetAccountDeposits ($this->extend($request, $params));
         //
         //     {
         //         "deposit_history" => array(
@@ -1143,7 +1137,7 @@ class onetrading extends Exchange {
         //         "cursor" => "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        $depositHistory = $this->safe_value($response, 'deposit_history', array());
+        $depositHistory = $this->safe_list($response, 'deposit_history', array());
         return $this->parse_transactions($depositHistory, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
@@ -1175,7 +1169,7 @@ class onetrading extends Exchange {
             }
             $request['from'] = $this->iso8601($since);
         }
-        $response = $this->privateGetAccountWithdrawals (array_merge($request, $params));
+        $response = $this->privateGetAccountWithdrawals ($this->extend($request, $params));
         //
         //     {
         //         "withdrawal_history" => array(
@@ -1207,11 +1201,11 @@ class onetrading extends Exchange {
         //         "max_page_size" => 2
         //     }
         //
-        $withdrawalHistory = $this->safe_value($response, 'withdrawal_history', array());
+        $withdrawalHistory = $this->safe_list($response, 'withdrawal_history', array());
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1249,7 +1243,7 @@ class onetrading extends Exchange {
             }
             $request['recipient'] = $recipient;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         // crypto
         //
@@ -1270,7 +1264,7 @@ class onetrading extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1349,7 +1343,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'FILLED' => 'open',
             'FILLED_FULLY' => 'closed',
@@ -1364,7 +1358,7 @@ class onetrading extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1474,7 +1468,7 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_TILL_CANCELLED' => 'GTC',
             'GOOD_TILL_TIME' => 'GTT',
@@ -1487,12 +1481,14 @@ class onetrading extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://docs.onetrading.com/#create-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] onetrading only does stop limit orders and does not do stop $market
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1535,7 +1531,7 @@ class onetrading extends Exchange {
             $request['client_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         }
-        $response = $this->privatePostAccountOrders (array_merge($request, $params));
+        $response = $this->privatePostAccountOrders ($this->extend($request, $params));
         //
         //     {
         //         "order_id" => "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1573,7 +1569,7 @@ class onetrading extends Exchange {
         } else {
             $request['order_id'] = $id;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         // responds with an empty body
         //
@@ -1593,7 +1589,7 @@ class onetrading extends Exchange {
             $market = $this->market($symbol);
             $request['instrument_code'] = $market['id'];
         }
-        $response = $this->privateDeleteAccountOrders (array_merge($request, $params));
+        $response = $this->privateDeleteAccountOrders ($this->extend($request, $params));
         //
         //     array(
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1614,7 +1610,7 @@ class onetrading extends Exchange {
         $request = array(
             'ids' => implode(',', $ids),
         );
-        $response = $this->privateDeleteAccountOrders (array_merge($request, $params));
+        $response = $this->privateDeleteAccountOrders ($this->extend($request, $params));
         //
         //     array(
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1626,6 +1622,7 @@ class onetrading extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by onetrading fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1634,7 +1631,7 @@ class onetrading extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetAccountOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetAccountOrdersOrderId ($this->extend($request, $params));
         //
         //     {
         //         "order" => array(
@@ -1714,7 +1711,7 @@ class onetrading extends Exchange {
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
         }
-        $response = $this->privateGetAccountOrders (array_merge($request, $params));
+        $response = $this->privateGetAccountOrders ($this->extend($request, $params));
         //
         //     {
         //         "order_history" => array(
@@ -1794,7 +1791,7 @@ class onetrading extends Exchange {
         //         "max_page_size" => 100
         //     }
         //
-        $orderHistory = $this->safe_value($response, 'order_history', array());
+        $orderHistory = $this->safe_list($response, 'order_history', array());
         return $this->parse_orders($orderHistory, $market, $since, $limit);
     }
 
@@ -1810,7 +1807,7 @@ class onetrading extends Exchange {
         $request = array(
             'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         );
-        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1832,7 +1829,7 @@ class onetrading extends Exchange {
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
         }
-        $response = $this->privateGetAccountOrdersOrderIdTrades (array_merge($request, $params));
+        $response = $this->privateGetAccountOrdersOrderIdTrades ($this->extend($request, $params));
         //
         //     {
         //         "trade_history" => array(
@@ -1903,7 +1900,7 @@ class onetrading extends Exchange {
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
         }
-        $response = $this->privateGetAccountTrades (array_merge($request, $params));
+        $response = $this->privateGetAccountTrades ($this->extend($request, $params));
         //
         //     {
         //         "trade_history" => array(
@@ -1934,7 +1931,7 @@ class onetrading extends Exchange {
         //         "cursor" => "string"
         //     }
         //
-        $tradeHistory = $this->safe_value($response, 'trade_history', array());
+        $tradeHistory = $this->safe_list($response, 'trade_history', array());
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
@@ -1963,7 +1960,7 @@ class onetrading extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

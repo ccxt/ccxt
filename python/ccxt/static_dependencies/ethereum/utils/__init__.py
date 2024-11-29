@@ -97,12 +97,6 @@ from .logging import (
 from .module_loading import (
     import_string,
 )
-from .network import (
-    Network,
-    name_from_chain_id,
-    network_from_chain_id,
-    short_name_from_chain_id,
-)
 from .numeric import (
     clamp,
 )

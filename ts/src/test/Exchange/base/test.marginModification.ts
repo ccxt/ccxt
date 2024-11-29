@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testMarginModification (exchange, skippedProperties, method, entry) {
+function testMarginModification (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
         'info': {}, // or []
         'type': 'add',

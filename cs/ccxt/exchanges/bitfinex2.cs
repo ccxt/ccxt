@@ -53,9 +53,11 @@ public partial class bitfinex2 : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", true },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -117,7 +119,7 @@ public partial class bitfinex2 : Exchange
             } },
             { "rateLimit", 250 },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178" },
                 { "api", new Dictionary<string, object>() {
                     { "v1", "https://api.bitfinex.com" },
                     { "public", "https://api-pub.bitfinex.com" },
@@ -191,6 +193,7 @@ public partial class bitfinex2 : Exchange
                         { "pulse/hist", 2.7 },
                         { "pulse/profile/{nickname}", 2.7 },
                         { "funding/stats/{symbol}/hist", 10 },
+                        { "ext/vasps", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "calc/trade/avg", 2.7 },
@@ -294,7 +297,9 @@ public partial class bitfinex2 : Exchange
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
                 { "exchangeTypes", new Dictionary<string, object>() {
+                    { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
+                    { "LIMIT", "limit" },
                     { "EXCHANGE LIMIT", "limit" },
                     { "EXCHANGE STOP", "market" },
                     { "EXCHANGE FOK", "limit" },
@@ -323,6 +328,25 @@ public partial class bitfinex2 : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BITCOIN" },
+                    { "LTC", "LITECOIN" },
+                    { "ERC20", "ETHEREUM" },
+                    { "OMNI", "TETHERUSO" },
+                    { "LIQUID", "TETHERUSL" },
+                    { "TRC20", "TETHERUSX" },
+                    { "EOS", "TETHERUSS" },
+                    { "AVAX", "TETHERUSDTAVAX" },
+                    { "SOL", "TETHERUSDTSOL" },
+                    { "ALGO", "TETHERUSDTALG" },
+                    { "BCH", "TETHERUSDTBCH" },
+                    { "KSM", "TETHERUSDTKSM" },
+                    { "DVF", "TETHERUSDTDVF" },
+                    { "OMG", "TETHERUSDTOMG" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TETHERUSE", "ERC20" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -426,16 +450,16 @@ public partial class bitfinex2 : Exchange
         return this.decimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.bitfinex.com/reference/rest-public-platform-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.bitfinex.com/reference/rest-public-platform-status
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         //
         //    [1] // operative
         //    [0] // maintenance
@@ -455,23 +479,27 @@ public partial class bitfinex2 : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchMarkets
+     * @description retrieves data on all markets for bitfinex2
+     * @see https://docs.bitfinex.com/reference/rest-public-conf
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchMarkets
-        * @description retrieves data on all markets for bitfinex2
-        * @see https://docs.bitfinex.com/reference/rest-public-conf
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfo = await this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(parameters);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, new List<object>() {});
+        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
+        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
+        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
+        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        object marginIds = await this.publicGetConfPubListPairMargin(parameters);
         marginIds = this.safeValue(marginIds, 0, new List<object>() {});
         //
         //    [
@@ -593,16 +621,16 @@ public partial class bitfinex2 : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.bitfinex.com/reference/rest-public-conf
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.bitfinex.com/reference/rest-public-conf
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method"};
         object config = String.Join(",", ((IList<object>)labels).ToArray());
@@ -752,7 +780,7 @@ public partial class bitfinex2 : Exchange
                 object currencyId = this.safeString(this.safeValue(pair, 1, new List<object>() {}), 0);
                 if (isTrue(isEqual(currencyId, cleanId)))
                 {
-                    object network = this.safeNetwork(networkId);
+                    object network = this.networkIdToCode(networkId);
                     ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                         { "info", networkId },
                         { "id", ((string)networkId).ToLower() },
@@ -781,38 +809,16 @@ public partial class bitfinex2 : Exchange
         return result;
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "BITCOIN", "BTC" },
-            { "LITECOIN", "LTC" },
-            { "ETHEREUM", "ERC20" },
-            { "TETHERUSE", "ERC20" },
-            { "TETHERUSO", "OMNI" },
-            { "TETHERUSL", "LIQUID" },
-            { "TETHERUSX", "TRC20" },
-            { "TETHERUSS", "EOS" },
-            { "TETHERUSDTAVAX", "AVAX" },
-            { "TETHERUSDTSOL", "SOL" },
-            { "TETHERUSDTALG", "ALGO" },
-            { "TETHERUSDTBCH", "BCH" },
-            { "TETHERUSDTKSM", "KSM" },
-            { "TETHERUSDTDVF", "DVF" },
-            { "TETHERUSDTOMG", "OMG" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
+    /**
+     * @method
+     * @name bitfinex2#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-wallets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-wallets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         parameters ??= new Dictionary<string, object>();
@@ -857,20 +863,20 @@ public partial class bitfinex2 : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.bitfinex.com/reference/rest-auth-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://docs.bitfinex.com/reference/rest-auth-transfer
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         parameters ??= new Dictionary<string, object>();
@@ -930,7 +936,9 @@ public partial class bitfinex2 : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
         }
-        return this.parseTransfer(response, currency);
+        return this.parseTransfer(new Dictionary<string, object>() {
+            { "result", response },
+        }, currency);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -958,12 +966,13 @@ public partial class bitfinex2 : Exchange
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        object timestamp = this.safeInteger(transfer, 0);
-        object info = this.safeValue(transfer, 4);
+        object result = this.safeList(transfer, "result");
+        object timestamp = this.safeInteger(result, 0);
+        object info = this.safeValue(result, 4);
         object fromAccount = this.safeString(info, 1);
         object toAccount = this.safeString(info, 2);
         object currencyId = this.safeString(info, 5);
-        object status = this.safeString(transfer, 6);
+        object status = this.safeString(result, 6);
         return new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", timestamp },
@@ -973,7 +982,7 @@ public partial class bitfinex2 : Exchange
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "info", transfer },
+            { "info", result },
         };
     }
 
@@ -1017,18 +1026,18 @@ public partial class bitfinex2 : Exchange
         return currencyId;
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.bitfinex.com/reference/rest-public-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.bitfinex.com/reference/rest-public-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object precision = this.safeValue(this.options, "precision", "R0");
@@ -1072,81 +1081,87 @@ public partial class bitfinex2 : Exchange
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         BID,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //        ]
+        //    }
+        //
         //
         // on funding currencies (ex. fUSD)
         //
-        //     [
-        //         SYMBOL,
-        //         FRR,
-        //         BID,
-        //         BID_PERIOD,
-        //         BID_SIZE,
-        //         ASK,
-        //         ASK_PERIOD,
-        //         ASK_SIZE,
-        //         DAILY_CHANGE,
-        //         DAILY_CHANGE_RELATIVE,
-        //         LAST_PRICE,
-        //         VOLUME,
-        //         HIGH,
-        //         LOW,
-        //         _PLACEHOLDER,
-        //         _PLACEHOLDER,
-        //         FRR_AMOUNT_AVAILABLE
-        //     ]
+        //    {
+        //        'result': [
+        //            SYMBOL,
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //        ]
+        //    }
         //
+        object result = this.safeList(ticker, "result");
         object symbol = this.safeSymbol(null, market);
-        object length = getArrayLength(ticker);
-        object last = this.safeString(ticker, subtract(length, 4));
-        object percentage = this.safeString(ticker, subtract(length, 5));
+        object length = getArrayLength(result);
+        object last = this.safeString(result, subtract(length, 4));
+        object percentage = this.safeString(result, subtract(length, 5));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeString(ticker, subtract(length, 2)) },
-            { "low", this.safeString(ticker, subtract(length, 1)) },
-            { "bid", this.safeString(ticker, subtract(length, 10)) },
-            { "bidVolume", this.safeString(ticker, subtract(length, 9)) },
-            { "ask", this.safeString(ticker, subtract(length, 8)) },
-            { "askVolume", this.safeString(ticker, subtract(length, 7)) },
+            { "high", this.safeString(result, subtract(length, 2)) },
+            { "low", this.safeString(result, subtract(length, 1)) },
+            { "bid", this.safeString(result, subtract(length, 10)) },
+            { "bidVolume", this.safeString(result, subtract(length, 9)) },
+            { "ask", this.safeString(result, subtract(length, 8)) },
+            { "askVolume", this.safeString(result, subtract(length, 7)) },
             { "vwap", null },
             { "open", null },
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", this.safeString(ticker, subtract(length, 6)) },
+            { "change", this.safeString(result, subtract(length, 6)) },
             { "percentage", Precise.stringMul(percentage, "100") },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, subtract(length, 3)) },
+            { "baseVolume", this.safeString(result, subtract(length, 3)) },
             { "quoteVolume", null },
-            { "info", ticker },
+            { "info", result },
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.bitfinex.com/reference/rest-public-tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.bitfinex.com/reference/rest-public-tickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1206,22 +1221,24 @@ public partial class bitfinex2 : Exchange
             object marketId = this.safeString(ticker, 0);
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {
+                { "result", ticker },
+            }, market);
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.bitfinex.com/reference/rest-public-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.bitfinex.com/reference/rest-public-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1229,7 +1246,10 @@ public partial class bitfinex2 : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        return this.parseTicker(ticker, market);
+        object result = new Dictionary<string, object>() {
+            { "result", ticker },
+        };
+        return this.parseTicker(result, market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1261,14 +1281,15 @@ public partial class bitfinex2 : Exchange
         //         ...
         //     ]
         //
-        object tradeLength = getArrayLength(trade);
+        object tradeList = this.safeList(trade, "result", new List<object>() {});
+        object tradeLength = getArrayLength(tradeList);
         object isPrivate = (isGreaterThan(tradeLength, 5));
-        object id = this.safeString(trade, 0);
+        object id = this.safeString(tradeList, 0);
         object amountIndex = ((bool) isTrue(isPrivate)) ? 4 : 2;
         object side = null;
-        object amountString = this.safeString(trade, amountIndex);
+        object amountString = this.safeString(tradeList, amountIndex);
         object priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
-        object priceString = this.safeString(trade, priceIndex);
+        object priceString = this.safeString(tradeList, priceIndex);
         if (isTrue(isEqual(getValue(amountString, 0), "-")))
         {
             side = "sell";
@@ -1283,23 +1304,23 @@ public partial class bitfinex2 : Exchange
         object fee = null;
         object symbol = this.safeSymbol(null, market);
         object timestampIndex = ((bool) isTrue(isPrivate)) ? 2 : 1;
-        object timestamp = this.safeInteger(trade, timestampIndex);
+        object timestamp = this.safeInteger(tradeList, timestampIndex);
         if (isTrue(isPrivate))
         {
-            object marketId = getValue(trade, 1);
+            object marketId = getValue(tradeList, 1);
             symbol = this.safeSymbol(marketId);
-            orderId = this.safeString(trade, 3);
-            object maker = this.safeInteger(trade, 8);
+            orderId = this.safeString(tradeList, 3);
+            object maker = this.safeInteger(tradeList, 8);
             takerOrMaker = ((bool) isTrue((isEqual(maker, 1)))) ? "maker" : "taker";
-            object feeCostString = this.safeString(trade, 9);
+            object feeCostString = this.safeString(tradeList, 9);
             feeCostString = Precise.stringNeg(feeCostString);
-            object feeCurrencyId = this.safeString(trade, 10);
+            object feeCurrencyId = this.safeString(tradeList, 10);
             object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrency },
             };
-            object orderType = getValue(trade, 6);
+            object orderType = getValue(tradeList, 6);
             type = this.safeString(getValue(this.options, "exchangeTypes"), orderType);
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1315,25 +1336,25 @@ public partial class bitfinex2 : Exchange
             { "amount", amountString },
             { "cost", null },
             { "fee", fee },
-            { "info", trade },
+            { "info", tradeList },
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.bitfinex.com/reference/rest-public-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 120, max 10000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.bitfinex.com/reference/rest-public-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch, default 120, max 10000
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1374,25 +1395,32 @@ public partial class bitfinex2 : Exchange
         //     ]
         //
         object trades = this.sortBy(response, 1);
-        return this.parseTrades(trades, market, null, limit);
+        object tradesList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        {
+            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+                { "result", getValue(trades, i) },
+            }); // convert to array of dicts to match parseOrder signature
+        }
+        return this.parseTrades(tradesList, market, null, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.bitfinex.com/reference/rest-public-candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.bitfinex.com/reference/rest-public-candles
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        */
         timeframe ??= "1m";
         limit ??= 100;
         parameters ??= new Dictionary<string, object>();
@@ -1409,14 +1437,20 @@ public partial class bitfinex2 : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10000;
+        } else
+        {
+            limit = mathMin(limit, 10000);
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
             { "sort", 1 },
-            { "start", since },
             { "limit", limit },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = since;
+        }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
@@ -1493,20 +1527,21 @@ public partial class bitfinex2 : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        object id = this.safeString(order, 0);
-        object marketId = this.safeString(order, 3);
+        object orderList = this.safeList(order, "result");
+        object id = this.safeString(orderList, 0);
+        object marketId = this.safeString(orderList, 3);
         object symbol = this.safeSymbol(marketId);
         // https://github.com/ccxt/ccxt/issues/6686
-        // const timestamp = this.safeTimestamp (order, 5);
-        object timestamp = this.safeInteger(order, 5);
-        object remaining = Precise.stringAbs(this.safeString(order, 6));
-        object signedAmount = this.safeString(order, 7);
+        // const timestamp = this.safeTimestamp (orderObject, 5);
+        object timestamp = this.safeInteger(orderList, 5);
+        object remaining = Precise.stringAbs(this.safeString(orderList, 6));
+        object signedAmount = this.safeString(orderList, 7);
         object amount = Precise.stringAbs(signedAmount);
         object side = ((bool) isTrue(Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
-        object orderType = this.safeString(order, 8);
+        object orderType = this.safeString(orderList, 8);
         object type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
         object timeInForce = this.parseTimeInForce(orderType);
-        object rawFlags = this.safeString(order, 12);
+        object rawFlags = this.safeString(orderList, 12);
         object flags = this.parseOrderFlags(rawFlags);
         object postOnly = false;
         if (isTrue(!isEqual(flags, null)))
@@ -1519,28 +1554,28 @@ public partial class bitfinex2 : Exchange
                 }
             }
         }
-        object price = this.safeString(order, 16);
+        object price = this.safeString(orderList, 16);
         object stopPrice = null;
         if (isTrue(isTrue((isEqual(orderType, "EXCHANGE STOP"))) || isTrue((isEqual(orderType, "EXCHANGE STOP LIMIT")))))
         {
             price = null;
-            stopPrice = this.safeString(order, 16);
+            stopPrice = this.safeString(orderList, 16);
             if (isTrue(isEqual(orderType, "EXCHANGE STOP LIMIT")))
             {
-                price = this.safeString(order, 19);
+                price = this.safeString(orderList, 19);
             }
         }
         object status = null;
-        object statusString = this.safeString(order, 13);
+        object statusString = this.safeString(orderList, 13);
         if (isTrue(!isEqual(statusString, null)))
         {
             object parts = ((string)statusString).Split(new [] {((string)" @ ")}, StringSplitOptions.None).ToList<object>();
             status = this.parseOrderStatus(this.safeString(parts, 0));
         }
-        object average = this.safeString(order, 17);
-        object clientOrderId = this.safeString(order, 2);
+        object average = this.safeString(orderList, 17);
+        object clientOrderId = this.safeString(orderList, 2);
         return this.safeOrder(new Dictionary<string, object>() {
-            { "info", order },
+            { "info", orderList },
             { "id", id },
             { "clientOrderId", clientOrderId },
             { "timestamp", timestamp },
@@ -1675,30 +1710,30 @@ public partial class bitfinex2 : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#createOrder
+     * @description create an order on the exchange
+     * @see https://docs.bitfinex.com/reference/rest-auth-submit-order
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] price of the order
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {boolean} [params.postOnly] set to true if you want to make a post only order
+     * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
+     * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+     * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+     * @param {string} [params.price_aux_limit] order price for stop limit orders
+     * @param {string} [params.price_oco_stop] OCO stop price
+     * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#createOrder
-        * @description create an order on the exchange
-        * @see https://docs.bitfinex.com/reference/rest-auth-submit-order
-        * @param {string} symbol unified CCXT market symbol
-        * @param {string} type 'limit' or 'market'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount the amount of currency to trade
-        * @param {float} [price] price of the order
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] the price that triggers a trigger order
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-        * @param {boolean} [params.postOnly] set to true if you want to make a post only order
-        * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
-        * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
-        * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-        * @param {string} [params.price_aux_limit] order price for stop limit orders
-        * @param {string} [params.price_oco_stop] OCO stop price
-        * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1760,20 +1795,22 @@ public partial class bitfinex2 : Exchange
         }
         object orders = this.safeList(response, 4, new List<object>() {});
         object order = this.safeList(orders, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {
+            { "result", order },
+        }), market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#createOrders
-        * @description create a list of trade orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
@@ -1824,44 +1861,53 @@ public partial class bitfinex2 : Exchange
         {
             object entry = getValue(data, i);
             object individualOrder = getValue(entry, 4);
-            ((IList<object>)results).Add(getValue(individualOrder, 0));
+            ((IList<object>)results).Add(new Dictionary<string, object>() {
+                { "result", getValue(individualOrder, 0) },
+            });
         }
         return this.parseOrders(results);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
             { "all", 1 },
         };
         object response = await this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters));
-        object orders = this.safeValue(response, 4, new List<object>() {});
-        return this.parseOrders(orders);
+        object orders = this.safeList(response, 4, new List<object>() {});
+        object ordersList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+                { "result", getValue(orders, i) },
+            });
+        }
+        return this.parseOrders(ordersList);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.bitfinex.com/reference/rest-auth-cancel-order
+     * @param {string} id order id
+     * @param {string} symbol Not used by bitfinex2 cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.bitfinex.com/reference/rest-auth-cancel-order
-        * @param {string} id order id
-        * @param {string} symbol Not used by bitfinex2 cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
@@ -1871,7 +1917,7 @@ public partial class bitfinex2 : Exchange
             object cidDate = this.safeValue(parameters, "cidDate"); // client order id date
             if (isTrue(isEqual(cidDate, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId (\'cid\') requires both \'cid\' and \'cid_date\' (\'YYYY-MM-DD\')")) ;
+                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")) ;
             }
             request = new Dictionary<string, object>() {
                 { "cid", cid },
@@ -1886,21 +1932,24 @@ public partial class bitfinex2 : Exchange
         }
         object response = await this.privatePostAuthWOrderCancel(this.extend(request, parameters));
         object order = this.safeValue(response, 4);
-        return this.parseOrder(order);
+        object orderObject = new Dictionary<string, object>() {
+            { "result", order },
+        };
+        return this.parseOrder(orderObject);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#cancelOrders
+     * @description cancel multiple orders at the same time
+     * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#cancelOrders
-        * @description cancel multiple orders at the same time
-        * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1967,22 +2016,29 @@ public partial class bitfinex2 : Exchange
         //     ]
         //
         object orders = this.safeList(response, 4, new List<object>() {});
-        return this.parseOrders(orders, market);
+        object ordersList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+                { "result", getValue(orders, i) },
+            });
+        }
+        return this.parseOrders(ordersList, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOpenOrder
+     * @description fetch an open order by it's id
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOpenOrder
-        * @description fetch an open order by it's id
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "id", new List<object> {parseInt(id)} },
@@ -1996,19 +2052,19 @@ public partial class bitfinex2 : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchClosedOrder
+     * @description fetch an open order by it's id
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchClosedOrder
-        * @description fetch an open order by it's id
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "id", new List<object> {parseInt(id)} },
@@ -2022,20 +2078,20 @@ public partial class bitfinex2 : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2088,25 +2144,32 @@ public partial class bitfinex2 : Exchange
         //          ],
         //      ]
         //
-        return this.parseOrders(response, market, since, limit);
+        object ordersList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            });
+        }
+        return this.parseOrders(ordersList, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2179,23 +2242,30 @@ public partial class bitfinex2 : Exchange
         //          ]
         //      ]
         //
-        return this.parseOrders(response, market, since, limit);
+        object ordersList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            });
+        }
+        return this.parseOrders(ordersList, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.bitfinex.com/reference/rest-auth-order-trades
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.bitfinex.com/reference/rest-auth-order-trades
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2210,23 +2280,30 @@ public partial class bitfinex2 : Exchange
         };
         // valid for trades upto 10 days old
         object response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters));
-        return this.parseTrades(response, market, since, limit);
+        object tradesList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            }); // convert to array of dicts to match parseOrder signature
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.bitfinex.com/reference/rest-auth-trades
+     * @see https://docs.bitfinex.com/reference/rest-auth-trades-by-symbol
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.bitfinex.com/reference/rest-auth-trades
-        * @see https://docs.bitfinex.com/reference/rest-auth-trades-by-symbol
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2251,20 +2328,27 @@ public partial class bitfinex2 : Exchange
         {
             response = await this.privatePostAuthRTradesHist(this.extend(request, parameters));
         }
-        return this.parseTrades(response, market, since, limit);
+        object tradesList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            }); // convert to array of dicts to match parseOrder signature
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2273,17 +2357,17 @@ public partial class bitfinex2 : Exchange
         return await this.fetchDepositAddress(code, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2294,7 +2378,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -2436,7 +2520,7 @@ public partial class bitfinex2 : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = "ok";
             if (isTrue(isEqual(id, 0)))
             {
@@ -2451,7 +2535,7 @@ public partial class bitfinex2 : Exchange
             object currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             object networkId = this.safeString(transaction, 2);
-            network = this.safeNetwork(networkId);
+            network = this.networkIdToCode(networkId);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2504,16 +2588,16 @@ public partial class bitfinex2 : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.bitfinex.com/reference/rest-auth-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.bitfinex.com/reference/rest-auth-summary
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostAuthRSummary(parameters);
@@ -2623,20 +2707,20 @@ public partial class bitfinex2 : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.bitfinex.com/reference/movement-info
+     * @see https://docs.bitfinex.com/reference/rest-auth-movements
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://docs.bitfinex.com/reference/movement-info
-        * @see https://docs.bitfinex.com/reference/rest-auth-movements
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -2690,20 +2774,20 @@ public partial class bitfinex2 : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#withdraw
+     * @description make a withdrawal
+     * @see https://docs.bitfinex.com/reference/rest-auth-withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#withdraw
-        * @description make a withdrawal
-        * @see https://docs.bitfinex.com/reference/rest-auth-withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
         await this.loadMarkets();
@@ -2716,7 +2800,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -2788,17 +2872,17 @@ public partial class bitfinex2 : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.bitfinex.com/reference/rest-auth-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.bitfinex.com/reference/rest-auth-positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2837,7 +2921,14 @@ public partial class bitfinex2 : Exchange
         //         ]
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        object positionsList = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            ((IList<object>)positionsList).Add(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            });
+        }
+        return this.parsePositions(positionsList, symbols);
     }
 
     public override object parsePosition(object position, object market = null)
@@ -2874,22 +2965,23 @@ public partial class bitfinex2 : Exchange
         //        }
         //    ]
         //
-        object marketId = this.safeString(position, 0);
-        object amount = this.safeString(position, 2);
-        object timestamp = this.safeInteger(position, 12);
-        object meta = this.safeString(position, 19);
+        object positionList = this.safeList(position, "result");
+        object marketId = this.safeString(positionList, 0);
+        object amount = this.safeString(positionList, 2);
+        object timestamp = this.safeInteger(positionList, 12);
+        object meta = this.safeString(positionList, 19);
         object tradePrice = this.safeString(meta, "trade_price");
         object tradeAmount = this.safeString(meta, "trade_amount");
         return this.safePosition(new Dictionary<string, object>() {
-            { "info", position },
-            { "id", this.safeString(position, 11) },
+            { "info", positionList },
+            { "id", this.safeString(positionList, 11) },
             { "symbol", this.safeSymbol(marketId, market) },
             { "notional", this.parseNumber(amount) },
             { "marginMode", "isolated" },
-            { "liquidationPrice", this.safeNumber(position, 8) },
-            { "entryPrice", this.safeNumber(position, 3) },
-            { "unrealizedPnl", this.safeNumber(position, 6) },
-            { "percentage", this.safeNumber(position, 7) },
+            { "liquidationPrice", this.safeNumber(positionList, 8) },
+            { "entryPrice", this.safeNumber(positionList, 3) },
+            { "unrealizedPnl", this.safeNumber(positionList, 6) },
+            { "percentage", this.safeNumber(positionList, 7) },
             { "contracts", null },
             { "contractSize", null },
             { "markPrice", null },
@@ -2898,13 +2990,13 @@ public partial class bitfinex2 : Exchange
             { "hedged", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", this.safeInteger(position, 13) },
-            { "maintenanceMargin", this.safeNumber(position, 18) },
+            { "lastUpdateTimestamp", this.safeInteger(positionList, 13) },
+            { "maintenanceMargin", this.safeNumber(positionList, 18) },
             { "maintenanceMarginPercentage", null },
-            { "collateral", this.safeNumber(position, 17) },
+            { "collateral", this.safeNumber(positionList, 17) },
             { "initialMargin", this.parseNumber(Precise.stringMul(tradeAmount, tradePrice)) },
             { "initialMarginPercentage", null },
-            { "leverage", this.safeNumber(position, 9) },
+            { "leverage", this.safeNumber(positionList, 9) },
             { "marginRatio", null },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
@@ -3041,21 +3133,24 @@ public partial class bitfinex2 : Exchange
         //         ]
         //     ]
         //
+        object itemList = this.safeList(item, "result", new List<object>() {});
         object type = null;
-        object id = this.safeString(item, 0);
-        object currencyId = this.safeString(item, 1);
+        object id = this.safeString(itemList, 0);
+        object currencyId = this.safeString(itemList, 1);
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger(item, 3);
-        object amount = this.safeNumber(item, 5);
-        object after = this.safeNumber(item, 6);
-        object description = this.safeString(item, 8);
+        currency = this.safeCurrency(currencyId, currency);
+        object timestamp = this.safeInteger(itemList, 3);
+        object amount = this.safeNumber(itemList, 5);
+        object after = this.safeNumber(itemList, 6);
+        object description = this.safeString(itemList, 8);
         if (isTrue(!isEqual(description, null)))
         {
             object parts = ((string)description).Split(new [] {((string)" @ ")}, StringSplitOptions.None).ToList<object>();
             object first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", id },
             { "direction", null },
             { "account", null },
@@ -3070,25 +3165,24 @@ public partial class bitfinex2 : Exchange
             { "after", after },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest ledger entry
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3137,35 +3231,28 @@ public partial class bitfinex2 : Exchange
         //         ]
         //     ]
         //
-        return this.parseLedger(response, currency, since, limit);
+        object ledgerObjects = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object item = getValue(response, i);
+            ((IList<object>)ledgerObjects).Add(new Dictionary<string, object>() {
+                { "result", item },
+            });
+        }
+        return this.parseLedger(ledgerObjects, currency, since, limit);
     }
 
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        return ((object)this.fetchFundingRates(new List<object>() {symbol}, parameters));
-    }
-
+    /**
+     * @method
+     * @name bitfinex2#fetchFundingRates
+     * @description fetch the current funding rate for multiple symbols
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+     * @param {string[]} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-        * @param {string[]} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
         {
@@ -3210,21 +3297,21 @@ public partial class bitfinex2 : Exchange
         return this.parseFundingRates(response);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest funding rate entry
+     * @param {int} [limit] max number of funding rate entrys to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] timestamp in ms of the earliest funding rate entry
-        * @param {int} [limit] max number of funding rate entrys to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3290,11 +3377,11 @@ public partial class bitfinex2 : Exchange
         }
         object reversedArray = new List<object>() {};
         object rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-        object rawRatesLength = getArrayLength(rawRates);
-        object ratesLength = mathMax(subtract(rawRatesLength, 1), 0);
-        for (object i = ratesLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        object ratesLength = getArrayLength(rawRates);
+        for (object i = 0; isLessThan(i, ratesLength); postFixIncrement(ref i))
         {
-            object valueAtIndex = getValue(rawRates, i);
+            object index = subtract(subtract(ratesLength, i), 1);
+            object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
         return reversedArray;
@@ -3351,6 +3438,7 @@ public partial class bitfinex2 : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -3406,17 +3494,17 @@ public partial class bitfinex2 : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOpenInterest
-        * @description retrieves the open interest of a contract trading pair
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-        * @param {string} symbol unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3458,22 +3546,22 @@ public partial class bitfinex2 : Exchange
         return this.parseOpenInterest(oi, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOpenInterestHistory
+     * @description retrieves the open interest history of a currency
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} timeframe the time period of each row of data, not used by bitfinex2
+     * @param {int} [since] the time in ms of the earliest record to retrieve as a unix timestamp
+     * @param {int} [limit] the number of records in the response
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] the time in ms of the latest record to retrieve as a unix timestamp
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOpenInterestHistory
-        * @description retrieves the open interest history of a currency
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
-        * @param {string} symbol unified CCXT market symbol
-        * @param {string} timeframe the time period of each row of data, not used by bitfinex2
-        * @param {int} [since] the time in ms of the earliest record to retrieve as a unix timestamp
-        * @param {int} [limit] the number of records in the response
-        * @param {object} [params] exchange specific parameters
-        * @param {int} [params.until] the time in ms of the latest record to retrieve as a unix timestamp
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3607,21 +3695,21 @@ public partial class bitfinex2 : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://docs.bitfinex.com/reference/rest-public-liquidations
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchLiquidations
-        * @description retrieves the public liquidations of a trading pair
-        * @see https://docs.bitfinex.com/reference/rest-public-liquidations
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3709,18 +3797,18 @@ public partial class bitfinex2 : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitfinex2#setMargin
+     * @description either adds or reduces margin in a swap position in order to set the margin to a specific value
+     * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#setMargin
-        * @description either adds or reduces margin in a swap position in order to set the margin to a specific value
-        * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
-        * @param {string} symbol unified market symbol of the market to set margin in
-        * @param {float} amount the amount to set the margin to
-        * @param {object} [params] parameters specific to the exchange API endpoint
-        * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3744,33 +3832,46 @@ public partial class bitfinex2 : Exchange
         return this.parseMarginModification(data, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
         object marginStatusRaw = getValue(data, 0);
         object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", null },
             { "status", marginStatus },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
+    /**
+     * @method
+     * @name bitfinex2#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-        * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
-        * @param {string} id the order id
-        * @param {string} [symbol] unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3829,29 +3930,29 @@ public partial class bitfinex2 : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name bitfinex2#editOrder
+     * @description edit a trade order
+     * @see https://docs.bitfinex.com/reference/rest-auth-update-order
+     * @param {string} id edit order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {boolean} [params.postOnly] set to true if you want to make a post only order
+     * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
+     * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+     * @param {int} [params.leverage] leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
+     * @param {int} [params.clientOrderId] a unique client order id for the order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex2#editOrder
-        * @description edit a trade order
-        * @see https://docs.bitfinex.com/reference/rest-auth-update-order
-        * @param {string} id edit order id
-        * @param {string} symbol unified symbol of the market to edit an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] the price that triggers a trigger order
-        * @param {boolean} [params.postOnly] set to true if you want to make a post only order
-        * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
-        * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
-        * @param {int} [params.leverage] leverage for a derivative order, supported by derivative symbol orders only, the value should be between 1 and 100 inclusive
-        * @param {int} [params.clientOrderId] a unique client order id for the order
-        * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);

@@ -33,35 +33,60 @@ public partial class yobit : Exchange
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
@@ -70,9 +95,14 @@ public partial class yobit : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
@@ -227,6 +257,7 @@ public partial class yobit : Exchange
                 { "XIN", "XINCoin" },
                 { "XMT", "SummitCoin" },
                 { "XRA", "Ratecoin" },
+                { "BCHN", "BSV" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "maxUrlLength", 2048 },
@@ -276,15 +307,15 @@ public partial class yobit : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(balances, "server_time");
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object free = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        object total = this.safeValue(balances, "funds_incl_orders", new Dictionary<string, object>() {});
+        object free = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
+        object total = this.safeDict(balances, "funds_incl_orders", new Dictionary<string, object>() {});
         object currencyIds = new List<object>(((IDictionary<string,object>)this.extend(free, total)).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
@@ -298,16 +329,16 @@ public partial class yobit : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchBalance
+     * @see https://yobit.net/en/api
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchBalance
-        * @see https://yobit.net/en/api
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostGetInfo(parameters);
@@ -339,16 +370,16 @@ public partial class yobit : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchMarkets
+     * @see https://yobit.net/en/api
+     * @description retrieves data on all markets for yobit
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchMarkets
-        * @see https://yobit.net/en/api
-        * @description retrieves data on all markets for yobit
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetInfo(parameters);
         //
@@ -369,7 +400,7 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object markets = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object markets = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -442,18 +473,18 @@ public partial class yobit : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOrderBook
+     * @see https://yobit.net/en/api
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchOrderBook
-        * @see https://yobit.net/en/api
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -474,18 +505,18 @@ public partial class yobit : Exchange
         return this.parseOrderBook(orderbook, symbol);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOrderBooks
+     * @see https://yobit.net/en/api
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+     * @param {int} [limit] max number of entries per orderbook to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+     */
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchOrderBooks
-        * @see https://yobit.net/en/api
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-        * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-        * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ids = null;
@@ -563,42 +594,9 @@ public partial class yobit : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<object> fetchTickersHelper(object idsString, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTickers
-        * @see https://yobit.net/en/api
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument")) ;
-        }
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object ids = null;
-        if (isTrue(isEqual(symbols, null)))
-        {
-            ids = this.ids;
-        } else
-        {
-            ids = this.marketIds(symbols);
-        }
-        object idsLength = getArrayLength(ids);
-        object idsString = String.Join("-", ((IList<object>)ids).ToArray());
-        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
-        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        object lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        object actualLength = add(getArrayLength(idsString), lenghtOfBaseUrl);
-        if (isTrue(isGreaterThan(actualLength, maxLength)))
-        {
-            throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", idsString },
         };
@@ -613,20 +611,88 @@ public partial class yobit : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return result;
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTickers
+     * @see https://yobit.net/en/api
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object allSymbols = null;
+        var allSymbolsparametersVariable = this.handleParamBool(parameters, "all", false);
+        allSymbols = ((IList<object>)allSymbolsparametersVariable)[0];
+        parameters = ((IList<object>)allSymbolsparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(symbols, null)) && !isTrue(allSymbols)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")) ;
+        }
+        await this.loadMarkets();
+        object promises = new List<object>() {};
+        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        object lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (isTrue(allSymbols))
+        {
+            symbols = this.symbols;
+            object ids = "";
+            for (object i = 0; isLessThan(i, getArrayLength(this.ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(this.ids, i);
+                object prefix = ((bool) isTrue((isEqual(ids, "")))) ? "" : "-";
+                ids = add(ids, add(prefix, id));
+                if (isTrue(isGreaterThan(((string)ids).Length, maxLength)))
+                {
+                    ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+                    ids = "";
+                }
+            }
+            if (isTrue(!isEqual(ids, "")))
+            {
+                ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+            }
+        } else
+        {
+            symbols = this.marketSymbols(symbols);
+            object ids = this.marketIds(symbols);
+            object idsLength = getArrayLength(ids);
+            object idsString = String.Join("-", ((IList<object>)ids).ToArray());
+            object actualLength = add(((string)idsString).Length, lenghtOfBaseUrl);
+            if (isTrue(isGreaterThan(actualLength, maxLength)))
+            {
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
+            }
+            ((IList<object>)promises).Add(this.fetchTickersHelper(idsString, parameters));
+        }
+        object resultAll = await promiseAll(promises);
+        object finalResult = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(resultAll)); postFixIncrement(ref i))
+        {
+            object result = this.filterByArrayTickers(getValue(resultAll, i), "symbol", symbols);
+            finalResult = this.extend(finalResult, result);
+        }
+        return finalResult;
+    }
+
+    /**
+     * @method
+     * @name yobit#fetchTicker
+     * @see https://yobit.net/en/api
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTicker
-        * @see https://yobit.net/en/api
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -687,7 +753,7 @@ public partial class yobit : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object isYourOrder = this.safeValue(trade, "is_your_order");
+        object isYourOrder = this.safeString(trade, "is_your_order");
         if (isTrue(!isEqual(isYourOrder, null)))
         {
             if (isTrue(isEqual(fee, null)))
@@ -717,19 +783,19 @@ public partial class yobit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTrades
+     * @see https://yobit.net/en/api
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTrades
-        * @see https://yobit.net/en/api
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -762,20 +828,20 @@ public partial class yobit : Exchange
                 return new List<object>() {};
             }
         }
-        object result = this.safeValue(response, getValue(market, "id"), new List<object>() {});
+        object result = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchTradingFees
+     * @see https://yobit.net/en/api
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTradingFees
-        * @see https://yobit.net/en/api
-        * @description fetch the trading fees for multiple markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetInfo(parameters);
@@ -798,13 +864,13 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object marketIds = new List<object>(((IDictionary<string,object>)pairs).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object pair = this.safeValue(pairs, marketId, new Dictionary<string, object>() {});
+            object pair = this.safeDict(pairs, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId, null, "_");
             object takerString = this.safeString(pair, "fee_buyer");
             object makerString = this.safeString(pair, "fee_seller");
@@ -822,21 +888,21 @@ public partial class yobit : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name yobit#createOrder
+     * @see https://yobit.net/en/api
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#createOrder
-        * @see https://yobit.net/en/api
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type must be 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, "market")))
         {
@@ -872,22 +938,22 @@ public partial class yobit : Exchange
         //           }
         //       }
         //
-        object result = this.safeValue(response, "return");
+        object result = this.safeDict(response, "return");
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name yobit#cancelOrder
+     * @see https://yobit.net/en/api
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol not used by yobit cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#cancelOrder
-        * @see https://yobit.net/en/api
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol not used by yobit cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -913,7 +979,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1034,17 +1100,18 @@ public partial class yobit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOrder
+     * @see https://yobit.net/en/api
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol not used by yobit fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchOrder
-        * @see https://yobit.net/en/api
-        * @description fetches information on an order made by the user
-        * @param {string} symbol not used by yobit fetchOrder
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1052,7 +1119,7 @@ public partial class yobit : Exchange
         };
         object response = await this.privatePostOrderInfo(this.extend(request, parameters));
         id = ((object)id).ToString();
-        object orders = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         //
         //      {
         //          "success":1,
@@ -1074,19 +1141,19 @@ public partial class yobit : Exchange
         }, getValue(orders, id)));
     }
 
+    /**
+     * @method
+     * @name yobit#fetchOpenOrders
+     * @see https://yobit.net/en/api
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchOpenOrders
-        * @see https://yobit.net/en/api
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1124,23 +1191,23 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name yobit#fetchMyTrades
+     * @see https://yobit.net/en/api
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchMyTrades
-        * @see https://yobit.net/en/api
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1177,12 +1244,12 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object trades = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object trades = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)trades).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
+            object id = this.safeString(ids, i);
             object trade = this.parseTrade(this.extend(getValue(trades, id), new Dictionary<string, object>() {
                 { "trade_id", id },
             }), market);
@@ -1191,17 +1258,17 @@ public partial class yobit : Exchange
         return this.filterBySymbolSinceLimit(result, getValue(market, "symbol"), since, limit);
     }
 
+    /**
+     * @method
+     * @name yobit#createDepositAddress
+     * @see https://yobit.net/en/api
+     * @description create a currency deposit address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#createDepositAddress
-        * @see https://yobit.net/en/api
-        * @description create a currency deposit address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "need_new", 1 },
@@ -1217,22 +1284,22 @@ public partial class yobit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name yobit#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://yobit.net/en/api
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchDepositAddress
-        * @see https://yobit.net/en/api
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
         object currencyId = getValue(currency, "id");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
@@ -1251,46 +1318,28 @@ public partial class yobit : Exchange
         object address = this.safeString(getValue(response, "return"), "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "id", null },
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
-            { "txid", null },
-            { "type", null },
-            { "amount", null },
-            { "status", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "addressFrom", null },
-            { "addressTo", null },
-            { "tagFrom", null },
-            { "tagTo", null },
-            { "updated", null },
-            { "comment", null },
-            { "fee", new Dictionary<string, object>() {
-                { "currency", null },
-                { "cost", null },
-                { "rate", null },
-            } },
         };
     }
 
+    /**
+     * @method
+     * @name yobit#withdraw
+     * @see https://yobit.net/en/api
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#withdraw
-        * @see https://yobit.net/en/api
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1426,7 +1475,7 @@ public partial class yobit : Exchange
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            object success = this.safeBool(response, "success", false);
+            object success = this.safeValue(response, "success"); // don't replace with safeBool here
             if (isTrue((success is string)))
             {
                 if (isTrue(isTrue((isEqual(success, "true"))) || isTrue((isEqual(success, "1")))))

@@ -6,9 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Greeks, Int, Leverage, Market, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -16,7 +17,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -51,6 +51,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
@@ -61,7 +63,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
+                'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -70,6 +73,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': True,
+                'fetchOptionChain': False,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -251,14 +256,6 @@ class delta(Exchange, ImplicitAPI):
             },
         })
 
-    def convert_expire_date(self, date):
-        # parse YYMMDD to timestamp
-        year = date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
-        return reconstructedDate
-
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
         quote = 'USDT'
@@ -324,7 +321,7 @@ class delta(Exchange, ImplicitAPI):
             'info': None,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')) or (marketId.startswith('C-')) or (marketId.startswith('P-')))
         if isOption and not (marketId in self.markets_by_id):
             # handle expired option contracts
@@ -339,7 +336,7 @@ class delta(Exchange, ImplicitAPI):
         """
         response = self.publicGetSettings(params)
         # full response sample under `fetchStatus`
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.safe_integer_product(result, 'server_time', 0.001)
 
     def fetch_status(self, params={}):
@@ -402,7 +399,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         underMaintenance = self.safe_string(result, 'under_maintenance')
         status = 'maintenance' if (underMaintenance == 'true') else 'ok'
         updated = self.safe_integer_product(result, 'server_time', 0.001, self.milliseconds())
@@ -414,10 +411,12 @@ class delta(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.delta.exchange/#get-list-of-all-assets
+
+        https://docs.delta.exchange/#get-list-of-all-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -452,8 +451,8 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        currencies = self.safe_value(response, 'result', [])
-        result = {}
+        currencies = self.safe_list(response, 'result', [])
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
@@ -488,18 +487,34 @@ class delta(Exchange, ImplicitAPI):
 
     def load_markets(self, reload=False, params={}):
         markets = super(delta, self).load_markets(reload, params)
-        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
+        currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId')
         if (currenciesByNumericId is None) or reload:
-            self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
-        marketsByNumericId = self.safe_value(self.options, 'marketsByNumericId')
+            self.options['currenciesByNumericId'] = self.index_by_stringified_numeric_id(self.currencies)
+        marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId')
         if (marketsByNumericId is None) or reload:
-            self.options['marketsByNumericId'] = self.index_by(self.markets, 'numericId')
+            self.options['marketsByNumericId'] = self.index_by_stringified_numeric_id(self.markets)
         return markets
 
-    def fetch_markets(self, params={}):
+    def index_by_stringified_numeric_id(self, input):
+        result: dict = {}
+        if input is None:
+            return None
+        keys = list(input.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            item = input[key]
+            numericIdString = self.safe_string(item, 'numericId')
+            if numericIdString is None:
+                continue
+            result[numericIdString] = item
+        return result
+
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for delta
-        :see: https://docs.delta.exchange/#get-list-of-products
+
+        https://docs.delta.exchange/#get-list-of-products
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -682,7 +697,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        markets = self.safe_value(response, 'result', [])
+        markets = self.safe_list(response, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -690,10 +705,10 @@ class delta(Exchange, ImplicitAPI):
             if type == 'options_combos':
                 continue
             # settlingAsset = self.safe_value(market, 'settling_asset', {})
-            quotingAsset = self.safe_value(market, 'quoting_asset', {})
-            underlyingAsset = self.safe_value(market, 'underlying_asset', {})
-            settlingAsset = self.safe_value(market, 'settling_asset')
-            productSpecs = self.safe_value(market, 'product_specs', {})
+            quotingAsset = self.safe_dict(market, 'quoting_asset', {})
+            underlyingAsset = self.safe_dict(market, 'underlying_asset', {})
+            settlingAsset = self.safe_dict(market, 'settling_asset')
+            productSpecs = self.safe_dict(market, 'product_specs', {})
             baseId = self.safe_string(underlyingAsset, 'symbol')
             quoteId = self.safe_string(quotingAsset, 'symbol')
             settleId = self.safe_string(settlingAsset, 'symbol')
@@ -796,7 +811,7 @@ class delta(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -916,7 +931,7 @@ class delta(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'close')
-        quotes = self.safe_value(ticker, 'quotes', {})
+        quotes = self.safe_dict(ticker, 'quotes', {})
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -937,20 +952,24 @@ class delta(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'spot_price'),
             'info': ticker,
         }, market)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTickersSymbol(self.extend(request, params))
@@ -1078,13 +1097,15 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.delta.exchange/#get-tickers-for-products
+
+        https://docs.delta.exchange/#get-tickers-for-products
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1222,8 +1243,8 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        tickers = self.safe_value(response, 'result', [])
-        result = {}
+        tickers = self.safe_list(response, 'result', [])
+        result: dict = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
@@ -1233,7 +1254,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.delta.exchange/#get-l2-orderbook
+
+        https://docs.delta.exchange/#get-l2-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1241,7 +1264,7 @@ class delta(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1265,10 +1288,10 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1322,7 +1345,7 @@ class delta(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        product = self.safe_value(trade, 'product', {})
+        product = self.safe_dict(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         sellerRole = self.safe_string(trade, 'seller_role')
@@ -1333,14 +1356,14 @@ class delta(Exchange, ImplicitAPI):
             elif sellerRole == 'maker':
                 side = 'buy'
         takerOrMaker = self.safe_string(trade, 'role')
-        metaData = self.safe_value(trade, 'meta_data', {})
+        metaData = self.safe_dict(trade, 'meta_data', {})
         type = self.safe_string(metaData, 'order_type')
         if type is not None:
             type = type.replace('_order', '')
         feeCostString = self.safe_string(trade, 'commission')
         fee = None
         if feeCostString is not None:
-            settlingAsset = self.safe_value(product, 'settling_asset', {})
+            settlingAsset = self.safe_dict(product, 'settling_asset', {})
             feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
@@ -1366,7 +1389,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.delta.exchange/#get-public-trades
+
+        https://docs.delta.exchange/#get-public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1375,7 +1400,7 @@ class delta(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTradesSymbol(self.extend(request, params))
@@ -1394,7 +1419,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1420,7 +1445,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.delta.exchange/#get-ohlc-candles
+
+        https://docs.delta.exchange/#get-ohlc-candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1430,7 +1457,7 @@ class delta(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
@@ -1462,17 +1489,17 @@ class delta(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response, 'result', [])
-        result = {'info': response}
-        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
+        balances = self.safe_list(response, 'result', [])
+        result: dict = {'info': response}
+        currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId', {})
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset_id')
-            currency = self.safe_value(currenciesByNumericId, currencyId)
+            currency = self.safe_dict(currenciesByNumericId, currencyId)
             code = currencyId if (currency is None) else currency['code']
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
@@ -1483,7 +1510,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.delta.exchange/#get-wallet-balances
+
+        https://docs.delta.exchange/#get-wallet-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1515,14 +1544,16 @@ class delta(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://docs.delta.exchange/#get-position
+
+        https://docs.delta.exchange/#get-position
+
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
         }
         response = self.privateGetPositions(self.extend(request, params))
@@ -1536,13 +1567,15 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_position(result, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.delta.exchange/#get-margined-positions
+
+        https://docs.delta.exchange/#get-margined-positions
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1570,10 +1603,10 @@ class delta(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_positions(result, symbols)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         # fetchPosition
         #
@@ -1640,8 +1673,8 @@ class delta(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'open': 'open',
             'pending': 'open',
             'closed': 'closed',
@@ -1649,7 +1682,7 @@ class delta(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         #
@@ -1689,7 +1722,7 @@ class delta(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'client_order_id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         marketId = self.safe_string(order, 'product_id')
-        marketsByNumericId = self.safe_value(self.options, 'marketsByNumericId', {})
+        marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
         market = self.safe_value(marketsByNumericId, marketId, market)
         symbol = marketId if (market is None) else market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -1705,7 +1738,7 @@ class delta(Exchange, ImplicitAPI):
         if feeCostString is not None:
             feeCurrencyCode = None
             if market is not None:
-                settlingAsset = self.safe_value(market['info'], 'settling_asset', {})
+                settlingAsset = self.safe_dict(market['info'], 'settling_asset', {})
                 feeCurrencyId = self.safe_string(settlingAsset, 'symbol')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
@@ -1733,15 +1766,17 @@ class delta(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.delta.exchange/#place-order
+
+        https://docs.delta.exchange/#place-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1749,7 +1784,7 @@ class delta(Exchange, ImplicitAPI):
         self.load_markets()
         orderType = type + '_order'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
             # 'limit_price': self.price_to_precision(market['symbol'], price),
             'size': self.amount_to_precision(market['symbol'], amount),
@@ -1766,7 +1801,7 @@ class delta(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly:
             request['reduce_only'] = reduceOnly
             params = self.omit(params, 'reduceOnly')
@@ -1807,25 +1842,27 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float = None, price: float = None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.delta.exchange/#edit-order
+
+        https://docs.delta.exchange/#edit-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': int(id),
             'product_id': market['numericId'],
             # "limit_price": self.price_to_precision(symbol, price),
@@ -1853,13 +1890,15 @@ class delta(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.delta.exchange/#cancel-order
+
+        https://docs.delta.exchange/#cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1869,7 +1908,7 @@ class delta(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': int(id),
             'product_id': market['numericId'],
         }
@@ -1910,13 +1949,15 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://docs.delta.exchange/#cancel-all-open-orders
+
+        https://docs.delta.exchange/#cancel-all-open-orders
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1925,7 +1966,7 @@ class delta(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
             # 'cancel_limit_orders': 'true',
             # 'cancel_stop_orders': 'true',
@@ -1937,12 +1978,18 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.delta.exchange/#get-active-orders
+
+        https://docs.delta.exchange/#get-active-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -1954,7 +2001,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
+        https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1965,7 +2014,7 @@ class delta(Exchange, ImplicitAPI):
 
     def fetch_orders_with_method(self, method, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
-        request = {
+        request: dict = {
             # 'product_ids': market['id'],  # comma-separated
             # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             # 'order_types': types,  # comma-separated, market, limit, stop_market, stop_limit, all_stop
@@ -2011,13 +2060,15 @@ class delta(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.delta.exchange/#get-user-fills-by-filters
+
+        https://docs.delta.exchange/#get-user-fills-by-filters
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -2025,7 +2076,7 @@ class delta(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'product_ids': market['id'],  # comma-separated
             # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             # 'start_time': since * 1000,
@@ -2088,21 +2139,23 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://docs.delta.exchange/#get-wallet-transactions
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://docs.delta.exchange/#get-wallet-transactions
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'asset_id': currency['numericId'],
             # 'end_time': self.seconds(),
             # 'after': 'string',  # after cursor for pagination
@@ -2137,11 +2190,11 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         return self.parse_ledger(result, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
             'withdrawal': 'transaction',
@@ -2155,7 +2208,7 @@ class delta(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "amount":"29.889184",
@@ -2174,7 +2227,7 @@ class delta(Exchange, ImplicitAPI):
         id = self.safe_string(item, 'uuid')
         direction = None
         account = None
-        metaData = self.safe_value(item, 'meta_data', {})
+        metaData = self.safe_dict(item, 'meta_data', {})
         referenceId = self.safe_string(metaData, 'transaction_id')
         referenceAccount = None
         type = self.safe_string(item, 'transaction_type')
@@ -2183,8 +2236,8 @@ class delta(Exchange, ImplicitAPI):
         elif (type == 'withdrawal') or (type == 'commission') or (type == 'conversion') or (type == 'perpetual_futures_funding'):
             direction = 'out'
         type = self.parse_ledger_entry_type(type)
-        currencyId = self.safe_integer(item, 'asset_id')
-        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
+        currencyId = self.safe_string(item, 'asset_id')
+        currenciesByNumericId = self.safe_dict(self.options, 'currenciesByNumericId')
         currency = self.safe_value(currenciesByNumericId, currencyId, currency)
         code = None if (currency is None) else currency['code']
         amount = self.safe_string(item, 'amount')
@@ -2192,7 +2245,7 @@ class delta(Exchange, ImplicitAPI):
         after = self.safe_string(item, 'balance')
         before = Precise.string_max('0', Precise.string_sub(after, amount))
         status = 'ok'
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': id,
             'direction': direction,
@@ -2208,9 +2261,9 @@ class delta(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': None,
-        }
+        }, currency)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2220,7 +2273,7 @@ class delta(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset_symbol': currency['id'],
         }
         networkCode = self.safe_string_upper(params, 'network')
@@ -2245,10 +2298,10 @@ class delta(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        "id": 1915615,
@@ -2268,17 +2321,19 @@ class delta(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'network')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(marketId, currency),
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.network_id_to_code(networkId),
-            'info': depositAddress,
         }
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2287,7 +2342,7 @@ class delta(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTickersSymbol(self.extend(request, params))
@@ -2336,20 +2391,22 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://docs.delta.exchange/#get-tickers-for-products
+
+        https://docs.delta.exchange/#get-tickers-for-products
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {
+        request: dict = {
             'contract_types': 'perpetual_futures',
         }
         response = self.publicGetTickers(self.extend(request, params))
@@ -2400,11 +2457,11 @@ class delta(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        rates = self.safe_value(response, 'result', [])
+        rates = self.safe_list(response, 'result', [])
         result = self.parse_funding_rates(rates)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "close": 30600.5,
@@ -2469,12 +2526,15 @@ class delta(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
-    def add_margin(self, symbol: str, amount, params={}):
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://docs.delta.exchange/#add-remove-position-margin
+
+        https://docs.delta.exchange/#add-remove-position-margin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2482,10 +2542,12 @@ class delta(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def reduce_margin(self, symbol: str, amount, params={}):
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://docs.delta.exchange/#add-remove-position-margin
+
+        https://docs.delta.exchange/#add-remove-position-margin
+
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2493,13 +2555,13 @@ class delta(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    def modify_margin_helper(self, symbol: str, amount, type, params={}):
+    def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
         self.load_markets()
         market = self.market(symbol)
         amount = str(amount)
         if type == 'reduce':
             amount = Precise.string_mul(amount, '-1')
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
             'delta_margin': amount,
         }
@@ -2527,10 +2589,10 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_margin_modification(result, market)
 
-    def parse_margin_modification(self, data, market: Market = None):
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
         #         "auto_topup": False,
@@ -2555,18 +2617,23 @@ class delta(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         return {
             'info': data,
+            'symbol': market['symbol'],
             'type': None,
+            'marginMode': 'isolated',
             'amount': None,
             'total': self.safe_number(data, 'margin'),
             'code': None,
-            'symbol': market['symbol'],
             'status': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a derivative market
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -2575,7 +2642,7 @@ class delta(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTickersSymbol(self.extend(request, params))
@@ -2631,7 +2698,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_open_interest(result, market)
 
     def parse_open_interest(self, interest, market: Market = None):
@@ -2700,14 +2767,16 @@ class delta(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://docs.delta.exchange/#get-order-leverage
+
+        https://docs.delta.exchange/#get-order-leverage
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
         }
         response = self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
@@ -2727,7 +2796,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_leverage(result, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'index_symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
@@ -2741,7 +2810,9 @@ class delta(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://docs.delta.exchange/#change-order-leverage
+
+        https://docs.delta.exchange/#change-order-leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2751,7 +2822,7 @@ class delta(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'product_id': market['numericId'],
             'leverage': leverage,
         }
@@ -2771,7 +2842,9 @@ class delta(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
-        :see: https://docs.delta.exchange/#get-product-settlement-prices
+
+        https://docs.delta.exchange/#get-product-settlement-prices
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -2782,7 +2855,7 @@ class delta(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'states': 'expired',
         }
         if limit is not None:
@@ -2846,7 +2919,7 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         settlements = self.parse_settlements(result, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
@@ -2924,14 +2997,16 @@ class delta(Exchange, ImplicitAPI):
     def fetch_greeks(self, symbol: str, params={}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetTickersSymbol(self.extend(request, params))
@@ -2987,10 +3062,10 @@ class delta(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_greeks(result, market)
 
-    def parse_greeks(self, greeks, market: Market = None):
+    def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
         #         "close": 6793.0,
@@ -3043,8 +3118,8 @@ class delta(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(greeks, 'timestamp', 0.001)
         marketId = self.safe_string(greeks, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        stats = self.safe_value(greeks, 'greeks', {})
-        quotes = self.safe_value(greeks, 'quotes', {})
+        stats = self.safe_dict(greeks, 'greeks', {})
+        quotes = self.safe_dict(greeks, 'quotes', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -3070,13 +3145,15 @@ class delta(Exchange, ImplicitAPI):
     def close_all_positions(self, params={}) -> List[Position]:
         """
         closes all open positions for a market type
-        :see: https://docs.delta.exchange/#close-all-positions
+
+        https://docs.delta.exchange/#close-all-positions
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.user_id]: the users id
         :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'close_all_portfolio': True,
             'close_all_isolated': True,
             # 'user_id': 12345,
@@ -3085,8 +3162,244 @@ class delta(Exchange, ImplicitAPI):
         #
         # {"result":{},"success":true}
         #
-        position = self.parse_position(self.safe_value(response, 'result', {}))
+        position = self.parse_position(self.safe_dict(response, 'result', {}))
         return [position]
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+
+        https://docs.delta.exchange/#get-user
+
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privateGetProfile(params)
+        #
+        #     {
+        #         "result": {
+        #             "is_password_set": True,
+        #             "kyc_expiry_date": null,
+        #             "phishing_code": "12345",
+        #             "preferences": {
+        #                 "favorites": []
+        #             },
+        #             "is_kyc_provisioned": False,
+        #             "country": "Canada",
+        #             "margin_mode": "isolated",
+        #             "mfa_updated_at": "2023-07-19T01:04:43Z",
+        #             "last_name": "",
+        #             "oauth_apple_active": False,
+        #             "pf_index_symbol": null,
+        #             "proof_of_identity_status": "approved",
+        #             "dob": null,
+        #             "email": "abc_123@gmail.com",
+        #             "force_change_password": False,
+        #             "nick_name": "still-breeze-123",
+        #             "oauth_google_active": False,
+        #             "phone_verification_status": "verified",
+        #             "id": 12345678,
+        #             "last_seen": null,
+        #             "is_withdrawal_enabled": True,
+        #             "force_change_mfa": False,
+        #             "enable_bots": False,
+        #             "kyc_verified_on": null,
+        #             "created_at": "2023-07-19T01:02:32Z",
+        #             "withdrawal_blocked_till": null,
+        #             "proof_of_address_status": "approved",
+        #             "is_password_change_blocked": False,
+        #             "is_mfa_enabled": True,
+        #             "is_kyc_done": True,
+        #             "oauth": null,
+        #             "account_name": "Main",
+        #             "sub_account_permissions": null,
+        #             "phone_number": null,
+        #             "tracking_info": {
+        #                 "ga_cid": "1234.4321",
+        #                 "is_kyc_gtm_tracked": True,
+        #                 "sub_account_config": {
+        #                     "cross": 2,
+        #                     "isolated": 2,
+        #                     "portfolio": 2
+        #                 }
+        #             },
+        #             "first_name": "",
+        #             "phone_verified_on": null,
+        #             "seen_intro": False,
+        #             "password_updated_at": null,
+        #             "is_login_enabled": True,
+        #             "registration_date": "2023-07-19T01:02:32Z",
+        #             "permissions": {},
+        #             "max_sub_accounts_limit": 2,
+        #             "country_calling_code": null,
+        #             "is_sub_account": False,
+        #             "is_kyc_refresh_required": False
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_margin_mode(result, market)
+
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'info': marginMode,
+            'symbol': symbol,
+            'marginMode': self.safe_string(marginMode, 'margin_mode'),
+        }
+
+    def fetch_option(self, symbol: str, params={}) -> Option:
+        """
+        fetches option data that is commonly found in an option chain
+
+        https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "close": 6793.0,
+        #             "contract_type": "call_options",
+        #             "greeks": {
+        #                 "delta": "0.94739174",
+        #                 "gamma": "0.00002206",
+        #                 "rho": "11.00890725",
+        #                 "spot": "36839.58124652",
+        #                 "theta": "-18.18365310",
+        #                 "vega": "7.85209698"
+        #             },
+        #             "high": 7556.0,
+        #             "low": 6793.0,
+        #             "mark_price": "6955.70698909",
+        #             "mark_vol": "0.66916863",
+        #             "oi": "1.8980",
+        #             "oi_change_usd_6h": "110.4600",
+        #             "oi_contracts": "1898",
+        #             "oi_value": "1.8980",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "69940.7319",
+        #             "open": 7.2e3,
+        #             "price_band": {
+        #                 "lower_limit": "5533.89814767",
+        #                 "upper_limit": "11691.37688371"
+        #             },
+        #             "product_id": 129508,
+        #             "quotes": {
+        #                 "ask_iv": "0.90180438",
+        #                 "ask_size": "1898",
+        #                 "best_ask": "7210",
+        #                 "best_bid": "6913",
+        #                 "bid_iv": "0.60881706",
+        #                 "bid_size": "3163",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "0.66973549"
+        #             },
+        #             "size": 5,
+        #             "spot_price": "36839.58153868",
+        #             "strike_price": "30000",
+        #             "symbol": "C-BTC-30000-241123",
+        #             "timestamp": 1699584998504530,
+        #             "turnover": 184.41206804,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 184.41206804,
+        #             "volume": 0.005
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_option(result, None, market)
+
+    def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
+        #
+        #     {
+        #         "close": 6793.0,
+        #         "contract_type": "call_options",
+        #         "greeks": {
+        #             "delta": "0.94739174",
+        #             "gamma": "0.00002206",
+        #             "rho": "11.00890725",
+        #             "spot": "36839.58124652",
+        #             "theta": "-18.18365310",
+        #             "vega": "7.85209698"
+        #         },
+        #         "high": 7556.0,
+        #         "low": 6793.0,
+        #         "mark_price": "6955.70698909",
+        #         "mark_vol": "0.66916863",
+        #         "oi": "1.8980",
+        #         "oi_change_usd_6h": "110.4600",
+        #         "oi_contracts": "1898",
+        #         "oi_value": "1.8980",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "69940.7319",
+        #         "open": 7.2e3,
+        #         "price_band": {
+        #             "lower_limit": "5533.89814767",
+        #             "upper_limit": "11691.37688371"
+        #         },
+        #         "product_id": 129508,
+        #         "quotes": {
+        #             "ask_iv": "0.90180438",
+        #             "ask_size": "1898",
+        #             "best_ask": "7210",
+        #             "best_bid": "6913",
+        #             "bid_iv": "0.60881706",
+        #             "bid_size": "3163",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "0.66973549"
+        #         },
+        #         "size": 5,
+        #         "spot_price": "36839.58153868",
+        #         "strike_price": "30000",
+        #         "symbol": "C-BTC-30000-241123",
+        #         "timestamp": 1699584998504530,
+        #         "turnover": 184.41206804,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 184.41206804,
+        #         "volume": 0.005
+        #     }
+        #
+        marketId = self.safe_string(chain, 'symbol')
+        market = self.safe_market(marketId, market)
+        quotes = self.safe_dict(chain, 'quotes', {})
+        timestamp = self.safe_integer_product(chain, 'timestamp', 0.001)
+        return {
+            'info': chain,
+            'currency': None,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'impliedVolatility': self.safe_number(quotes, 'mark_iv'),
+            'openInterest': self.safe_number(chain, 'oi'),
+            'bidPrice': self.safe_number(quotes, 'best_bid'),
+            'askPrice': self.safe_number(quotes, 'best_ask'),
+            'midPrice': self.safe_number(quotes, 'impact_mid_price'),
+            'markPrice': self.safe_number(chain, 'mark_price'),
+            'lastPrice': None,
+            'underlyingPrice': self.safe_number(chain, 'spot_price'),
+            'change': None,
+            'percentage': None,
+            'baseVolume': self.safe_number(chain, 'volume'),
+            'quoteVolume': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
@@ -3116,13 +3429,13 @@ class delta(Exchange, ImplicitAPI):
             headers['signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #
         # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         #
-        error = self.safe_value(response, 'error', {})
+        error = self.safe_dict(response, 'error', {})
         errorCode = self.safe_string(error, 'code')
         if errorCode is not None:
             feedback = self.id + ' ' + body

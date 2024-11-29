@@ -43,6 +43,7 @@ public partial class gate : Exchange
                         { "rebate", "https://api.gateio.ws/api/v4" },
                         { "earn", "https://api.gateio.ws/api/v4" },
                         { "account", "https://api.gateio.ws/api/v4" },
+                        { "loan", "https://api.gateio.ws/api/v4" },
                     } },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -74,6 +75,8 @@ public partial class gate : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
+                { "cancelOrdersForSymbols", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrder", true },
                 { "createMarketOrderWithCost", false },
@@ -90,6 +93,7 @@ public partial class gate : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -97,6 +101,8 @@ public partial class gate : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -109,9 +115,11 @@ public partial class gate : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
+                { "fetchLeverage", true },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -124,16 +132,20 @@ public partial class gate : Exchange
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", true },
+                { "fetchOptionChain", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
-                { "fetchTime", false },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
@@ -144,6 +156,7 @@ public partial class gate : Exchange
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
                 { "setPositionMode", true },
@@ -300,10 +313,18 @@ public partial class gate : Exchange
                             { "loan_records", divide(20, 15) },
                             { "interest_records", divide(20, 15) },
                             { "estimate_rate", divide(20, 15) },
+                            { "currency_discount_tiers", divide(20, 15) },
+                            { "risk_units", divide(20, 15) },
+                            { "unified_mode", divide(20, 15) },
+                            { "loan_margin_tiers", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
+                            { "portfolio_calculator", divide(20, 15) },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "unified_mode", divide(20, 15) },
                         } },
                     } },
                     { "spot", new Dictionary<string, object>() {
@@ -572,22 +593,25 @@ public partial class gate : Exchange
                 { "1w", "7d" },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "ORT", "XREATORS" },
+                { "ASS", "ASSF" },
                 { "88MPH", "MPH" },
-                { "AXIS", "Axis DeFi" },
-                { "BIFI", "Bitcoin File" },
-                { "BOX", "DefiBox" },
-                { "BYN", "BeyondFi" },
-                { "EGG", "Goose Finance" },
-                { "GTC", "Game.com" },
-                { "GTC_HT", "Game.com HT" },
-                { "GTC_BSC", "Game.com BSC" },
-                { "HIT", "HitChain" },
-                { "MM", "Million" },
-                { "MPH", "Morpher" },
-                { "POINT", "GatePoint" },
-                { "RAI", "Rai Reflex Index" },
-                { "SBTC", "Super Bitcoin" },
-                { "TNC", "Trinity Network Credit" },
+                { "AXIS", "AXISDEFI" },
+                { "BIFI", "BITCOINFILE" },
+                { "BOX", "DEFIBOX" },
+                { "BYN", "BEYONDFI" },
+                { "EGG", "GOOSEFINANCE" },
+                { "GTC", "GAMECOM" },
+                { "GTC_HT", "GAMECOM_HT" },
+                { "GTC_BSC", "GAMECOM_BSC" },
+                { "HIT", "HITCHAIN" },
+                { "MM", "MILLION" },
+                { "MPH", "MORPHER" },
+                { "POINT", "GATEPOINT" },
+                { "RAI", "RAIREFLEXINDEX" },
+                { "RED", "RedLang" },
+                { "SBTC", "SUPERBITCOIN" },
+                { "TNC", "TRINITYNETWORKCREDIT" },
                 { "VAI", "VAIOT" },
                 { "TRAC", "TRACO" },
             } },
@@ -600,10 +624,14 @@ public partial class gate : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
+                { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
+                { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
+                    { "LINEA", "LINEAETH" },
+                    { "KON", "KONET" },
                     { "AVAXC", "AVAX_C" },
                     { "BEP20", "BSC" },
                     { "EOS", "EOS" },
@@ -616,6 +644,9 @@ public partial class gate : Exchange
                     { "OPTIMISM", "OPETH" },
                     { "POLKADOT", "DOTSM" },
                     { "TRC20", "TRX" },
+                    { "LUNA", "LUNC" },
+                    { "BASE", "BASEEVM" },
+                    { "BRC20", "BTCBRC" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },
@@ -638,7 +669,6 @@ public partial class gate : Exchange
                     { "option", "options" },
                     { "options", "options" },
                 } },
-                { "defaultType", "spot" },
                 { "swap", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt", "btc"} },
@@ -647,6 +677,109 @@ public partial class gate : Exchange
                 { "future", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt"} },
+                    } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "iceberg", true },
+                        { "selfTradePrevention", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 40 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 30 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                        { "untilDays", 30 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "spot" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                        { "limit", 1000 },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1999 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
                     } },
                 } },
             } },
@@ -687,6 +820,7 @@ public partial class gate : Exchange
                     { "NOT_ACCEPTABLE", typeof(BadRequest) },
                     { "METHOD_NOT_ALLOWED", typeof(BadRequest) },
                     { "NOT_FOUND", typeof(ExchangeError) },
+                    { "AUTHENTICATION_FAILED", typeof(AuthenticationError) },
                     { "INVALID_CREDENTIALS", typeof(AuthenticationError) },
                     { "INVALID_KEY", typeof(AuthenticationError) },
                     { "IP_FORBIDDEN", typeof(AuthenticationError) },
@@ -784,14 +918,71 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
     }
 
-    public virtual object convertExpireDate(object date)
+    /**
+     * @method
+     * @name gate#loadUnifiedStatus
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @description returns unifiedAccount so the user can check if the unified account is enabled
+     * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+     * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+     */
+    public async virtual Task<object> loadUnifiedStatus(object parameters = null)
     {
-        // parse YYMMDD to timestamp
-        object year = slice(date, 0, 2);
-        object month = slice(date, 2, 4);
-        object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
-        return reconstructedDate;
+        parameters ??= new Dictionary<string, object>();
+        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        if (isTrue(isEqual(unifiedAccount, null)))
+        {
+            try
+            {
+                //
+                //     {
+                //         "user_id": 10406147,
+                //         "ip_whitelist": [],
+                //         "currency_pairs": [],
+                //         "key": {
+                //             "mode": 1
+                //         },
+                //         "tier": 0,
+                //         "tier_expire_time": "0001-01-01T00:00:00Z",
+                //         "copy_trading_role": 0
+                //     }
+                //
+                object response = await this.privateAccountGetDetail(parameters);
+                object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+            } catch(Exception e)
+            {
+                // if the request fails, the unifiedAccount is disabled
+                ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
+            }
+        }
+        return getValue(this.options, "unifiedAccount");
+    }
+
+    public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.privateUnifiedPutUnifiedMode(parameters);
+    }
+
+    /**
+     * @method
+     * @name gate#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    public async override Task<object> fetchTime(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicSpotGetTime(parameters);
+        //
+        //     {
+        //         "server_time": 1731447921098
+        //     }
+        //
+        return this.safeInteger(response, "server_time");
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -862,7 +1053,7 @@ public partial class gate : Exchange
         };
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
         if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
@@ -873,20 +1064,20 @@ public partial class gate : Exchange
         return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
+    /**
+     * @method
+     * @name gate#fetchMarkets
+     * @description retrieves data on all markets for gate
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchMarkets
-        * @description retrieves data on all markets for gate
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
@@ -907,8 +1098,11 @@ public partial class gate : Exchange
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object marginResponse = await this.publicMarginGetCurrencyPairs(parameters);
-        object spotMarketsResponse = await this.publicSpotGetCurrencyPairs(parameters);
+        object marginPromise = this.publicMarginGetCurrencyPairs(parameters);
+        object spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
+        var marginResponsespotMarketsResponseVariable = await promiseAll(new List<object>() {marginPromise, spotMarketsPromise});
+        var marginResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[0];
+        var spotMarketsResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[1];
         object marginMarkets = this.indexBy(marginResponse, "id");
         //
         //  Spot
@@ -1419,7 +1613,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual object spotOrderPrepareRequest(object market = null, object stop = null, object parameters = null)
+    public virtual object spotOrderPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -1427,29 +1621,29 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
-        stop ??= false;
+        trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(stop, parameters);
+        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             if (isTrue(isEqual(market, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-stop orders")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             ((IDictionary<string,object>)request)["account"] = marginMode;
-            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
         }
         return new List<object>() {request, query};
     }
 
-    public virtual object multiOrderSpotPrepareRequest(object market = null, object stop = null, object parameters = null)
+    public virtual object multiOrderSpotPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -1457,13 +1651,13 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
-        stop ??= false;
+        trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(stop, parameters);
+        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -1471,9 +1665,9 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(market, null)))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
-                // gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
             } else
             {
@@ -1483,14 +1677,14 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object getMarginMode(object stop, object parameters)
+    public virtual object getMarginMode(object trigger, object parameters)
     {
         /**
          * @ignore
          * @method
          * @name gate#getMarginMode
          * @description Gets the margin type for this api call
-         * @param {bool} stop True if for a stop order
+         * @param {bool} trigger True if for a trigger order
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
@@ -1507,17 +1701,25 @@ public partial class gate : Exchange
         {
             marginMode = "spot";
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
-                // gate spot stop orders use the term normal instead of spot
+                // gate spot trigger orders use the term normal instead of spot
                 marginMode = "normal";
             }
             if (isTrue(isEqual(marginMode, "cross_margin")))
             {
-                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support stop orders for cross margin")) ;
+                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
             }
+        }
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            marginMode = "unified";
         }
         return new List<object>() {marginMode, parameters};
     }
@@ -1530,22 +1732,26 @@ public partial class gate : Exchange
         return this.safeValue(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 
+    /**
+     * @method
+     * @name gate#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         // sandbox/testnet only supports future markets
         parameters ??= new Dictionary<string, object>();
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
         {
             return null;
+        }
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            await this.loadUnifiedStatus();
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
@@ -1654,17 +1860,17 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1723,17 +1929,17 @@ public partial class gate : Exchange
         return this.parseFundingRate(response);
     }
 
+    /**
+     * @method
+     * @name gate#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchFundingRates
-        * @description fetch the funding rate for multiple markets
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1841,6 +2047,7 @@ public partial class gate : Exchange
         object fundingRate = this.safeNumber(contract, "funding_rate");
         object fundingTime = this.safeTimestamp(contract, "funding_next_apply");
         object fundingRateIndicative = this.safeNumber(contract, "funding_rate_indicative");
+        object fundingInterval = Precise.stringMul("1000", this.safeString(contract, "funding_interval"));
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -1859,7 +2066,20 @@ public partial class gate : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(fundingInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async virtual Task<object> fetchNetworkDepositAddress(object code, object parameters = null)
@@ -1906,18 +2126,18 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network] unified network code (not used directly by gate.io but used by ccxt to filter the response)
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1991,25 +2211,24 @@ public partial class gate : Exchange
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "code", code },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
         };
     }
 
+    /**
+     * @method
+     * @name gate#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2034,16 +2253,16 @@ public partial class gate : Exchange
         return this.parseTradingFee(response, market);
     }
 
+    /**
+     * @method
+     * @name gate#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateWalletGetFee(parameters);
@@ -2103,21 +2322,23 @@ public partial class gate : Exchange
             { "symbol", this.safeString(market, "symbol") },
             { "maker", this.safeNumber(info, makerKey) },
             { "taker", this.safeNumber(info, takerKey) },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
+    /**
+     * @method
+     * @name gate#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTransactionFees
-        * @deprecated
-        * @description please use fetchDepositWithdrawFees instead
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateWalletGetWithdrawStatus(parameters);
@@ -2172,17 +2393,17 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateWalletGetWithdrawStatus(parameters);
@@ -2261,20 +2482,20 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // let defaultType = 'future';
@@ -2293,7 +2514,8 @@ public partial class gate : Exchange
         ((IDictionary<string,object>)request)["type"] = "fund"; // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = divide(since, 1000);
+            // from should be integer
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -2363,26 +2585,26 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
+     * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
+     * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
-        * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
-        * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
         //         'limit': limit, // maximum number of order depth data in asks or bids
@@ -2491,20 +2713,20 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2662,24 +2884,26 @@ public partial class gate : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name gate#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2733,19 +2957,28 @@ public partial class gate : Exchange
         return account;
     }
 
+    /**
+     * @method
+     * @name gate#fetchBalance
+     * @param {object} [params] exchange specific parameters
+     * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
+     * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+     * @param {string} [params.symbol] margin only - unified ccxt symbol
+     * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @param {object} [params] exchange specific parameters
-        * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
-        * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-        * @param {string} [params.symbol] margin only - unified ccxt symbol
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, "symbol");
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
         var typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -2761,7 +2994,10 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
@@ -2938,6 +3174,57 @@ public partial class gate : Exchange
         //         "orders_limit": 10
         //     }
         //
+        // unified
+        //
+        //     {
+        //         "user_id": 10001,
+        //         "locked": false,
+        //         "balances": {
+        //             "ETH": {
+        //                 "available": "0",
+        //                 "freeze": "0",
+        //                 "borrowed": "0.075393666654",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "1016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "POINT": {
+        //                 "available": "9999999999.017023138734",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "12016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "USDT": {
+        //                 "available": "0.00000062023",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "16.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             }
+        //         },
+        //         "total": "230.94621713",
+        //         "borrowed": "161.66395521",
+        //         "total_initial_margin": "1025.0524665088",
+        //         "total_margin_balance": "3382495.944473949183",
+        //         "total_maintenance_margin": "205.01049330176",
+        //         "total_initial_margin_rate": "3299.827135672679",
+        //         "total_maintenance_margin_rate": "16499.135678363399",
+        //         "total_available_margin": "3381470.892007440383",
+        //         "unified_account_total": "3381470.892007440383",
+        //         "unified_account_total_liab": "0",
+        //         "unified_account_total_equity": "100016.1",
+        //         "leverage": "2"
+        //     }
+        //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -2984,26 +3271,26 @@ public partial class gate : Exchange
         return returnResult;
     }
 
+    /**
+     * @method
+     * @name gateio#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       // spot
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
+     * @see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       // future
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gateio#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       // spot
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
-        * @see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       // future
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch, limit is conflicted with since and params["until"], If either since and params["until"] is specified, request will be rejected
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.price] "mark" or "index" for mark price and index price candles
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3026,7 +3313,7 @@ public partial class gate : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
-        object maxLimit = 1000;
+        object maxLimit = ((bool) isTrue(getValue(market, "contract"))) ? 1999 : 1000;
         limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
@@ -3060,7 +3347,6 @@ public partial class gate : Exchange
         object response = null;
         if (isTrue(getValue(market, "contract")))
         {
-            maxLimit = 1999;
             object isMark = (isEqual(price, "mark"));
             object isIndex = (isEqual(price, "index"));
             if (isTrue(isTrue(isMark) || isTrue(isIndex)))
@@ -3098,38 +3384,59 @@ public partial class gate : Exchange
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
+    /**
+     * @method
+     * @name gate#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        var requestqueryVariable = this.prepareRequest(market, null, parameters);
-        var request = ((IList<object>) requestqueryVariable)[0];
-        var query = ((IList<object>) requestqueryVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, null, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.publicFuturesGetSettleFundingRate(this.extend(request, query));
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        object response = await this.publicFuturesGetSettleFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "r": "0.00063521",
@@ -3189,24 +3496,24 @@ public partial class gate : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name gate#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
+     * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
-        * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest trade to fetch
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3221,7 +3528,7 @@ public partial class gate : Exchange
         //
         // spot
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
         //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
@@ -3230,7 +3537,7 @@ public partial class gate : Exchange
         //
         // swap, future
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'settle': market['settleId'],
         //         'contract': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
@@ -3316,23 +3623,23 @@ public partial class gate : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name gate#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3364,34 +3671,36 @@ public partial class gate : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name gate#fetchMyTrades
+     * @description Fetch personal trading history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+     * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+     * @param {int} [params.until] The latest timestamp, in ms, that fetched trades were made
+     * @param {int} [params.page] *spot only* Page number
+     * @param {string} [params.order_id] *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+     * @param {string} [params.order] *contract only* Futures order ID, return related data only if specified
+     * @param {int} [params.offset] *contract only* list offset, starting from 0
+     * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
+     * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
+     * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
+     * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchMyTrades
-        * @description Fetch personal trading history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-        * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-        * @param {int} [params.until] The latest timestamp, in ms, that fetched trades were made
-        * @param {int} [params.page] *spot only* Page number
-        * @param {string} [params.order_id] *spot only* Filter trades with specified order ID. symbol is also required if this field is present
-        * @param {string} [params.order] *contract only* Futures order ID, return related data only if specified
-        * @param {int} [params.offset] *contract only* list offset, starting from 0
-        * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
-        * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3404,8 +3713,8 @@ public partial class gate : Exchange
         object marginMode = null;
         object request = new Dictionary<string, object>() {};
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
@@ -3423,7 +3732,7 @@ public partial class gate : Exchange
         {
             if (isTrue(!isEqual(market, null)))
             {
-                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
             }
             var marginModeparametersVariable = this.getMarginMode(false, parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -3629,8 +3938,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.safeString(trade, "gt_fee");
-        object pointFee = this.safeString(trade, "point_fee");
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -3678,21 +3987,21 @@ public partial class gate : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name gate#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {int} [params.until] end time in ms
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3708,7 +4017,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3727,21 +4036,21 @@ public partial class gate : Exchange
         return this.parseTransactions(response, currency);
     }
 
+    /**
+     * @method
+     * @name gate#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3757,7 +4066,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
-            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3776,20 +4085,20 @@ public partial class gate : Exchange
         return this.parseTransactions(response, currency);
     }
 
+    /**
+     * @method
+     * @name gate#withdraw
+     * @description make a withdrawal
+     * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#withdraw
-        * @description make a withdrawal
-        * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -3815,7 +4124,7 @@ public partial class gate : Exchange
             parameters = this.omit(parameters, "network");
         } else
         {
-            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["chain"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters));
         //
@@ -3862,32 +4171,61 @@ public partial class gate : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // deposits
+        // fetchDeposits
         //
-        //    {
-        //        "id": "d33361395",
-        //        "currency": "USDT_TRX",
-        //        "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        //        "amount": "100",
-        //        "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        //        "timestamp": "1626345819",
-        //        "status": "DONE",
-        //        "memo": ""
-        //    }
+        //     {
+        //         "id": "d33361395",
+        //         "currency": "USDT_TRX",
+        //         "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        //         "amount": "100",
+        //         "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        //         "timestamp": "1626345819",
+        //         "status": "DONE",
+        //         "memo": ""
+        //     }
         //
         // withdraw
         //
-        //    {
-        //        "id": "w13389675",
-        //        "currency": "USDT",
-        //        "amount": "50",
-        //        "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
-        //        "memo": null
-        //    }
+        //     {
+        //         "id":"w64413318",
+        //         "currency":"usdt",
+        //         "amount":"10150",
+        //         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
+        //         "memo":null,
+        //         "status":"REQUEST",
+        //         "chain":"eth",
+        //         "withdraw_order_id":"",
+        //         "fee_amount":"4.15000000"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "210496",
+        //         "timestamp": "1542000000",
+        //         "withdraw_order_id": "order_123456",
+        //         "currency": "USDT",
+        //         "address": "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs",
+        //         "txid": "128988928203223323290",
+        //         "block_number": "41575382",
+        //         "amount": "222.61",
+        //         "fee": "0.01",
+        //         "memo": "",
+        //         "status": "DONE",
+        //         "chain": "TRX"
+        //     }
+        //
+        //     {
+        //         "id": "w13389675",
+        //         "currency": "USDT",
+        //         "amount": "50",
+        //         "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //         "memo": null
+        //     }
         //
         //     {
         //         "currency":"usdt",
-        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         //         "amount":"1880",
         //         "chain":"eth"
         //     }
@@ -3907,7 +4245,7 @@ public partial class gate : Exchange
                 type = this.parseTransactionType(getValue(id, 0));
             }
         }
-        object feeCostString = this.safeString(transaction, "fee");
+        object feeCostString = this.safeString2(transaction, "fee", "fee_amount");
         if (isTrue(isEqual(type, "withdrawal")))
         {
             amountString = Precise.stringSub(amountString, feeCostString);
@@ -3948,44 +4286,46 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#createOrder
+     * @description Create an order on the exchange
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market' *"market" is contract only*
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+     * @param {int} [params.iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+     * @param {string} [params.text] User defined information
+     * @param {string} [params.account] *spot and margin only* "spot", "margin" or "cross_margin"
+     * @param {bool} [params.auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+     * @param {string} [params.settle] *contract only* Unified Currency Code for settle currency
+     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+     * @param {bool} [params.close] *contract only* Set as true to close the position, with size set to 0
+     * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+     * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+     * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#createOrder
-        * @description Create an order on the exchange
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} type 'limit' or 'market' *"market" is contract only*
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        * @param {object} [params]  extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-        * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-        * @param {int} [params.iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-        * @param {string} [params.text] User defined information
-        * @param {string} [params.account] *spot and margin only* "spot", "margin" or "cross_margin"
-        * @param {bool} [params.auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-        * @param {string} [params.settle] *contract only* Unified Currency Code for settle currency
-        * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-        * @param {bool} [params.close] *contract only* Set as true to close the position, with size set to 0
-        * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-        * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         object trigger = this.safeValue(parameters, "trigger");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -3993,8 +4333,8 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "margin"))))
@@ -4095,21 +4435,20 @@ public partial class gate : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async override Task<object> createOrders(object orders, object parameters = null)
+    public virtual object createOrdersRequest(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#createOrders
-        * @description create a list of trade orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
+        object ordersLength = getArrayLength(orders);
+        if (isTrue(isEqual(ordersLength, 0)))
+        {
+            throw new BadRequest ((string)add(this.id, " createOrders() requires at least one order")) ;
+        }
+        if (isTrue(isGreaterThan(ordersLength, 10)))
+        {
+            throw new BadRequest ((string)add(this.id, " createOrders() accepts a maximum of 10 orders at a time")) ;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
@@ -4136,6 +4475,28 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createOrders() does not support futures or options markets")) ;
         }
+        return ordersRequests;
+    }
+
+    /**
+     * @method
+     * @name gate#createOrders
+     * @description create a list of trade orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object ordersRequests = this.createOrdersRequest(orders, parameters);
+        object firstOrder = getValue(orders, 0);
+        object market = this.market(getValue(firstOrder, "symbol"));
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
@@ -4158,7 +4519,7 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
         if (isTrue(isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
@@ -4216,7 +4577,7 @@ public partial class gate : Exchange
             }
         }
         object request = null;
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {
             if (isTrue(contract))
@@ -4232,10 +4593,10 @@ public partial class gate : Exchange
                 }
                 if (isTrue(isMarketOrder))
                 {
-                    ((IDictionary<string,object>)request)["price"] = price; // set to 0 for market orders
+                    ((IDictionary<string,object>)request)["price"] = "0"; // set to 0 for market orders
                 } else
                 {
-                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+                    ((IDictionary<string,object>)request)["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
                 }
                 if (isTrue(!isEqual(reduceOnly, null)))
                 {
@@ -4339,10 +4700,16 @@ public partial class gate : Exchange
                     { "initial", new Dictionary<string, object>() {
                         { "contract", getValue(market, "id") },
                         { "size", amount },
-                        { "price", this.priceToPrecision(symbol, price) },
                     } },
                     { "settle", getValue(market, "settleId") },
                 };
+                if (isTrue(isEqual(type, "market")))
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = "0";
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "initial"))["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
+                }
                 if (isTrue(isEqual(trigger, null)))
                 {
                     object rule = null;
@@ -4429,20 +4796,22 @@ public partial class gate : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name gate#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -4452,30 +4821,23 @@ public partial class gate : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#editOrder
-        * @description edit a trade order, gate currently only supports the modification of the price or amount fields
-        * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object account = this.convertTypeToAccount(marketType);
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            account = "unified";
+        }
         object isLimitOrder = (isEqual(type, "limit"));
         if (isTrue(isEqual(account, "spot")))
         {
@@ -4485,26 +4847,67 @@ public partial class gate : Exchange
             }
         }
         object request = new Dictionary<string, object>() {
-            { "order_id", id },
+            { "order_id", ((object)id).ToString() },
             { "currency_pair", getValue(market, "id") },
             { "account", account },
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            if (isTrue(getValue(market, "spot")))
+            {
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            } else
+            {
+                if (isTrue(isEqual(side, "sell")))
+                {
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+            }
         }
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
+        if (!isTrue(getValue(market, "spot")))
+        {
+            ((IDictionary<string,object>)request)["settle"] = getValue(market, "settleId");
+        }
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name gate#editOrder
+     * @description edit a trade order, gate currently only supports the modification of the price or amount fields
+     * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object market = this.market(symbol);
+        object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
-            response = await this.privateSpotPatchOrdersOrderId(this.extend(request, query));
+            response = await this.privateSpotPatchOrdersOrderId(extendedRequest);
         } else
         {
-            ((IDictionary<string,object>)request)["settle"] = getValue(market, "settleId");
-            response = await this.privateFuturesPutSettleOrdersOrderId(this.extend(request, query));
+            response = await this.privateFuturesPutSettleOrdersOrderId(extendedRequest);
         }
         //
         //     {
@@ -4552,6 +4955,7 @@ public partial class gate : Exchange
             { "failed", "canceled" },
             { "expired", "canceled" },
             { "finished", "closed" },
+            { "finish", "closed" },
             { "succeeded", "closed" },
         };
         return this.safeString(statuses, status, status);
@@ -4700,6 +5104,8 @@ public partial class gate : Exchange
         //        "message": "Not enough balance"
         //    }
         //
+        //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        //
         object succeeded = this.safeBool(order, "succeeded", true);
         if (!isTrue(succeeded))
         {
@@ -4708,6 +5114,7 @@ public partial class gate : Exchange
                 { "clientOrderId", this.safeString(order, "text") },
                 { "info", order },
                 { "status", "rejected" },
+                { "id", this.safeString(order, "id") },
             });
         }
         object put = this.safeValue2(order, "put", "initial", new Dictionary<string, object>() {});
@@ -4755,13 +5162,17 @@ public partial class gate : Exchange
         {
             lastTradeTimestamp = this.safeTimestamp2(order, "update_time", "finish_time");
         }
-        object marketType = ((bool) isTrue((inOp(order, "currency_pair")))) ? "spot" : "contract";
+        object marketType = "contract";
+        if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
+        {
+            marketType = "spot";
+        }
         object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         // Everything below this(above return) is related to fees
         object fees = new List<object>() {};
         object gtFee = this.safeString(order, "gt_fee");
-        if (isTrue(gtFee))
+        if (isTrue(!isEqual(gtFee, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", "GT" },
@@ -4769,7 +5180,7 @@ public partial class gate : Exchange
             });
         }
         object fee = this.safeString(order, "fee");
-        if (isTrue(fee))
+        if (isTrue(!isEqual(fee, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "fee_currency")) },
@@ -4777,7 +5188,7 @@ public partial class gate : Exchange
             });
         }
         object rebate = this.safeString(order, "rebated_fee");
-        if (isTrue(rebate))
+        if (isTrue(!isEqual(rebate, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency")) },
@@ -4830,29 +5241,12 @@ public partial class gate : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public virtual object fetchOrderRequest(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchOrder
-        * @description Retrieves information on an order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
-        * @param {string} id Order id
-        * @param {string} symbol Unified market symbol, *required for spot and margin*
-        * @param {object} [params] Parameters specified by the exchange api
-        * @param {bool} [params.stop] True if the order being fetched is a trigger order
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-        * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-        * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
-        * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "is_stop_order", "stop", false);
-        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop"});
+        object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         object orderId = id;
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -4864,19 +5258,51 @@ public partial class gate : Exchange
             }
             orderId = clientOrderId;
         }
-        object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
         object contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
-        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
+        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        ((IDictionary<string,object>)request)["order_id"] = orderId;
+        ((IDictionary<string,object>)request)["order_id"] = ((object)orderId).ToString();
+        return new List<object>() {request, requestParams};
+    }
+
+    /**
+     * @method
+     * @name gate#fetchOrder
+     * @description Retrieves information on an order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
+     * @param {string} id Order id
+     * @param {string} symbol Unified market symbol, *required for spot and margin*
+     * @param {object} [params] Parameters specified by the exchange api
+     * @param {bool} [params.trigger] True if the order being fetched is a trigger order
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+     * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+     * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+     * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
+     * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
+        object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        object type = this.safeString(result, 0);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
+        var request = ((IList<object>) requestrequestParamsVariable)[0];
+        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -4885,7 +5311,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -4894,7 +5320,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -4911,71 +5337,121 @@ public partial class gate : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name gate#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true for fetching trigger orders
+     * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+     * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] true for fetching stop orders
-        * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name gate#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] true for fetching trigger orders
+     * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
+     * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+     * @param {boolean} [params.historical] *swap only* true for using historical endpoint
+     * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name gate#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] true for fetching stop orders
-        * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
-        * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
-    }
-
-    public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object until = this.safeInteger(parameters, "until");
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
-        var typequeryVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
-        var type = ((IList<object>) typequeryVariable)[0];
-        var query = ((IList<object>) typequeryVariable)[1];
+        object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        object type = this.safeString(res, 0);
+        object useHistorical = false;
+        var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
+        useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+        parameters = ((IList<object>)useHistoricalparametersVariable)[1];
+        if (isTrue(!isTrue(useHistorical) && isTrue((isTrue((isTrue(isEqual(since, null)) && isTrue(isEqual(until, null)))) || isTrue((!isEqual(type, "swap")))))))
+        {
+            return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
+        }
+        parameters = this.omit(parameters, "type");
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, type, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters));
+        return this.parseOrders(response, market, since, limit);
+    }
+
+    public virtual object prepareOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object trigger = null;
+        var triggerparametersVariable = this.handleParamBool2(parameters, "trigger", "stop");
+        trigger = ((IList<object>)triggerparametersVariable)[0];
+        parameters = ((IList<object>)triggerparametersVariable)[1];
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
-        var requestrequestParamsVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(isTrue(spot) && isTrue(trigger)))
+        {
+            request = this.omit(request, "account");
+        }
         if (isTrue(isEqual(status, "closed")))
         {
             status = "finished";
@@ -4985,27 +5461,69 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isTrue(isTrue(!isEqual(since, null)) && isTrue(spot)))
+        if (isTrue(spot))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            }
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            }
         }
-        object openSpotOrders = isTrue(isTrue(spot) && isTrue((isEqual(status, "open")))) && !isTrue(stop);
-        object response = null;
-        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
+        var lastIdfinalParamsVariable = this.handleParamString2(parameters, "lastId", "last_id");
+        var lastId = ((IList<object>) lastIdfinalParamsVariable)[0];
+        var finalParams = ((IList<object>) lastIdfinalParamsVariable)[1];
+        if (isTrue(!isEqual(lastId, null)))
         {
-            if (isTrue(openSpotOrders))
+            ((IDictionary<string,object>)request)["last_id"] = lastId;
+        }
+        return new List<object>() {request, finalParams};
+    }
+
+    public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        // don't omit here, omits done in prepareOrdersByStatusRequest
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+        object type = this.safeString(res, 0);
+        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
+        var request = ((IList<object>) requestrequestParamsVariable)[0];
+        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
+        object openStatus = (isEqual(status, "open"));
+        object openSpotOrders = isTrue(isTrue(spot) && isTrue(openStatus)) && !isTrue(trigger);
+        object response = null;
+        if (isTrue(spot))
+        {
+            if (!isTrue(trigger))
             {
-                response = await this.privateSpotGetOpenOrders(this.extend(request, requestParams));
-            } else if (isTrue(stop))
-            {
-                response = await this.privateSpotGetPriceOrders(this.extend(request, requestParams));
+                if (isTrue(openStatus))
+                {
+                    response = await this.privateSpotGetOpenOrders(this.extend(request, requestParams));
+                } else
+                {
+                    response = await this.privateSpotGetOrders(this.extend(request, requestParams));
+                }
             } else
             {
-                response = await this.privateSpotGetOrders(this.extend(request, requestParams));
+                response = await this.privateSpotGetPriceOrders(this.extend(request, requestParams));
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesGetSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5014,7 +5532,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryGetSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5100,7 +5618,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        // spot stop
+        // spot trigger
         //
         //    [
         //        {
@@ -5188,38 +5706,40 @@ public partial class gate : Exchange
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name gate#cancelOrder
+     * @description Cancels an open order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
+     * @param {string} id Order id
+     * @param {string} symbol Unified market symbol
+     * @param {object} [params] Parameters specified by the exchange api
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+     * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#cancelOrder
-        * @description Cancels an open order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
-        * @param {string} id Order id
-        * @param {string} symbol Unified market symbol
-        * @param {object} [params] Parameters specified by the exchange api
-        * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
-        * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValue2(parameters, "is_stop_order", "stop", false);
-        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop"});
+        object trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         ((IDictionary<string,object>)request)["order_id"] = id;
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5228,7 +5748,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5237,7 +5757,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5335,35 +5855,141 @@ public partial class gate : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    /**
+     * @method
+     * @name gate#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object type = null;
+        object defaultSettle = ((bool) isTrue((isEqual(market, null)))) ? "usdt" : getValue(market, "settle");
+        object settle = this.safeStringLower(parameters, "settle", defaultSettle);
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
+        if (isTrue(isTrue(isSpot) && isTrue((isEqual(symbol, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
+        }
+        if (isTrue(isSpot))
+        {
+            object ordersRequests = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(ids, i);
+                object orderItem = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "symbol", symbol },
+                };
+                ((IList<object>)ordersRequests).Add(orderItem);
+            }
+            return await this.cancelOrdersForSymbols(ordersRequests, parameters);
+        }
+        object request = new Dictionary<string, object>() {
+            { "settle", settle },
+        };
+        object finalList = ((object)new List<object>() {request}); // hacky but needs to be done here
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)finalList).Add(getValue(ids, i));
+        }
+        object response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
+        return this.parseOrders(response);
+    }
+
+    /**
+     * @method
+     * @name gate#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+     * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object ordersRequests = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            object symbol = this.safeString(order, "symbol");
+            object market = this.market(symbol);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
+            }
+            object id = this.safeString(order, "id");
+            object orderItem = new Dictionary<string, object>() {
+                { "id", id },
+                { "currency_pair", getValue(market, "id") },
+            };
+            ((IList<object>)ordersRequests).Add(orderItem);
+        }
+        object response = await this.privateSpotPostCancelBatchOrders(ordersRequests);
+        //
+        // [
+        //     {
+        //       "currency_pair": "BTC_USDT",
+        //       "id": "123456"
+        //     }
+        // ]
+        //
+        return this.parseOrders(response);
+    }
+
+    /**
+     * @method
+     * @name gate#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeValue(parameters, "stop");
-        parameters = this.omit(parameters, "stop");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrders(this.extend(request, requestParams));
             } else
@@ -5372,7 +5998,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5381,7 +6007,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5426,21 +6052,21 @@ public partial class gate : Exchange
         return this.parseOrders(response, market);
     }
 
+    /**
+     * @method
+     * @name gate#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
+     * @param {string} code unified currency code for currency being transferred
+     * @param {float} amount the amount of currency to transfer
+     * @param {string} fromAccount the account to transfer currency from
+     * @param {string} toAccount the account to transfer currency to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbol] Unified market symbol *required for type == margin*
+     * @returns A [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
-        * @param {string} code unified currency code for currency being transferred
-        * @param {float} amount the amount of currency to transfer
-        * @param {string} fromAccount the account to transfer currency from
-        * @param {string} toAccount the account to transfer currency to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.symbol] Unified market symbol *required for type == margin*
-        * @returns A [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -5480,7 +6106,7 @@ public partial class gate : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue((isEqual(toId, "futures"))) || isTrue((isEqual(toId, "delivery")))) || isTrue((isEqual(fromId, "futures")))) || isTrue((isEqual(fromId, "delivery")))))
         {
-            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["settle"] = getValue(currency, "id"); // todo: currencies have network-junctions
         }
         object response = await this.privateWalletPostTransfers(this.extend(request, parameters));
         //
@@ -5521,19 +6147,19 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -5666,43 +6292,75 @@ public partial class gate : Exchange
         //         "pending_orders": 0
         //     }
         //
+        // fetchPositionsHistory (swap and future)
+        //
+        //    {
+        //        "contract": "SLERF_USDT",         // Futures contract
+        //        "text": "web",                    // Text of close order
+        //        "long_price": "0.766306",         // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price.
+        //        "pnl": "-23.41702352",            // PNL
+        //        "pnl_pnl": "-22.7187",            // Position P/L
+        //        "pnl_fee": "-0.06527125",         // Transaction Fees
+        //        "pnl_fund": "-0.63305227",        // Funding Fees
+        //        "accum_size": "100",
+        //        "time": 1711279263,               // Position close time
+        //        "short_price": "0.539119",        // When 'side' is 'long,' it indicates the opening average price; when 'side' is 'short,' it indicates the closing average price
+        //        "side": "long",                   // Position side, long or short
+        //        "max_size": "100",                // Max Trade Size
+        //        "first_open_time": 1711037985     // First Open Time
+        //    }
+        //
         object contract = this.safeString(position, "contract");
         market = this.safeMarket(contract, market, "_", "contract");
-        object size = this.safeString(position, "size");
-        object side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        object size = this.safeString2(position, "size", "accum_size");
+        object side = this.safeString(position, "side");
+        if (isTrue(isEqual(side, null)))
         {
-            side = "long";
-        } else if (isTrue(Precise.stringLt(size, "0")))
-        {
-            side = "short";
+            if (isTrue(Precise.stringGt(size, "0")))
+            {
+                side = "long";
+            } else if (isTrue(Precise.stringLt(size, "0")))
+            {
+                side = "short";
+            }
         }
         object maintenanceRate = this.safeString(position, "maintenance_rate");
         object notional = this.safeString(position, "value");
         object leverage = this.safeString(position, "leverage");
         object marginMode = null;
-        if (isTrue(isEqual(leverage, "0")))
+        if (isTrue(!isEqual(leverage, null)))
         {
-            marginMode = "cross";
-        } else
-        {
-            marginMode = "isolated";
+            if (isTrue(isEqual(leverage, "0")))
+            {
+                marginMode = "cross";
+            } else
+            {
+                marginMode = "isolated";
+            }
         }
-        object unrealisedPnl = this.safeString(position, "unrealised_pnl");
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
         // *Trading fee is charged as Taker Fee Rate (0.075%).
-        object takerFee = "0.00075";
-        object feePaid = Precise.stringMul(takerFee, notional);
-        object initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
-        object timestamp = this.safeTimestamp(position, "open_time");
+        object feePaid = this.safeString(position, "pnl_fee");
+        object initialMarginString = null;
+        if (isTrue(isEqual(feePaid, null)))
+        {
+            object takerFee = "0.00075";
+            feePaid = Precise.stringMul(takerFee, notional);
+            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
+        }
+        object timestamp = this.safeTimestamp2(position, "open_time", "first_open_time");
+        if (isTrue(isEqual(timestamp, 0)))
+        {
+            timestamp = null;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastUpdateTimestamp", this.safeTimestamp(position, "update_time") },
+            { "lastUpdateTimestamp", this.safeTimestamp2(position, "update_time", "time") },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
             { "maintenanceMargin", this.parseNumber(Precise.stringMul(maintenanceRate, notional)) },
@@ -5710,10 +6368,10 @@ public partial class gate : Exchange
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
-            { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
-            { "realizedPnl", this.safeNumber(position, "realised_pnl") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealised_pnl") },
+            { "realizedPnl", this.safeNumber2(position, "realised_pnl", "pnl") },
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
-            { "contractSize", this.safeValue(market, "contractSize") },
+            { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },
@@ -5727,19 +6385,19 @@ public partial class gate : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name gate#fetchPosition
+     * @description fetch data on an open contract position
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchPosition
-        * @description fetch data on an open contract position
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5822,21 +6480,21 @@ public partial class gate : Exchange
         return this.parsePosition(response, market);
     }
 
+    /**
+     * @method
+     * @name gate#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+     * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+     * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchPositions
-        * @description fetch all open positions
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
-        * @param {string[]|undefined} symbols Not used by gate, but parsed internally by CCXT
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-        * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -5946,18 +6604,18 @@ public partial class gate : Exchange
         return this.parsePositions(response, symbols);
     }
 
+    /**
+     * @method
+     * @name gate#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         var typequeryVariable = this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
@@ -6076,17 +6734,17 @@ public partial class gate : Exchange
         return this.parseLeverageTiers(response, symbols, "name");
     }
 
+    /**
+     * @method
+     * @name gate#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchMarketLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -6117,6 +6775,7 @@ public partial class gate : Exchange
 
     public virtual object parseEmulatedLeverageTiers(object info, object market = null)
     {
+        object marketId = this.safeString(info, "name");
         object maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
         object leverageMax = this.safeString(info, "leverage_max"); // '100',
         object riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
@@ -6131,6 +6790,7 @@ public partial class gate : Exchange
             object cap = Precise.stringAdd(floor, riskLimitStep);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)) },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", this.safeString(market, "settle") },
                 { "minNotional", this.parseNumber(floor) },
                 { "maxNotional", this.parseNumber(cap) },
@@ -6170,6 +6830,7 @@ public partial class gate : Exchange
             object maxNotional = this.safeNumber(item, "risk_limit");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", getValue(market, "symbol") },
                 { "currency", getValue(market, "base") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
@@ -6182,21 +6843,21 @@ public partial class gate : Exchange
         return tiers;
     }
 
+    /**
+     * @method
+     * @name gate#repayMargin
+     * @description repay borrowed margin and interest
+     * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to repay
+     * @param {float} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+     * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#repayMargin
-        * @description repay borrowed margin and interest
-        * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
-        * @param {string} symbol unified market symbol
-        * @param {string} code unified currency code of the currency to repay
-        * @param {float} amount the amount to repay
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
-        * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -6214,63 +6875,61 @@ public partial class gate : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
+    /**
+     * @method
+     * @name gate#repayCrossMargin
+     * @description repay cross margin borrowed margin and interest
+     * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+     * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
+     * @param {string} code unified currency code of the currency to repay
+     * @param {float} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+     * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+     * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#repayCrossMargin
-        * @description repay cross margin borrowed margin and interest
-        * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
-        * @param {string} code unified currency code of the currency to repay
-        * @param {float} amount the amount to repay
-        * @param {string} symbol unified market symbol, required for isolated margin
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
-        * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
-        //
-        //     [
-        //         {
-        //             "id": "17",
-        //             "create_time": 1620381696159,
-        //             "update_time": 1620381696159,
-        //             "currency": "EOS",
-        //             "amount": "110.553635",
-        //             "text": "web",
-        //             "status": 2,
-        //             "repaid": "110.506649705159",
-        //             "repaid_interest": "0.046985294841",
-        //             "unpaid_interest": "0.0000074393366667"
-        //         }
-        //     ]
-        //
-        response = this.safeValue(response, 0);
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object response = null;
+        if (isTrue(isUnifiedAccount))
+        {
+            ((IDictionary<string,object>)request)["type"] = "repay";
+            response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
+            response = this.safeDict(response, 0);
+        }
         return this.parseMarginLoan(response, currency);
     }
 
+    /**
+     * @method
+     * @name gate#borrowMargin
+     * @description create a loan to borrow margin
+     * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
+     * @param {string} symbol unified market symbol, required for isolated margin
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {float} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#borrowMargin
-        * @description create a loan to borrow margin
-        * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
-        * @param {string} code unified currency code of the currency to borrow
-        * @param {float} amount the amount to borrow
-        * @param {string} symbol unified market symbol, required for isolated margin
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -6305,42 +6964,42 @@ public partial class gate : Exchange
         return this.parseMarginLoan(response, currency);
     }
 
+    /**
+     * @method
+     * @name gate#borrowMargin
+     * @description create a loan to borrow margin
+     * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+     * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {float} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+     * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#borrowMargin
-        * @description create a loan to borrow margin
-        * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
-        * @param {string} code unified currency code of the currency to borrow
-        * @param {float} amount the amount to borrow
-        * @param {string} symbol unified market symbol, required for isolated margin
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object response = null;
+        if (isTrue(isUnifiedAccount))
+        {
+            ((IDictionary<string,object>)request)["type"] = "borrow";
+            response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
+        }
         return this.parseMarginLoan(response, currency);
     }
 
@@ -6401,6 +7060,95 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+     * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+     * @param {int} [since] the earliest time in ms to fetch borrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
+    public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "isolated")))
+        {
+            if (isTrue(!isEqual(market, null)))
+            {
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            }
+            response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "cross")))
+        {
+            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
+        }
+        object interest = this.parseBorrowInterests(response, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+
+    public override object parseBorrowInterest(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "currency_pair");
+        market = this.safeMarket(marketId, market);
+        object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
+        object timestamp = this.safeInteger(info, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeString(market, "symbol") },
+            { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
+            { "interest", this.safeNumber(info, "interest") },
+            { "interestRate", this.safeNumber(info, "actual_rate") },
+            { "amountBorrowed", null },
+            { "marginMode", marginMode },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -6409,7 +7157,23 @@ public partial class gate : Exchange
         object authentication = getValue(api, 0); // public, private
         object type = getValue(api, 1); // spot, margin, future, delivery
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        object containsSettle = isGreaterThan(getIndexOf(path, "settle"), -1);
+        if (isTrue(isTrue(containsSettle) && isTrue(((string)path).EndsWith(((string)"batch_cancel_orders")))))
+        {
+            // special case where we need to extract the settle from the path
+            // but the body is an array of strings
+            object settle = this.safeDict(parameters, 0);
+            path = this.implodeParams(path, settle);
+            // remove the first element from params
+            object newParams = new List<object>() {};
+            object anyParams = ((object)parameters);
+            for (object i = 1; isLessThan(i, getArrayLength(anyParams)); postFixIncrement(ref i))
+            {
+                ((IList<object>)newParams).Add(getValue(parameters, i));
+            }
+            parameters = newParams;
+            query = newParams;
+        } else if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
@@ -6518,7 +7282,7 @@ public partial class gate : Exchange
         return this.parseMarginModification(response, market);
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
         //
         //     {
@@ -6552,62 +7316,67 @@ public partial class gate : Exchange
         object total = this.safeNumber(data, "margin");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "amount", null },
-            { "code", this.safeValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
             { "total", total },
+            { "code", this.safeValue(market, "quote") },
             { "status", "ok" },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
+    /**
+     * @method
+     * @name gate#reduceMargin
+     * @description remove margin from a position
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#reduceMargin
-        * @description remove margin from a position
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
-        * @param {string} symbol unified market symbol
-        * @param {float} amount the amount of margin to remove
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), parameters);
     }
 
+    /**
+     * @method
+     * @name gate#addMargin
+     * @description add margin
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+     * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#addMargin
-        * @description add margin
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
-        * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, parameters);
     }
 
+    /**
+     * @method
+     * @name gate#fetchOpenInterest
+     * @description Retrieves the open interest of a currency
+     * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
+     * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
+     * @param {int} [limit] default 30
+     * @param {object} [params] exchange specific parameters
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchOpenInterest
-        * @description Retrieves the open interest of a currency
-        * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
-        * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
-        * @param {int} [limit] default 30
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         timeframe ??= "5m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -6693,19 +7462,19 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+     * @param {string} symbol unified market symbol of the settlement history, required on gate
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchSettlementHistory
-        * @description fetches historical settlement records
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
-        * @param {string} symbol unified market symbol of the settlement history, required on gate
-        * @param {int} [since] timestamp in ms
-        * @param {int} [limit] number of records
-        * @param {object} [params] exchange specific params
-        * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -6752,19 +7521,19 @@ public partial class gate : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name gate#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @returns {object[]} a list of [settlement history objects]
+     */
     public async virtual Task<object> fetchMySettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchMySettlementHistory
-        * @description fetches historical settlement records of the user
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements
-        * @param {string} symbol unified market symbol of the settlement history
-        * @param {int} [since] timestamp in ms
-        * @param {int} [limit] number of records
-        * @param {object} [params] exchange specific params
-        * @returns {object[]} a list of [settlement history objects]
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -6896,25 +7665,25 @@ public partial class gate : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name gate#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-        * @param {string} code unified currency code
-        * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -6937,7 +7706,7 @@ public partial class gate : Exchange
             if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
-                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
             }
         }
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
@@ -7086,6 +7855,7 @@ public partial class gate : Exchange
             direction = "in";
         }
         object currencyId = this.safeString(item, "currency");
+        currency = this.safeCurrency(currencyId, currency);
         object type = this.safeString(item, "type");
         object rawTimestamp = this.safeString(item, "time");
         object timestamp = null;
@@ -7099,7 +7869,8 @@ public partial class gate : Exchange
         object balanceString = this.safeString(item, "balance");
         object changeString = this.safeString(item, "change");
         object before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "direction", direction },
             { "account", null },
@@ -7114,8 +7885,7 @@ public partial class gate : Exchange
             { "after", this.safeNumber(item, "balance") },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -7163,19 +7933,19 @@ public partial class gate : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
+    /**
+     * @method
+     * @name gate#setPositionMode
+     * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+     * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+     * @param {bool} hedged set to true to enable dual mode
+     * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} params.settle settle currency
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#setPositionMode
-        * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
-        * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
-        * @param {bool} hedged set to true to enable dual mode
-        * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {string} params.settle settle currency
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
         var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
@@ -7185,17 +7955,17 @@ public partial class gate : Exchange
         return await this.privateFuturesPostSettleDualMode(this.extend(request, query));
     }
 
+    /**
+     * @method
+     * @name gate#fetchUnderlyingAssets
+     * @description fetches the market ids of underlying assets for a specific contract market type
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
+     * @param {object} [params] exchange specific params
+     * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+     * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+     */
     public async virtual Task<object> fetchUnderlyingAssets(object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchUnderlyingAssets
-        * @description fetches the market ids of underlying assets for a specific contract market type
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
-        * @param {object} [params] exchange specific params
-        * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
-        * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -7233,20 +8003,20 @@ public partial class gate : Exchange
         return underlyings;
     }
 
+    /**
+     * @method
+     * @name gate#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchLiquidations
-        * @description retrieves the public liquidations of a trading pair
-        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -7285,21 +8055,21 @@ public partial class gate : Exchange
         return this.parseLiquidations(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name gate#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the exchange API endpoint
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchMyLiquidations
-        * @description retrieves the users liquidated positions
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the exchange API endpoint
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -7441,17 +8211,17 @@ public partial class gate : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name gate#fetchGreeks
+     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#fetchGreeks
-        * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
-        * @param {string} symbol unified symbol of the market to fetch greeks for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -7541,20 +8311,20 @@ public partial class gate : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name gate#closePosition
+     * @description closes open positions for a market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+     * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side 'buy' or 'sell'
+     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name gate#closePosition
-        * @description closes open positions for a market
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
-        * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} side 'buy' or 'sell'
-        * @param {object} [params] extra parameters specific to the okx api endpoint
-        * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "close", true },
@@ -7565,6 +8335,375 @@ public partial class gate : Exchange
             side = ""; // side is not used but needs to be present, otherwise crashes in php
         }
         return await this.createOrder(symbol, "market", side, 0, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name gate#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-market
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            // unified account does not require a symbol
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        object isUnified = this.safeBool(parameters, "unified");
+        parameters = this.omit(parameters, "unified");
+        if (isTrue(getValue(market, "spot")))
+        {
+            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            if (isTrue(isUnified))
+            {
+                response = await this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters));
+            } else
+            {
+                response = await this.publicMarginGetCurrencyPairsCurrencyPair(this.extend(request, parameters));
+            }
+        } else if (isTrue(isUnified))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchLeverage() does not support "), getValue(market, "type")), " markets")) ;
+        }
+        return this.parseLeverage(response, market);
+    }
+
+    /**
+     * @method
+     * @name gate#fetchLeverages
+     * @description fetch the set leverage for all leverage markets, only spot margin is supported on gate
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = null;
+        object isUnified = this.safeBool(parameters, "unified");
+        parameters = this.omit(parameters, "unified");
+        object marketIdRequest = "id";
+        if (isTrue(isUnified))
+        {
+            marketIdRequest = "currency_pair";
+            response = await this.publicMarginGetUniCurrencyPairs(parameters);
+        } else
+        {
+            response = await this.publicMarginGetCurrencyPairs(parameters);
+        }
+        return this.parseLeverages(response, symbols, marketIdRequest, "spot");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString2(leverage, "currency_pair", "id");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market, "_", "spot") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
+    }
+
+    /**
+     * @method
+     * @name gate#fetchOption
+     * @description fetches option data that is commonly found in an option chain
+     * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     */
+    public async override Task<object> fetchOption(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "contract", getValue(market, "id") },
+        };
+        object response = await this.publicOptionsGetContractsContract(this.extend(request, parameters));
+        //
+        //     {
+        //         "is_active": true,
+        //         "mark_price_round": "0.01",
+        //         "settle_fee_rate": "0.00015",
+        //         "bid1_size": 30,
+        //         "taker_fee_rate": "0.0003",
+        //         "price_limit_fee_rate": "0.1",
+        //         "order_price_round": "0.1",
+        //         "tag": "month",
+        //         "ref_rebate_rate": "0",
+        //         "name": "ETH_USDT-20240628-4500-C",
+        //         "strike_price": "4500",
+        //         "ask1_price": "280.5",
+        //         "ref_discount_rate": "0",
+        //         "order_price_deviate": "0.2",
+        //         "ask1_size": -19,
+        //         "mark_price_down": "155.45",
+        //         "orderbook_id": 11724695,
+        //         "is_call": true,
+        //         "last_price": "188.7",
+        //         "mark_price": "274.26",
+        //         "underlying": "ETH_USDT",
+        //         "create_time": 1688024882,
+        //         "settle_limit_fee_rate": "0.1",
+        //         "orders_limit": 10,
+        //         "mark_price_up": "403.83",
+        //         "position_size": 80,
+        //         "order_size_max": 10000,
+        //         "position_limit": 100000,
+        //         "multiplier": "0.01",
+        //         "order_size_min": 1,
+        //         "trade_size": 229,
+        //         "underlying_price": "3326.6",
+        //         "maker_fee_rate": "0.0003",
+        //         "expiration_time": 1719561600,
+        //         "trade_id": 15,
+        //         "bid1_price": "269.3"
+        //     }
+        //
+        return this.parseOption(response, null, market);
+    }
+
+    /**
+     * @method
+     * @name gate#fetchOptionChain
+     * @description fetches data for an underlying asset that is commonly found in an option chain
+     * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
+     * @param {string} code base currency to fetch an option chain for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
+     * @param {int} [params.expiration] unix timestamp of the expiration time
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     */
+    public async override Task<object> fetchOptionChain(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "underlying", add(getValue(currency, "code"), "_USDT") },
+        };
+        object response = await this.publicOptionsGetContracts(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "is_active": true,
+        //             "mark_price_round": "0.1",
+        //             "settle_fee_rate": "0.00015",
+        //             "bid1_size": 434,
+        //             "taker_fee_rate": "0.0003",
+        //             "price_limit_fee_rate": "0.1",
+        //             "order_price_round": "1",
+        //             "tag": "day",
+        //             "ref_rebate_rate": "0",
+        //             "name": "BTC_USDT-20240324-63500-P",
+        //             "strike_price": "63500",
+        //             "ask1_price": "387",
+        //             "ref_discount_rate": "0",
+        //             "order_price_deviate": "0.15",
+        //             "ask1_size": -454,
+        //             "mark_price_down": "124.3",
+        //             "orderbook_id": 29600,
+        //             "is_call": false,
+        //             "last_price": "0",
+        //             "mark_price": "366.6",
+        //             "underlying": "BTC_USDT",
+        //             "create_time": 1711118829,
+        //             "settle_limit_fee_rate": "0.1",
+        //             "orders_limit": 10,
+        //             "mark_price_up": "630",
+        //             "position_size": 0,
+        //             "order_size_max": 10000,
+        //             "position_limit": 10000,
+        //             "multiplier": "0.01",
+        //             "order_size_min": 1,
+        //             "trade_size": 0,
+        //             "underlying_price": "64084.65",
+        //             "maker_fee_rate": "0.0003",
+        //             "expiration_time": 1711267200,
+        //             "trade_id": 0,
+        //             "bid1_price": "307"
+        //         },
+        //     ]
+        //
+        return this.parseOptionChain(response, null, "name");
+    }
+
+    public override object parseOption(object chain, object currency = null, object market = null)
+    {
+        //
+        //     {
+        //         "is_active": true,
+        //         "mark_price_round": "0.1",
+        //         "settle_fee_rate": "0.00015",
+        //         "bid1_size": 434,
+        //         "taker_fee_rate": "0.0003",
+        //         "price_limit_fee_rate": "0.1",
+        //         "order_price_round": "1",
+        //         "tag": "day",
+        //         "ref_rebate_rate": "0",
+        //         "name": "BTC_USDT-20240324-63500-P",
+        //         "strike_price": "63500",
+        //         "ask1_price": "387",
+        //         "ref_discount_rate": "0",
+        //         "order_price_deviate": "0.15",
+        //         "ask1_size": -454,
+        //         "mark_price_down": "124.3",
+        //         "orderbook_id": 29600,
+        //         "is_call": false,
+        //         "last_price": "0",
+        //         "mark_price": "366.6",
+        //         "underlying": "BTC_USDT",
+        //         "create_time": 1711118829,
+        //         "settle_limit_fee_rate": "0.1",
+        //         "orders_limit": 10,
+        //         "mark_price_up": "630",
+        //         "position_size": 0,
+        //         "order_size_max": 10000,
+        //         "position_limit": 10000,
+        //         "multiplier": "0.01",
+        //         "order_size_min": 1,
+        //         "trade_size": 0,
+        //         "underlying_price": "64084.65",
+        //         "maker_fee_rate": "0.0003",
+        //         "expiration_time": 1711267200,
+        //         "trade_id": 0,
+        //         "bid1_price": "307"
+        //     }
+        //
+        object marketId = this.safeString(chain, "name");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeTimestamp(chain, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", chain },
+            { "currency", null },
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "impliedVolatility", null },
+            { "openInterest", null },
+            { "bidPrice", this.safeNumber(chain, "bid1_price") },
+            { "askPrice", this.safeNumber(chain, "ask1_price") },
+            { "midPrice", null },
+            { "markPrice", this.safeNumber(chain, "mark_price") },
+            { "lastPrice", this.safeNumber(chain, "last_price") },
+            { "underlyingPrice", this.safeNumber(chain, "underlying_price") },
+            { "change", null },
+            { "percentage", null },
+            { "baseVolume", null },
+            { "quoteVolume", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name gate#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
+     * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
+     * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch, default=1000
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {int} [params.offset] list offset, starting from 0
+     * @param {string} [params.side] long or short
+     * @param {string} [params.pnl] query profit or loss
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+            }
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, marketType, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        object response = null;
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            response = await this.privateFuturesGetSettlePositionClose(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marketType, "future")))
+        {
+            response = await this.privateDeliveryGetSettlePositionClose(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(this.id, " fetchPositionsHistory() does not support markets of type "), marketType)) ;
+        }
+        //
+        //    [
+        //        {
+        //            "contract": "SLERF_USDT",
+        //            "text": "web",
+        //            "long_price": "0.766306",
+        //            "pnl": "-23.41702352",
+        //            "pnl_pnl": "-22.7187",
+        //            "pnl_fee": "-0.06527125",
+        //            "pnl_fund": "-0.63305227",
+        //            "accum_size": "100",
+        //            "time": 1711279263,
+        //            "short_price": "0.539119",
+        //            "side": "long",
+        //            "max_size": "100",
+        //            "first_open_time": 1711037985
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parsePositions(response, symbols, parameters);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -7579,6 +8718,7 @@ public partial class gate : Exchange
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
         object label = this.safeString(response, "label");
         if (isTrue(!isEqual(label, null)))

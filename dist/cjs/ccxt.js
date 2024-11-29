@@ -24,7 +24,6 @@ var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
-var bitbay = require('./src/bitbay.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -51,7 +50,10 @@ var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
-var coinbasepro = require('./src/coinbasepro.js');
+var coinbaseadvanced = require('./src/coinbaseadvanced.js');
+var coinbaseexchange = require('./src/coinbaseexchange.js');
+var coinbaseinternational = require('./src/coinbaseinternational.js');
+var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
@@ -65,13 +67,14 @@ var currencycom = require('./src/currencycom.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
+var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
+var hashkey = require('./src/hashkey.js');
 var hitbtc = require('./src/hitbtc.js');
-var hitbtc3 = require('./src/hitbtc3.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
@@ -97,7 +100,9 @@ var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
+var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -105,11 +110,15 @@ var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
+var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
+var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
+var woofipro = require('./src/woofipro.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -125,6 +134,7 @@ var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex2$1 = require('./src/pro/bitfinex2.js');
 var bitget$1 = require('./src/pro/bitget.js');
+var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
 var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
@@ -133,10 +143,14 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
+var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
-var coinbasepro$1 = require('./src/pro/coinbasepro.js');
+var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
+var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
+var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
+var coincatch$1 = require('./src/pro/coincatch.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
@@ -147,11 +161,13 @@ var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
 var gemini$1 = require('./src/pro/gemini.js');
+var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
 var huobijp$1 = require('./src/pro/huobijp.js');
+var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
@@ -165,19 +181,24 @@ var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
+var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
+var vertex$1 = require('./src/pro/vertex.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
+var woofipro$1 = require('./src/pro/woofipro.js');
+var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.2.63';
+const version = '4.4.34';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -192,7 +213,6 @@ const exchanges = {
     'bingx': bingx,
     'bit2c': bit2c,
     'bitbank': bitbank,
-    'bitbay': bitbay,
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
@@ -219,7 +239,10 @@ const exchanges = {
     'bybit': bybit,
     'cex': cex,
     'coinbase': coinbase,
-    'coinbasepro': coinbasepro,
+    'coinbaseadvanced': coinbaseadvanced,
+    'coinbaseexchange': coinbaseexchange,
+    'coinbaseinternational': coinbaseinternational,
+    'coincatch': coincatch,
     'coincheck': coincheck,
     'coinex': coinex,
     'coinlist': coinlist,
@@ -233,13 +256,14 @@ const exchanges = {
     'delta': delta,
     'deribit': deribit,
     'digifinex': digifinex,
+    'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
+    'hashkey': hashkey,
     'hitbtc': hitbtc,
-    'hitbtc3': hitbtc3,
     'hollaex': hollaex,
     'htx': htx,
     'huobi': huobi,
@@ -265,7 +289,9 @@ const exchanges = {
     'okcoin': okcoin,
     'okx': okx,
     'onetrading': onetrading,
+    'oxfun': oxfun,
     'p2b': p2b,
+    'paradex': paradex,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -273,11 +299,15 @@ const exchanges = {
     'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
+    'tradeogre': tradeogre,
     'upbit': upbit,
+    'vertex': vertex,
     'wavesexchange': wavesexchange,
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
+    'woofipro': woofipro,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -295,6 +325,7 @@ const pro = {
     'bitfinex': bitfinex$1,
     'bitfinex2': bitfinex2$1,
     'bitget': bitget$1,
+    'bithumb': bithumb$1,
     'bitmart': bitmart$1,
     'bitmex': bitmex$1,
     'bitopro': bitopro$1,
@@ -303,10 +334,14 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
+    'blofin': blofin$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
-    'coinbasepro': coinbasepro$1,
+    'coinbaseadvanced': coinbaseadvanced$1,
+    'coinbaseexchange': coinbaseexchange$1,
+    'coinbaseinternational': coinbaseinternational$1,
+    'coincatch': coincatch$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
     'coinone': coinone$1,
@@ -317,11 +352,13 @@ const pro = {
     'gate': gate$1,
     'gateio': gateio$1,
     'gemini': gemini$1,
+    'hashkey': hashkey$1,
     'hitbtc': hitbtc$1,
     'hollaex': hollaex$1,
     'htx': htx$1,
     'huobi': huobi$1,
     'huobijp': huobijp$1,
+    'hyperliquid': hyperliquid$1,
     'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
@@ -335,15 +372,20 @@ const pro = {
     'okcoin': okcoin$1,
     'okx': okx$1,
     'onetrading': onetrading$1,
+    'oxfun': oxfun$1,
     'p2b': p2b$1,
+    'paradex': paradex$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
+    'vertex': vertex$1,
     'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
+    'woofipro': woofipro$1,
+    'xt': xt$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -364,20 +406,28 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ChecksumError = errors.ChecksumError;
+exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;
+exports.ExchangeClosedByUser = errors.ExchangeClosedByUser;
 exports.ExchangeError = errors.ExchangeError;
 exports.ExchangeNotAvailable = errors.ExchangeNotAvailable;
 exports.InsufficientFunds = errors.InsufficientFunds;
 exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
+exports.InvalidProxySettings = errors.InvalidProxySettings;
+exports.ManualInteractionNeeded = errors.ManualInteractionNeeded;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
+exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
 exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
 exports.NullResponse = errors.NullResponse;
 exports.OnMaintenance = errors.OnMaintenance;
+exports.OperationFailed = errors.OperationFailed;
+exports.OperationRejected = errors.OperationRejected;
 exports.OrderImmediatelyFillable = errors.OrderImmediatelyFillable;
 exports.OrderNotCached = errors.OrderNotCached;
 exports.OrderNotFillable = errors.OrderNotFillable;
@@ -385,6 +435,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.ace = ace;
 exports.alpaca = alpaca;
@@ -398,7 +449,6 @@ exports.binanceusdm = binanceusdm;
 exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
-exports.bitbay = bitbay;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
@@ -425,7 +475,10 @@ exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
 exports.coinbase = coinbase;
-exports.coinbasepro = coinbasepro;
+exports.coinbaseadvanced = coinbaseadvanced;
+exports.coinbaseexchange = coinbaseexchange;
+exports.coinbaseinternational = coinbaseinternational;
+exports.coincatch = coincatch;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
@@ -439,13 +492,14 @@ exports.currencycom = currencycom;
 exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;
+exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
+exports.hashkey = hashkey;
 exports.hitbtc = hitbtc;
-exports.hitbtc3 = hitbtc3;
 exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;
@@ -471,7 +525,9 @@ exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
 exports.onetrading = onetrading;
+exports.oxfun = oxfun;
 exports.p2b = p2b;
+exports.paradex = paradex;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;
@@ -479,11 +535,15 @@ exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
+exports.tradeogre = tradeogre;
 exports.upbit = upbit;
+exports.vertex = vertex;
 exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
+exports.woofipro = woofipro;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

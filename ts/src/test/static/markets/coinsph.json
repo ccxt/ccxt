@@ -190,5 +190,198 @@
                 ]
             ]
         }
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000001,
+                "max": 99999999999
+            },
+            "price": {
+                "min": 0.01,
+                "max": 99999999999
+            },
+            "cost": {
+                "min": 1
+            }
+        },
+        "info": {
+            "symbol": "ETHUSDT",
+            "status": "trading",
+            "baseAsset": "ETH",
+            "baseAssetPrecision": "6",
+            "quoteAsset": "USDT",
+            "quoteAssetPrecision": "8",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "LIMIT_MAKER",
+                "STOP_LOSS_LIMIT",
+                "STOP_LOSS",
+                "TAKE_PROFIT_LIMIT",
+                "TAKE_PROFIT"
+            ],
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.01",
+                    "maxPrice": "99999999999.00000000",
+                    "tickSize": "0.01"
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "minQty": "0.000001",
+                    "maxQty": "99999999999.00000000",
+                    "stepSize": "0.000001"
+                },
+                {
+                    "filterType": "NOTIONAL",
+                    "minNotional": "1",
+                    "maxNotional": "8800"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "minNotional": "1"
+                },
+                {
+                    "filterType": "STATIC_PRICE_RANGE",
+                    "priceUp": "99999999.00000000",
+                    "priceDown": "0.01000000"
+                },
+                {
+                    "filterType": "PERCENT_PRICE_BY_SIDE",
+                    "bidMultiplierUp": "5.00000000",
+                    "bidMultiplierDown": "0.20000000",
+                    "askMultiplierUp": "5.00000000",
+                    "askMultiplierDown": "0.20000000"
+                },
+                {
+                    "filterType": "PERCENT_PRICE_INDEX",
+                    "multiplierUp": "1.10000000",
+                    "multiplierDown": "0.90000000"
+                },
+                {
+                    "filterType": "PERCENT_PRICE_ORDER_SIZE",
+                    "multiplierUp": "1.10000000",
+                    "multiplierDown": "0.90000000"
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "maxNumOrders": "200"
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "maxNumAlgoOrders": "5"
+                }
+            ]
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.003
+                ],
+                [
+                    500000,
+                    0.0027
+                ],
+                [
+                    1000000,
+                    0.0024
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    100000000,
+                    0.0012
+                ],
+                [
+                    500000000,
+                    0.0009
+                ],
+                [
+                    1000000000,
+                    0.0007
+                ],
+                [
+                    2500000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    500000,
+                    0.0022
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    2500000,
+                    0.0015
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.001
+                ],
+                [
+                    100000000,
+                    0.0008
+                ],
+                [
+                    500000000,
+                    0.0007
+                ],
+                [
+                    1000000000,
+                    0.0006
+                ],
+                [
+                    2500000000,
+                    0.0005
+                ]
+            ]
+        }
     }
 }

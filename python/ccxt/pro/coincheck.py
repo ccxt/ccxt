@@ -20,6 +20,7 @@ class coincheck(ccxt.async_support.coincheck):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': False,
                 'watchTickers': False,
@@ -50,7 +51,9 @@ class coincheck(ccxt.async_support.coincheck):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://coincheck.com/documents/exchange/api#websocket-order-book
+
+        https://coincheck.com/documents/exchange/api#websocket-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -60,7 +63,7 @@ class coincheck(ccxt.async_support.coincheck):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         }
@@ -106,19 +109,21 @@ class coincheck(ccxt.async_support.coincheck):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://coincheck.com/documents/exchange/api#websocket-trades
+
+        https://coincheck.com/documents/exchange/api#websocket-trades
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         }
@@ -157,7 +162,7 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     [
         #         "1663318663",  # transaction timestamp(unix time)

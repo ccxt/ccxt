@@ -21,6 +21,9 @@ class OrderBookSide(list):
         for delta in deltas:
             self.storeArray(list(delta))
 
+    def store_array(self, delta):
+        return self.storeArray(delta)
+
     def storeArray(self, delta):
         price = delta[0]
         size = delta[1]

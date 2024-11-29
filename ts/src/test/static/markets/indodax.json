@@ -28,12 +28,28 @@
         "expiryDatetime": false,
         "strike": false,
         "optionType": false,
-        "precision": { "amount": 1e-8, "price": 0.000001, "cost": 1 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001,
+            "cost": 1
+        },
         "limits": {
-          "leverage": { "min": false, "max": false },
-          "amount": { "min": 0.000019, "max": false },
-          "price": { "min": 1, "max": false },
-          "cost": { "min": false, "max": false }
+            "leverage": {
+                "min": false,
+                "max": false
+            },
+            "amount": {
+                "min": 0.000019,
+                "max": false
+            },
+            "price": {
+                "min": 1,
+                "max": false
+            },
+            "cost": {
+                "min": false,
+                "max": false
+            }
         },
         "created": false,
         "info": {
@@ -94,12 +110,28 @@
         "expiryDatetime": false,
         "strike": false,
         "optionType": false,
-        "precision": { "amount": 1e-8, "price": 1e-8, "cost": 1 },
+        "precision": {
+            "amount": 1e-8,
+            "price": 1e-8,
+            "cost": 1
+        },
         "limits": {
-            "leverage": { "min": false, "max": false },
-            "amount": { "min": 0.00001222, "max": false },
-            "price": { "min": 10000, "max": false },
-            "cost": { "min": false, "max": false }
+            "leverage": {
+                "min": false,
+                "max": false
+            },
+            "amount": {
+                "min": 0.00001222,
+                "max": false
+            },
+            "price": {
+                "min": 10000,
+                "max": false
+            },
+            "cost": {
+                "min": false,
+                "max": false
+            }
         },
         "created": false,
         "info": {
@@ -130,5 +162,66 @@
         },
         "tierBased": false,
         "percentage": true
-    }   
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.06,
+        "maker": 0,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001,
+            "cost": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000254
+            },
+            "price": {
+                "min": 1
+            },
+            "cost": {}
+        },
+        "info": {
+            "id": "ethusdt",
+            "symbol": "ETHUSDT",
+            "base_currency": "usdt",
+            "traded_currency": "eth",
+            "traded_currency_unit": "ETH",
+            "description": "ETH/USDT",
+            "ticker_id": "eth_usdt",
+            "volume_precision": "0",
+            "price_precision": "1",
+            "price_round": "6",
+            "pricescale": "1",
+            "trade_min_base_currency": "1",
+            "trade_min_traded_currency": "0.000254",
+            "has_memo": false,
+            "memo_name": false,
+            "trade_fee_percent": "0.06",
+            "trade_fee_percent_taker": "0.06",
+            "trade_fee_percent_maker": "0.03",
+            "url_logo": "https://indodax.com/v2/logo/svg/color/eth.svg",
+            "url_logo_png": "https://indodax.com/v2/logo/png/color/eth.png",
+            "is_maintenance": "0",
+            "is_market_suspended": "0",
+            "coingecko_id": "ethereum",
+            "cmc_id": "1027"
+        },
+        "tierBased": false,
+        "percentage": true
+    }
 }

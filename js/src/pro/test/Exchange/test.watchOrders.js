@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrder from '../../../test/Exchange/base/test.order.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 async function testWatchOrders(exchange, skippedProperties, symbol) {
@@ -23,7 +22,7 @@ async function testWatchOrders(exchange, skippedProperties, symbol) {
             now = exchange.milliseconds();
             continue;
         }
-        assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(response));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
         now = exchange.milliseconds();
         for (let i = 0; i < response.length; i++) {
             testOrder(exchange, skippedProperties, method, response[i], symbol, now);

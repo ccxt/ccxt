@@ -81,10 +81,20 @@ function aggregate(bidasks) {
     for (let i = 0; i < bidasks.length; i++) {
         const [price, volume] = bidasks[i];
         if (volume > 0) {
-            result[price] = (result[price] || 0) + volume;
+            result[price] = (result[price] || 0) + volume; // TODO: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.ts(7053)
         }
     }
-    return Object.keys(result).map((price) => [parseFloat(price), parseFloat(result[price])]);
+    return Object.keys(result).map((price) => [parseFloat(price), parseFloat(result[price])]); // TODO: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}',   No index signature with a parameter of type 'string' was found on type '{}'.ts(7053)
+}
+function selfIsDefined() {
+    let selfIsDefined = false;
+    try {
+        selfIsDefined = self !== undefined;
+    }
+    catch (e) {
+        selfIsDefined = false;
+    }
+    return selfIsDefined;
 }
 /*  ------------------------------------------------------------------------ */
 
@@ -93,4 +103,5 @@ exports.extractParams = extractParams;
 exports.implodeParams = implodeParams;
 exports.parseTimeframe = parseTimeframe;
 exports.roundTimeframe = roundTimeframe;
+exports.selfIsDefined = selfIsDefined;
 exports.vwap = vwap;

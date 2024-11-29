@@ -39,11 +39,9 @@ setup(
 
     name=package['name'],
     version=package['version'],
-    data_files=[('ccxt', ['ccxt/static_dependencies/ethereum/utils/__json/eth_networks.json'])],
     description=package['description'],
     long_description=long_description,
     long_description_content_type='text/markdown',
-    include_package_data=True,
 
     # will switch from rst to md shortly
     # long_description_content_type='text/markdown',
@@ -90,7 +88,7 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.8',
+            'aiohttp<=3.10.11',
             'aiodns>=1.1.1',
             'yarl>=1.7.2',
         ],

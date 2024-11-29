@@ -41,12 +41,12 @@ public partial class Exchange
 
     public object omit(object aa, object k)
     {
-        if (aa.GetType() == typeof(List<object>))
+        if (aa is (IList<object>))
         {
             return aa;
         }
         List<string> keys = null;
-        if (k.GetType() == typeof(string))
+        if (k is (string))
         {
             keys = new List<string>() { (string)k };
         }
@@ -56,7 +56,7 @@ public partial class Exchange
             keys = myList.Select(s => (string)s).ToList();
         }
         // var keys = new List<string>() { (string)k };
-        var a = (dict)aa;
+        var a = (IDictionary<string, object>)aa;
         var outDict = new dict();
         var aKeys = new List<string>(a.Keys);
         foreach (string key in aKeys)
@@ -252,6 +252,13 @@ public partial class Exchange
     {
         if (obj == null)
             return null;
+        // Check if the object is an exception
+        if (obj is Exception ex)
+        {
+            var errorObj = new { name = ex.GetType().Name };
+            return JsonConvert.SerializeObject(errorObj);
+        }
+
         return JsonConvert.SerializeObject(obj);
         // if (obj.GetType() == typeof(dict))
         // {

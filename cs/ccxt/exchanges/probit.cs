@@ -40,6 +40,7 @@ public partial class probit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -61,8 +62,11 @@ public partial class probit : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -77,6 +81,7 @@ public partial class probit : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -166,7 +171,7 @@ public partial class probit : Exchange
                     { "RATE_LIMIT_EXCEEDED", typeof(RateLimitExceeded) },
                     { "MARKET_UNAVAILABLE", typeof(ExchangeNotAvailable) },
                     { "INVALID_MARKET", typeof(BadSymbol) },
-                    { "MARKET_CLOSED", typeof(BadSymbol) },
+                    { "MARKET_CLOSED", typeof(MarketClosed) },
                     { "MARKET_NOT_FOUND", typeof(BadSymbol) },
                     { "INVALID_CURRENCY", typeof(BadRequest) },
                     { "TOO_MANY_OPEN_ORDERS", typeof(DDoSProtection) },
@@ -192,57 +197,38 @@ public partial class probit : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "AUTO", "Cube" },
-                { "AZU", "Azultec" },
-                { "BCC", "BCC" },
-                { "BDP", "BidiPass" },
-                { "BIRD", "Birdchain" },
-                { "BTCBEAR", "BEAR" },
-                { "BTCBULL", "BULL" },
+                { "BB", "Baby Bali" },
                 { "CBC", "CryptoBharatCoin" },
-                { "CHE", "Chellit" },
-                { "CLR", "Color Platform" },
                 { "CTK", "Cryptyk" },
                 { "CTT", "Castweet" },
-                { "DIP", "Dipper" },
                 { "DKT", "DAKOTA" },
                 { "EGC", "EcoG9coin" },
                 { "EPS", "Epanus" },
                 { "FX", "Fanzy" },
-                { "GDT", "Gorilla Diamond" },
                 { "GM", "GM Holding" },
                 { "GOGOL", "GOL" },
                 { "GOL", "Goldofir" },
-                { "GRB", "Global Reward Bank" },
-                { "HBC", "Hybrid Bank Cash" },
                 { "HUSL", "The Hustle App" },
                 { "LAND", "Landbox" },
-                { "LBK", "Legal Block" },
-                { "ORC", "Oracle System" },
-                { "PXP", "PIXSHOP COIN" },
-                { "PYE", "CreamPYE" },
-                { "ROOK", "Reckoon" },
-                { "SOC", "Soda Coin" },
                 { "SST", "SocialSwap" },
                 { "TCT", "Top Coin Token" },
                 { "TOR", "Torex" },
-                { "TPAY", "Tetra Pay" },
                 { "UNI", "UNICORN Token" },
                 { "UNISWAP", "UNI" },
             } },
         });
     }
 
+    /**
+     * @method
+     * @name probit#fetchMarkets
+     * @see https://docs-en.probit.com/reference/market
+     * @description retrieves data on all markets for probit
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchMarkets
-        * @see https://docs-en.probit.com/reference/market
-        * @description retrieves data on all markets for probit
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarket(parameters);
         //
@@ -339,16 +325,16 @@ public partial class probit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name probit#fetchCurrencies
+     * @see https://docs-en.probit.com/reference/currency
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchCurrencies
-        * @see https://docs-en.probit.com/reference/currency
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetCurrencyWithPlatform(parameters);
         //
@@ -545,16 +531,16 @@ public partial class probit : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name probit#fetchBalance
+     * @see https://docs-en.probit.com/reference/balance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchBalance
-        * @see https://docs-en.probit.com/reference/balance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetBalance(parameters);
@@ -572,18 +558,18 @@ public partial class probit : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name probit#fetchOrderBook
+     * @see https://docs-en.probit.com/reference/order_book
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchOrderBook
-        * @see https://docs-en.probit.com/reference/order_book
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -605,17 +591,17 @@ public partial class probit : Exchange
         return this.parseOrderBook(dataBySide, getValue(market, "symbol"), null, "buy", "sell", "price", "quantity");
     }
 
+    /**
+     * @method
+     * @name probit#fetchTickers
+     * @see https://docs-en.probit.com/reference/ticker
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchTickers
-        * @see https://docs-en.probit.com/reference/ticker
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -641,21 +627,21 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name probit#fetchTicker
+     * @see https://docs-en.probit.com/reference/ticker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchTicker
-        * @see https://docs-en.probit.com/reference/ticker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -733,19 +719,19 @@ public partial class probit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name probit#fetchMyTrades
+     * @see https://docs-en.probit.com/reference/trade
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchMyTrades
-        * @see https://docs-en.probit.com/reference/trade
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -789,23 +775,23 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name probit#fetchTrades
+     * @see https://docs-en.probit.com/reference/trade-1
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchTrades
-        * @see https://docs-en.probit.com/reference/trade-1
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -848,7 +834,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -924,16 +910,16 @@ public partial class probit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name probit#fetchTime
+     * @see https://docs-en.probit.com/reference/time
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchTime
-        * @see https://docs-en.probit.com/reference/time
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTime(parameters);
         //
@@ -987,20 +973,20 @@ public partial class probit : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name probit#fetchOHLCV
+     * @see https://docs-en.probit.com/reference/candle
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchOHLCV
-        * @see https://docs-en.probit.com/reference/candle
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1058,7 +1044,7 @@ public partial class probit : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1080,19 +1066,19 @@ public partial class probit : Exchange
         return new List<object> {this.parse8601(this.safeString(ohlcv, "start_time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "base_volume")};
     }
 
+    /**
+     * @method
+     * @name probit#fetchOpenOrders
+     * @see https://docs-en.probit.com/reference/open_order-1
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchOpenOrders
-        * @see https://docs-en.probit.com/reference/open_order-1
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         since = this.parse8601(since);
@@ -1104,23 +1090,23 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["market_id"] = getValue(market, "id");
         }
         object response = await this.privateGetOpenOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name probit#fetchClosedOrders
+     * @see https://docs-en.probit.com/reference/order
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchClosedOrders
-        * @see https://docs-en.probit.com/reference/order
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1143,21 +1129,22 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetOrderHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name probit#fetchOrder
+     * @see https://docs-en.probit.com/reference/order-3
+     * @description fetches information on an order made by the user
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchOrder
-        * @see https://docs-en.probit.com/reference/order-3
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1179,7 +1166,7 @@ public partial class probit : Exchange
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         object response = await this.privateGetOrder(this.extend(request, query));
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1267,22 +1254,22 @@ public partial class probit : Exchange
         return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "cost"), this.precisionMode);
     }
 
+    /**
+     * @method
+     * @name probit#createOrder
+     * @description create a trade order
+     * @see https://docs-en.probit.com/reference/order-1
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#createOrder
-        * @description create a trade order
-        * @see https://docs-en.probit.com/reference/order-1
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1377,18 +1364,18 @@ public partial class probit : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name probit#cancelOrder
+     * @see https://docs-en.probit.com/reference/order-2
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#cancelOrder
-        * @see https://docs-en.probit.com/reference/order-2
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1401,7 +1388,7 @@ public partial class probit : Exchange
             { "order_id", id },
         };
         object response = await this.privatePostCancelOrder(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(data);
     }
 
@@ -1415,25 +1402,25 @@ public partial class probit : Exchange
         object network = this.safeString(depositAddress, "platform_id");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
+    /**
+     * @method
+     * @name probit#fetchDepositAddress
+     * @see https://docs-en.probit.com/reference/deposit_address
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchDepositAddress
-        * @see https://docs-en.probit.com/reference/deposit_address
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1481,17 +1468,17 @@ public partial class probit : Exchange
         return this.parseDepositAddress(firstAddress, currency);
     }
 
+    /**
+     * @method
+     * @name probit#fetchDepositAddresses
+     * @see https://docs-en.probit.com/reference/deposit_address
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchDepositAddresses
-        * @see https://docs-en.probit.com/reference/deposit_address
-        * @description fetch deposit addresses for multiple currencies and chain types
-        * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1506,24 +1493,24 @@ public partial class probit : Exchange
             ((IDictionary<string,object>)request)["currency_id"] = String.Join(",", ((IList<object>)codes).ToArray());
         }
         object response = await this.privateGetDepositAddress(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositAddresses(data, codes);
     }
 
+    /**
+     * @method
+     * @name probit#withdraw
+     * @see https://docs-en.probit.com/reference/withdrawal
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#withdraw
-        * @see https://docs-en.probit.com/reference/withdrawal
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1554,22 +1541,22 @@ public partial class probit : Exchange
             parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWithdrawal(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 
+    /**
+     * @method
+     * @name probit#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of transaction structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "type", "deposit" },
@@ -1578,18 +1565,18 @@ public partial class probit : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name probit#fetchWithdrawals
+     * @description fetch all withdrawals made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchWithdrawals
-        * @description fetch all withdrawals made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of transaction structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "type", "withdrawal" },
@@ -1598,21 +1585,20 @@ public partial class probit : Exchange
         return result;
     }
 
-    public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name probit#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs-en.probit.com/reference/transferpayment
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transactions for
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchTransactions
-        * @deprecated
-        * @description use fetchDepositsWithdrawals instead
-        * @see https://docs-en.probit.com/reference/transferpayment
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch transactions for
-        * @param {int} [limit] the maximum number of transaction structures to retrieve
-        * @param {int} [params.until] the latest time in ms to fetch transactions for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -1629,11 +1615,11 @@ public partial class probit : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.iso8601(1);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
         } else
         {
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());
@@ -1756,17 +1742,17 @@ public partial class probit : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name probit#fetchDepositWithdrawFees
+     * @see https://docs-en.probit.com/reference/currency
+     * @description fetch deposit and withdraw fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#fetchDepositWithdrawFees
-        * @see https://docs-en.probit.com/reference/currency
-        * @description fetch deposit and withdraw fees
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetCurrencyWithPlatform(parameters);
@@ -1825,7 +1811,7 @@ public partial class probit : Exchange
         //     ]
         //  }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "id");
     }
 
@@ -1969,16 +1955,16 @@ public partial class probit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name probit#signIn
+     * @see https://docs-en.probit.com/reference/token
+     * @description sign in, must be called prior to using other authenticated methods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
     public async override Task<object> signIn(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#signIn
-        * @see https://docs-en.probit.com/reference/token
-        * @description sign in, must be called prior to using other authenticated methods
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns response from exchange
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object request = new Dictionary<string, object>() {
@@ -2008,12 +1994,19 @@ public partial class probit : Exchange
         if (isTrue(inOp(response, "errorCode")))
         {
             object errorCode = this.safeString(response, "errorCode");
-            object message = this.safeString(response, "message");
             if (isTrue(!isEqual(errorCode, null)))
             {
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                object errMessage = this.safeString(response, "message", "");
+                object details = this.safeValue(response, "details");
+                object feedback = add(add(add(add(add(add(this.id, " "), errorCode), " "), errMessage), " "), this.json(details));
+                if (isTrue(inOp(this.exceptions, "exact")))
+                {
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                }
+                if (isTrue(inOp(this.exceptions, "broad")))
+                {
+                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMessage, feedback);
+                }
                 throw new ExchangeError ((string)feedback) ;
             }
         }

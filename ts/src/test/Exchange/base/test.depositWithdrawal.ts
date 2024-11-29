@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testDepositWithdrawal (exchange, skippedProperties, method, entry, requestedCode, now) {
+function testDepositWithdrawal (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, now: number) {
     const format = {
         'info': {}, // or []
         'id': '1234',

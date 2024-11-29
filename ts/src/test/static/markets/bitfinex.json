@@ -1398,5 +1398,145 @@
                 ]
             ]
         }
+    },
+    "ETH/USDT": {
+        "id": "ETHUST",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "UST",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.001,
+        "precision": {
+            "amount": 8,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0008,
+                "max": 2000
+            },
+            "price": {
+                "min": 1e-8
+            },
+            "cost": {}
+        },
+        "info": {
+            "pair": "ethust",
+            "price_precision": "5",
+            "initial_margin": "20.0",
+            "minimum_margin": "10.0",
+            "maximum_order_size": "2000.0",
+            "minimum_order_size": "0.0008",
+            "expiration": "NA",
+            "margin": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.002
+                ],
+                [
+                    1000000,
+                    0.002
+                ],
+                [
+                    2500000,
+                    0.002
+                ],
+                [
+                    5000000,
+                    0.002
+                ],
+                [
+                    7500000,
+                    0.002
+                ],
+                [
+                    10000000,
+                    0.0018
+                ],
+                [
+                    15000000,
+                    0.0016
+                ],
+                [
+                    20000000,
+                    0.0014
+                ],
+                [
+                    25000000,
+                    0.0012
+                ],
+                [
+                    30000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    7500000,
+                    0
+                ],
+                [
+                    10000000,
+                    0
+                ],
+                [
+                    15000000,
+                    0
+                ],
+                [
+                    20000000,
+                    0
+                ],
+                [
+                    25000000,
+                    0
+                ],
+                [
+                    30000000,
+                    0
+                ]
+            ]
+        }
     }
 }

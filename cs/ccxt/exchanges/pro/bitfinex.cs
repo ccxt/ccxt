@@ -16,6 +16,7 @@ public partial class bitfinex : ccxt.bitfinex
                 { "watchTickers", false },
                 { "watchOrderBook", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", false },
             } },
@@ -55,18 +56,19 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
+    /**
+     * @method
+     * @name bitfinex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.bitfinex.com/v1/reference/ws-public-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -78,16 +80,17 @@ public partial class bitfinex : ccxt.bitfinex
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name bitfinex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.bitfinex.com/v1/reference/ws-public-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.subscribe("ticker", symbol, parameters);
     }
@@ -242,15 +245,15 @@ public partial class bitfinex : ccxt.bitfinex
         {
             open = Precise.stringSub(last, change);
         }
-        object result = new Dictionary<string, object>() {
+        object result = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeFloat(message, 9) },
-            { "low", this.safeFloat(message, 10) },
-            { "bid", this.safeFloat(message, 1) },
+            { "high", this.safeString(message, 9) },
+            { "low", this.safeString(message, 10) },
+            { "bid", this.safeString(message, 1) },
             { "bidVolume", null },
-            { "ask", this.safeFloat(message, 3) },
+            { "ask", this.safeString(message, 3) },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.parseNumber(open) },
@@ -258,27 +261,28 @@ public partial class bitfinex : ccxt.bitfinex
             { "last", this.parseNumber(last) },
             { "previousClose", null },
             { "change", this.parseNumber(change) },
-            { "percentage", this.safeFloat(message, 6) },
+            { "percentage", this.safeString(message, 6) },
             { "average", null },
-            { "baseVolume", this.safeFloat(message, 8) },
+            { "baseVolume", this.safeString(message, 8) },
             { "quoteVolume", null },
             { "info", message },
-        };
+        });
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
     }
 
+    /**
+     * @method
+     * @name bitfinex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.bitfinex.com/v1/reference/ws-public-order-books
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(limit, null)))
         {
@@ -357,7 +361,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object size = ((bool) isTrue((isLessThan(delta2Value, 0)))) ? prefixUnaryNeg(ref delta2Value) : delta2Value;
                     object side = ((bool) isTrue((isLessThan(delta2Value, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
-                    (bookside as IOrderBookSide).store(price, size, id);
+                    (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 }
             } else
             {
@@ -369,7 +373,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object size = ((bool) isTrue((isLessThan(delta2, 0)))) ? prefixUnaryNeg(ref delta2) : delta2;
                     object side = ((bool) isTrue((isLessThan(delta2, 0)))) ? "asks" : "bids";
                     object countedBookSide = getValue(orderbook, side);
-                    (countedBookSide as IOrderBookSide).store(getValue(delta, 0), size, getValue(delta, 1));
+                    (countedBookSide as IOrderBookSide).storeArray(new List<object>() {getValue(delta, 0), size, getValue(delta, 1)});
                 }
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -386,14 +390,14 @@ public partial class bitfinex : ccxt.bitfinex
                 object bookside = getValue(orderbook, side);
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
-                (bookside as IOrderBookSide).store(this.parseNumber(price), this.parseNumber(amount), id);
+                (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), id});
             } else
             {
                 object message3Value = getValue(message, 3);
                 object size = ((bool) isTrue((isLessThan(message3Value, 0)))) ? prefixUnaryNeg(ref message3Value) : message3Value;
                 object side = ((bool) isTrue((isLessThan(message3Value, 0)))) ? "asks" : "bids";
                 object countedBookSide = getValue(orderbook, side);
-                (countedBookSide as IOrderBookSide).store(getValue(message, 1), size, getValue(message, 2));
+                (countedBookSide as IOrderBookSide).storeArray(new List<object>() {getValue(message, 1), size, getValue(message, 2)});
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }
@@ -488,7 +492,7 @@ public partial class bitfinex : ccxt.bitfinex
             object method = this.safeString(message, "event");
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
             }
         }
     }
@@ -502,18 +506,20 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.watch(url, id, null, 1);
     }
 
+    /**
+     * @method
+     * @name bitfinex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+     * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitfinex#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();

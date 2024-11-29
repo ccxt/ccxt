@@ -14,7 +14,9 @@ public partial class hitbtc : ccxt.hitbtc
                 { "ws", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOrderBook", true },
                 { "watchBalance", true },
                 { "watchOrders", true },
@@ -47,6 +49,9 @@ public partial class hitbtc : ccxt.hitbtc
                 { "watchTickers", new Dictionary<string, object>() {
                     { "method", "ticker/{speed}" },
                 } },
+                { "watchBidsAsks", new Dictionary<string, object>() {
+                    { "method", "orderbook/top/{speed}" },
+                } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "method", "orderbook/full" },
                 } },
@@ -69,15 +74,15 @@ public partial class hitbtc : ccxt.hitbtc
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description authenticates the user to access private web socket channels
+     * @see https://api.hitbtc.com/#socket-authentication
+     * @returns {object} response from exchange
+     */
     public async virtual Task<object> authenticate()
     {
-        /**
-         * @ignore
-         * @method
-         * @description authenticates the user to access private web socket channels
-         * @see https://api.hitbtc.com/#socket-authentication
-         * @returns {object} response from exchange
-         */
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object messageHash = "authenticated";
@@ -99,25 +104,34 @@ public partial class hitbtc : ccxt.hitbtc
             };
             this.watch(url, messageHash, request, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix for the message hash
+     * @param {string[]} [symbols] unified CCXT symbol(s)
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     */
     public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @param {string} name websocket endpoint name
-        * @param {string[]} [symbols] unified CCXT symbol(s)
-        * @param {object} [params] extra parameters specific to the hitbtc api
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object isBatch = isGreaterThanOrEqual(getIndexOf(name, "batch"), 0);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object messageHash = messageHashPrefix;
-        if (isTrue(!isEqual(symbols, null)))
+        object messageHashes = new List<object>() {};
+        if (isTrue(isTrue(!isEqual(symbols, null)) && !isTrue(isBatch)))
         {
-            messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                ((IList<object>)messageHashes).Add(add(add(messageHashPrefix, "::"), getValue(symbols, i)));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(messageHashPrefix);
         }
         object subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -125,18 +139,18 @@ public partial class hitbtc : ccxt.hitbtc
             { "ch", name },
         };
         object request = this.extend(subscribe, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @param {string} name websocket endpoint name
+     * @param {string} [symbol] unified CCXT symbol
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     */
     public async virtual Task<object> subscribePrivate(object name, object symbol = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @param {string} name websocket endpoint name
-        * @param {string} [symbol] unified CCXT symbol
-        * @param {object} [params] extra parameters specific to the hitbtc api
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -155,15 +169,14 @@ public partial class hitbtc : ccxt.hitbtc
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @param {string} name websocket endpoint name
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     */
     public async virtual Task<object> tradeRequest(object name, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @param {string} name websocket endpoint name
-        * @param {string} [symbol] unified CCXT symbol
-        * @param {object} [params] extra parameters specific to the hitbtc api
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -177,25 +190,25 @@ public partial class hitbtc : ccxt.hitbtc
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.hitbtc.com/#subscribe-to-full-order-book
+     * @see https://api.hitbtc.com/#subscribe-to-partial-order-book
+     * @see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-top-of-book
+     * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
+     * @param {int} [params.depth] 5 , 10, or 20 (default)
+     * @param {int} [params.speed] 100 (default), 500, or 1000
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.hitbtc.com/#subscribe-to-full-order-book
-        * @see https://api.hitbtc.com/#subscribe-to-partial-order-book
-        * @see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
-        * @see https://api.hitbtc.com/#subscribe-to-top-of-book
-        * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
-        * @param {int} [params.depth] 5 , 10, or 20 (default)
-        * @param {int} [params.speed] 100 (default), 500, or 1000
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "watchOrderBook");
         object defaultMethod = this.safeString(options, "method", "orderbook/full");
@@ -208,12 +221,6 @@ public partial class hitbtc : ccxt.hitbtc
         } else if (isTrue(isEqual(name, "orderbook/{depth}/{speed}/batch")))
         {
             name = add(add(add(add("orderbook/D", depth), "/"), speed), "ms/batch");
-        } else if (isTrue(isEqual(name, "orderbook/top/{speed}")))
-        {
-            name = add(add("orderbook/top/", speed), "ms");
-        } else if (isTrue(isEqual(name, "orderbook/top/{speed}/batch")))
-        {
-            name = add(add("orderbook/top/", speed), "ms/batch");
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -250,7 +257,10 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
+        object snapshot = this.safeDict(message, "snapshot");
+        object update = this.safeDict(message, "update");
+        object data = ((bool) isTrue(snapshot)) ? snapshot : update;
+        object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -261,17 +271,24 @@ public partial class hitbtc : ccxt.hitbtc
             object messageHash = add("orderbooks::", symbol);
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+                object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
                 object limit = this.safeInteger(subscription, "limit");
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
+            object orderbook = getValue(this.orderbooks, symbol);
             object timestamp = this.safeInteger(item, "t");
             object nonce = this.safeInteger(item, "s");
-            object orderbook = getValue(this.orderbooks, symbol);
-            object asks = this.safeValue(item, "a", new List<object>() {});
-            object bids = this.safeValue(item, "b", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            if (isTrue(isEqual(type, "snapshot")))
+            {
+                object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                (orderbook as IOrderBook).reset(parsedSnapshot);
+            } else
+            {
+                object asks = this.safeList(item, "a", new List<object>() {});
+                object bids = this.safeList(item, "b", new List<object>() {});
+                this.handleDeltas(getValue(orderbook, "asks"), asks);
+                this.handleDeltas(getValue(orderbook, "bids"), bids);
+            }
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
@@ -296,57 +313,44 @@ public partial class hitbtc : ccxt.hitbtc
         }
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.hitbtc.com/#subscribe-to-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
+     * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
+     * @param {string} [params.speed] '1s' (default), or '3s'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api.hitbtc.com/#subscribe-to-ticker
-        * @see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
-        * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
-        * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
-        * @param {string} [params.speed] '1s' (default), or '3s'
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "watchTicker");
-        object defaultMethod = this.safeString(options, "method", "ticker/{speed}");
-        object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-        object speed = this.safeString(parameters, "speed", "1s");
-        object name = this.implodeParams(method, new Dictionary<string, object>() {
-            { "speed", speed },
-        });
-        parameters = this.omit(parameters, new List<object>() {"method", "speed"});
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "params", new Dictionary<string, object>() {
-                { "symbols", new List<object>() {getValue(market, "id")} },
-            } },
-        };
-        object result = await this.subscribePublic(name, "tickers", new List<object>() {symbol}, this.deepExtend(request, parameters));
-        return this.safeValue(result, symbol);
+        object ticker = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return this.safeValue(ticker, symbol);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string[]} [symbols]
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
+     * @param {string} params.speed '1s' (default), or '3s'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {string} params.method 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
-        * @param {string} params.speed '1s' (default), or '3s'
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         object options = this.safeValue(this.options, "watchTicker");
-        object defaultMethod = this.safeString(options, "method", "ticker/{speed}");
+        object defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
         object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         object speed = this.safeString(parameters, "speed", "1s");
         object name = this.implodeParams(method, new Dictionary<string, object>() {
@@ -370,15 +374,20 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", marketIds },
             } },
         };
-        object tickers = await this.subscribePublic(name, "tickers", symbols, this.deepExtend(request, parameters));
+        object newTickers = await this.subscribePublic(name, "tickers", symbols, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            return tickers;
+            if (!isTrue(((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object tickers = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+                return tickers;
+            }
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return this.filterByArray(newTickers, "symbol", symbols);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
         //    {
@@ -420,7 +429,8 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        object newTickers = new Dictionary<string, object>() {};
+        object result = new List<object>() {};
+        object topic = "tickers";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -428,25 +438,11 @@ public partial class hitbtc : ccxt.hitbtc
             object symbol = getValue(market, "symbol");
             object ticker = this.parseWsTicker(getValue(data, marketId), market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            ((IDictionary<string,object>)newTickers)[(string)symbol] = ticker;
+            ((IList<object>)result).Add(ticker);
+            object messageHash = add(add(topic, "::"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, "tickers"});
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
-            if (isTrue(isGreaterThan(numTickers, 0)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
-            }
-        }
-        return message;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -506,19 +502,111 @@ public partial class hitbtc : ccxt.hitbtc
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://api.hitbtc.com/#subscribe-to-top-of-book
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+     * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object options = this.safeValue(this.options, "watchBidsAsks");
+        object defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
+        object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+        object speed = this.safeString(parameters, "speed", "100ms");
+        object name = this.implodeParams(method, new Dictionary<string, object>() {
+            { "speed", speed },
+        });
+        parameters = this.omit(parameters, new List<object>() {"method", "speed"});
+        object marketIds = this.marketIds(symbols);
+        object request = new Dictionary<string, object>() {
+            { "params", new Dictionary<string, object>() {
+                { "symbols", marketIds },
+            } },
+        };
+        object newTickers = await this.subscribePublic(name, "bidask", symbols, this.deepExtend(request, parameters));
+        if (isTrue(this.newUpdates))
+        {
+            if (!isTrue(((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                object tickers = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+                return tickers;
+            }
+        }
+        return this.filterByArray(newTickers, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
+        //         "data": {
+        //             "BTCUSDT": {
+        //                 "t": 1727276919771,
+        //                 "a": "63931.45",
+        //                 "A": "0.02879",
+        //                 "b": "63926.97",
+        //                 "B": "0.00100"
+        //             }
+        //         }
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        object result = new List<object>() {};
+        object topic = "bidask";
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = this.safeMarket(marketId);
+            object symbol = getValue(market, "symbol");
+            object ticker = this.parseWsBidAsk(getValue(data, marketId), market);
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            ((IList<object>)result).Add(ticker);
+            object messageHash = add(add(topic, "::"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object timestamp = this.safeInteger(ticker, "t");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "a") },
+            { "askVolume", this.safeString(ticker, "A") },
+            { "bid", this.safeString(ticker, "b") },
+            { "bidVolume", this.safeString(ticker, "B") },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://api.hitbtc.com/#subscribe-to-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -650,20 +738,20 @@ public partial class hitbtc : ccxt.hitbtc
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {int} [since] not used by hitbtc watchOHLCV
+     * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://api.hitbtc.com/#subscribe-to-candles
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} [timeframe] the length of time each candle represents
-        * @param {int} [since] not used by hitbtc watchOHLCV
-        * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -767,21 +855,21 @@ public partial class hitbtc : ccxt.hitbtc
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api.hitbtc.com/#subscribe-to-reports
+     * @see https://api.hitbtc.com/#subscribe-to-reports-2
+     * @see https://api.hitbtc.com/#subscribe-to-reports-3
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum amount of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://api.hitbtc.com/#subscribe-to-reports
-        * @see https://api.hitbtc.com/#subscribe-to-reports-2
-        * @see https://api.hitbtc.com/#subscribe-to-reports-3
-        * @param {string} [symbol] unified CCXT market symbol
-        * @param {int} [since] timestamp in ms of the earliest order to fetch
-        * @param {int} [limit] the maximum amount of orders to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -1028,21 +1116,21 @@ public partial class hitbtc : ccxt.hitbtc
         }, market);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchBalance
+     * @description watches balance updates, cannot subscribe to margin account balances
+     * @see https://api.hitbtc.com/#subscribe-to-spot-balances
+     * @see https://api.hitbtc.com/#subscribe-to-futures-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot', 'swap', or 'future'
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchBalance
-        * @description watches balance updates, cannot subscribe to margin account balances
-        * @see https://api.hitbtc.com/#subscribe-to-spot-balances
-        * @see https://api.hitbtc.com/#subscribe-to-futures-balances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot', 'swap', or 'future'
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-        * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
@@ -1062,28 +1150,28 @@ public partial class hitbtc : ccxt.hitbtc
         return await this.subscribePrivate(name, null, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name hitbtc#createOrder
+     * @description create a trade order
+     * @see https://api.hitbtc.com/#create-new-spot-order
+     * @see https://api.hitbtc.com/#create-margin-order
+     * @see https://api.hitbtc.com/#create-futures-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+     * @param {bool} [params.margin] true for creating a margin order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#createOrder
-        * @description create a trade order
-        * @see https://api.hitbtc.com/#create-new-spot-order
-        * @see https://api.hitbtc.com/#create-margin-order
-        * @see https://api.hitbtc.com/#create-futures-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
-        * @param {bool} [params.margin] true for creating a margin order
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
-        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1112,22 +1200,22 @@ public partial class hitbtc : ccxt.hitbtc
         }
     }
 
+    /**
+     * @method
+     * @name hitbtc#cancelOrderWs
+     * @see https://api.hitbtc.com/#cancel-spot-order-2
+     * @see https://api.hitbtc.com/#cancel-futures-order-2
+     * @see https://api.hitbtc.com/#cancel-margin-order-2
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for canceling a margin order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#cancelOrderWs
-        * @see https://api.hitbtc.com/#cancel-spot-order-2
-        * @see https://api.hitbtc.com/#cancel-futures-order-2
-        * @see https://api.hitbtc.com/#cancel-margin-order-2
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for canceling a margin order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1158,20 +1246,20 @@ public partial class hitbtc : ccxt.hitbtc
         }
     }
 
+    /**
+     * @method
+     * @name hitbtc#cancelAllOrdersWs
+     * @see https://api.hitbtc.com/#cancel-spot-orders
+     * @see https://api.hitbtc.com/#cancel-futures-order-3
+     * @description cancel all open orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for canceling margin orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#cancelAllOrdersWs
-        * @see https://api.hitbtc.com/#cancel-spot-orders
-        * @see https://api.hitbtc.com/#cancel-futures-order-3
-        * @description cancel all open orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for canceling margin orders
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1199,23 +1287,23 @@ public partial class hitbtc : ccxt.hitbtc
         }
     }
 
+    /**
+     * @method
+     * @name hitbtc#fetchOpenOrdersWs
+     * @see https://api.hitbtc.com/#get-active-futures-orders-2
+     * @see https://api.hitbtc.com/#get-margin-orders
+     * @see https://api.hitbtc.com/#get-active-spot-orders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+     * @param {bool} [params.margin] true for fetching open margin orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#fetchOpenOrdersWs
-        * @see https://api.hitbtc.com/#get-active-futures-orders-2
-        * @see https://api.hitbtc.com/#get-margin-orders
-        * @see https://api.hitbtc.com/#get-active-spot-orders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
-        * @param {bool} [params.margin] true for fetching open margin orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1306,7 +1394,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        "id": 1700233093414
         //    }
         //
-        object messageHash = this.safeInteger(message, "id");
+        object messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
         if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -1327,17 +1415,29 @@ public partial class hitbtc : ccxt.hitbtc
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        this.handleError(client as WebSocketClient, message);
+        if (isTrue(this.handleError(client as WebSocketClient, message)))
+        {
+            return;
+        }
         object channel = this.safeString2(message, "ch", "method");
         if (isTrue(!isEqual(channel, null)))
         {
             object splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             channel = this.safeString(splitChannel, 0);
+            if (isTrue(isEqual(channel, "orderbook")))
+            {
+                object channel2 = this.safeString(splitChannel, 1);
+                if (isTrue(isTrue(!isEqual(channel2, null)) && isTrue(isEqual(channel2, "top"))))
+                {
+                    channel = "orderbook/top";
+                }
+            }
             object methods = new Dictionary<string, object>() {
                 { "candles", this.handleOHLCV },
                 { "ticker", this.handleTicker },
                 { "trades", this.handleTrades },
                 { "orderbook", this.handleOrderBook },
+                { "orderbook/top", this.handleBidAsk },
                 { "spot_order", this.handleOrder },
                 { "spot_orders", this.handleOrder },
                 { "margin_order", this.handleOrder },
@@ -1397,7 +1497,7 @@ public partial class hitbtc : ccxt.hitbtc
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;
@@ -1419,13 +1519,32 @@ public partial class hitbtc : ccxt.hitbtc
         object error = this.safeValue(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            object code = this.safeValue(error, "code");
-            object errorMessage = this.safeString(error, "message");
-            object description = this.safeString(error, "description");
-            object feedback = add(add(this.id, " "), description);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            try
+            {
+                object code = this.safeValue(error, "code");
+                object errorMessage = this.safeString(error, "message");
+                object description = this.safeString(error, "description");
+                object feedback = add(add(this.id, " "), description);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            } catch(Exception e)
+            {
+                if (isTrue(e is AuthenticationError))
+                {
+                    object messageHash = "authenticated";
+                    ((WebSocketClient)client).reject(e, messageHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    }
+                } else
+                {
+                    object id = this.safeString(message, "id");
+                    ((WebSocketClient)client).reject(e, id);
+                }
+                return true;
+            }
         }
         return null;
     }

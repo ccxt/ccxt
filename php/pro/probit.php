@@ -21,6 +21,7 @@ class probit extends \ccxt\async\probit {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -51,8 +52,6 @@ class probit extends \ccxt\async\probit {
             ),
             'streaming' => array(
             ),
-            'exceptions' => array(
-            ),
         ));
     }
 
@@ -60,7 +59,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs-en.probit.com/reference/balance-1
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -71,7 +72,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => 'balance',
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -129,7 +130,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs-en.probit.com/reference/marketdata
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
@@ -137,6 +140,7 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTicker', 'filter', 'ticker');
+            $symbol = $this->safe_symbol($symbol);
             return Async\await($this->subscribe_order_book($symbol, 'ticker', $filter, $params));
         }) ();
     }
@@ -174,7 +178,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs-en.probit.com/reference/trade_history
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -184,6 +190,8 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTrades', 'filter', 'recent_trades');
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
             $trades = Async\await($this->subscribe_order_book($symbol, 'trades', $filter, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -238,7 +246,10 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             *
+             * @see https://docs-en.probit.com/reference/trade_history
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -248,8 +259,7 @@ class probit extends \ccxt\async\probit {
             Async\await($this->authenticate($params));
             $messageHash = 'myTrades';
             if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_symbol($symbol);
                 $messageHash = $messageHash . ':' . $symbol;
             }
             $url = $this->urls['api']['ws'];
@@ -258,7 +268,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => $channel,
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $channel));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -320,8 +330,10 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on an order made by the user
+             *
              * @see https://docs-en.probit.com/reference/open_order
-             * @param {string} $symbol unified $symbol of the $market the order was made in
+             *
+             * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {int} [$since] timestamp in ms of the earliest order to watch
              * @param {int} [$limit] the maximum amount of $orders to watch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -332,8 +344,7 @@ class probit extends \ccxt\async\probit {
             $url = $this->urls['api']['ws'];
             $messageHash = 'orders';
             if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_symbol($symbol);
                 $messageHash = $messageHash . ':' . $symbol;
             }
             $channel = null;
@@ -342,7 +353,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'channel' => $channel,
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $channel));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
@@ -409,7 +420,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs-en.probit.com/reference/marketdata
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -417,6 +430,7 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'filter', 'order_books');
+            $symbol = $this->safe_symbol($symbol);
             $orderbook = Async\await($this->subscribe_order_book($symbol, 'orderbook', $filter, $params));
             return $orderbook->limit ();
         }) ();
@@ -451,7 +465,7 @@ class probit extends \ccxt\async\probit {
                 'type' => 'subscribe',
                 'filter' => $keys,
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $filters));
         }) ();
     }
@@ -474,11 +488,11 @@ class probit extends \ccxt\async\probit {
         $symbol = $this->safe_symbol($marketId);
         $dataBySide = $this->group_by($orderBook, 'side');
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $reset = $this->safe_bool($message, 'reset', false);
         if ($reset) {
             $snapshot = $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
@@ -519,8 +533,14 @@ class probit extends \ccxt\async\probit {
         $code = $this->safe_string($message, 'errorCode');
         $errMessage = $this->safe_string($message, 'message', '');
         $details = $this->safe_value($message, 'details');
-        // todo - throw properly here
-        throw new ExchangeError($this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details));
+        $feedback = $this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details);
+        if (is_array($this->exceptions) && array_key_exists('exact', $this->exceptions)) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
+        if (is_array($this->exceptions) && array_key_exists('broad', $this->exceptions)) {
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errMessage, $feedback);
+        }
+        throw new ExchangeError($feedback);
     }
 
     public function handle_authenticate(Client $client, $message) {
@@ -530,7 +550,8 @@ class probit extends \ccxt\async\probit {
         $result = $this->safe_string($message, 'result');
         $future = $client->subscriptions['authenticated'];
         if ($result === 'ok') {
-            $future->resolve (true);
+            $messageHash = 'authenticated';
+            $client->resolve ($message, $messageHash);
         } else {
             $future->reject ($message);
             unset($client->subscriptions['authenticated']);
@@ -543,11 +564,13 @@ class probit extends \ccxt\async\probit {
             $this->handle_ticker($client, $message);
         }
         $trades = $this->safe_value($message, 'recent_trades', array());
-        if (strlen($trades)) {
+        $tradesLength = count($trades);
+        if ($tradesLength) {
             $this->handle_trades($client, $message);
         }
         $orderBook = $this->safe_value_n($message, array( 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ), array());
-        if (strlen($orderBook)) {
+        $orderBookLength = count($orderBook);
+        if ($orderBookLength) {
             $this->handle_order_book($client, $message, $orderBook);
         }
     }
@@ -610,7 +633,7 @@ class probit extends \ccxt\async\probit {
                     'type' => 'authorization',
                     'token' => $accessToken,
                 );
-                $future = $this->watch($url, $messageHash, array_merge($request, $params));
+                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
                 $client->subscriptions[$messageHash] = $future;
             }
             return $future;

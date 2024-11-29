@@ -148,5 +148,189 @@
         "info": "<td>btcusdt</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 USDT (1e-2)</td>\n</tr>",
         "taker": 0.004,
         "maker": 0.002
+    },
+    "ETH/USDT": {
+        "id": "ethusdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.004,
+        "maker": 0.002,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": "<td>ethusdt</td>\n<td>0.001 ETH (1e-3)</td>\n<td>0.000001 ETH (1e-6)</td>\n<td>0.01 USDT (1e-2)</td>\n</tr>"
+    },
+    "USDC/USD": {
+        "id": "usdcusd",
+        "symbol": "USDC/USD",
+        "base": "USDC",
+        "quote": "USD",
+        "baseId": "USDC",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.004,
+        "maker": 0.002,
+        "precision": {
+            "price": 0.00001,
+            "amount": 0.000001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": [
+            "USDCUSD",
+            5,
+            6,
+            "0.1",
+            8,
+            true
+        ]
+    },
+    "BTC/GUSD:GUSD": {
+        "id": "btcgusdperp",
+        "symbol": "BTC/GUSD:GUSD",
+        "base": "BTC",
+        "quote": "GUSD",
+        "settle": "GUSD",
+        "baseId": "BTC",
+        "quoteId": "GUSD",
+        "settleId": "GUSD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": 0.1,
+        "precision": {
+            "price": 0.1,
+            "amount": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": [
+            "BTCGUSDPERP",
+            1,
+            4,
+            "0.0001",
+            4,
+            true
+        ]
+    },
+    "SOL/BTC": {
+        "id": "solbtc",
+        "symbol": "SOL/BTC",
+        "base": "SOL",
+        "quote": "BTC",
+        "baseId": "SOL",
+        "quoteId": "BTC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.004,
+        "maker": 0.002,
+        "precision": {
+            "price": 1e-7,
+            "amount": 0.000001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": [
+            "SOLBTC",
+            7,
+            6,
+            "0.001",
+            8,
+            true
+        ]
+    },
+    "PAXG/USD": {
+        "id": "paxgusd",
+        "symbol": "PAXG/USD",
+        "base": "PAXG",
+        "quote": "USD",
+        "baseId": "PAXG",
+        "quoteId": "USD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.004,
+        "maker": 0.002,
+        "precision": {
+            "price": 0.01,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": [
+            "PAXGUSD",
+            2,
+            8,
+            "0.0001",
+            10,
+            true
+        ]
     }
 }

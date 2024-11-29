@@ -32,6 +32,14 @@
                 "url": "https://api-matic.idex.io/v1/wallets?nonce=1ab69e90cbbc11ee9696ffffffffffff",
                 "input": []
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api-matic.idex.io/v1/time",
+                "input": []
+            }
         ]
     }
 }

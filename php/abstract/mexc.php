@@ -169,6 +169,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot_private_get_userdatastream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_selfsymbols($params = array()) {
+        return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_private_post_order($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -192,6 +195,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot_private_post_capital_withdraw_apply($params = array()) {
         return $this->request('capital/withdraw/apply', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_post_capital_withdraw($params = array()) {
+        return $this->request('capital/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spot_private_post_capital_transfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -234,6 +240,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot_private_delete_userdatastream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_delete_capital_withdraw($params = array()) {
+        return $this->request('capital/withdraw', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function contract_public_get_ping($params = array()) {
         return $this->request('ping', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2));
@@ -685,6 +694,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spotPrivateGetUserDataStream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spotPrivateGetSelfSymbols($params = array()) {
+        return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotPrivatePostOrder($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -708,6 +720,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivatePostCapitalWithdrawApply($params = array()) {
         return $this->request('capital/withdraw/apply', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivatePostCapitalWithdraw($params = array()) {
+        return $this->request('capital/withdraw', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostCapitalTransfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -750,6 +765,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivateDeleteUserDataStream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateDeleteCapitalWithdraw($params = array()) {
+        return $this->request('capital/withdraw', array('spot', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function contractPublicGetPing($params = array()) {
         return $this->request('ping', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 2));

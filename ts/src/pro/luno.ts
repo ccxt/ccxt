@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,6 +15,7 @@ export default class luno extends lunoRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': undefined, // is in beta
                 'watchOrderBook': true,
@@ -35,27 +36,27 @@ export default class luno extends lunoRest {
         });
     }
 
+    /**
+     * @method
+     * @name luno#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of    trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name luno#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.luno.com/en/developers/api#tag/Streaming-API
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of    trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'trades:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
@@ -136,26 +137,26 @@ export default class luno extends lunoRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name luno#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name luno#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
+        const subscription: Dict = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'orderbook:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
@@ -199,12 +200,11 @@ export default class luno extends lunoRest {
         //
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const timestamp = this.safeString (message, 'timestamp');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.indexedOrderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');

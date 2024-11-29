@@ -79,10 +79,12 @@ class p2b extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPermissions' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -233,11 +235,13 @@ class p2b extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bigone
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -276,7 +280,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $marketId = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
@@ -340,7 +344,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -381,7 +387,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -391,7 +399,7 @@ class p2b extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -414,7 +422,7 @@ class p2b extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
-            return array_merge(
+            return $this->extend(
                 array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
                 $this->parse_ticker($result, $market)
             );
@@ -486,7 +494,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-$result
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -503,7 +513,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetDepthResult (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepthResult ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -539,7 +549,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] 1-100, default=50
@@ -560,7 +572,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistory ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -580,12 +592,12 @@ class p2b extends Exchange {
             //        current_time => '1699255571.413828'
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         // fetchTrades
         //
@@ -657,7 +669,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 1m, 1h, or 1d
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -675,7 +689,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetMarketKline (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketKline ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -698,7 +712,7 @@ class p2b extends Exchange {
             //        current_time => '1699256375.030494'
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -730,7 +744,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -794,12 +810,14 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -814,7 +832,7 @@ class p2b extends Exchange {
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostOrderNew (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderNew ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -837,7 +855,7 @@ class p2b extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -846,7 +864,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -861,7 +881,7 @@ class p2b extends Exchange {
                 'market' => $market['id'],
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -884,7 +904,7 @@ class p2b extends Exchange {
             //        }
             //    }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result);
         }) ();
     }
@@ -893,7 +913,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -914,7 +936,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -940,7 +962,7 @@ class p2b extends Exchange {
             //        )
             //    }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
         }) ();
     }
@@ -949,7 +971,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-$id
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -968,7 +992,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrder ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -993,7 +1017,7 @@ class p2b extends Exchange {
             //    }
             //
             $result = $this->safe_value($response, 'result', array());
-            $records = $this->safe_value($result, 'records', array());
+            $records = $this->safe_list($result, 'records', array());
             return $this->parse_trades($records, $market, $since, $limit);
         }) ();
     }
@@ -1002,7 +1026,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between $since and $params["until"] cannot be longer than 24 hours
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$deals-history-by-$market
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for, default = $params["until"] - 86400000
              * @param {int} [$limit] 1-100, default=50
@@ -1041,7 +1067,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountMarketDealHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountMarketDealHistory ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -1069,7 +1095,7 @@ class p2b extends Exchange {
             //    }
             //
             $result = $this->safe_value($response, 'result', array());
-            $deals = $this->safe_value($result, 'deals', array());
+            $deals = $this->safe_list($result, 'deals', array());
             return $this->parse_trades($deals, $market, $since, $limit);
         }) ();
     }
@@ -1078,7 +1104,9 @@ class p2b extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$orders-history-by-$market
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for, default = $params["until"] - 86400000
              * @param {int} [$limit] 1-100, default=50
@@ -1119,7 +1147,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrderHistory ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -1159,7 +1187,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
@@ -1251,7 +1279,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

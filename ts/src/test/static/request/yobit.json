@@ -1,6 +1,9 @@
 {
     "exchange": "yobit",
-    "skipKeys": ["nonce", "since"],
+    "skipKeys": [
+        "nonce",
+        "since"
+    ],
     "outputType": "both",
     "methods": {
         "createOrder": [
@@ -9,11 +12,11 @@
                 "method": "createOrder",
                 "url": "https://yobit.net/tapi",
                 "input": [
-                  "DOGE/USDT",
-                  "limit",
-                  "buy",
-                  10,
-                  0.15
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.15
                 ],
                 "output": "nonce=1709814297&method=Trade&pair=doge_usdt&type=buy&amount=10&rate=0.15"
             }
@@ -46,7 +49,15 @@
                 "method": "fetchTrades",
                 "url": "https://yobit.net/api/3/trades/ltc_usdt",
                 "input": [
-                  "LTC/USDT"
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://yobit.net/api/3/trades/btc_usdt",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ],
@@ -56,7 +67,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://yobit.net/tapi",
                 "input": [
-                  "LTC/USDT"
+                    "LTC/USDT"
                 ],
                 "output": "nonce=1709813728&method=ActiveOrders&pair=ltc_usdt"
             }
@@ -67,8 +78,8 @@
                 "method": "fetchOrder",
                 "url": "https://yobit.net/tapi",
                 "input": [
-                  1101104080583007,
-                  "DOGE/USDT"
+                    1101104080583007,
+                    "DOGE/USDT"
                 ],
                 "output": "nonce=1709814336&method=OrderInfo&order_id=1101104080583007"
             }
@@ -79,10 +90,43 @@
                 "method": "cancelOrder",
                 "url": "https://yobit.net/tapi",
                 "input": [
-                  1101104080583007,
-                  "DOGE/USDT"
+                    1101104080583007,
+                    "DOGE/USDT"
                 ],
                 "output": "nonce=1709814369&method=CancelOrder&order_id=1101104080583007"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://yobit.net/api/3/depth/btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://yobit.net/api/3/ticker/btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://yobit.net/api/3/ticker/btc_usdt-eth_usdt",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
             }
         ]
     }

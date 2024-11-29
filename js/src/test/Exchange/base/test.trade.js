@@ -32,7 +32,7 @@ function testTrade(exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'takerOrMaker', ['taker', 'maker']);
     testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
-        // todo: remove undefined check
+        // todo: remove undefined check and probably non-empty array check later
         if (entry['fees'] !== undefined) {
             for (let i = 0; i < entry['fees'].length; i++) {
                 testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry['fees'], i);

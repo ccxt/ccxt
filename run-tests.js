@@ -3,7 +3,7 @@
 A tests launcher. Runs tests for all languages and all exchanges, in
 parallel, with a humanized error reporting.
 
-Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [method|symbol]
 
 --------------------------------------------------------------------------- */
 
@@ -12,12 +12,12 @@ import ansi from 'ansicolor'
 import log from 'ololog'
 import ps from 'child_process'
 ansi.nice
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const [,, ...args] = process.argv
 
@@ -47,6 +47,7 @@ const exchangeSpecificFlags = {
 
 let exchanges = []
 let symbol = 'all'
+let method = undefined
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
@@ -60,6 +61,7 @@ for (const arg of args) {
             log.bright.red ('\nUnknown option', arg.white, '\n');
         }
     }
+    else if (arg.includes ('()'))            { method = arg }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -72,7 +74,7 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 const timeoutSeconds = wsFlag ? 120 : 250;
 
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
 for (const key of Object.keys (exchangeSpecificFlags)) {
@@ -80,7 +82,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
         exchangeOptions.push (key)
     }
 }
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const content = fs.readFileSync ('./skip-tests.json', 'utf8');
 const skipSettings = JSON.parse (content);
@@ -97,14 +99,14 @@ if (!exchanges.length) {
     exchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
 }
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
 const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
     throw new Error ('RUNTEST_TIMED_OUT');
 }) ])
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const exec = (bin, ...args) => { 
 
@@ -117,9 +119,8 @@ const exec = (bin, ...args) => {
 
     const generateResultFromOutput = (output, stderr, code) => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
-            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-            // stderr = removeDebuger(stderr);
-            // output = removeDebuger(output);
+            // const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr), output = removeDebuger(output);
 
             output = ansi.strip (output.trim ())
 
@@ -176,7 +177,7 @@ const exec = (bin, ...args) => {
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
 
         psSpawn.on ('exit', code => return_ (generateResultFromOutput (output, stderr, code)) )
 
@@ -195,7 +196,7 @@ const exec = (bin, ...args) => {
     } );
 };
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 // const execWithRetry = () => {
 
@@ -205,13 +206,11 @@ const exec = (bin, ...args) => {
 //     // until it eventually finalizes.
 // }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 let numExchangesTested = 0
 
-/*  Tests of different languages for the same exchange should be run
-    sequentially to prevent the interleaving nonces problem.
-    ------------------------------------------------------------------------ */
+//  Tests of different languages for the same exchange should be run sequentially to prevent the interleaving nonces problem. //
 
 const sequentialMap = async (input, fn) => {
 
@@ -220,11 +219,11 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
+
+const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
 const testExchange = async (exchange) => {
-
-    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
     // no need to test alias classes
     if (exchange.alias) {
@@ -241,84 +240,72 @@ const testExchange = async (exchange) => {
             (skipSettings[exchange].skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in skipSettings[exchange])) {
-            // if until not specified, skip forever
+        if (!('until' in skipSettings[exchange]) || new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
-            return [];
-        }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
-            numExchangesTested++;
-            // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
+            const reason = ('until' in skipSettings[exchange]) ? ' till ' + skipSettings[exchange].until : '';
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, ('[Skipped]' + reason).yellow)
             return [];
         }
     }
 
-/*  Run tests for all/selected languages (in parallel)     */
+    //  Run tests for all/selected languages (in parallel)     //
     let args = [exchange];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
+    }
+    if (method !== undefined) {
+        args.push(method);
     }
     args = args.concat(exchangeOptions)
     // pass it to the test(ts/py/php) script too
     if (debugKeys['--info']) {
         args.push ('--info')
     }
-    const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
-        ]
+    let allTests = [
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
+        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
+        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
+        { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
+        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
+    ];
 
-        if (!skipSettings[exchange] || !skipSettings[exchange].skipCSharp) {
-            allTestsWithoutTs.push (
-                { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',               ...args] },
-            )
-        }
-        // if it's not WS tests, then add sync versions to tests queue
-        if (!wsFlag) {
-            allTestsWithoutTs.push (
-                { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] } 
-            );
-            allTestsWithoutTs.push (
-                { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',    ...args] }
-            );
-        }
+    // select tests based on cli arguments
+    let selectedTests = [];
+    const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
+    if (langsAreProvided) {
+        selectedTests = allTests.filter (t => langKeys[t.key]);
+    } else {
+        selectedTests = allTests.filter (t => t.key !== '--ts'); // exclude TypeScript when running all tests without specific languages
+    }
 
-        const allTests = allTestsWithoutTs.concat([
-            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
-        ]);
+    // remove skipped tests
+    if (skipSettings[exchange]) {
+        if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
+        if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+    }
+    // if it's WS tests, then remove sync versions (php & python) from queue
+    if (wsFlag) {
+        selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
+    }
 
-        const selectedTests  = allTests.filter (t => langKeys[t.key]);
-        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
-        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
-        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
-        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
-            // some exchanges are failing in php async tests with this error:
-            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
-            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
-        }
-        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await  exec (...test.exec)))
-        , failed         = completeTests.find (test => test.failed)
-        , hasWarnings    = completeTests.find (test => test.warnings.length)
-        , warnings       = completeTests.reduce (
-            (total, { warnings }) => {
-                return total.concat(['\n\n']).concat (warnings)
-            }, []
-        )
-        , infos       = completeTests.reduce (
-            (total, { infos }) => {
-                return total.concat(['\n\n']).concat (infos)
-            }, []
-        )
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
+    , failed         = completeTests.find (test => test.failed)
+    , hasWarnings    = completeTests.find (test => test.warnings.length)
+    , warnings       = completeTests.reduce (
+        (total, { warnings }) => {
+            return total.concat(['\n\n']).concat (warnings)
+        }, []
+    )
+    , infos       = completeTests.reduce (
+        (total, { infos }) => {
+            return total.concat(['\n\n']).concat (infos)
+        }, []
+    )
 
-/*  Print interactive log output    */
-
+    // Print interactive log output
     let logMessage = '';
-
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
@@ -343,10 +330,9 @@ const testExchange = async (exchange) => {
             ).blue);
         }
     }
-/*  Return collected data to main loop     */
 
+    // Return collected data to main loop
     return {
-
         exchange,
         failed,
         hasWarnings,
@@ -370,7 +356,7 @@ const testExchange = async (exchange) => {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 function TaskPool (maxConcurrency) {
 
@@ -405,7 +391,7 @@ function TaskPool (maxConcurrency) {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 async function testAllExchanges () {
 
@@ -421,14 +407,14 @@ async function testAllExchanges () {
     return results
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 (async function () {
 
     // show output like `Testing { exchanges: ["binance"], symbol: "all", debugKeys: { '--warnings': false, '--info': true }, langKeys: { '--ts': false, '--js': false, '--php': false, '--python': false, '--python-async': false, '--php-async': false }, exchangeSpecificFlags: { '--ws': true, '--sandbox': false, '--verbose': false, '--private': false, '--privateOnly': false }, maxConcurrency: 100 }`
     log.bright.magenta.noPretty (
         'Testing'.white, 
-        Object.assign ({ exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
+        Object.assign ({ exchanges, method, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
     )
 
     const tested    = await testAllExchanges ()
@@ -463,4 +449,4 @@ async function testAllExchanges () {
 
 }) ();
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //

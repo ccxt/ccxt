@@ -4,8 +4,9 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -37,23 +38,23 @@ export default class gemini extends geminiRest {
         });
     }
 
+    /**
+     * @method
+     * @name gemini#watchTrades
+     * @description watch the list of most recent trades for a particular symbol
+     * @see https://docs.gemini.com/websocket-api/#market-data-version-2
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name gemini#watchTrades
-         * @description watch the list of most recent trades for a particular symbol
-         * @see https://docs.gemini.com/websocket-api/#market-data-version-2
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -73,18 +74,18 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name gemini#watchTradesForSymbols
+     * @see https://docs.gemini.com/websocket-api/#multi-market-data
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name gemini#watchTradesForSymbols
-         * @see https://docs.gemini.com/websocket-api/#multi-market-data
-         * @description get the list of most recent trades for a list of symbols
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -237,7 +238,7 @@ export default class gemini extends geminiRest {
     handleTradesForMultidata (client: Client, trades, timestamp: Int) {
         if (trades !== undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const storesForSymbols = {};
+            const storesForSymbols: Dict = {};
             for (let i = 0; i < trades.length; i++) {
                 const marketId = trades[i]['symbol'];
                 const market = this.safeMarket (marketId.toLowerCase ());
@@ -263,23 +264,23 @@ export default class gemini extends geminiRest {
         }
     }
 
+    /**
+     * @method
+     * @name gemini#fetchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.gemini.com/websocket-api/#candles-data-feed
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name gemini#fetchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.gemini.com/websocket-api/#candles-data-feed
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -356,22 +357,22 @@ export default class gemini extends geminiRest {
         return message;
     }
 
+    /**
+     * @method
+     * @name gemini#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.gemini.com/websocket-api/#market-data-version-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name gemini#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.gemini.com/websocket-api/#market-data-version-2
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -394,10 +395,11 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber (delta, 1);
@@ -412,31 +414,31 @@ export default class gemini extends geminiRest {
         client.resolve (orderbook, messageHash);
     }
 
+    /**
+     * @method
+     * @name gemini#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.gemini.com/websocket-api/#multi-market-data
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name gemini#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.gemini.com/websocket-api/#multi-market-data
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         const orderbook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
 
-    async watchBidsAsks (symbols: string[], limit: Int = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name gemini#watchBidsAsks
-         * @description watches best bid & ask for symbols
-         * @see https://docs.gemini.com/websocket-api/#multi-market-data
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name gemini#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.gemini.com/websocket-api/#multi-market-data
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         return await this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
@@ -482,10 +484,11 @@ export default class gemini extends geminiRest {
             const entry = rawBidAskChanges[i];
             const rawSide = this.safeString (entry, 'side');
             const price = this.safeNumber (entry, 'price');
-            const size = this.safeNumber (entry, 'remaining');
-            if (size === 0) {
+            const sizeString = this.safeString (entry, 'remaining');
+            if (Precise.stringEq (sizeString, '0')) {
                 continue;
             }
+            const size = this.parseNumber (sizeString);
             if (rawSide === 'bid') {
                 currentBidAsk['bid'] = price;
                 currentBidAsk['bidVolume'] = size;
@@ -619,21 +622,21 @@ export default class gemini extends geminiRest {
         this.handleTrades (client, message);
     }
 
+    /**
+     * @method
+     * @name gemini#fetchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.gemini.com/websocket-api/#order-events
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name gemini#fetchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://docs.gemini.com/websocket-api/#order-events
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         await this.loadMarkets ();
-        const authParams = {
+        const authParams: Dict = {
             'url': url,
         };
         await this.authenticate (authParams);
@@ -777,7 +780,7 @@ export default class gemini extends geminiRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'accepted': 'open',
             'booked': 'open',
             'fill': 'closed',
@@ -789,7 +792,7 @@ export default class gemini extends geminiRest {
     }
 
     parseWsOrderType (type) {
-        const types = {
+        const types: Dict = {
             'exchange limit': 'limit',
             'market buy': 'market',
             'market sell': 'market',
@@ -852,7 +855,7 @@ export default class gemini extends geminiRest {
         if (reason === 'error') {
             this.handleError (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'l2_updates': this.handleL2Updates,
             'trade': this.handleTrade,
             'subscription_ack': this.handleSubscription,
@@ -916,22 +919,23 @@ export default class gemini extends geminiRest {
         const urlLength = url.length;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
         const request = url.slice (startIndex, endIndex);
-        const payload = {
+        const payload: Dict = {
             'request': request,
             'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.json (payload));
         const signature = this.hmac (this.encode (b64), this.encode (this.secret), sha384, 'hex');
-        const defaultOptions = {
+        const defaultOptions: Dict = {
             'ws': {
                 'options': {
                     'headers': {},
                 },
             },
         };
-        this.options = this.extend (defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions (defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
-        const headers = {
+        const headers: Dict = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,

@@ -4,18 +4,12 @@ import fs from 'fs'
 import log from 'ololog'
 
 const skipMethods = [
-    'fetchMarkets',
+    // 'fetchMarkets',
     'fetchMarketsWs',
     'createDepositAddress', // will be updated later
     // skip because of c# already typed methods
-    "fetchLeverageTiers",
     "fetchDepositWithdrawFees",
-    "fetchFundingRate",
-    "fetchLedger",
-    "fetchBorrowInterest",
-    "withdraw",
     "fetchDepositWithdrawFee",
-    "fetchLedgerEntry",
     'watchTickers', // will be updated later
 ]
 

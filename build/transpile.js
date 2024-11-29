@@ -11,7 +11,7 @@ import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import Exchange from '../js/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
@@ -32,6 +32,15 @@ const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+function overwriteSafe (path, content) {
+    try {
+        overwriteFile (path, content);
+    } catch {
+        checkCreateFolder (path);
+        writeFile (path, content);
+    }
+}
+
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
 // making them invalid
@@ -43,305 +52,80 @@ if (platform === 'win32') {
 }
 class Transpiler {
 
-    getCommonRegexes () {
-        return [
 
+    baseMethodsList = null;
+
+    defineImplicitMethodsList () {
+        const exchange = new Exchange();
+        let all = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
+        all = all.concat (Object.getOwnPropertyNames(exchange));
+        this.baseMethodsList = [ ... all.filter(m => 'function' === typeof exchange[m])];
+    }
+
+    trimmedUnCamelCase(word) {
+        if (!this.baseMethodsList) {
+            this.defineImplicitMethodsList ();
+        }
+        // we only need base methods
+        let found = false;
+        for (const methodName of this.baseMethodsList) {
+            if (word.toLowerCase ().replace(' ','') === 'this.' + methodName.toLowerCase () + '(') {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return word;
+        }
+        // remove JS space between method name and (
+        word = word.replace ('(', '').replace (' ', '');
+        // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
+        const uncameled = unCamelCase (word) + '(';
+        return uncameled;
+    }
+
+    getCommonRegexes () {
+
+        return [
             [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
-            [ /\.deepExtend\s/g, '.deep_extend'],
-            [ /\.safeFloat2\s/g, '.safe_float_2'],
-            [ /\.safeInteger2\s/g, '.safe_integer_2'],
-            [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
-            [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
-            [ /\.safeString2\s/g, '.safe_string_2'],
-            [ /\.safeNumber2\s/g, '.safe_number_2'],
-            [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
-            [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
-            [ /\.safeValue2\s/g, '.safe_value_2'],
-            [ /\.safeNumber\s/g, '.safe_number'],
-            [ /\.safeFloat\s/g, '.safe_float'],
-            [ /\.safeInteger\s/g, '.safe_integer'],
-            [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
-            [ /\.safeTimestamp\s/g, '.safe_timestamp'],
-            [ /\.safeString\s/g, '.safe_string'],
-            [ /\.safeStringLower\s/g, '.safe_string_lower'],
-            [ /\.safeStringUpper\s/g, '.safe_string_upper'],
-            [ /\.safeValue\s/g, '.safe_value'],
-            [ /\.safeFloatN\s/g, '.safe_float_n'],
-            [ /\.safeIntegerN\s/g, '.safe_integer_n'],
-            [ /\.safeIntegerProductN\s/g, '.safe_integer_product_n'],
-            [ /\.safeTimestampN\s/g, '.safe_timestamp_n'],
-            [ /\.safeStringN\s/g, '.safe_string_n'],
-            [ /\.safeNumberN\s/g, '.safe_number_n'],
-            [ /\.safeStringLowerN\s/g, '.safe_string_lower_n'],
-            [ /\.safeStringUpperN\s/g, '.safe_string_upper_n'],
-            [ /\.safeValueN\s/g, '.safe_value_n'],
-            [ /\.safeBoolN\s/g, '.safe_bool_n'],
-            [ /\.safeBool2\s/g, '.safe_bool_2'],
-            [ /\.safeBool\s/g, '.safe_bool'],
-            [ /\.safeDictN\s/g, '.safe_dict_n'],
-            [ /\.safeDict2\s/g, '.safe_dict_2'],
-            [ /\.safeDict\s/g, '.safe_dict'],
-            [ /\.safeListN\s/g, '.safe_list_n'],
-            [ /\.safeList2\s/g, '.safe_list_2'],
-            [ /\.safeList\s/g, '.safe_list'],
-            [ /\.inArray\s/g, '.in_array'],
-            [ /\.toArray\s/g, '.to_array'],
-            [ /\.isEmpty\s/g, '.is_empty'],
-            [ /\.arrayConcat\s/g, '.array_concat'],
-            [ /\.binaryConcat\s/g, '.binary_concat'],
-            [ /\.binaryConcatArray\s/g, '.binary_concat_array'],
-            [ /\.binaryToString\s/g, '.binary_to_string' ],
-            [ /\.precisionFromString\s/g, '.precision_from_string'],
-            [ /\.parsePrecision\s/g, '.parse_precision'],
-            [ /\.parseNumber\s/g, '.parse_number'],
-            [ /\.implodeHostname\s/g, '.implode_hostname'],
-            [ /\.implodeParams\s/g, '.implode_params'],
-            [ /\.extractParams\s/g, '.extract_params'],
-            [ /\.safeBalance\s/g, '.safe_balance'],
-            [ /\.parseAccounts\s/g, '.parse_accounts' ],
-            [ /\.parseAccount\s/g, '.parse_account' ],
-            [ /\.parseBalance\s/g, '.parse_balance'],
-            [ /\.parseWsBalance\s/g, '.parse_ws_balance'],
-            [ /\.parseBorrowInterest\s/g, '.parse_borrow_interest'],
-            [ /\.parseFundingRateHistories\s/g, '.parse_funding_rate_histories'],
-            [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
-            [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
-            [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
-            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
-            [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
-            [ /\.parseDate\s/g, '.parse_date'],
-            [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
-            [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
-            [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
-            [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
-            [ /\.parseLeverage\s/g, '.parse_leverage' ],
-            [ /\.parseLeverages\s/g, '.parse_leverages' ],
-            [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
-            [ /\.parseLedger\s/g, '.parse_ledger'],
-            [ /\.parseTickers\s/g, '.parse_tickers'],
-            [ /\.parseTicker\s/g, '.parse_ticker'],
-            [ /\.parseWsTicker\s/g, '.parse_ws_ticker'],
-            [ /\.parseTimeframe\s/g, '.parse_timeframe'],
-            [ /\.parseTimeInForce\s/g, '.parse_time_in_force'],
-            [ /\.parseWsTimeInForce\s/g, '.parse_ws_time_in_force'],
-            [ /\.parseTradesData\s/g, '.parse_trades_data'],
-            [ /\.parseTrades\s/g, '.parse_trades'],
-            [ /\.parseTrade\s/g, '.parse_trade'],
-            [ /\.parseWsTrade\s/g, '.parse_ws_trade'],
-            [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
-            [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
-            [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
-            [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
-            [ /\.parseTransactions\s/g, '.parse_transactions'],
-            [ /\.parseTransaction\s/g, '.parse_transaction'],
-            [ /\.parseTransfers\s/g, '.parse_transfers'],
-            [ /\.parseTransfer\s/g, '.parse_transfer'],
-            [ /\.parseOrderBook\s/g, '.parse_order_book'],
-            [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
-            [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
-            [ /\.parseOpenInterests\s/g, '.parse_open_interests'],
-            [ /\.parseOpenInterest\s/g, '.parse_open_interest'],
-            [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
-            [ /\.parseOrders\s/g, '.parse_orders'],
-            [ /\.parseOrderStatus\s/g, '.parse_order_status'],
-            [ /\.parseOrder\s/g, '.parse_order'],
-            [ /\.parseWsOrder\s/g, '.parse_ws_order'],
-            [ /\.parseWsOrderTrade\s/g, '.parse_ws_order_trade'],
-            [ /\.parseJson\s/g, '.parse_json'],
-            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
-            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
-            [ /\.parsePositions\s/g, '.parse_positions' ],
-            [ /\.parsePosition\s/g, '.parse_position' ],
-            [ /\.parseWsPosition\s/g, '.parse_ws_position' ],
-            [ /\.parseIncome\s/g, '.parse_income' ],
-            [ /\.parseIncomes\s/g, '.parse_incomes' ],
-            [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
-            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
-            [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
-            [ /\.parseMarginMode\s/g, '.parse_margin_mode' ],
-            [ /\.parseMarginModes\s/g, '.parse_margin_modes' ],
-            [ /\.filterByArray\s/g, '.filter_by_array'],
-            [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
-            [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
-            [ /\.filterByCurrencySinceLimit\s/g, '.filter_by_currency_since_limit'],
-            [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
-            [ /\.filterBySymbol\s/g, '.filter_by_symbol'],
-            [ /\.getVersionString\s/g, '.get_version_string'],
-            [ /\.checkRequiredArgument\s/g, '.check_required_argument'],
-            [ /\.indexBy\s/g, '.index_by'],
-            [ /\.sortBy\s/g, '.sort_by'],
-            [ /\.sortBy2\s/g, '.sort_by_2'],
-            [ /\.filterBy\s/g, '.filter_by'],
-            [ /\.groupBy\s/g, '.group_by'],
-            [ /\.marketSymbols\s/g, '.market_symbols'],
-            [ /\.marketIds\s/g, '.market_ids'],
-            [ /\.marketId\s/g, '.market_id'],
-            [ /\.fetchFundingFee\s/g, '.fetch_funding_fee'],
-            [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
-            [ /\.fetchTradingLimits\s/g, '.fetch_trading_limits'],
-            [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
-            [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
-            [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
-            [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
-            [ /\.fetchOHLCVWs\s/g, '.fetch_ohlcv_ws'],
-            [ /\.fetchFees\s/g, '.fetch_fees'],
-            [ /\.fetchOHLCVC\s/g, '.fetch_ohlcvc'],
-            [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
-            [ /\.buildOHLCVC\s/g, '.build_ohlcvc'],
-            [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
-            [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
-            [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
-            [ /\.fetchOrderStatus\s/g, '.fetch_order_status'],
-            [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
-            [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
-            [ /\.fetchOrders\s/g, '.fetch_orders'],
-            [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
-            [ /\.fetchOrder\s/g, '.fetch_order'],
-            [ /\.fetchBalance\s/g, '.fetch_balance'],
-            [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
-            [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
-            [ /\.fetchFreeBalance\s/g, '.fetch_free_balance'],
-            [ /\.fetchPartialBalance\s/g, '.fetch_partial_balance'],
-            [ /\.fetchPermissions\s/g, '.fetch_permissions'],
-            [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
-            [ /\.fetchTickers\s/g, '.fetch_tickers'],
-            [ /\.fetchTicker\s/g, '.fetch_ticker'],
-            [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
-            [ /\.fetchStatus\s/g, '.fetch_status'],
-            [ /\.numberToString\s/g, '.number_to_string' ],
-            [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
-            [ /\.priceToPrecision\s/g, '.price_to_precision'],
-            [ /\.amountToPrecision\s/g, '.amount_to_precision'],
-            [ /\.amountToLots\s/g, '.amount_to_lots'],
-            [ /\.feeToPrecision\s/g, '.fee_to_precision'],
-            [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
-            [ /\.costToPrecision\s/g, '.cost_to_precision'],
-            [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
-            [ /\.getDefaultOptions\s/g, '.get_default_options'],
-            [ /\.loadAccounts\s/g, '.load_accounts'],
-            [ /\.fetchAccounts\s/g, '.fetch_accounts'],
-            [ /\.loadFees\s/g, '.load_fees'],
-            [ /\.loadMarkets\s/g, '.load_markets'],
-            [ /\.loadTimeDifference\s/g, '.load_time_difference'],
-            [ /\.fetchMarkets\s/g, '.fetch_markets'],
-            [ /\.fetchMarketLeverageTiers\s/g, '.fetch_market_leverage_tiers'],
-            [ /\.fetchLeverageTiers\s/g, '.fetch_leverage_tiers'],
-            [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
-            [ /\.fetchCategories\s/g, '.fetch_categories'],
-            [ /\.calculateFee\s/g, '.calculate_fee'],
-            [ /\.createOrderRequest\s/g, '.create_order_request'],
-            [ /\.createOrder\s/g, '.create_order'],
-            [ /\.createPostOnlyOrder\s/g, '.create_post_only_order'],
-            [ /\.createStopOrder\s/g, '.create_stop_order'],
-            [ /\.createStopLimitOrder\s/g, '.create_stop_limit_order'],
-            [ /\.createStopMarketOrder\s/g, '.create_stop_market_order'],
-            [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
-            [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
-            [ /\.editLimitOrder\s/g, '.edit_limit_order'],
-            [ /\.editOrderRequest\s/g, '.edit_order_request'],
-            [ /\.editOrder\s/g, '.edit_order'],
-            [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
-            [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
-            [ /\.handleAuthenticate\s/g, '.handle_authenticate'],
-            [ /\.handleBalance\s/g, '.handle_balance'],
-            [ /\.handleErrors\s/g, '.handle_errors'],
-            [ /\.handleErrorMessage\s/g, '.handle_error_message'],
-            [ /\.handleDeltas\s/g, '.handle_deltas'],
-            [ /\.handleDelta\s/g, '.handle_delta'],
-            [ /\.handleMessage\s/g, '.handle_message'],
-            [ /\.handleMyTrade\s/g, '.handle_my_trade'],
-            [ /\.handleOHLCV\s/g, '.handle_ohlcv'],
-            [ /\.handleOrder\s/g, '.handle_order'],
-            [ /\.handleOrderBook\s/g, '.handle_order_book'],
-            [ /\.handlePing\s/g, '.handle_ping'],
-            [ /\.handlePosition\s/g, '.handle_position'],
-            [ /\.handlePositions\s/g, '.handle_positions'],
-            [ /\.handleSubscription\s/g, '.handle_subscription'],
-            [ /\.handleTicker\s/g, '.handle_ticker'],
-            [ /\.handleTrades\s/g, '.handle_trades'],
-            [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
-            [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
-            [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
-            [ /\.checkAddress\s/g, '.check_address'],
-            [ /\.unCamelCase\s/g, '.un_camel_case'],
-            [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
-            [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
-            [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
-            [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
-            [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
-            [ /\.checkProxySettings\s/g, '.check_proxy_settings'],
-            [ /\.getExchangePropAllCase\s/g, '.get_exchange_prop_all_case'],
-            [ /\.setExchangePropAllCase\s/g, '.set_exchange_prop_all_case'],
-            [ /\.getProperty\s/g, '.get_property'],
-            [ /\.safeProp\s/g, '.safe_prop'],
-            [ /\.safeProp2\s/g, '.safe_prop_2'],
-            [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
-            [ /\.safeCurrency\s/g, '.safe_currency'],
-            [ /\.safeSymbol\s/g, '.safe_symbol'],
-            [ /\.safeMarket\s/g, '.safe_market'],
-            [ /\.safeMarketStructure\s/g, '.safe_market_structure'],
-            [ /\.safeOrder\s/g, '.safe_order'],
-            [ /\.safeTicker\s/g, '.safe_ticker'],
-            [ /\.roundTimeframe\s/g, '.round_timeframe'],
-            [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
-            [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key' ],
-            [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception' ],
-            [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception' ],
-            [ /\.getNetwork\s/g, '.get_network' ],
-            [ /\.findTimeframe\s/g, '.find_timeframe'],
-            [ /\.getListFromObjectValues\s/g, '.get_list_from_object_values'],
-            [ /\.getSymbolsForMarketType\s/g, '.get_symbols_for_market_type'],
-            [ /\.requireSymbolsForMultiSubscription\s/g, '.require_symbols_for_multi_subscription'],
             [ /errorHierarchy/g, 'error_hierarchy'],
-            [ /\.base16ToBinary/g, '.base16_to_binary'],
+            [ /\.featuresGenerator/g, '.features_generator'],
+            [ /\.featuresMapper/g, '.features_mapper'],
+            [ /\.safeValue2/g, '.safe_value_2'],
+            [ /\.safeInteger2/g, '.safe_integer_2'],
+            [ /\.safeString2/g, '.safe_string_2'],
+            [ /\.safeFloat2/g, '.safe_float_2'],
+            [ /\.safeDict2/g, '.safe_dict_2'],
+            [ /\.safeList2/g, '.safe_list_2'],
+            [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
+            [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
+            [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
+            [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
+            [ /\.buildOHLCVC/g, '.build_ohlcv'],
+            [ /\.intToBase16/g, '.int_to_base16'],
+            [ /\.parseDate/g, '.parse_date'],
+            [ /\.binaryToBase16/g, '.binary_to_base16'],
+            [ /\.binaryToBase64/g, '.binary_to_base64'],
+            [ /\.stringToBase64/g, '.string_to_base64'],
+            [ /\.urlencodeBase64/g, '.urlencode_base64'],
+            [ /\.parseOrderStatusByType /g, '.parse_order_status_by_type'],
+            [ /\.parseOrderStatus /g, '.parse_order_status'],
+            [ /\.handleTriggerPrices /g, '.handle_trigger_prices'],
+            [ /\.customParseBidAsk /g, '.custom_parse_bid_ask'],
+            [ /\.customParseOrderBook /g, '.custom_parse_order_book'],
+            [ /\.createOrderRequest /g, '.create_order_request'],
+            [ /\.editOrderRequest /g, '.edit_order_request'],
+            [ /\.cancelOrderRequest /g, '.cancel_order_request'],
+            [ /\.createAuthToken /g, '.create_auth_token'],
+            [ /\.parsePositionRisk /g, '.parse_position_risk'],
+            [ /\.parseTimeInForce /g, '.parse_time_in_force'],
+            [ /\.parseTradingFees /g, '.parse_trading_fees'],
+            [ /\.describeData /g, '.describe_data'],
+            [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
-            [ /\.urlencodeNested\s/g, '.urlencode_nested' ],
-            [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
-            [ /\.fetchBorrowRates\s/g, '.fetch_borrow_rates'],
-            [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
-            [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
-            [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
-            [ /\.isPostOnly\s/g, '.is_post_only'],
-            [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
-            [ /\.omitZero\s/g, '.omit_zero'],
-            [ /\.afterConstruct\s/g, '.after_construct'],
-            [ /\.networkCodeToId\s/g, '.network_code_to_id'],
-            [ /\.networkIdToCode\s/g, '.network_id_to_code'],
-            [ /\.defaultNetworkCode\s/g, '.default_network_code'],
-            [ /\.selectNetworkCodeFromUnifiedNetworks\s/g, '.select_network_code_from_unified_networks'],
-            [ /\.selectNetworkIdFromRawNetworks\s/g, '.select_network_id_from_raw_networks'],
-            [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
-            [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
-            [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
-            [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
-            [ /\.isTickPrecision\s/g, '.is_tick_precision'],
-            [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
-            [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
-            [ /\.filterByLimit\s/g, '.filter_by_limit'],
-            [ /\.fetchTime\s/g, '.fetch_time'],
-            [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
-            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
-            [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
-            [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
-            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
-            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
-            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
-            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
-            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
-            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
-            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
-            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
-            [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
-            [ /\.handleUntilOption\s/g, '.handle_until_option'],
-            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
-            [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
-            [ /\.parseMarket\s/g, '.parse_market'],
-            [ /\.isRoundNumber\s/g, '.is_round_number'],
-            [ /\.getDescribeForExtendedWsExchange\s/g, '.get_describe_for_extended_ws_exchange'],
-            [ /\.watchMultiple\s/g, '.watch_multiple'],
-            [ /\.intToBase16\s/g, '.int_to_base16'],
+            [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
+            [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -408,6 +192,11 @@ class Transpiler {
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
+            // left side `x = `will be removed and only `y.reverse()` will end up in python
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
@@ -429,6 +218,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise.string_or' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
@@ -442,6 +232,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -449,9 +241,9 @@ class Transpiler {
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
-            [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
-            [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hash\s*\(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
+            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
             [ /throw ([\S]+)/g, 'raise $1'],
             [ /try {/g, 'try:'],
@@ -518,7 +310,7 @@ class Transpiler {
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
             [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
             [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
-            [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
@@ -529,7 +321,7 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @see( .*)/g, '$1:see:$2' ], // docstring @see
+            [ /(\s+)  \* @see( .*)/g, '$1$2' ], // docstring @see
             [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
             [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
@@ -593,8 +385,8 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number|Dict|any);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -631,7 +423,6 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
-            [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
@@ -642,7 +433,7 @@ class Transpiler {
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
-            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ],
+            [ /(\w+)\.reverse\s*\(\)/g, 'array_reverse($1)' ], // see comment in python .reverse()
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
             [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
@@ -660,6 +451,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise::string_or' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
@@ -672,7 +464,7 @@ class Transpiler {
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
             [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\]/g, '$1array()' ],
+            [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -862,9 +654,16 @@ class Transpiler {
     regexAll (text, array) {
         for (const i in array) {
             let regex = array[i][0]
+            let replaceStringOrCallback = array[i][1]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
-            text = text.replace (regex, array[i][1])
+            if (typeof array[i][1] !== 'function') {
+                text = text.replace (regex, replaceStringOrCallback)
+            } else {
+                text = text.replace (regex, function (matched) {
+                    return replaceStringOrCallback (matched)
+                })
+            }
         }
         return text
     }
@@ -974,37 +773,62 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
-            'Account': /-> Account:/,
+            'Account': /-> (?:List\[)?Account/,
+            'Any': /: (?:List\[)?Any/,
+            'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
+            'BorrowInterest': /-> BorrowInterest:/,
+            'Bool': /: (?:List\[)?Bool =/,
+            'Conversion': /-> Conversion:/,
+            'CrossBorrowRate': /-> CrossBorrowRate:/,
+            'CrossBorrowRates': /-> CrossBorrowRates:/,
+            'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'DepositAddress': /-> (?:List\[)?DepositAddress/,
+            'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
-            'Int': /: Int =/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'IndexType': /: IndexType/,
+            'Int': /: (?:List\[)?Int =/,
+            'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
+            'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
+            'LastPrice': /-> LastPrice:/,
+            'LastPrices': /-> LastPrices:/,
+            'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
+            'LeverageTier': /-> (?:List\[)?LeverageTier/,
+            'LeverageTiers': /-> LeverageTiers:/,
+            'Liquidation': /-> (?:List\[)?Liquidation/,
+            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarketType': /: MarketType/,
+            'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
-            'Order': /-> Order:/,
-            'TransferEntry': /-> TransferEntry:/,
+            'MarketInterface': /-> MarketInterface:/,
+            'MarketMarginModes': /-> MarketMarginModes:/,
+            'MarketType': /: MarketType/,
+            'Num': /: (?:List\[)?Num =/,
+            'Option': /-> Option:/,
+            'OptionChain': /-> OptionChain:/,
+            'Order': /-> (?:List\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
-            'IndexType': /: IndexType/,
-            'FundingHistory': /\[FundingHistory/,
-            'Num': /: Num =/,
-            'Any': /: Any =/,
-            'Str': /: Str =/,
-            'Bool': /: Bool =/,
-            'Strings': /: Strings =/,
+            'Str': /: (?:List\[)?Str =/,
+            'Strings': /: (?:List\[)?Strings =/,
+            'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
+            'FundingRate': /-> FundingRate:/,
+            'FundingRates': /-> FundingRates:/,
             'Trade': /-> (?:List\[)?Trade/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'TradingFeeInterface': /-> TradingFeeInterface:/,
+            'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
+            'TransferEntry': /-> TransferEntry:/,
         }
         const matches = []
         let match
@@ -1209,6 +1033,9 @@ class Transpiler {
             python3Body = python3Body.replace (/$\s*$/gm, '')
         }
 
+        // handle empty lines inside pydocs
+        python3Body = python3Body.replace(/         \*/g, '')
+
         const strippedPython3BodyWithoutComments = python3Body.replace (/^[\s]+#.+$/gm, '')
 
         if (!strippedPython3BodyWithoutComments.match(/[^\s]/)) {
@@ -1350,7 +1177,6 @@ class Transpiler {
                     line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
                         .replace ('asyncio.run(main())', 'main()')
                         .replace ('import ccxt.async_support as ccxt', 'import ccxt')
-                        .replace (/.*token\_bucket.*/g, '')
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
@@ -1459,7 +1285,7 @@ class Transpiler {
             const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
             if (sortedExchangeCapabilities) {
                 contents = sortedExchangeCapabilities
-                overwriteFile (tsPath, contents)
+                overwriteSafe (tsPath, contents)
             }
 
             let tsMtime = fs.statSync (tsPath).mtime.getTime ();
@@ -1491,8 +1317,9 @@ class Transpiler {
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
-                        overwriteFile (qualifiedPath, code)
-                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        overwriteSafe (qualifiedPath, code)
+                        // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
+                        // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
                 })
 
@@ -1583,6 +1410,78 @@ class Transpiler {
 
     // ========================================================================
 
+    addPythonSpacesToDocs(docs) {
+        const fixedDocs = [];
+        for (let i = 0; i < docs.length; i++) {
+            // const previousLine = (i === 0) ? '' : docs[i - 1];
+            const currentLine = docs[i];
+            const nextLine = (i+1 === docs.length) ? '' : docs[i + 1];
+
+            const emptyCommentLine = '         *';
+
+            // const previousLineIsSee = previousLine.indexOf('@see') > -1;
+            const currentLineIsSee = currentLine.indexOf('@see') > -1;
+            const nextLineIsSee = nextLine.indexOf('@see') > -1;
+
+            if (nextLineIsSee && !currentLineIsSee) {
+                // add empty line
+                fixedDocs.push(docs[i]);
+                fixedDocs.push(emptyCommentLine);
+            } else if (currentLineIsSee && !nextLineIsSee) {
+                // add empty line
+                fixedDocs.push(docs[i]);
+                fixedDocs.push(emptyCommentLine)
+            } else {
+                fixedDocs.push(docs[i]);
+            }
+        }
+        return fixedDocs;
+    }
+    // ========================================================================
+
+    moveJsDocInside(method) {
+
+        const isOutsideJSDoc = /^\s*\/\*\*/;
+
+        if (!method.match(isOutsideJSDoc)) {
+            return method;
+        }
+
+        const newLines = [];
+        const methodSplit = method.split('\n');
+
+        // move jsdoc inside the method
+        // below the signature to simplify the docs in python/php
+        for (let i = 0; i < methodSplit.length; i++) {
+            const line = methodSplit[i];
+            if (line.match(isOutsideJSDoc)) {
+                const jsDocIden = '         ';
+                let jsdoc = '        ' + line.trim();
+                let jsDocLines = [jsdoc];
+                while (!jsdoc.match(/\*\//)) {
+                    i++;
+                    const lineTrimmed = methodSplit[i].trim();
+
+                    jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    jsDocLines.push(jsDocIden + lineTrimmed);
+                }
+                newLines.push(methodSplit[i+1]);
+                i++;
+                jsDocLines = this.addPythonSpacesToDocs(jsDocLines);
+                // newLines.push(jsdoc);
+                for (let j = 0; j < jsDocLines.length; j++) {
+                    newLines.push(jsDocLines[j]);
+                }
+            } else {
+                newLines.push(line);
+            }
+        }
+        const res = newLines.join('\n');
+    return res;
+    }
+
+    // ========================================================================
+
     transpileMethodsToAllLanguages (className, methods) {
 
         let python2 = []
@@ -1593,7 +1492,8 @@ class Transpiler {
 
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
-            let part = methods[i].trim ()
+            let part = this.moveJsDocInside(methods[i].trim());
+            // let part = methods[i].trim ()
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
@@ -1643,7 +1543,9 @@ class Transpiler {
                 'any': 'mixed',
                 'string': 'string',
                 'MarketType': 'string',
+                'SubType': 'string',
                 'Str': '?string',
+                'Num': '?float',
                 'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
@@ -1654,7 +1556,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1692,7 +1594,9 @@ class Transpiler {
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType.match (phpArrayRegex)) {
+                if (syncReturnType === 'Currencies') {
+                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                } else if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
                     syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
@@ -1975,129 +1879,12 @@ class Transpiler {
         }
     }
 
-    //-----------------------------------------------------------------------------
-
-    transpileDateTimeTests () {
-        const jsFile = './ts/src/test/base/functions/test.datetime.ts'
-        const pyFile = './python/ccxt/test/base/test_datetime.py'
-        const phpFile = './php/test/base/test_datetime.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^\/\*.*\s+/mg, ''],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-        ])
-
-        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
-
-        const pythonHeader = [
-            "",
-            "import ccxt  # noqa: F402",
-            "from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401",
-            "",
-            "# ----------------------------------------------------------------------------",
-            "",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
-    }
-
-    //-------------------------------------------------------------------------
-
-    transpilePrecisionTests () {
-
-        const jsFile = './ts/src/test/base/functions/test.number.ts'
-        const pyFile = './python/ccxt/test/base/test_number.py'
-        const phpFile = './php/test/base/test_number.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /decimalToPrecision/g, 'decimal_to_precision' ],
-            [ /numberToString/g, 'number_to_string' ],
-        ])
-
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        const pythonHeader = [
-            "",
-            "from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401",
-            "from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401",
-            "from ccxt.base.decimal_to_precision import ROUND                 # noqa F401",
-            "from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401",
-            "from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401",
-            "from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401",
-            "from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401",
-            "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
-            "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
-            "from ccxt.base.exchange import Exchange                          # noqa F401",
-            "from ccxt.base.precise import Precise                            # noqa F401",
-            "",
-            "",
-        ].join ("\n")
-
-        const phpHeader = [
-            "",
-            "include_once (__DIR__.'/../fail_on_all_errors.php');",
-            "",
-            "// testDecimalToPrecisionErrorHandling",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Negative precision is not yet supported/');",
-            "// Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES);",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Invalid number/');",
-            "// Exchange::decimalToPrecision ('foo');",
-            "",
-            "// ----------------------------------------------------------------------------",
-            "",
-            "function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {",
-            "    return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);",
-            "}",
-            "function number_to_string ($x) {",
-            "    return Exchange::number_to_string ($x);",
-            "}",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
-    }
-
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
-        const pyFile = './python/ccxt/test/base/test_crypto.py'
-        const phpFile = './php/test/base/test_crypto.php'
+        const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
+        const pyFile = './python/ccxt/test/base/test_cryptography.py'
+        const phpFile = './php/test/base/test_cryptography.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
@@ -2107,10 +1894,16 @@ class Transpiler {
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
             [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
+            [ /(export default .*)/g, '' ],
+            [ /testCryptography/g, 'test_cryptography' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+        python2Body = this.regexAll (python2Body, [
+            [ /function (\w+)\(\) \{/g, 'def $1():' ],
+        ])
 
         const pythonHeader = [
             "",
@@ -2166,10 +1959,6 @@ class Transpiler {
             "function rsa(...$arg) {",
             "    return Exchange::rsa(...$arg);",
             "}",
-            "",
-            "function equals($a, $b) {",
-            "    return $a === $b;",
-            "}",
         ].join ("\n")
 
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
@@ -2178,8 +1967,8 @@ class Transpiler {
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteSafe (pyFile, python)
+        overwriteSafe (phpFile, php)
     }
 
     // ============================================================================
@@ -2211,21 +2000,21 @@ class Transpiler {
     transpileExchangeTests () {
 
         this.transpileMainTests ({
-            'tsFile': './ts/src/test/test.ts',
-            'pyFileAsync': './python/ccxt/test/test_async.py',
-            'phpFileAsync': './php/test/test_async.php',
-            'pyFileSync': './python/ccxt/test/test_sync.py',
-            'phpFileSync': './php/test/test_sync.php',
-            'jsFile': './js/test/test.js',
+            'tsFile': './ts/src/test/tests.ts',
+            'pyFileAsync': './python/ccxt/test/tests_async.py',
+            'phpFileAsync': './php/test/tests_async.php',
+            'pyFileSync': './python/ccxt/test/tests_sync.py',
+            'phpFileSync': './php/test/tests_sync.php',
+            'jsFile': './js/test/tests.js',
         });
 
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
             py: './python/ccxt/test/',
-            pyBase: './python/ccxt/test/base/',
+            pyBase: './python/ccxt/test/exchange/base/',
             php: './php/test/',
-            phpBase: './php/test/base/',
+            phpBase: './php/test/exchange/base/',
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2253,20 +2042,52 @@ class Transpiler {
                 base: false,
                 name: testName,
                 tsFile: baseFolders.ts + testName + '.ts',
-                pyFileSync: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
-                pyFileAsync: baseFolders.py + 'async/' + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
-                phpFileAsync: baseFolders.php + 'async/' + unCamelCasedFileName + '.php',
+                pyFileSync: baseFolders.py + 'exchange/sync/' + unCamelCasedFileName + '.py',
+                pyFileAsync: baseFolders.py + 'exchange/async/' + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + 'exchange/sync/' + unCamelCasedFileName + '.php',
+                phpFileAsync: baseFolders.php + 'exchange/async/' + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
         this.transpileAndSaveExchangeTests (tests);
     }
 
+    baseFunctionalitiesTests () {
+
+        const baseFolders = {
+            ts: './ts/src/test/base/',
+            py: './python/ccxt/test/base/',
+            php: './php/test/base/',
+        };
+
+        let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        const tests = [];
+
+        for (const testName of baseFunctionTests) {
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
+            const tsFile = baseFolders.ts + testName + '.ts';
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+                continue;
+            }
+            const test = {
+                base: true,
+                name: testName,
+                tsFile: tsFile,
+                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
+            };
+            tests.push(test);
+        }
+        this.transpileAndSaveExchangeTests (tests);
+    }
+
+
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
         const fileNames = tests.filter(t => t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
-        const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
+        const importNames = fileNames.map(testName => `from ccxt.test.exchange.base.${testName} import ${testName} # noqa E402`)
         const baseContent = [
             '',
             this.getPythonGenerated(),
@@ -2274,7 +2095,13 @@ class Transpiler {
         ].join('\n');
 
         log.magenta ('→', finalPath)
-        overwriteFile (finalPath, baseContent)
+        overwriteSafe (finalPath, baseContent)
+    }
+
+    isFirstLetterUpperCase (str) {
+        if (!str || str.length === 0) return false;
+        const firstChar = str[0];
+        return firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
     }
 
     transpileMainTests (files) {
@@ -2293,10 +2120,7 @@ class Transpiler {
             }));
         };
 
-        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
-        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
-
-        const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
+        const mainContent = ts;
         // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
         const parserConfig = {
             'verbose': false,
@@ -2330,35 +2154,51 @@ class Transpiler {
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
-        const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
-        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2').
+            // camelCase walletAddress and privateKey
+            replace(/\.wallet_address/g, '.walletAddress').
+            replace(/\.private_key/g, '.privateKey').
+            replace(/\.api_key/g, '.apiKey');
+        
+        let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
+        let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
-        overwriteFile (files.pyFileAsync, newPython);
+        overwriteSafe (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
         // remove 4 extra newlines
         let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
         existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteFile (files.pyFileSync, existingPythonWN);
+        overwriteSafe (files.pyFileSync, existingPythonWN);
 
 
         // ########### PHP ###########
-        
-        const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
-            const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
-            const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
-            let newContent = partBeforClass + cont + partAfterClass;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
+            // add exceptions
+            let exceptions = '';
+            for (const eType of Object.keys(errors)) {
+                if (cont.includes (' ' + eType)) {
+                    exceptions += `use ccxt\\${eType};\n`;
+                }
+            }
+            let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+            let newContent = head + cont;
+            newContent = newContent.
+                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                replace(/\->wallet_address/g, '->walletAddress').
+                replace(/\->private_key/g, '->privateKey').
+                replace(/\->api_key/g, '->apiKey').
+                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
         }
         let bodyPhpAsync = phpReform (phpAsync);
-        overwriteFile (files.phpFileAsync, bodyPhpAsync);
+        overwriteSafe (files.phpFileAsync, bodyPhpAsync);
         let bodyPhpSync = phpReform (php);
         bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
-        overwriteFile (files.phpFileSync, bodyPhpSync);
+        overwriteSafe (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -2431,6 +2271,8 @@ class Transpiler {
 
         let allFiles = await this.readFilesAsync (tests.map(t => t.tsFile));
 
+        const needsEquals = allFiles.map(file => file.includes('function equals'));
+
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -2448,10 +2290,13 @@ class Transpiler {
                 replace (/precision_mode/g, 'precisionMode');
         };
 
-        const pyFixes = (str) => {
+        const pyFixes = (str, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
+            if (sync) {
+                str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
+            }
             return exchangeCamelCaseProps(str);
         }
 
@@ -2460,14 +2305,16 @@ class Transpiler {
                 replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::');
+                replace (/Precise\->/g, 'Precise::').
+                replace (/function equals(.*?)\{/g, '').
+                replace (/\$ccxt->/g, '\\ccxt\\');
             str = this.phpReplaceException (str);
             return exchangeCamelCaseProps(str);
         }
 
         const fileSaveFunc = (path, content) => {
             log.magenta ('→', path);
-            overwriteFile (path, content);
+            overwriteSafe (path, content);
         };
 
         for (let i = 0; i < flatResult.length; i++) {
@@ -2476,8 +2323,9 @@ class Transpiler {
             const isWs = test.tsFile.includes('ts/src/pro/');
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content);
+            let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
+            const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2487,7 +2335,6 @@ class Transpiler {
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
-            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
             const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
@@ -2519,13 +2366,25 @@ class Transpiler {
             phpHeaderAsync.push ('use React\\Async;');
             phpHeaderAsync.push ('use React\\Promise;');
 
-            if (usesTickSize) {
-                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
-                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
+            for (const propName of decimalProps) {
+                if (pythonAsync.includes (propName)) {
+                    pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                    pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                }
+            }
+            if (pythonAsync.match (/\sccxt\./)) {
+                pythonHeaderSync.push ('import ccxt  # noqa: F402')
+                pythonHeaderAsync.push ('import ccxt  # noqa: F402')
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
+            }
+            // py: json
+            if (pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump')) {
+                pythonHeaderSync.push ('import json  # noqa E402')
+                pythonHeaderAsync.push ('import json  # noqa E402')
             }
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
@@ -2555,23 +2414,30 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
-                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
-                let pySuffix = isSameDirImport ? '' : '.base';
+                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
+                let pySuffix = isSameDirImport ? '' : '.exchange.base';
+                const isLangSpec = subTestName === 'testLanguageSpecific';
 
                 if (isSharedMethodsImport) {
-                    pythonHeaderAsync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
-                    pythonHeaderSync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
                     // php
                     if (!test.base) {
-                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     } else {
-                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     }
                 } else {
                     if (test.base) {
-                        phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-                        pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
+                        phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
+                        if (test.tsFile.includes('Exchange/base')) {
+                            pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        } else {
+                            const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
+                            pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
+                        }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
                         phpHeaderAsync.push (`include_once ${phpPrefix}${snake_case}.php';`)
@@ -2580,6 +2446,16 @@ class Transpiler {
                         pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                     }
                 }
+            }
+
+            if (usesEqualsFunction) {
+                const pyEquals = [
+                    "",
+                    "def equals(a, b):",
+                    "    return a == b",
+                ].join('\n')
+                pythonHeaderSync.push(pyEquals);
+                pythonHeaderAsync.push(pyEquals);
             }
 
 
@@ -2594,14 +2470,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
@@ -2610,8 +2486,8 @@ class Transpiler {
 
     transpileTests () {
 
-        this.transpilePrecisionTests ()
-        this.transpileDateTimeTests ()
+        this.baseFunctionalitiesTests ();
+
         this.transpileCryptoTests ()
 
         this.transpileExchangeTests ()
@@ -2785,38 +2661,10 @@ class Transpiler {
                     finalPyHeaders += '\n\n'
                 }
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
-                overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                overwriteSafe (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
+                overwriteSafe (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
-    }
-
-    // ============================================================================
-    transpilePhpBaseClassMethods () {
-        const baseMethods = this.getPHPBaseMethods ()
-        const indent = 4
-        const space = ' '.repeat (indent)
-        const result = [
-            'public static $camelcase_methods = array(',
-        ]
-        for (const method of baseMethods) {
-            const underscoreCase = unCamelCase (method)
-            if (underscoreCase !== method) {
-                result.push (space.repeat (2) + '\'' + method + '\' => ' + '\'' + underscoreCase + '\',')
-            }
-        }
-        result.push (space + ');')
-        const string = result.join ('\n')
-
-        const phpBaseClass = './php/Exchange.php';
-        const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
-        const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
-        const bodyArray = phpBody.split (regex)
-
-        const newBody = bodyArray[0] + string + bodyArray[1]
-
-        log.magenta ('Transpiling from ', phpBaseClass.yellow, '→', phpBaseClass.yellow)
-        overwriteFile (phpBaseClass, newBody)
     }
 
     // ============================================================================
@@ -2842,7 +2690,7 @@ class Transpiler {
                     this.getJsPreamble(),
                     content
                 ].join ("\n")
-                overwriteFile (jsFilePath, contents)
+                overwriteSafe (jsFilePath, contents)
             }
         })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
@@ -2895,8 +2743,6 @@ class Transpiler {
 
             this.transpileTests ()
 
-            // this.transpilePhpBaseClassMethods ()
-
             this.transpileExamples ()
 
             this.addGeneratedHeaderToJs ('./js/')
@@ -2906,15 +2752,21 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
+    const args = [];
+    if (force) {
+        args.push ('--force')
+    }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
-        const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
-        isFirst = false
         fork (process.argv[1], toProcess.concat (args))
+        if (isFirst) {
+            args.push ('--child');
+            isFirst = false
+        }
     }
 }
 
@@ -2947,9 +2799,9 @@ if (isMainEntry(import.meta.url)) {
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ tsFilename })
+        transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

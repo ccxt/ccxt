@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, IndexType, Trade
+from ccxt.base.types import IndexType, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -19,6 +19,7 @@ class luno(ccxt.async_support.luno):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': None,  # is in beta
                 'watchOrderBook': True,
@@ -41,7 +42,9 @@ class luno(ccxt.async_support.luno):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
+
+        https://www.luno.com/en/developers/api#tag/Streaming-API
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
@@ -53,10 +56,10 @@ class luno(ccxt.async_support.luno):
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription = {'symbol': symbol}
+        subscription: dict = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'trades:' + symbol
-        subscribe = {
+        subscribe: dict = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -144,10 +147,10 @@ class luno(ccxt.async_support.luno):
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
-        subscription = {'symbol': symbol}
+        subscription: dict = {'symbol': symbol}
         url = self.urls['api']['ws'] + subscriptionHash
         messageHash = 'orderbook:' + symbol
-        subscribe = {
+        subscribe: dict = {
             'api_key_id': self.apiKey,
             'api_key_secret': self.secret,
         }
@@ -190,11 +193,10 @@ class luno(ccxt.async_support.luno):
         #
         symbol = subscription['symbol']
         messageHash = 'orderbook:' + symbol
-        timestamp = self.safe_string(message, 'timestamp')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.indexed_order_book({})
-            self.orderbooks[symbol] = orderbook
+        timestamp = self.safe_integer(message, 'timestamp')
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.indexed_order_book({})
+        orderbook = self.orderbooks[symbol]
         asks = self.safe_value(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')

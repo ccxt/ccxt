@@ -502,5 +502,59 @@
         "percentage": true,
         "taker": 0.001,
         "maker": 0
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.001,
+        "maker": 0,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000028
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": {
+                "code": "ETH-USDT",
+                "first": {
+                    "currency": "ETH",
+                    "minOffer": "0.000028",
+                    "scale": "8"
+                },
+                "second": {
+                    "currency": "USDT",
+                    "minOffer": "0.108",
+                    "scale": "6"
+                },
+                "amountPrecision": "8",
+                "pricePrecision": "6",
+                "ratePrecision": "6"
+            },
+            "time": "1709996470949",
+            "highestBid": "3908",
+            "lowestAsk": "3911.034544",
+            "rate": "3910.362972",
+            "previousRate": "3911.143902"
+        },
+        "tierBased": false,
+        "percentage": true
     }
 }

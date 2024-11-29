@@ -18,6 +18,10 @@ class bitmex extends \ccxt\async\bitmex {
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
+                'watchLiquidations' => true,
+                'watchLiquidationsForSymbols' => true,
+                'watchMyLiquidations' => null,
+                'watchMyLiquidationsForSymbols' => null,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -61,6 +65,9 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -76,6 +83,9 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -103,7 +113,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'op' => 'subscribe',
                 'args' => $rawSubscriptions,
             );
-            $ticker = Async\await($this->watch_multiple($url, $messageHashes, array_merge($request, $params), $rawSubscriptions));
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $rawSubscriptions));
             if ($this->newUpdates) {
                 $result = array();
                 $result[$ticker['symbol']] = $ticker;
@@ -360,10 +370,120 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        /**
+         * watch the public liquidations of a trading pair
+         *
+         * @see https://www.bitmex.com/app/wsAPI#Liquidation
+         *
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+    }
+
+    public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch the public liquidations of a trading pair
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Liquidation
+             *
+             * @param {string[]} $symbols
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true);
+            $messageHashes = array();
+            $subscriptionHashes = array();
+            if ($this->is_empty($symbols)) {
+                $subscriptionHashes[] = 'liquidation';
+                $messageHashes[] = 'liquidations';
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $subscriptionHashes[] = 'liquidation:' . $market['id'];
+                    $messageHashes[] = 'liquidations::' . $symbol;
+                }
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $subscriptionHashes,
+            );
+            $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $subscriptionHashes));
+            if ($this->newUpdates) {
+                return $newLiquidations;
+            }
+            return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_liquidation(Client $client, $message) {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":array(
+        //           "orderID"
+        //        ),
+        //        "types":array(
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        ),
+        //        "filter":array(),
+        //        "data":array(
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        )
+        //    }
+        //
+        $rawLiquidations = $this->safe_value($message, 'data', array());
+        $newLiquidations = array();
+        for ($i = 0; $i < count($rawLiquidations); $i++) {
+            $rawLiquidation = $rawLiquidations[$i];
+            $liquidation = $this->parse_liquidation($rawLiquidation);
+            $symbol = $liquidation['symbol'];
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $newLiquidations[] = $liquidation;
+        }
+        $client->resolve ($newLiquidations, 'liquidations');
+        $liquidationsBySymbol = $this->index_by($newLiquidations, 'symbol');
+        $symbols = is_array($liquidationsBySymbol) ? array_keys($liquidationsBySymbol) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $client->resolve ($liquidationsBySymbol[$symbol], 'liquidations::' . $symbol);
+        }
+    }
+
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -377,7 +497,7 @@ class bitmex extends \ccxt\async\bitmex {
                     $messageHash,
                 ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -482,7 +602,7 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $data = $this->safe_value($message, 'data');
         $balance = $this->parse_balance($data);
-        $this->balance = array_merge($this->balance, $balance);
+        $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($message, 'table');
         $client->resolve ($this->balance, $messageHash);
     }
@@ -554,8 +674,8 @@ class bitmex extends \ccxt\async\bitmex {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $messageHash = $table . ':' . $marketId;
             $symbol = $market['symbol'];
+            $messageHash = $table . ':' . $symbol;
             $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
@@ -573,56 +693,45 @@ class bitmex extends \ccxt\async\bitmex {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $table = 'trade';
-            $messageHash = $table . ':' . $market['id'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'op' => 'subscribe',
-                'args' => array(
-                    $messageHash,
-                ),
-            );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $this->check_required_credentials();
-            $timestamp = $this->milliseconds();
-            $payload = 'GET' . '/realtime' . (string) $timestamp;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'op' => 'authKeyExpires',
-                'args' => array(
-                    $this->apiKey,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $this->check_required_credentials();
+                $timestamp = $this->milliseconds();
+                $payload = 'GET' . '/realtime' . (string) $timestamp;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'op' => 'authKeyExpires',
+                    'args' => array(
+                        $this->apiKey,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $message = $this->extend($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -644,9 +753,13 @@ class bitmex extends \ccxt\async\bitmex {
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
-             * @see https://www.bitmex.com/app/wsAPI
              * watch all open positions
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {int} [$since] the earliest time in ms to watch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -851,6 +964,9 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1048,7 +1164,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $previousOrder = $this->safe_value($stored->hashmap, $orderId);
                 $rawOrder = $currentOrder;
                 if ($previousOrder !== null) {
-                    $rawOrder = array_merge($previousOrder['info'], $currentOrder);
+                    $rawOrder = $this->extend($previousOrder['info'], $currentOrder);
                 }
                 $order = $this->parse_order($rawOrder);
                 $stored->append ($order);
@@ -1068,11 +1184,14 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string} $symbol unified market $symbol of the market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1187,6 +1306,9 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1200,6 +1322,9 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1237,10 +1362,54 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $table = 'trade';
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $topic = $table . ':' . $market['id'];
+                $topics[] = $topic;
+                $messageHash = $table . ':' . $symbol;
+                $messageHashes[] = $messageHash;
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $topics,
+            );
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $topics));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1260,7 +1429,7 @@ class bitmex extends \ccxt\async\bitmex {
                     $messageHash,
                 ),
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -1432,11 +1601,17 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $action = $this->safe_string($message, 'action');
         $table = $this->safe_string($message, 'table');
+        if ($table === null) {
+            return; // protecting from weird updates
+        }
         $data = $this->safe_value($message, 'data', array());
         // if it's an initial snapshot
         if ($action === 'partial') {
-            $filter = $this->safe_value($message, 'filter', array());
+            $filter = $this->safe_dict($message, 'filter', array());
             $marketId = $this->safe_value($filter, 'symbol');
+            if ($marketId === null) {
+                return; // protecting from weird update
+            }
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             if ($table === 'orderBookL2') {
@@ -1455,7 +1630,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
@@ -1466,6 +1641,9 @@ class bitmex extends \ccxt\async\bitmex {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
                 $marketId = $this->safe_value($data[$i], 'symbol');
+                if ($marketId === null) {
+                    return; // protecting from weird update
+                }
                 if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }
@@ -1479,7 +1657,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $bookside->store ($price, $size, $id);
+                $bookside->storeArray (array( $price, $size, $id ));
                 $datetime = $this->safe_string($data[$i], 'timestamp');
                 $orderbook['timestamp'] = $this->parse8601($datetime);
                 $orderbook['datetime'] = $datetime;
@@ -1613,6 +1791,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'order' => array($this, 'handle_orders'),
                 'execution' => array($this, 'handle_my_trades'),
                 'margin' => array($this, 'handle_balance'),
+                'liquidation' => array($this, 'handle_liquidation'),
                 'position' => array($this, 'handle_positions'),
             );
             $method = $this->safe_value($methods, $table);

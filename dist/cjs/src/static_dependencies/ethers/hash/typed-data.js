@@ -467,7 +467,7 @@ _TypedDataEncoder_types = new WeakMap(), _TypedDataEncoder_fullTypes = new WeakM
             if (__classPrivateFieldGet(this, _TypedDataEncoder_fullTypes, "f").has(subtype)) {
                 result = result.map(index.keccak256);
             }
-            return index.keccak256(data.concat(result));
+            return index.keccak256(data.getBytes(data.concat(result)));
         };
     }
     // Struct

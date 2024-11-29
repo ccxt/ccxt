@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_ticker.php';
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -50,6 +50,7 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
             if ($arg_symbols !== null && count($arg_symbols) === 1) {
                 $checked_symbol = $arg_symbols[0];
             }
+            assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
             for ($i = 0; $i < count($values); $i++) {
                 $ticker = $values[$i];
                 test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);

@@ -17,6 +17,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
@@ -34,9 +35,9 @@ class bitfinex2 extends bitfinex2$1 {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': true,
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
             },
         });
     }
@@ -69,18 +70,18 @@ class bitfinex2 extends bitfinex2$1 {
         const url = this.urls['api']['ws']['private'];
         return await this.watch(url, messageHash, undefined, 1);
     }
+    /**
+     * @method
+     * @name bitfinex2#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -184,34 +185,34 @@ class bitfinex2 extends bitfinex2$1 {
         }
         client.resolve(stored, messageHash);
     }
+    /**
+     * @method
+     * @name bitfinex2#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         const trades = await this.subscribe('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name bitfinex2#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-         */
         await this.loadMarkets();
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
@@ -224,15 +225,15 @@ class bitfinex2 extends bitfinex2$1 {
         }
         return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
+    /**
+     * @method
+     * @name bitfinex2#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         return await this.subscribe('ticker', symbol, params);
     }
     handleMyTrade(client, message, subscription = {}) {
@@ -320,11 +321,12 @@ class bitfinex2 extends bitfinex2$1 {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            let trades = this.safeList(message, 1, []);
+            const trades = this.safeList(message, 1, []);
             // needs to be reversed to make chronological order
-            trades = trades.reverse();
-            for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], market);
+            const length = trades.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                const parsed = this.parseWsTrade(trades[index], market);
                 stored.append(parsed);
             }
         }
@@ -514,16 +516,16 @@ class bitfinex2 extends bitfinex2$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name bitfinex2#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
                 throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
@@ -576,8 +578,7 @@ class bitfinex2 extends bitfinex2$1 {
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -587,7 +588,7 @@ class bitfinex2 extends bitfinex2$1 {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -598,7 +599,7 @@ class bitfinex2 extends bitfinex2$1 {
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, idString);
+                    bookside.storeArray([price, size, idString]);
                 }
             }
             else {
@@ -611,13 +612,14 @@ class bitfinex2 extends bitfinex2$1 {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store(price, size, counter);
+                    bookside.storeArray([price, size, counter]);
                 }
             }
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
@@ -629,7 +631,7 @@ class bitfinex2 extends bitfinex2$1 {
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
                 const idString = this.safeString(deltas, 0);
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(amount), idString]);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -638,7 +640,7 @@ class bitfinex2 extends bitfinex2$1 {
                 const size = Precise["default"].stringLt(amount, '0') ? Precise["default"].stringNeg(amount) : amount;
                 const side = Precise["default"].stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
-                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -680,19 +682,24 @@ class bitfinex2 extends bitfinex2$1 {
         const localChecksum = this.crc32(payload, true);
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new errors.InvalidNonce(this.id + ' invalid checksum');
-            client.reject(error, messageHash);
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
     }
+    /**
+     * @method
+     * @name bitfinex2#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const balanceType = this.safeString(params, 'wallet', 'exchange'); // exchange, margin
         params = this.omit(params, 'wallet');
@@ -860,7 +867,7 @@ class bitfinex2 extends bitfinex2$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
         const messageHash = 'authenticated';
@@ -879,17 +886,17 @@ class bitfinex2 extends bitfinex2$1 {
             }
         }
     }
+    /**
+     * @method
+     * @name bitfinex2#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-         */
         await this.loadMarkets();
         let messageHash = 'orders';
         if (symbol !== undefined) {

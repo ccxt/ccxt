@@ -64,8 +64,11 @@ class timex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -280,10 +283,12 @@ class timex extends Exchange {
         return $this->parse_to_int($response) * 1000;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for timex
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -312,10 +317,12 @@ class timex extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCurrencies
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -345,18 +352,15 @@ class timex extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $result[] = $this->parse_currency($currency);
-        }
-        return $this->index_by($result, 'code');
+        return $this->parse_currencies($response);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -371,7 +375,7 @@ class timex extends Exchange {
         $request = array(
             'address' => $address,
         );
-        $response = $this->managerGetDeposits (array_merge($request, $params));
+        $response = $this->managerGetDeposits ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -391,7 +395,9 @@ class timex extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made to an account
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getWithdraws
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
@@ -406,7 +412,7 @@ class timex extends Exchange {
         $request = array(
             'address' => $address,
         );
-        $response = $this->managerGetWithdrawals (array_merge($request, $params));
+        $response = $this->managerGetWithdrawals ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -436,7 +442,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -477,7 +483,9 @@ class timex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -487,7 +495,7 @@ class timex extends Exchange {
         $request = array(
             'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         );
-        $response = $this->publicGetTickers (array_merge($request, $params));
+        $response = $this->publicGetTickers ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -511,7 +519,9 @@ class timex extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -523,7 +533,7 @@ class timex extends Exchange {
             'market' => $market['id'],
             'period' => $this->timeframes[$period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         );
-        $response = $this->publicGetTickers (array_merge($request, $params));
+        $response = $this->publicGetTickers ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -541,14 +551,16 @@ class timex extends Exchange {
         //         }
         //     )
         //
-        $ticker = $this->safe_value($response, 0);
+        $ticker = $this->safe_dict($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/orderbookV2
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -562,7 +574,7 @@ class timex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOrderbookV2 (array_merge($request, $params));
+        $response = $this->publicGetOrderbookV2 ($this->extend($request, $params));
         //
         //     {
         //         "timestamp":"2019-12-05T00:21:09.538",
@@ -594,7 +606,9 @@ class timex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTrades
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -623,7 +637,7 @@ class timex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default is 100
         }
-        $response = $this->publicGetTrades (array_merge($request, $query));
+        $response = $this->publicGetTrades ($this->extend($request, $query));
         //
         //     array(
         //         {
@@ -641,7 +655,9 @@ class timex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCandles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -668,7 +684,7 @@ class timex extends Exchange {
             $request['till'] = $this->iso8601($now);
             $request['from'] = $this->iso8601($now - $limit * $duration * 1000 - 1);
         }
-        $response = $this->publicGetCandles (array_merge($request, $params));
+        $response = $this->publicGetCandles ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -706,7 +722,9 @@ class timex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getBalances
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -727,12 +745,14 @@ class timex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder
+         *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -771,7 +791,7 @@ class timex extends Exchange {
         } else {
             $request['price'] = 0;
         }
-        $response = $this->tradingPostOrders (array_merge($request, $query));
+        $response = $this->tradingPostOrders ($this->extend($request, $query));
         //
         //     {
         //         "orders" => array(
@@ -794,7 +814,7 @@ class timex extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'orders', array());
-        $order = $this->safe_value($orders, 0, array());
+        $order = $this->safe_dict($orders, 0, array());
         return $this->parse_order($order, $market);
     }
 
@@ -810,7 +830,7 @@ class timex extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->tradingPutOrders (array_merge($request, $params));
+        $response = $this->tradingPutOrders ($this->extend($request, $params));
         //
         //     {
         //         "changedOrders" => array(
@@ -846,27 +866,32 @@ class timex extends Exchange {
         }
         $orders = $this->safe_value($response, 'changedOrders', array());
         $firstOrder = $this->safe_value($orders, 0, array());
-        $order = $this->safe_value($firstOrder, 'newOrder', array());
+        $order = $this->safe_dict($firstOrder, 'newOrder', array());
         return $this->parse_order($order, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by timex cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        return $this->cancel_orders(array( $id ), $symbol, $params);
+        $orders = $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_dict($orders, 0);
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
+         * cancel multiple $orders
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -876,7 +901,7 @@ class timex extends Exchange {
         $request = array(
             'id' => $ids,
         );
-        $response = $this->tradingDeleteOrders (array_merge($request, $params));
+        $response = $this->tradingDeleteOrders ($this->extend($request, $params));
         //
         //     {
         //         "changedOrders" => array(
@@ -901,13 +926,31 @@ class timex extends Exchange {
         //         ),
         //         "unchangedOrders" => array( "string" ),
         //     }
-        return $response;
+        //
+        $changedOrders = $this->safe_list($response, 'changedOrders', array());
+        $unchangedOrders = $this->safe_list($response, 'unchangedOrders', array());
+        $orders = array();
+        for ($i = 0; $i < count($changedOrders); $i++) {
+            $newOrder = $this->safe_dict($changedOrders[$i], 'newOrder');
+            $orders[] = $this->parse_order($newOrder);
+        }
+        for ($i = 0; $i < count($unchangedOrders); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $unchangedOrders[$i],
+                'id' => $unchangedOrders[$i],
+                'status' => 'unchanged',
+            ));
+        }
+        return $orders;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
+         *
+         * @param {string} $id $order $id
          * @param {string} $symbol not used by timex fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -951,14 +994,16 @@ class timex extends Exchange {
         //     }
         //
         $order = $this->safe_value($response, 'order', array());
-        $trades = $this->safe_value($response, 'trades', array());
-        return $this->parse_order(array_merge($order, array( 'trades' => $trades )));
+        $trades = $this->safe_list($response, 'trades', array());
+        return $this->parse_order($this->extend($order, array( 'trades' => $trades )));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getOpenOrders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -983,7 +1028,7 @@ class timex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->tradingGetOrders (array_merge($request, $query));
+        $response = $this->tradingGetOrders ($this->extend($request, $query));
         //
         //     {
         //         "orders" => array(
@@ -1005,14 +1050,16 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed $orders made by the user
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrders
+         *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1042,7 +1089,7 @@ class timex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->historyGetOrders (array_merge($request, $query));
+        $response = $this->historyGetOrders ($this->extend($request, $query));
         //
         //     {
         //         "orders" => array(
@@ -1064,14 +1111,16 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array());
+        $orders = $this->safe_list($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getTrades_1
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1107,7 +1156,7 @@ class timex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->historyGetTrades (array_merge($request, $query));
+        $response = $this->historyGetTrades ($this->extend($request, $query));
         //
         //     {
         //         "trades" => array(
@@ -1126,11 +1175,11 @@ class timex extends Exchange {
         //         )
         //     }
         //
-        $trades = $this->safe_value($response, 'trades', array());
+        $trades = $this->safe_list($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1144,13 +1193,17 @@ class timex extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market),
             'maker' => $rate,
             'taker' => $rate,
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getFees
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1160,7 +1213,7 @@ class timex extends Exchange {
         $request = array(
             'markets' => $market['id'],
         );
-        $response = $this->tradingGetFees (array_merge($request, $params));
+        $response = $this->tradingGetFees ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1173,7 +1226,7 @@ class timex extends Exchange {
         return $this->parse_trading_fee($result, $market);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1257,7 +1310,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency): array {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1321,7 +1374,7 @@ class timex extends Exchange {
                 $fee = $this->parse_number($fraction . $feeString);
             }
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $code,
             'code' => $code,
             'info' => $currency,
@@ -1337,10 +1390,10 @@ class timex extends Exchange {
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
             'networks' => array(),
-        );
+        ));
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "ask" => 0.017,
@@ -1385,7 +1438,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1476,7 +1529,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1542,10 +1595,12 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account, does not accept $params["network"]
+         *
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -1555,7 +1610,7 @@ class timex extends Exchange {
         $request = array(
             'symbol' => $currency['code'],
         );
-        $response = $this->currenciesGetSSymbol (array_merge($request, $params));
+        $response = $this->currenciesGetSSymbol ($this->extend($request, $params));
         //
         //    {
         //        id => '1',
@@ -1577,7 +1632,7 @@ class timex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        symbol => 'BTC',
@@ -1596,9 +1651,9 @@ class timex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
-            'network' => null,
         );
     }
 
@@ -1619,7 +1674,7 @@ class timex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

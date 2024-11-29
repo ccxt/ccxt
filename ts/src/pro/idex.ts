@@ -5,7 +5,7 @@ import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export default class idex extends idexRest {
 
     async subscribe (subscribeObject, messageHash, subscription = true) {
         const url = this.urls['test']['ws'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'subscriptions': [
                 subscribeObject,
@@ -59,7 +59,7 @@ export default class idex extends idexRest {
     async subscribePrivate (subscribeObject, messageHash) {
         const token = await this.authenticate ();
         const url = this.urls['test']['ws'];
-        const request = {
+        const request: Dict = {
             'method': 'subscribe',
             'token': token,
             'subscriptions': [
@@ -69,19 +69,20 @@ export default class idex extends idexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name idex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs-v4.idex.io/#tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name idex#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'tickers';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
@@ -143,22 +144,23 @@ export default class idex extends idexRest {
         client.resolve (ticker, messageHash);
     }
 
+    /**
+     * @method
+     * @name idex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs-v4.idex.io/#trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name idex#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'trades';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
@@ -240,24 +242,25 @@ export default class idex extends idexRest {
         });
     }
 
+    /**
+     * @method
+     * @name idex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs-v4.idex.io/#candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name idex#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'candles';
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
             'interval': interval,
@@ -411,25 +414,26 @@ export default class idex extends idexRest {
         }
     }
 
+    /**
+     * @method
+     * @name idex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs-v4.idex.io/#l2-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name idex#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'l2orderbook';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
-        const subscription = {
+        const subscription: Dict = {
             'fetchingOrderBookSnapshot': false,
             'numAttempts': 0,
             'startTime': undefined,
@@ -494,7 +498,7 @@ export default class idex extends idexRest {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         const count = this.safeInteger (delta, 2);
-        bookside.store (price, amount, count);
+        bookside.storeArray ([ price, amount, count ]);
     }
 
     handleDeltas (bookside, deltas) {
@@ -507,7 +511,7 @@ export default class idex extends idexRest {
         const time = this.seconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 900) {
-            const request = {
+            const request: Dict = {
                 'wallet': this.walletAddress,
                 'nonce': this.uuidv1 (),
             };
@@ -518,20 +522,21 @@ export default class idex extends idexRest {
         return this.options['token'];
     }
 
+    /**
+     * @method
+     * @name idex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs-v4.idex.io/#orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name idex#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const name = 'orders';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
         };
         let messageHash = name;
@@ -654,7 +659,7 @@ export default class idex extends idexRest {
     async watchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
-        const subscribeObject = {
+        const subscribeObject: Dict = {
             'name': name,
         };
         let messageHash = name;
@@ -684,7 +689,7 @@ export default class idex extends idexRest {
         const messageHash = type + ':' + currencyId;
         const code = this.safeCurrencyCode (currencyId);
         const address = this.safeString (data, 'w');
-        const transaction = {
+        const transaction: Dict = {
             'info': message,
             'id': undefined,
             'currency': code,
@@ -715,7 +720,7 @@ export default class idex extends idexRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'tickers': this.handleTicker,
             'trades': this.handleTrade,
             'subscriptions': this.handleSubscribeMessage,

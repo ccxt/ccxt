@@ -47,9 +47,11 @@ public partial class ascendex : Exchange
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
-                { "fetchLeverage", false },
+                { "fetchLeverage", "emulated" },
+                { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", "emulated" },
+                { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -79,6 +81,7 @@ public partial class ascendex : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -100,7 +103,7 @@ public partial class ascendex : Exchange
             } },
             { "version", "v2" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://ascendex.com" },
                 } },
@@ -267,26 +270,16 @@ public partial class ascendex : Exchange
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
-                    { "TRC", "TRC20" },
                     { "TRX", "TRC20" },
-                    { "ERC", "ERC20" },
-                } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20 (BSC)", "BSC" },
-                    { "arbitrum", "ARB" },
-                    { "Solana", "SOL" },
-                    { "avalanche C chain", "AVAX" },
-                    { "Omni", "OMNI" },
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "GO20", "GO20" },
                     { "BEP2", "BEP2" },
-                    { "Bitcoin", "BTC" },
-                    { "Bitcoin ABC", "BCH" },
-                    { "Litecoin", "LTC" },
-                    { "Matic Network", "MATIC" },
-                    { "xDai", "STAKE" },
-                    { "Akash", "AKT" },
+                    { "BTC", "Bitcoin" },
+                    { "BCH", "Bitcoin ABC" },
+                    { "LTC", "Litecoin" },
+                    { "MATIC", "Matic Network" },
+                    { "AKT", "Akash" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -342,7 +335,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },
@@ -373,17 +366,17 @@ public partial class ascendex : Exchange
         return this.capitalize(lowercaseAccount);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
-        object assets = await this.v1PublicGetAssets(parameters);
+        object assetsPromise = this.v1PublicGetAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -400,7 +393,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object margin = await this.v1PublicGetMarginAssets(parameters);
+        object marginPromise = this.v1PublicGetMarginAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -420,7 +413,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object cash = await this.v1PublicGetCashAssets(parameters);
+        object cashPromise = this.v1PublicGetCashAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -437,9 +430,13 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object assetsData = this.safeValue(assets, "data", new List<object>() {});
-        object marginData = this.safeValue(margin, "data", new List<object>() {});
-        object cashData = this.safeValue(cash, "data", new List<object>() {});
+        var assetsmargincashVariable = await promiseAll(new List<object>() {assetsPromise, marginPromise, cashPromise});
+        var assets = ((IList<object>) assetsmargincashVariable)[0];
+        var margin = ((IList<object>) assetsmargincashVariable)[1];
+        var cash = ((IList<object>) assetsmargincashVariable)[2];
+        object assetsData = this.safeList(assets, "data", new List<object>() {});
+        object marginData = this.safeList(margin, "data", new List<object>() {});
+        object cashData = this.safeList(cash, "data", new List<object>() {});
         object assetsById = this.indexBy(assetsData, "assetCode");
         object marginById = this.indexBy(marginData, "assetCode");
         object cashById = this.indexBy(cashData, "assetCode");
@@ -485,17 +482,17 @@ public partial class ascendex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchMarkets
+     * @description retrieves data on all markets for ascendex
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchMarkets
-        * @description retrieves data on all markets for ascendex
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
-        object products = await this.v1PublicGetProducts(parameters);
+        object productsPromise = this.v1PublicGetProducts(parameters);
         //
         //     {
         //         "code": 0,
@@ -516,7 +513,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object cash = await this.v1PublicGetCashProducts(parameters);
+        object cashPromise = this.v1PublicGetCashProducts(parameters);
         //
         //     {
         //         "code": 0,
@@ -546,7 +543,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object perpetuals = await this.v2PublicGetFuturesContract(parameters);
+        object perpetualsPromise = this.v2PublicGetFuturesContract(parameters);
         //
         //    {
         //        "code": 0,
@@ -584,10 +581,14 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        object productsData = this.safeValue(products, "data", new List<object>() {});
+        var productscashperpetualsVariable = await promiseAll(new List<object>() {productsPromise, cashPromise, perpetualsPromise});
+        var products = ((IList<object>) productscashperpetualsVariable)[0];
+        var cash = ((IList<object>) productscashperpetualsVariable)[1];
+        var perpetuals = ((IList<object>) productscashperpetualsVariable)[2];
+        object productsData = this.safeList(products, "data", new List<object>() {});
         object productsById = this.indexBy(productsData, "symbol");
-        object cashData = this.safeValue(cash, "data", new List<object>() {});
-        object perpetualsData = this.safeValue(perpetuals, "data", new List<object>() {});
+        object cashData = this.safeList(cash, "data", new List<object>() {});
+        object perpetualsData = this.safeList(perpetuals, "data", new List<object>() {});
         object cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
         object cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, "symbol");
         object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
@@ -597,7 +598,7 @@ public partial class ascendex : Exchange
         {
             object id = getValue(ids, i);
             object market = getValue(dataById, id);
-            object settleId = this.safeValue(market, "settlementAsset");
+            object settleId = this.safeString(market, "settlementAsset");
             object settle = this.safeCurrencyCode(settleId);
             object status = this.safeString(market, "status");
             object domain = this.safeString(market, "domain");
@@ -622,10 +623,10 @@ public partial class ascendex : Exchange
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(swap))
             {
-                object lotSizeFilter = this.safeValue(market, "lotSizeFilter");
+                object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
                 minQty = this.safeNumber(lotSizeFilter, "minQty");
                 maxQty = this.safeNumber(lotSizeFilter, "maxQty");
-                object priceFilter = this.safeValue(market, "priceFilter");
+                object priceFilter = this.safeDict(market, "priceFilter");
                 minPrice = this.safeNumber(priceFilter, "minPrice");
                 maxPrice = this.safeNumber(priceFilter, "maxPrice");
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
@@ -687,15 +688,15 @@ public partial class ascendex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the ascendex server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the ascendex server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the ascendex server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the ascendex server
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "requestTime", this.milliseconds() },
@@ -711,19 +712,19 @@ public partial class ascendex : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeInteger(data, "requestReceiveAt");
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         object accountGroup = this.safeString(this.options, "account-group");
         object response = null;
@@ -746,14 +747,14 @@ public partial class ascendex : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             accountGroup = this.safeString(data, "accountGroup");
             ((IDictionary<string,object>)this.options)["account-group"] = accountGroup;
         }
         return new List<object>() {new Dictionary<string, object>() {
     { "id", accountGroup },
     { "type", null },
-    { "currency", null },
+    { "code", null },
     { "info", response },
 }};
     }
@@ -765,7 +766,7 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -785,7 +786,7 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -808,8 +809,8 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object collaterals = this.safeValue(data, "collaterals", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object collaterals = this.safeList(data, "collaterals", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(collaterals)); postFixIncrement(ref i))
         {
             object balance = getValue(collaterals, i);
@@ -821,20 +822,20 @@ public partial class ascendex : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+     * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+     * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
-        * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
-        * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -850,9 +851,9 @@ public partial class ascendex : Exchange
         object isCross = isEqual(marginMode, "cross");
         marketType = ((bool) isTrue((isTrue(isMargin) || isTrue(isCross)))) ? "margin" : marketType;
         parameters = this.omit(parameters, "margin");
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, marketType, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -931,17 +932,17 @@ public partial class ascendex : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -972,8 +973,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orderbook = this.safeValue(data, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orderbook = this.safeDict(data, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(orderbook, "ts");
         object result = this.parseOrderBook(orderbook, symbol, timestamp);
         ((IDictionary<string,object>)result)["nonce"] = this.safeInteger(orderbook, "seqnum");
@@ -1001,8 +1002,8 @@ public partial class ascendex : Exchange
         object delimiter = ((bool) isTrue((isEqual(type, "spot")))) ? "/" : null;
         object symbol = this.safeSymbol(marketId, market, delimiter);
         object close = this.safeString(ticker, "close");
-        object bid = this.safeValue(ticker, "bid", new List<object>() {});
-        object ask = this.safeValue(ticker, "ask", new List<object>() {});
+        object bid = this.safeList(ticker, "bid", new List<object>() {});
+        object ask = this.safeList(ticker, "ask", new List<object>() {});
         object open = this.safeString(ticker, "open");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1028,16 +1029,16 @@ public partial class ascendex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1061,29 +1062,29 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://ascendex.github.io/ascendex-pro-api/#ticker
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbol = this.safeValue(symbols, 0);
+            object symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             object marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbol"] = String.Join(",", ((IList<object>)marketIds).ToArray());
@@ -1103,22 +1104,20 @@ public partial class ascendex : Exchange
         //
         //     {
         //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "open":"0.00016537",
-        //                 "close":"0.00019077",
-        //                 "high":"0.000192",
-        //                 "low":"0.00016537",
-        //                 "volume":"846.6",
-        //                 "ask":["0.00018698","26.2"],
-        //                 "bid":["0.00018408","503.7"],
-        //                 "type":"spot"
-        //             }
-        //         ]
+        //         "data": {
+        //             "symbol":"QTUM/BTC",
+        //             "open":"0.00016537",
+        //             "close":"0.00019077",
+        //             "high":"0.000192",
+        //             "low":"0.00016537",
+        //             "volume":"846.6",
+        //             "ask":["0.00018698","26.2"],
+        //             "bid":["0.00018408","503.7"],
+        //             "type":"spot"
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return this.parseTickers(new List<object>() {data}, symbols);
@@ -1143,23 +1142,23 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(ohlcv, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(ohlcv, "data", new Dictionary<string, object>() {});
         return new List<object> {this.safeInteger(data, "ts"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1171,7 +1170,7 @@ public partial class ascendex : Exchange
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default
         object duration = this.parseTimeframe(timeframe);
-        object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object defaultLimit = this.safeInteger(options, "limit", 500);
         if (isTrue(!isEqual(since, null)))
         {
@@ -1209,7 +1208,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1249,19 +1248,19 @@ public partial class ascendex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1287,8 +1286,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object records = this.safeValue(response, "data", new List<object>() {});
-        object trades = this.safeValue(records, "data", new List<object>() {});
+        object records = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(records, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1458,7 +1457,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
+        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1497,19 +1496,19 @@ public partial class ascendex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -1531,20 +1530,22 @@ public partial class ascendex : Exchange
         //         }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object fees = this.safeValue(data, "fees", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fees = this.safeList(data, "fees", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = getValue(fees, i);
             object marketId = this.safeString(fee, "symbol");
             object symbol = this.safeSymbol(marketId, null, "/");
-            object takerMaker = this.safeValue(fee, "fee", new Dictionary<string, object>() {});
+            object takerMaker = this.safeDict(fee, "fee", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
                 { "maker", this.safeNumber(takerMaker, "maker") },
                 { "taker", this.safeNumber(takerMaker, "taker") },
+                { "percentage", null },
+                { "tierBased", null },
             };
         }
         return result;
@@ -1561,7 +1562,7 @@ public partial class ascendex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -1578,14 +1579,14 @@ public partial class ascendex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, marketType, "cash");
         if (isTrue(!isEqual(marginMode, null)))
         {
             accountCategory = "margin";
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -1601,7 +1602,7 @@ public partial class ascendex : Exchange
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(isLimitOrder))
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -1655,29 +1656,29 @@ public partial class ascendex : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name ascendex#createOrder
+     * @description create a trade order on the exchange
+     * @see https://ascendex.github.io/ascendex-pro-api/#place-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} type "limit" or "market"
+     * @param {string} side "buy" or "sell"
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {bool} [params.postOnly] true or false
+     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+     * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#createOrder
-        * @description create a trade order on the exchange
-        * @see https://ascendex.github.io/ascendex-pro-api/#place-order
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
-        * @param {string} symbol unified CCXT market symbol
-        * @param {string} type "limit" or "market"
-        * @param {string} side "buy" or "sell"
-        * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-        * @param {bool} [params.postOnly] true or false
-        * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
-        * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
-        * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
-        * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -1754,26 +1755,26 @@ public partial class ascendex : Exchange
         //          }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue2(data, "order", "info", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict2(data, "order", "info", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#createOrders
+     * @description create a list of trade orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {bool} [params.postOnly] true or false
+     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#createOrders
-        * @description create a list of trade orders
-        * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-        * @param {bool} [params.postOnly] true or false
-        * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -1796,9 +1797,9 @@ public partial class ascendex : Exchange
             }
             object type = this.safeString(rawOrder, "type");
             object side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object amount = this.safeNumber(rawOrder, "amount");
+            object price = this.safeNumber(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             object currentMarginMode = getValue(marginResult, 0);
             if (isTrue(!isEqual(currentMarginMode, null)))
@@ -1818,14 +1819,14 @@ public partial class ascendex : Exchange
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object market = this.market(symbol);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, getValue(market, "type"), "cash");
         if (isTrue(!isEqual(marginMode, null)))
         {
             accountCategory = "margin";
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(getValue(market, "swap")))
@@ -1860,23 +1861,24 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object info = this.safeValue(data, "info", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object info = this.safeList(data, "info", new List<object>() {});
         return this.parseOrders(info, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://ascendex.github.io/ascendex-pro-api/#query-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://ascendex.github.io/ascendex-pro-api/#query-order
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -1888,10 +1890,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -1976,24 +1978,24 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2003,12 +2005,12 @@ public partial class ascendex : Exchange
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -2093,7 +2095,7 @@ public partial class ascendex : Exchange
         //     ]
         // }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         if (isTrue(isEqual(accountCategory, "futures")))
         {
             return this.parseOrders(data, market, since, limit);
@@ -2108,26 +2110,26 @@ public partial class ascendex : Exchange
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2138,7 +2140,7 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object options = this.safeValue(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "v2PrivateDataGetOrderHist");
         object method = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", defaultMethod },
@@ -2154,7 +2156,7 @@ public partial class ascendex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash"); // margin, futures
         object response = null;
         if (isTrue(isEqual(method, "v1PrivateAccountCategoryGetOrderHistCurrent")))
@@ -2278,28 +2280,28 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (!isTrue(isArray))
         {
-            data = this.safeValue(data, "data", new List<object>() {});
+            data = this.safeList(data, "data", new List<object>() {});
         }
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ascendex#cancelOrder
+     * @description cancels an open order
+     * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#cancelOrder
-        * @description cancels an open order
-        * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2311,10 +2313,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -2406,23 +2408,23 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue2(data, "order", "info", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict2(data, "order", "info", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name ascendex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2434,10 +2436,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -2493,7 +2495,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2519,32 +2523,26 @@ public partial class ascendex : Exchange
         object chainName = this.safeString(depositAddress, "blockchain");
         object network = this.networkIdToCode(chainName, code);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = this.safeDict(this.options, "networksById");
-        return this.safeString(networksById, networkId, networkId);
-    }
-
+    /**
+     * @method
+     * @name ascendex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code for deposit chain
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network] unified network code for deposit chain
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2614,18 +2612,18 @@ public partial class ascendex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "txType", "deposit" },
@@ -2633,18 +2631,18 @@ public partial class ascendex : Exchange
         return await this.fetchTransactions(code, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "txType", "withdrawal" },
@@ -2652,18 +2650,18 @@ public partial class ascendex : Exchange
         return await this.fetchTransactions(code, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2707,8 +2705,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transactions = this.safeValue(data, "data", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object transactions = this.safeList(data, "data", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit);
     }
 
@@ -2743,7 +2741,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object destAddress = this.safeValue(transaction, "destAddress", new Dictionary<string, object>() {});
+        object destAddress = this.safeDict(transaction, "destAddress", new Dictionary<string, object>() {});
         object address = this.safeString(destAddress, "address");
         object tag = this.safeString(destAddress, "destTag");
         object timestamp = this.safeInteger(transaction, "time");
@@ -2780,20 +2778,20 @@ public partial class ascendex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchPositions
+     * @description fetch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchPositions
-        * @description fetch all open positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -2838,8 +2836,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object position = this.safeValue(data, "contracts", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object position = this.safeList(data, "contracts", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
         {
@@ -2880,7 +2878,8 @@ public partial class ascendex : Exchange
         {
             notional = this.safeString(position, "sellOpenOrderNotional");
         }
-        object marginMode = this.safeString(position, "marginType");
+        object marginType = this.safeString(position, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
         object collateral = null;
         if (isTrue(isEqual(marginMode, "isolated")))
         {
@@ -2953,19 +2952,20 @@ public partial class ascendex : Exchange
             { "fundingRate", nextFundingRate },
             { "fundingTimestamp", nextFundingRateTimestamp },
             { "fundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchFundingRates
-        * @description fetch the funding rate for multiple markets
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2994,8 +2994,8 @@ public partial class ascendex : Exchange
         //          }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object contracts = this.safeValue(data, "contracts", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object contracts = this.safeList(data, "contracts", new List<object>() {});
         object result = this.parseFundingRates(contracts);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -3006,7 +3006,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         await this.loadAccounts();
         object market = this.market(symbol);
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         amount = this.amountToPrecision(symbol, amount);
         object request = new Dictionary<string, object>() {
@@ -3032,62 +3032,73 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", getValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", getValue(market, "quote") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
+    /**
+     * @method
+     * @name ascendex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#reduceMargin
-        * @description remove margin from a position
-        * @param {string} symbol unified market symbol
-        * @param {float} amount the amount of margin to remove
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), "reduce", parameters);
     }
 
+    /**
+     * @method
+     * @name ascendex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#addMargin
-        * @description add margin
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
+    /**
+     * @method
+     * @name ascendex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3104,7 +3115,7 @@ public partial class ascendex : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setLeverage() supports swap contracts only")) ;
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3114,18 +3125,18 @@ public partial class ascendex : Exchange
         return await this.v2PrivateAccountGroupPostFuturesLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name ascendex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
-        * @param {string} marginMode 'cross' or 'isolated'
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3143,7 +3154,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         await this.loadAccounts();
         object market = this.market(symbol);
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3157,16 +3168,16 @@ public partial class ascendex : Exchange
         return await this.v2PrivateAccountGroupPostFuturesMarginType(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PublicGetFuturesContract(parameters);
@@ -3198,7 +3209,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
@@ -3232,9 +3243,9 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        object marginRequirements = this.safeValue(info, "marginRequirements", new List<object>() {});
-        object id = this.safeString(info, "symbol");
-        market = this.safeMarket(id, market);
+        object marginRequirements = this.safeList(info, "marginRequirements", new List<object>() {});
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marginRequirements)); postFixIncrement(ref i))
         {
@@ -3242,6 +3253,7 @@ public partial class ascendex : Exchange
             object initialMarginRate = this.safeString(tier, "initialMarginRate");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "positionNotionalLowerBound") },
                 { "maxNotional", this.safeNumber(tier, "positionNotionalUpperBound") },
@@ -3274,7 +3286,7 @@ public partial class ascendex : Exchange
         //     ]
         // }
         //
-        object blockChains = this.safeValue(fee, "blockChain", new List<object>() {});
+        object blockChains = this.safeList(fee, "blockChain", new List<object>() {});
         object blockChainsLength = getArrayLength(blockChains);
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -3313,45 +3325,44 @@ public partial class ascendex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PublicGetAssets(parameters);
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "assetCode");
     }
 
+    /**
+     * @method
+     * @name ascendex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @param {string} code unified currency codeåå
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         if (isTrue(isTrue(!isEqual(fromId, "cash")) && isTrue(!isEqual(toId, "cash"))))
@@ -3360,7 +3371,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3369,7 +3380,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         object transfer = this.parseTransfer(response, currency);
         if (isTrue(fillResponseFromRequest))
@@ -3387,7 +3398,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3404,27 +3415,27 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }
         return "failed";
     }
 
+    /**
+     * @method
+     * @name ascendex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ascendex#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
-        * @param {string} [symbol] unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
@@ -3436,7 +3447,7 @@ public partial class ascendex : Exchange
         {
             return await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 25);
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3470,8 +3481,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "data", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "data", new List<object>() {});
         return this.parseIncomes(rows, market, since, limit);
     }
 
@@ -3495,6 +3506,161 @@ public partial class ascendex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "id", null },
             { "amount", this.safeNumber(income, "paymentInUSDT") },
+        };
+    }
+
+    /**
+     * @method
+     * @name ascendex#fetchMarginModes
+     * @description fetches the set margin mode of the user
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadAccounts();
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
+        object request = new Dictionary<string, object>() {
+            { "account-group", accountGroup },
+        };
+        object response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object marginModes = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseMarginModes(marginModes, symbols, "symbol");
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marketId = this.safeString(marginMode, "symbol");
+        object marginType = this.safeString(marginMode, "marginType");
+        object margin = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", margin },
+        };
+    }
+
+    /**
+     * @method
+     * @name ascendex#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadAccounts();
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
+        object request = new Dictionary<string, object>() {
+            { "account-group", accountGroup },
+        };
+        object response = await this.v2PrivateAccountGroupGetFuturesPosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "balance": "44.570287262",
+        //                     "referencePrice": "1",
+        //                     "discountFactor": "1"
+        //                 }
+        //             ],
+        //             "contracts": [
+        //                 {
+        //                     "symbol": "BTC-PERP",
+        //                     "side": "LONG",
+        //                     "position": "0.0001",
+        //                     "referenceCost": "-3.12277254",
+        //                     "unrealizedPnl": "-0.001700233",
+        //                     "realizedPnl": "0",
+        //                     "avgOpenPrice": "31209",
+        //                     "marginType": "isolated",
+        //                     "isolatedMargin": "1.654972977",
+        //                     "leverage": "2",
+        //                     "takeProfitPrice": "0",
+        //                     "takeProfitTrigger": "market",
+        //                     "stopLossPrice": "0",
+        //                     "stopLossTrigger": "market",
+        //                     "buyOpenOrderNotional": "0",
+        //                     "sellOpenOrderNotional": "0",
+        //                     "markPrice": "31210.723063672",
+        //                     "indexPrice": "31223.148857925"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object leverages = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        object leverageValue = this.safeInteger(leverage, "leverage");
+        object marginType = this.safeString(leverage, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", marginMode },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
         };
     }
 

@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Int, Market, OrderBook, Ticker, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -17,6 +17,7 @@ export default class coinone extends coinoneRest {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': true,
                 'watchTickers': false,
@@ -49,22 +50,22 @@ export default class coinone extends coinoneRest {
         });
     }
 
+    /**
+     * @method
+     * @name coinone#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinone.co.kr/reference/public-websocket-orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name coinone#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.coinone.co.kr/reference/public-websocket-orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'ORDERBOOK',
             'topic': {
@@ -132,21 +133,21 @@ export default class coinone extends coinoneRest {
         bookside.storeArray (bidAsk);
     }
 
+    /**
+     * @method
+     * @name coinone#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name coinone#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TICKER',
             'topic': {
@@ -253,23 +254,23 @@ export default class coinone extends coinoneRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinone#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.coinone.co.kr/reference/public-websocket-trade
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name coinone#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://docs.coinone.co.kr/reference/public-websocket-trade
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TRADE',
             'topic': {
@@ -315,7 +316,7 @@ export default class coinone extends coinoneRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "quote_currency": "KRW",
@@ -384,7 +385,7 @@ export default class coinone extends coinoneRest {
         }
         if (type === 'DATA') {
             const topic = this.safeString (message, 'channel', '');
-            const methods = {
+            const methods: Dict = {
                 'ORDERBOOK': this.handleOrderBook,
                 'TICKER': this.handleTicker,
                 'TRADE': this.handleTrades,
@@ -406,7 +407,7 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'request_type': 'PING',
         };

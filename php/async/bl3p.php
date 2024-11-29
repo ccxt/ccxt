@@ -60,8 +60,11 @@ class bl3p extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -78,7 +81,7 @@ class bl3p extends Exchange {
                 'ws' => false,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/75aeb14e-cd48-43c8-8492-dff002dea0be',
                 'api' => array(
                     'rest' => 'https://api.bl3p.eu',
                 ),
@@ -145,7 +148,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -168,7 +173,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#22---$orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -178,13 +185,13 @@ class bl3p extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketOrderbook (array_merge($request, $params)));
-            $orderbook = $this->safe_value($response, 'data');
+            $response = Async\await($this->publicGetMarketOrderbook ($this->extend($request, $params)));
+            $orderbook = $this->safe_dict($response, 'data');
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "currency":"BTC",
@@ -232,7 +239,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#21---$ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -241,7 +250,7 @@ class bl3p extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetMarketTicker (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetMarketTicker ($this->extend($request, $params)));
             //
             // {
             //     "currency":"BTC",
@@ -261,7 +270,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -298,7 +307,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/public_api/http.md#23---last-1000-trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -306,7 +317,7 @@ class bl3p extends Exchange {
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             $market = $this->market($symbol);
-            $response = Async\await($this->publicGetMarketTrades (array_merge(array(
+            $response = Async\await($this->publicGetMarketTrades ($this->extend(array(
                 'market' => $market['id'],
             ), $params)));
             //
@@ -328,11 +339,13 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#35---get-account-info--balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
@@ -389,12 +402,14 @@ class bl3p extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-$order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
@@ -414,7 +429,7 @@ class bl3p extends Exchange {
             if ($type === 'limit') {
                 $order['price_int'] = intval(Precise::string_mul($priceString, '100000.0'));
             }
-            $response = Async\await($this->privatePostMarketMoneyOrderAdd (array_merge($order, $params)));
+            $response = Async\await($this->privatePostMarketMoneyOrderAdd ($this->extend($order, $params)));
             $orderId = $this->safe_string($response['data'], 'order_id');
             return $this->safe_order(array(
                 'info' => $response,
@@ -427,7 +442,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#22---cancel-an-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -436,7 +453,13 @@ class bl3p extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            return Async\await($this->privatePostMarketMoneyOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostMarketMoneyOrderCancel ($this->extend($request, $params)));
+            //
+            // "success"
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -444,7 +467,9 @@ class bl3p extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
+             *
              * @see https://github.com/BitonicNL/bl3p-api/blob/master/docs/authenticated_api/http.md#32---create-a-new-deposit-address
+             *
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -454,7 +479,7 @@ class bl3p extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostGENMKTMoneyNewDepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGENMKTMoneyNewDepositAddress ($this->extend($request, $params)));
             //
             //    {
             //        "result" => "success",
@@ -496,7 +521,7 @@ class bl3p extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode($this->extend(array( 'nonce' => $nonce ), $query));
             $secret = base64_decode($this->secret);
             // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;

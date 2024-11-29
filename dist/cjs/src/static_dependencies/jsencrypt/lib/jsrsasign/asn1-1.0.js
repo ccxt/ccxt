@@ -5,8 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var jsbn = require('../jsbn/jsbn.js');
 var yahoo = require('./yahoo.js');
 
-/* asn1-1.0.13.js (c) 2013-2017 Kenji Urushima | kjur.github.com/jsrsasign/license
- */
+// @ts-nocheck
 /**
  * @fileOverview
  * @name asn1-1.0.js
@@ -30,6 +29,32 @@ var yahoo = require('./yahoo.js');
  * @name KJUR
  * @namespace kjur's class library name space
  */
+// interface kjur_interface {
+//     asn1: {
+//         ASN1Object: any;
+//         ASN1Util: any;
+//         DERAbstractString: any;
+//         DERAbstractStructured: any;
+//         DERAbstractTime: any;
+//         DERBitString: any;
+//         DERBoolean: any;
+//         DEREnumerated: any;
+//         DERGeneralizedTime: any;
+//         DERIA5String: any;
+//         DERInteger: any;
+//         DERNull: any;
+//         DERNumericString: any;
+//         DERObjectIdentifier: any;
+//         DEROctetString: any;
+//         DERPrintableString: any;
+//         DERSequence: any;
+//         DERSet: any;
+//         DERTaggedObject: any;
+//         DERTeletexString: any;
+//         DERUTCTime: any;
+//         DERUTF8String: any;
+//     } 
+// };
 var KJUR = {};
 /**
  * kjur's ASN.1 class library name space

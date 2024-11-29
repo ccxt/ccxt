@@ -29,32 +29,52 @@ public partial class zonda : Exchange
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", null },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchPosition", false },
@@ -62,6 +82,7 @@ public partial class zonda : Exchange
                 { "fetchPositions", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", false },
@@ -72,9 +93,13 @@ public partial class zonda : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", null },
                 { "fetchTransfer", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", null },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -123,8 +148,8 @@ public partial class zonda : Exchange
                     { "get", new List<object>() {"trading/ticker", "trading/ticker/{symbol}", "trading/stats", "trading/stats/{symbol}", "trading/orderbook/{symbol}", "trading/transactions/{symbol}", "trading/candle/history/{symbol}/{resolution}"} },
                 } },
                 { "v1_01Private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history"} },
-                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat"} },
+                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history", "client_payments/v2/customer/crypto/{currency}/channels/deposit", "client_payments/v2/customer/crypto/{currency}/channels/withdrawal", "client_payments/v2/customer/crypto/deposit/fee", "client_payments/v2/customer/crypto/withdrawal/fee"} },
+                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat", "client_payments/v2/customer/crypto/deposit", "client_payments/v2/customer/crypto/withdrawal"} },
                     { "delete", new List<object>() {"trading/offer/{symbol}/{id}/{side}/{price}", "trading/stop/offer/{symbol}/{id}/{side}/{price}"} },
                     { "put", new List<object>() {"balances/BITBAY/balance/{id}"} },
                 } },
@@ -196,16 +221,16 @@ public partial class zonda : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name zonda#fetchMarkets
+     * @see https://docs.zondacrypto.exchange/reference/ticker-1
+     * @description retrieves data on all markets for zonda
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchMarkets
-        * @see https://docs.zondacrypto.exchange/reference/ticker-1
-        * @description retrieves data on all markets for zonda
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1_01PublicGetTradingTicker(parameters);
         //
@@ -302,24 +327,24 @@ public partial class zonda : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name zonda#fetchOpenOrders
+     * @see https://docs.zondacrypto.exchange/reference/active-orders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol not used by zonda fetchOpenOrders
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchOpenOrders
-        * @see https://docs.zondacrypto.exchange/reference/active-orders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol not used by zonda fetchOpenOrders
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object response = await this.v1_01PrivateGetTradingOffer(this.extend(request, parameters));
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOrders(items, null, since, limit, new Dictionary<string, object>() {
             { "status", "open" },
         });
@@ -344,6 +369,13 @@ public partial class zonda : Exchange
         //         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
         //
         object marketId = this.safeString(order, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
@@ -377,19 +409,19 @@ public partial class zonda : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchMyTrades
+     * @see https://docs.zondacrypto.exchange/reference/transactions-history
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchMyTrades
-        * @see https://docs.zondacrypto.exchange/reference/transactions-history
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -455,34 +487,34 @@ public partial class zonda : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchBalance
+     * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchBalance
-        * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1_01PrivateGetBalancesBITBAYBalance(parameters);
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchOrderBook
+     * @see https://docs.zondacrypto.exchange/reference/orderbook-2
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchOrderBook
-        * @see https://docs.zondacrypto.exchange/reference/orderbook-2
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -588,18 +620,18 @@ public partial class zonda : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchTicker
+     * @description v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
+     * @see https://docs.zondacrypto.exchange/reference/market-statistics
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchTicker
-        * @description v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-        * @see https://docs.zondacrypto.exchange/reference/market-statistics
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -624,19 +656,19 @@ public partial class zonda : Exchange
         return this.parseTicker(stats, market);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name zonda#fetchTickersV2
+     * @description v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
+     * @see https://docs.zondacrypto.exchange/reference/market-statistics
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @name zonda#fetchTickersV2
-        * @description v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-        * @see https://docs.zondacrypto.exchange/reference/market-statistics
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object method = "v1_01PublicGetTradingTicker";
@@ -653,23 +685,23 @@ public partial class zonda : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchTickers params[\"method\"] must be \"v1_01PublicGetTradingTicker\" or \"v1_01PublicGetTradingStats\"")) ;
         }
-        object items = this.safeValue(response, "items");
+        object items = this.safeDict(response, "items");
         return this.parseTickers(items, symbols);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.zondacrypto.exchange/reference/operations-history
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchLedger
-        * @see https://docs.zondacrypto.exchange/reference/operations-history
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object balanceCurrencies = new List<object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -968,6 +1000,7 @@ public partial class zonda : Exchange
         object timestamp = this.safeInteger(item, "time");
         object balance = this.safeValue(item, "balance", new Dictionary<string, object>() {});
         object currencyId = this.safeString(balance, "currency");
+        currency = this.safeCurrency(currencyId, currency);
         object change = this.safeValue(item, "change", new Dictionary<string, object>() {});
         object amount = this.safeString(change, "total");
         object direction = "in";
@@ -980,7 +1013,7 @@ public partial class zonda : Exchange
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
         object fundsBefore = this.safeValue(item, "fundsBefore", new Dictionary<string, object>() {});
         object fundsAfter = this.safeValue(item, "fundsAfter", new Dictionary<string, object>() {});
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "historyId") },
             { "direction", direction },
@@ -996,7 +1029,7 @@ public partial class zonda : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -1039,20 +1072,20 @@ public partial class zonda : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(first, "o"), this.safeNumber(first, "h"), this.safeNumber(first, "l"), this.safeNumber(first, "c"), this.safeNumber(first, "v")};
     }
 
+    /**
+     * @method
+     * @name zonda#fetchOHLCV
+     * @see https://docs.zondacrypto.exchange/reference/candles-chart
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchOHLCV
-        * @see https://docs.zondacrypto.exchange/reference/candles-chart
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1065,6 +1098,9 @@ public partial class zonda : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 11000); // supports up to 11k candles diapason
         }
         object duration = this.parseTimeframe(timeframe);
         object timerange = multiply(multiply(limit, duration), 1000);
@@ -1088,7 +1124,7 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object items = this.safeValue(response, "items", new List<object>() {});
+        object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOHLCVs(items, market, timeframe, since, limit);
     }
 
@@ -1174,19 +1210,19 @@ public partial class zonda : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchTrades
+     * @see https://docs.zondacrypto.exchange/reference/last-transactions
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchTrades
-        * @see https://docs.zondacrypto.exchange/reference/last-transactions
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1203,24 +1239,24 @@ public partial class zonda : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default - 10, max - 300
         }
         object response = await this.v1_01PublicGetTradingTransactionsSymbol(this.extend(request, parameters));
-        object items = this.safeValue(response, "items");
+        object items = this.safeList(response, "items");
         return this.parseTrades(items, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name zonda#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#createOrder
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1343,18 +1379,18 @@ public partial class zonda : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name zonda#cancelOrder
+     * @see https://docs.zondacrypto.exchange/reference/cancel-order
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#cancelOrder
-        * @see https://docs.zondacrypto.exchange/reference/cancel-order
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object side = this.safeString(parameters, "side");
         if (isTrue(isEqual(side, null)))
@@ -1375,9 +1411,10 @@ public partial class zonda : Exchange
             { "side", side },
             { "price", price },
         };
+        object response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public virtual object isFiat(object currency)
@@ -1405,26 +1442,26 @@ public partial class zonda : Exchange
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", address },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
+    /**
+     * @method
+     * @name zonda#fetchDepositAddress
+     * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.walletId] Wallet id to filter deposit adresses.
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchDepositAddress
-        * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.walletId] Wallet id to filter deposit adresses.
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1446,21 +1483,21 @@ public partial class zonda : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        object first = this.safeValue(data, 0);
+        object first = this.safeDict(data, 0);
         return this.parseDepositAddress(first, currency);
     }
 
+    /**
+     * @method
+     * @name zonda#fetchDepositAddresses
+     * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @param {string[]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#fetchDepositAddresses
-        * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
-        * @description fetch deposit addresses for multiple currencies and chain types
-        * @param {string[]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(parameters);
@@ -1477,24 +1514,24 @@ public partial class zonda : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositAddresses(data, codes);
     }
 
+    /**
+     * @method
+     * @name zonda#transfer
+     * @see https://docs.zondacrypto.exchange/reference/internal-transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#transfer
-        * @see https://docs.zondacrypto.exchange/reference/internal-transfer
-        * @description transfer currency internally between wallets on the same account
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1601,20 +1638,20 @@ public partial class zonda : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name zonda#withdraw
+     * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name zonda#withdraw
-        * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1648,7 +1685,7 @@ public partial class zonda : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseTransaction(data, currency);
     }
 

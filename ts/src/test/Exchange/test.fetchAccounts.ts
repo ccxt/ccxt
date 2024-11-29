@@ -1,11 +1,12 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testAccount from './base/test.account.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchAccounts (exchange, skippedProperties) {
+async function testFetchAccounts (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchAccounts';
     const accounts = await exchange.fetchAccounts ();
-    assert (Array.isArray (accounts), exchange.id + ' ' + method + ' must return an object. ' + exchange.json (accounts));
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, accounts);
     for (let i = 0; i < accounts.length; i++) {
         testAccount (exchange, skippedProperties, method, accounts[i]);
     }

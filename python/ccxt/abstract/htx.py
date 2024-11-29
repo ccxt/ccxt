@@ -193,6 +193,7 @@ class ImplicitAPI:
     spot_private_post_v2_sub_user_api_key_modification = spotPrivatePostV2SubUserApiKeyModification = Entry('v2/sub-user/api-key-modification', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_v2_sub_user_api_key_deletion = spotPrivatePostV2SubUserApiKeyDeletion = Entry('v2/sub-user/api-key-deletion', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_v1_subuser_transfer = spotPrivatePostV1SubuserTransfer = Entry('v1/subuser/transfer', ['spot', 'private'], 'POST', {'cost': 10})
+    spot_private_post_v1_trust_user_active_credit = spotPrivatePostV1TrustUserActiveCredit = Entry('v1/trust/user/active/credit', ['spot', 'private'], 'POST', {'cost': 10})
     spot_private_post_v1_order_orders_place = spotPrivatePostV1OrderOrdersPlace = Entry('v1/order/orders/place', ['spot', 'private'], 'POST', {'cost': 0.2})
     spot_private_post_v1_order_batch_orders = spotPrivatePostV1OrderBatchOrders = Entry('v1/order/batch-orders', ['spot', 'private'], 'POST', {'cost': 0.4})
     spot_private_post_v1_order_auto_place = spotPrivatePostV1OrderAutoPlace = Entry('v1/order/auto/place', ['spot', 'private'], 'POST', {'cost': 0.2})

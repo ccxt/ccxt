@@ -98,8 +98,14 @@ interface Exchange {
     privateUnifiedGetLoanRecords (params?: {}): Promise<implicitReturnType>;
     privateUnifiedGetInterestRecords (params?: {}): Promise<implicitReturnType>;
     privateUnifiedGetEstimateRate (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetCurrencyDiscountTiers (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetRiskUnits (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetUnifiedMode (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetLoanMarginTiers (params?: {}): Promise<implicitReturnType>;
     privateUnifiedPostAccountMode (params?: {}): Promise<implicitReturnType>;
     privateUnifiedPostLoans (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedPostPortfolioCalculator (params?: {}): Promise<implicitReturnType>;
+    privateUnifiedPutUnifiedMode (params?: {}): Promise<implicitReturnType>;
     privateSpotGetFee (params?: {}): Promise<implicitReturnType>;
     privateSpotGetBatchFee (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts (params?: {}): Promise<implicitReturnType>;

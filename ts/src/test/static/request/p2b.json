@@ -1,6 +1,10 @@
 {
     "exchange": "p2b",
-    "skipKeys": ["nonce", "startTime", "endTime"],
+    "skipKeys": [
+        "nonce",
+        "startTime",
+        "endTime"
+    ],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -9,11 +13,11 @@
                 "method": "createOrder",
                 "url": "https://api.p2pb2b.com/api/v2/order/new",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "buy",
-                  0.1,
-                  55
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    55
                 ],
                 "output": "{\"market\":\"LTC_USDT\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"55\",\"request\":\"/api/v2/order/new\",\"nonce\":\"1700046291\"}"
             },
@@ -22,11 +26,11 @@
                 "method": "createOrder",
                 "url": "https://api.p2pb2b.com/api/v2/order/new",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "sell",
-                  0.1,
-                  100
+                    "LTC/USDT",
+                    "limit",
+                    "sell",
+                    0.1,
+                    100
                 ],
                 "output": "{\"market\":\"LTC_USDT\",\"side\":\"sell\",\"amount\":\"0.1\",\"price\":\"100\",\"request\":\"/api/v2/order/new\",\"nonce\":\"1700046477\"}"
             }
@@ -37,8 +41,8 @@
                 "method": "cancelOrder",
                 "url": "https://api.p2pb2b.com/api/v2/order/cancel",
                 "input": [
-                  "175340201831",
-                  "LTC/USDT"
+                    "175340201831",
+                    "LTC/USDT"
                 ],
                 "output": "{\"market\":\"LTC_USDT\",\"orderId\":\"175340201831\",\"request\":\"/api/v2/order/cancel\",\"nonce\":\"1700046336\"}"
             }
@@ -49,7 +53,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.p2pb2b.com/api/v2/account/market_deal_history",
                 "input": [
-                  "LTC/USDT"
+                    "LTC/USDT"
                 ],
                 "output": "{\"market\":\"LTC_USDT\",\"startTime\":1699960007,\"endTime\":1700046407,\"request\":\"/api/v2/account/market_deal_history\",\"nonce\":\"1700046407\"}"
             }
@@ -61,6 +65,49 @@
                 "url": "https://api.p2pb2b.com/api/v2/account/balances",
                 "input": [],
                 "output": "{\"request\":\"/api/v2/account/balances\",\"nonce\":\"1700046634\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.p2pb2b.com/api/v2/public/depth/result?market=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.p2pb2b.com/api/v2/public/ticker?market=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.p2pb2b.com/api/v2/public/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.p2pb2b.com/api/v2/public/market/kline?market=BTC_USDT&interval=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ]
     }

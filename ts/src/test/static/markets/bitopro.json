@@ -446,5 +446,116 @@
         },
         "uppercaseId": "SOL_USDT",
         "derivative": false
+    },
+    "ETH/USDT": {
+        "id": "eth_usdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.002,
+        "maker": 0.001,
+        "precision": {
+            "price": 0.01,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 100000000
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "pair": "eth_usdt",
+            "base": "eth",
+            "quote": "usdt",
+            "basePrecision": "8",
+            "quotePrecision": "2",
+            "minLimitBaseAmount": "0.0001",
+            "maxLimitBaseAmount": "100000000",
+            "minMarketBuyQuoteAmount": "0.5",
+            "orderOpenLimit": "200",
+            "maintain": false,
+            "orderBookQuotePrecision": "2",
+            "orderBookQuoteScaleLevel": "5",
+            "amountPrecision": "4"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    3000000,
+                    0.00194
+                ],
+                [
+                    5000000,
+                    0.0015
+                ],
+                [
+                    30000000,
+                    0.0014
+                ],
+                [
+                    300000000,
+                    0.0013
+                ],
+                [
+                    550000000,
+                    0.0012
+                ],
+                [
+                    1300000000,
+                    0.0011
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    3000000,
+                    0.00097
+                ],
+                [
+                    5000000,
+                    0.0007
+                ],
+                [
+                    30000000,
+                    0.0006
+                ],
+                [
+                    300000000,
+                    0.0005
+                ],
+                [
+                    550000000,
+                    0.0004
+                ],
+                [
+                    1300000000,
+                    0.0003
+                ]
+            ]
+        },
+        "uppercaseId": "ETH_USDT"
     }
 }

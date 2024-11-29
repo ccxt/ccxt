@@ -5,9 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Order, TransferEntry, OrderBook, OrderSide, OrderType, Str, Bool, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,7 +17,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -29,7 +29,7 @@ class bigone(Exchange, ImplicitAPI):
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,  # 500 request per 10 minutes
+            'rateLimit': 20,  # 500 requests per 10 seconds
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -51,8 +51,13 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -87,7 +92,7 @@ class bigone(Exchange, ImplicitAPI):
             },
             'hostname': 'big.one',  # or 'bigone.com'
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
@@ -167,7 +172,7 @@ class bigone(Exchange, ImplicitAPI):
                 },
                 'webExchange': {
                     'get': [
-                        'uc/v2/assets',
+                        'v3/assets',
                     ],
                 },
             },
@@ -339,14 +344,14 @@ class bigone(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', True)
+        data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
             return None
         #
@@ -355,105 +360,54 @@ class bigone(Exchange, ImplicitAPI):
         #     "message": "",
         #     "data": [
         #       {
-        #         "name": "TetherUS",
-        #         "symbol": "USDT",
-        #         "contract_address": "31",
-        #         "is_deposit_enabled": True,
-        #         "is_withdrawal_enabled": True,
-        #         "is_stub": False,
-        #         "withdrawal_fee": "5.0",
-        #         "is_fiat": False,
-        #         "is_memo_required": False,
-        #         "logo": {
-        #           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        #           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        #             "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        #             "symbol": "USDT",
+        #             "name": "TetherUS",
+        #             "scale": 12,
+        #             "is_fiat": False,
+        #             "is_transfer_enabled": True,
+        #             "transfer_scale": 12,
+        #             "binding_gateways": [
+        #                 {
+        #                     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        #                     "is_deposit_enabled": True,
+        #                     "gateway_name": "Ethereum",
+        #                     "min_withdrawal_amount": "0.000001",
+        #                     "withdrawal_fee": "5.71",
+        #                     "is_withdrawal_enabled": True,
+        #                     "min_deposit_amount": "0.000001",
+        #                     "is_memo_required": False,
+        #                     "withdrawal_scale": 6,
+        #                     "scale": 12
+        #                 },
+        #                 {
+        #                     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        #                     "is_deposit_enabled": True,
+        #                     "gateway_name": "BinanceSmartChain",
+        #                     "min_withdrawal_amount": "10",
+        #                     "withdrawal_fee": "5",
+        #                     "is_withdrawal_enabled": False,
+        #                     "min_deposit_amount": "1",
+        #                     "is_memo_required": False,
+        #                     "withdrawal_scale": 8,
+        #                     "scale": 12
+        #                 }
+        #             ]
         #         },
-        #         "info_link": null,
-        #         "scale": "12",
-        #         "default_gateway": ...,  # one object from "gateways"
-        #         "gateways": [
-        #           {
-        #             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        #             "name": "Mixin",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "0",
-        #           },
-        #           {
-        #             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #             "name": "Ethereum",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "18",
-        #           },
-        #           {
-        #             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #             "name": "Tron",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "1",
-        #           },
-        #          ...
-        #         ],
-        #         "payments": [],
-        #         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        #         "binding_gateways": [
-        #           {
-        #             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        #             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        #             "is_deposit_enabled": True,
-        #             "display_name": "Ethereum(ERC20)",
-        #             "gateway_name": "Ethereum",
-        #             "min_withdrawal_amount": "0.000001",
-        #             "min_internal_withdrawal_amount": "0.00000001",
-        #             "withdrawal_fee": "14",
-        #             "is_withdrawal_enabled": True,
-        #             "min_deposit_amount": "0.000001",
-        #             "is_memo_required": False,
-        #             "withdrawal_scale": "2",
-        #             "gateway": {
-        #               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #               "name": "Ethereum",
-        #               "kind": "CHAIN",
-        #               "required_confirmations": "18",
-        #             },
-        #             "scale": "12",
-        #          },
-        #          {
-        #             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        #             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        #             "is_deposit_enabled": True,
-        #             "display_name": "Tron(TRC20)",
-        #             "gateway_name": "Tron",
-        #             "min_withdrawal_amount": "0.000001",
-        #             "min_internal_withdrawal_amount": "0.00000001",
-        #             "withdrawal_fee": "1",
-        #             "is_withdrawal_enabled": True,
-        #             "min_deposit_amount": "0.000001",
-        #             "is_memo_required": False,
-        #             "withdrawal_scale": "6",
-        #             "gateway": {
-        #               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #               "name": "Tron",
-        #               "kind": "CHAIN",
-        #               "required_confirmations": "1",
-        #             },
-        #             "scale": "12",
-        #           },
-        #           ...
-        #         ],
-        #       },
         #       ...
         #     ],
         # }
         #
-        currenciesData = self.safe_value(data, 'data', [])
-        result = {}
+        currenciesData = self.safe_list(data, 'data', [])
+        result: dict = {}
         for i in range(0, len(currenciesData)):
             currency = currenciesData[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            type = 'fiat' if self.safe_value(currency, 'is_fiat') else 'crypto'
-            networks = {}
-            chains = self.safe_value(currency, 'binding_gateways', [])
+            type = 'fiat' if self.safe_bool(currency, 'is_fiat') else 'crypto'
+            networks: dict = {}
+            chains = self.safe_list(currency, 'binding_gateways', [])
             currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
             currencyDepositEnabled: Bool = None
             currencyWithdrawEnabled: Bool = None
@@ -461,8 +415,8 @@ class bigone(Exchange, ImplicitAPI):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'gateway_name')
                 networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_value(chain, 'is_deposit_enabled')
-                withdraw = self.safe_value(chain, 'is_withdrawal_enabled')
+                deposit = self.safe_bool(chain, 'is_deposit_enabled')
+                withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
                 isActive = (deposit and withdraw)
                 minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
                 minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
@@ -518,10 +472,12 @@ class bigone(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bigone
-        :see: https://open.big.one/docs/spot_asset_pair.html
+
+        https://open.big.one/docs/spot_asset_pair.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -581,12 +537,12 @@ class bigone(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseAsset = self.safe_value(market, 'base_asset', {})
-            quoteAsset = self.safe_value(market, 'quote_asset', {})
+            baseAsset = self.safe_dict(market, 'base_asset', {})
+            quoteAsset = self.safe_dict(market, 'quote_asset', {})
             baseId = self.safe_string(baseAsset, 'symbol')
             quoteId = self.safe_string(quoteAsset, 'symbol')
             base = self.safe_currency_code(baseId)
@@ -650,7 +606,7 @@ class bigone(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
-            inverse = self.safe_value(market, 'isInverse')
+            inverse = self.safe_bool(market, 'isInverse')
             result.append(self.safe_market_structure({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
@@ -666,7 +622,7 @@ class bigone(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'active': self.safe_value(market, 'enable'),
+                'active': self.safe_bool(market, 'enable'),
                 'contract': True,
                 'linear': not inverse,
                 'inverse': inverse,
@@ -701,7 +657,7 @@ class bigone(Exchange, ImplicitAPI):
             }))
         return result
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -752,8 +708,8 @@ class bigone(Exchange, ImplicitAPI):
         marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
         close = self.safe_string_2(ticker, 'close', 'latestPrice')
-        bid = self.safe_value(ticker, 'bid', {})
-        ask = self.safe_value(ticker, 'ask', {})
+        bid = self.safe_dict(ticker, 'bid', {})
+        ask = self.safe_dict(ticker, 'ask', {})
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -774,13 +730,17 @@ class bigone(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
             'quoteVolume': self.safe_string(ticker, 'volume24hInUsd'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://open.big.one/docs/spot_tickers.html
+
+        https://open.big.one/docs/spot_tickers.html
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -790,7 +750,7 @@ class bigone(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchTicker', market, params)
         if type == 'spot':
-            request = {
+            request: dict = {
                 'asset_pair_name': market['id'],
             }
             response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
@@ -810,7 +770,7 @@ class bigone(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            ticker = self.safe_value(response, 'data', {})
+            ticker = self.safe_dict(response, 'data', {})
             return self.parse_ticker(ticker, market)
         else:
             tickers = self.fetch_tickers([symbol], params)
@@ -819,7 +779,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://open.big.one/docs/spot_tickers.html
+
+        https://open.big.one/docs/spot_tickers.html
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -832,7 +794,7 @@ class bigone(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         isSpot = type == 'spot'
-        request = {}
+        request: dict = {}
         symbols = self.market_symbols(symbols)
         data = None
         if isSpot:
@@ -867,7 +829,7 @@ class bigone(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         else:
             data = self.contractPublicGetInstruments(params)
             #
@@ -901,7 +863,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://open.big.one/docs/spot_ping.html
+
+        https://open.big.one/docs/spot_ping.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -913,14 +877,16 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'Timestamp')
         return self.parse_to_int(timestamp / 1000000)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
+        https://open.big.one/docs/contract_misc.html#get-orderbook-snapshot
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -930,7 +896,7 @@ class bigone(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         if market['contract']:
-            request = {
+            request: dict = {
                 'symbol': market['id'],
             }
             response = self.contractPublicGetDepthSymbolSnapshot(self.extend(request, params))
@@ -963,7 +929,7 @@ class bigone(Exchange, ImplicitAPI):
             #
             return self.parse_contract_order_book(response, market['symbol'], limit)
         else:
-            request = {
+            request: dict = {
                 'asset_pair_name': market['id'],
             }
             if limit is not None:
@@ -983,7 +949,7 @@ class bigone(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            orderbook = self.safe_value(response, 'data', {})
+            orderbook = self.safe_dict(response, 'data', {})
             return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_contract_bids_asks(self, bidsAsks):
@@ -1009,7 +975,7 @@ class bigone(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1078,7 +1044,7 @@ class bigone(Exchange, ImplicitAPI):
         elif takerOrderId is not None:
             orderId = takerOrderId
         id = self.safe_string(trade, 'id')
-        result = {
+        result: dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1135,7 +1101,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://open.big.one/docs/spot_asset_pair_trade.html
+
+        https://open.big.one/docs/spot_asset_pair_trade.html
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1146,7 +1114,7 @@ class bigone(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['contract']:
             raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],
         }
         response = self.publicGetAssetPairsAssetPairNameTrades(self.extend(request, params))
@@ -1171,7 +1139,7 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1197,7 +1165,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://open.big.one/docs/spot_asset_pair_candle.html
+
+        https://open.big.one/docs/spot_asset_pair_candle.html
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1211,7 +1181,7 @@ class bigone(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         if limit is None:
             limit = 100  # default 100, max 500
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
@@ -1245,16 +1215,16 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
         }
-        balances = self.safe_value(response, 'data', [])
+        balances = self.safe_list(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             symbol = self.safe_string(balance, 'asset_symbol')
@@ -1268,8 +1238,10 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://open.big.one/docs/fund_accounts.html
-        :see: https://open.big.one/docs/spot_accounts.html
+
+        https://open.big.one/docs/fund_accounts.html
+        https://open.big.one/docs/spot_accounts.html
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1294,7 +1266,7 @@ class bigone(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_type(self, type: str):
-        types = {
+        types: dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
@@ -1302,7 +1274,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "id": "42154072251",
@@ -1334,7 +1306,7 @@ class bigone(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string(order, 'stop_price')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
-        immediateOrCancel = self.safe_value(order, 'immediate_or_cancel')
+        immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
         timeInForce = None
         if immediateOrCancel:
             timeInForce = 'IOC'
@@ -1358,7 +1330,7 @@ class bigone(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': self.safe_value(order, 'post_only'),
+            'postOnly': self.safe_bool(order, 'post_only'),
             'side': side,
             'price': price,
             'stopPrice': triggerPrice,
@@ -1376,7 +1348,9 @@ class bigone(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://open.big.one/docs/spot_orders.html#create-order
+
+        https://open.big.one/docs/spot_orders.html#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1389,24 +1363,26 @@ class bigone(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://open.big.one/docs/spot_orders.html#create-order
+
+        https://open.big.one/docs/spot_orders.html#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-        :param str operator: *stop order only* GTE or LTE(default)
-        :param str client_order_id: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+
+ EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.operator]: *stop order only* GTE or LTE(default)
+        :param str [params.client_order_id]: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1419,7 +1395,7 @@ class bigone(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
@@ -1464,7 +1440,10 @@ class bigone(Exchange, ImplicitAPI):
             elif uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_MARKET'
         request['type'] = uppercaseType
-        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce'])
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId'])
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {
@@ -1480,20 +1459,22 @@ class bigone(Exchange, ImplicitAPI):
         #        "updated_at":"2019-01-29T06:05:56Z"
         #    }
         #
-        order = self.safe_value(response, 'data')
+        order = self.safe_dict(response, 'data')
         return self.parse_order(order, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://open.big.one/docs/spot_orders.html#cancel-order
+
+        https://open.big.one/docs/spot_orders.html#cancel-order
+
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {'id': id}
+        request: dict = {'id': id}
         response = self.privatePostOrdersIdCancel(self.extend(request, params))
         #    {
         #        "id": 10,
@@ -1507,20 +1488,22 @@ class bigone(Exchange, ImplicitAPI):
         #        "created_at":"2019-01-29T06:05:56Z",
         #        "updated_at":"2019-01-29T06:05:56Z"
         #    }
-        order = self.safe_value(response, 'data')
+        order = self.safe_dict(response, 'data')
         return self.parse_order(order)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
+        https://open.big.one/docs/spot_orders.html#cancel-all-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],
         }
         response = self.privatePostOrdersCancel(self.extend(request, params))
@@ -1536,26 +1519,49 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data', {})
+        cancelled = self.safe_list(data, 'cancelled', [])
+        failed = self.safe_list(data, 'failed', [])
+        result = []
+        for i in range(0, len(cancelled)):
+            orderId = cancelled[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            orderId = failed[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }))
+        return result
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-one-order
+
+        https://open.big.one/docs/spot_orders.html#get-one-order
+
+        :param str id: the order id
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {'id': id}
+        request: dict = {'id': id}
         response = self.privateGetOrdersId(self.extend(request, params))
-        order = self.safe_value(response, 'data', {})
+        order = self.safe_dict(response, 'data', {})
         return self.parse_order(order)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1566,7 +1572,7 @@ class bigone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],
             # 'page_token': 'dxzef',  # request page after self page token
             # 'side': 'ASK',  # 'ASK' or 'BID', optional
@@ -1596,13 +1602,15 @@ class bigone(Exchange, ImplicitAPI):
         #        "page_token":"dxzef",
         #    }
         #
-        orders = self.safe_value(response, 'data', [])
+        orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://open.big.one/docs/spot_trade.html#trades-of-user
+
+        https://open.big.one/docs/spot_trade.html#trades-of-user
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1613,7 +1621,7 @@ class bigone(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'asset_pair_name': market['id'],
             # 'page_token': 'dxzef',  # request page after self page token
         }
@@ -1654,11 +1662,11 @@ class bigone(Exchange, ImplicitAPI):
         #         "page_token":"dxfv"
         #     }
         #
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1668,14 +1676,16 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'state': 'PENDING',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1683,14 +1693,16 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
+        https://open.big.one/docs/spot_orders.html#get-user-orders-in-one-asset-pair
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'state': 'FILLED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1710,7 +1722,7 @@ class bigone(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            request = {
+            request: dict = {
                 'type': 'OpenAPIV2',
                 'sub': self.apiKey,
                 'nonce': nonce,
@@ -1723,21 +1735,23 @@ class bigone(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
-                body = query
+                body = self.json(query)
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
+        https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset_symbol': currency['id'],
         }
         networkCode, paramsOmitted = self.handle_network_code_and_params(params)
@@ -1759,26 +1773,26 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         dataLength = len(data)
         if dataLength < 1:
             raise ExchangeError(self.id + ' fetchDepositAddress() returned empty address response')
         chainsIndexedById = self.index_by(data, 'chain')
         selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
-        addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
+        addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
         address = self.safe_string(addressObject, 'value')
         tag = self.safe_string(addressObject, 'memo')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': self.network_id_to_code(selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(selectedNetworkId),
-            'info': response,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits
             'UNCONFIRMED': 'pending',
@@ -1788,7 +1802,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1851,7 +1865,7 @@ class bigone(Exchange, ImplicitAPI):
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
         type = 'withdrawal' if ('customer_id' in transaction) else 'deposit'
-        internal = self.safe_value(transaction, 'is_internal')
+        internal = self.safe_bool(transaction, 'is_internal')
         return {
             'info': transaction,
             'id': id,
@@ -1878,7 +1892,9 @@ class bigone(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
+        https://open.big.one/docs/spot_deposit.html#deposit-of-user
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1886,7 +1902,7 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'page_token': 'dxzef',  # request page after self page token
             # 'limit': 50,  # optional, default 50
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -1920,13 +1936,15 @@ class bigone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        deposits = self.safe_value(response, 'data', [])
+        deposits = self.safe_list(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
+        https://open.big.one/docs/spot_withdrawal.html#get-withdrawals-of-user
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1934,7 +1952,7 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'page_token': 'dxzef',  # request page after self page token
             # 'limit': 50,  # optional, default 50
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -1968,13 +1986,15 @@ class bigone(Exchange, ImplicitAPI):
         #         "page_token":"dxvf"
         #     }
         #
-        withdrawals = self.safe_value(response, 'data', [])
+        withdrawals = self.safe_list(response, 'data', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
+        https://open.big.one/docs/spot_transfer.html#transfer-of-user
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
@@ -1984,11 +2004,11 @@ class bigone(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         guid = self.safe_string(params, 'guid', self.uuid())
-        request = {
+        request: dict = {
             'symbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'from': fromId,
@@ -2005,7 +2025,7 @@ class bigone(Exchange, ImplicitAPI):
         #     }
         #
         transfer = self.parse_transfer(response, currency)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
+        transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
@@ -2014,14 +2034,14 @@ class bigone(Exchange, ImplicitAPI):
             transfer['id'] = guid
         return transfer
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "code": 0,
         #         "data": null
         #     }
         #
-        code = self.safe_number(transfer, 'code')
+        code = self.safe_string(transfer, 'code')
         return {
             'info': transfer,
             'id': None,
@@ -2034,16 +2054,18 @@ class bigone(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(code),
         }
 
-    def parse_transfer_status(self, status):
-        statuses = {
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
             '0': 'ok',
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
+        https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2054,7 +2076,7 @@ class bigone(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'symbol': currency['id'],
             'target_address': address,
             'amount': self.currency_to_precision(code, amount),
@@ -2088,10 +2110,10 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

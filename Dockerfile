@@ -30,6 +30,7 @@ RUN pip3 install tox
 RUN pip3 install aiohttp
 RUN pip3 install cryptography
 RUN pip3 install requests
+RUN pip3 install psutil
 # Dotnet
 RUN curl -fsSL https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -o packages-microsoft-prod.deb
 RUN dpkg -i packages-microsoft-prod.deb

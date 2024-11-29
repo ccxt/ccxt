@@ -20,10 +20,10 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('AssetPairs', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_depth($params = array()) {
-        return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_ohlc($params = array()) {
-        return $this->request('OHLC', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('OHLC', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function public_get_spread($params = array()) {
         return $this->request('Spread', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -38,7 +38,7 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('Time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_trades($params = array()) {
-        return $this->request('Trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('Trades', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function private_post_addorder($params = array()) {
         return $this->request('AddOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -48,6 +48,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function private_post_addexport($params = array()) {
         return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_amendorder($params = array()) {
+        return $this->request('AmendOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function private_post_balance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -179,10 +182,10 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('AssetPairs', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetDepth($params = array()) {
-        return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetOHLC($params = array()) {
-        return $this->request('OHLC', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('OHLC', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function publicGetSpread($params = array()) {
         return $this->request('Spread', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -197,7 +200,7 @@ abstract class kraken extends \ccxt\async\Exchange {
         return $this->request('Time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTrades($params = array()) {
-        return $this->request('Trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('Trades', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
     public function privatePostAddOrder($params = array()) {
         return $this->request('AddOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -207,6 +210,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostAddExport($params = array()) {
         return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostAmendOrder($params = array()) {
+        return $this->request('AmendOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostBalance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));

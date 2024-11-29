@@ -2,6 +2,8 @@ namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
 
+using Cryptography.ECDSA;
+
 using MiniMessagePack;
 
 using dict = Dictionary<string, object>;
@@ -61,9 +63,11 @@ public partial class Exchange
         return base64EncodedBytes;
     }
 
-    public string base58ToBinary(object str)
+    public byte[] base58ToBinary(object pt) => Base58ToBinary(pt);
+
+    public static byte[] Base58ToBinary(object pt)
     {
-        return (string)str; // stub
+        return Base58.Decode(pt as string);
     }
 
     public object binaryConcat(object a, object b)
@@ -93,15 +97,67 @@ public partial class Exchange
         // return (string)a + (string)b; // stub
     }
 
-    public object binaryConcatArray(object a)
+    public object binaryConcatArray(object arrays2)
     {
-        return (string)a; // stub
+        // if (byteArrays is not IList arrays)
+        // {
+        //     throw new ArgumentException("Input must be an array or collection of byte arrays.", nameof(byteArrays));
+        // }
+
+        var arrays = (IList<object>)arrays2;
+        // Determine total length
+        int totalLength = 0;
+        foreach (var item in arrays)
+        {
+            // if (item is not byte[] array)
+            // {
+            //     throw new ArgumentException("All elements in the collection must be byte arrays.", nameof(byteArrays));
+            // }
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            totalLength += ((byte[])bytesItem).Length;
+        }
+
+        // Concatenate arrays
+        byte[] result = new byte[totalLength];
+        int offset = 0;
+
+        foreach (var item in arrays)
+        {
+            byte[] bytesItem;
+            if (item is string)
+            {
+                bytesItem = Encoding.ASCII.GetBytes(item as string);
+            }
+            else
+            {
+                bytesItem = (byte[])item;
+            }
+            byte[] array = (byte[])bytesItem;
+            Buffer.BlockCopy(array, 0, result, offset, array.Length);
+            offset += array.Length;
+        }
+
+        return result;
     }
 
-    public object numberToBE(object n, object padding = null)
+    public object numberToBE(object n2, object size2 = null)
     {
-        // implement number to big endian
-        return (string)n; // stub
+        var n = Convert.ToInt64(n2);
+        var size = size2 == null ? 0 : Convert.ToInt32(size2);
+        byte[] bytes = BitConverter.GetBytes(n);
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(bytes);
+        }
+        return bytes[^size..]; // Extract the last 'size' bytes
     }
 
     public static string binaryToHex(byte[] buff)
@@ -125,12 +181,13 @@ public partial class Exchange
         return binaryToHex(buff);
     }
 
-    public static string binaryToBase64(byte[] buff)
-    {
-        return Convert.ToBase64String(buff);
-    }
+    public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
 
-    public byte[] stringToBinary(string buff)
+    public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+
+    public byte[] stringToBinary(string buff) => StringToBinary(buff);
+
+    public static byte[] StringToBinary(string buff)
     {
         return Encoding.UTF8.GetBytes(buff);
     }
@@ -164,7 +221,12 @@ public partial class Exchange
         var outList = new List<object>();
         foreach (string key in keys)
         {
-            outList.Add(key + "=" + paramaters[key]);
+            var value = paramaters[key];
+            if (value is bool)
+            {
+                value = value.ToString().ToLower();
+            }
+            outList.Add(key + "=" + value);
         }
         return string.Join("&", outList);
     }
@@ -227,20 +289,30 @@ public partial class Exchange
     {
         var parameters = (dict)parameters2;
 
-        var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        // var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        var queryString = new List<string>();
         var keys = parameters.Keys;
         foreach (string key in keys)
         {
             var value = parameters[key];
+            string encodedKey = System.Web.HttpUtility.UrlEncode(key);
             var finalValue = value.ToString();
             if (value.GetType() == typeof(bool))
             {
                 finalValue = finalValue.ToLower(); // c# uses "True" and "False" instead of "true" and "false" $:(
 
             }
-            queryString.Add(key, finalValue);
+            if (key.ToLower() == "timestamp")
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue).ToUpper();
+            }
+            else
+            {
+                finalValue = System.Web.HttpUtility.UrlEncode(finalValue);
+            }
+            queryString.Add($"{encodedKey}={finalValue}");
         }
-        return queryString.ToString();
+        return string.Join("&", queryString);
     }
 
     public string encodeURIComponent(object str2)
@@ -263,12 +335,13 @@ public partial class Exchange
         return result.ToString();
     }
 
-    public static string Base64urlEncode(string s)
+    public string urlencodeBase64(object s) => Base64urlEncode(s);
+
+    public static string Base64urlEncode(object s)
     {
         char[] padding = { '=' };
-        // var toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(s);
-        // string returnValue = System.Convert.ToBase64String(toEncodeAsBytes)
-        string returnValue = s.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
+        string str = (s is string) ? Exchange.StringToBase64(s as string) : Exchange.BinaryToBase64(s as byte[]);
+        string returnValue = str.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
         return returnValue;
     }
 

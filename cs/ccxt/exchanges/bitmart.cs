@@ -26,11 +26,12 @@ public partial class bitmart : Exchange
                 { "borrowIsolatedMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "cancelOrders", false },
+                { "cancelOrders", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
@@ -98,9 +99,10 @@ public partial class bitmart : Exchange
             } },
             { "hostname", "bitmart.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" },
                 { "api", new Dictionary<string, object>() {
-                    { "rest", "https://api-cloud.{hostname}" },
+                    { "spot", "https://api-cloud.{hostname}" },
+                    { "swap", "https://api-cloud-v2.{hostname}" },
                 } },
                 { "www", "https://www.bitmart.com/" },
                 { "doc", "https://developer-pro.bitmart.com/" },
@@ -164,7 +166,7 @@ public partial class bitmart : Exchange
                         { "spot/v1/order_detail", 1 },
                         { "spot/v2/orders", 5 },
                         { "spot/v1/trades", 5 },
-                        { "spot/v2/trades", 5 },
+                        { "spot/v2/trades", 4 },
                         { "spot/v3/orders", 5 },
                         { "spot/v2/order_detail", 1 },
                         { "spot/v1/margin/isolated/borrow_record", 1 },
@@ -181,6 +183,9 @@ public partial class bitmart : Exchange
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
+                        { "contract/private/position-risk", 10 },
+                        { "contract/private/affilate/rebate-list", 10 },
+                        { "contract/private/affilate/trade-list", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -202,6 +207,9 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/history-orders", 5 },
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
+                        { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/cancel_all", 90 },
+                        { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
                         { "spot/v2/submit_order", 1 },
@@ -217,6 +225,10 @@ public partial class bitmart : Exchange
                         { "contract/private/submit-plan-order", 2.5 },
                         { "contract/private/cancel-plan-order", 1.5 },
                         { "contract/private/submit-leverage", 2.5 },
+                        { "contract/private/submit-tp-sl-order", 2.5 },
+                        { "contract/private/modify-plan-order", 2.5 },
+                        { "contract/private/modify-preset-plan-order", 2.5 },
+                        { "contract/private/modify-tp-sl-order", 2.5 },
                     } },
                 } },
             } },
@@ -302,6 +314,7 @@ public partial class bitmart : Exchange
                     { "70000", typeof(ExchangeError) },
                     { "70001", typeof(BadRequest) },
                     { "70002", typeof(BadSymbol) },
+                    { "70003", typeof(NetworkError) },
                     { "71001", typeof(BadRequest) },
                     { "71002", typeof(BadRequest) },
                     { "71003", typeof(BadRequest) },
@@ -441,8 +454,8 @@ public partial class bitmart : Exchange
                     { "40045", typeof(InvalidOrder) },
                     { "40046", typeof(PermissionDenied) },
                     { "40047", typeof(PermissionDenied) },
-                    { "40048", typeof(BadRequest) },
-                    { "40049", typeof(BadRequest) },
+                    { "40048", typeof(InvalidOrder) },
+                    { "40049", typeof(InvalidOrder) },
                     { "40050", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
@@ -575,15 +588,15 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemTime(parameters);
         //
@@ -596,21 +609,21 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeInteger(data, "server_time");
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchStatus", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchStatus", new Dictionary<string, object>() {});
         object defaultType = this.safeString(this.options, "defaultType");
         object type = this.safeString(options, "type", defaultType);
         type = this.safeString(parameters, "type", type);
@@ -641,14 +654,14 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object services = this.safeValue(data, "service", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object services = this.safeList(data, "service", new List<object>() {});
         object servicesByType = this.indexBy(services, "service_type");
         if (isTrue(isEqual(type, "swap")))
         {
             type = "contract";
         }
-        object service = this.safeValue(servicesByType, type);
+        object service = this.safeString(servicesByType, type);
         object status = null;
         object eta = null;
         if (isTrue(!isEqual(service, null)))
@@ -702,8 +715,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -779,38 +792,45 @@ public partial class bitmart : Exchange
         object response = await this.publicGetContractPublicDetails(parameters);
         //
         //     {
-        //       "code": 1000,
-        //       "message": "Ok",
-        //       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-        //       "data": {
-        //       "symbols": [{
-        //             "symbol": "BTCUSDT",
-        //             "product_type": 1,
-        //             "open_timestamp": 1594080000,
-        //             "expire_timestamp": 0,
-        //             "settle_timestamp": 0,
-        //             "base_currency": "BTC",
-        //             "quote_currency": "USDT",
-        //             "last_price": "23920",
-        //             "volume_24h": "18969368",
-        //             "turnover_24h": "458933659.7858",
-        //             "index_price": "23945.25191635",
-        //             "index_name": "BTCUSDT",
-        //             "contract_size": "0.001",
-        //             "min_leverage": "1",
-        //             "max_leverage": "100",
-        //             "price_precision": "0.1",
-        //             "vol_precision": "1",
-        //             "max_volume": "500000",
-        //             "min_volume": "1"
-        //           },
-        //           ...
-        //         ]
-        //       }
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "product_type": 1,
+        //                     "open_timestamp": 1645977600000,
+        //                     "expire_timestamp": 0,
+        //                     "settle_timestamp": 0,
+        //                     "base_currency": "BTC",
+        //                     "quote_currency": "USDT",
+        //                     "last_price": "63547.4",
+        //                     "volume_24h": "110938430",
+        //                     "turnover_24h": "7004836342.6944",
+        //                     "index_price": "63587.85404255",
+        //                     "index_name": "BTCUSDT",
+        //                     "contract_size": "0.001",
+        //                     "min_leverage": "1",
+        //                     "max_leverage": "100",
+        //                     "price_precision": "0.1",
+        //                     "vol_precision": "1",
+        //                     "max_volume": "1000000",
+        //                     "min_volume": "1",
+        //                     "funding_rate": "0.0000801",
+        //                     "expected_funding_rate": "-0.0000035",
+        //                     "open_interest": "278214",
+        //                     "open_interest_value": "17555316.9355496",
+        //                     "high_24h": "64109.4",
+        //                     "low_24h": "61857.6",
+        //                     "change_24h": "0.0239264900886327",
+        //                     "funding_time": 1726819200000
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -885,30 +905,31 @@ public partial class bitmart : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMarkets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @description retrieves data on all markets for bitmart
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMarkets
-        * @description retrieves data on all markets for bitmart
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object spot = await this.fetchSpotMarkets(parameters);
         object contract = await this.fetchContractMarkets(parameters);
         return this.arrayConcat(spot, contract);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSpotV1Currencies(parameters);
         //
@@ -925,8 +946,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object currencies = this.safeValue(data, "currencies", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object currencies = this.safeList(data, "currencies", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
@@ -934,8 +955,8 @@ public partial class bitmart : Exchange
             object id = this.safeString(currency, "id");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            object withdrawEnabled = this.safeValue(currency, "withdraw_enabled");
-            object depositEnabled = this.safeValue(currency, "deposit_enabled");
+            object withdrawEnabled = this.safeBool(currency, "withdraw_enabled");
+            object depositEnabled = this.safeBool(currency, "deposit_enabled");
             object active = isTrue(withdrawEnabled) && isTrue(depositEnabled);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
@@ -962,17 +983,17 @@ public partial class bitmart : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTransactionFee
+     * @deprecated
+     * @description please use fetchDepositWithdrawFee instead
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTransactionFee(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTransactionFee
-        * @deprecated
-        * @description please use fetchDepositWithdrawFee instead
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1027,16 +1048,16 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDepositWithdrawFee
+     * @description fetch the fee for deposits and withdrawals
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDepositWithdrawFee
-        * @description fetch the fee for deposits and withdrawals
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1064,27 +1085,46 @@ public partial class bitmart : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
-        // spot (REST)
+        // spot (REST) fetchTickers
         //
-        //      {
-        //          "symbol": "SOLAR_USDT",
-        //          "last_price": "0.020342",
-        //          "quote_volume_24h": "56817.811802",
-        //          "base_volume_24h": "2172060",
-        //          "high_24h": "0.256000",
-        //          "low_24h": "0.016980",
-        //          "open_24h": "0.022309",
-        //          "close_24h": "0.020342",
-        //          "best_ask": "0.020389",
-        //          "best_ask_size": "339.000000000000000000000000000000",
-        //          "best_bid": "0.020342",
-        //          "best_bid_size": "3369.000000000000000000000000000000",
-        //          "fluctuation": "-0.0882",
-        //          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
-        //          "timestamp": 1667403439367
-        //      }
+        //     {
+        //         'result': [
+        //             "AFIN_USDT",     // symbol
+        //             "0.001047",      // last
+        //             "11110",         // v_24h
+        //             "11.632170",     // qv_24h
+        //             "0.001048",      // open_24h
+        //             "0.001048",      // high_24h
+        //             "0.001047",      // low_24h
+        //             "-0.00095",      // price_change_24h
+        //             "0.001029",      // bid_px
+        //             "5555",          // bid_sz
+        //             "0.001041",      // ask_px
+        //             "5297",          // ask_sz
+        //             "1717122550482"  // timestamp
+        //         ]
+        //     }
+        //
+        // spot (REST) fetchTicker
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "last": "68500.00",
+        //         "v_24h": "10491.65490",
+        //         "qv_24h": "717178990.42",
+        //         "open_24h": "68149.75",
+        //         "high_24h": "69499.99",
+        //         "low_24h": "67132.40",
+        //         "fluctuation": "0.00514",
+        //         "bid_px": "68500",
+        //         "bid_sz": "0.00162",
+        //         "ask_px": "68500.01",
+        //         "ask_sz": "0.01722",
+        //         "ts": "1717131391671"
+        //     }
         //
         // spot (WS)
+        //
         //      {
         //          "symbol":"BTC_USDT",
         //          "last_price":"146.24",
@@ -1097,44 +1137,80 @@ public partial class bitmart : Exchange
         //
         // swap
         //
-        //      {
-        //          "contract_symbol":"DOGEUSDT",
-        //          "last_price":"0.130340",
-        //          "index_price":"0.13048245",
-        //          "last_funding_rate":"0.00002287",
-        //          "price_change_percent_24h":"-2.074",
-        //          "volume_24h":"113705028.59482228",
-        //          "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-        //          "high_price":"0.134520",
-        //          "low_price":"0.128570",
-        //          "legal_coin_price":"0.1302699"
-        //      }
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "product_type": 1,
+        //         "open_timestamp": 1645977600000,
+        //         "expire_timestamp": 0,
+        //         "settle_timestamp": 0,
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": "63547.4",
+        //         "volume_24h": "110938430",
+        //         "turnover_24h": "7004836342.6944",
+        //         "index_price": "63587.85404255",
+        //         "index_name": "BTCUSDT",
+        //         "contract_size": "0.001",
+        //         "min_leverage": "1",
+        //         "max_leverage": "100",
+        //         "price_precision": "0.1",
+        //         "vol_precision": "1",
+        //         "max_volume": "1000000",
+        //         "min_volume": "1",
+        //         "funding_rate": "0.0000801",
+        //         "expected_funding_rate": "-0.0000035",
+        //         "open_interest": "278214",
+        //         "open_interest_value": "17555316.9355496",
+        //         "high_24h": "64109.4",
+        //         "low_24h": "61857.6",
+        //         "change_24h": "0.0239264900886327",
+        //         "funding_time": 1726819200000
+        //     }
         //
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        object result = this.safeList(ticker, "result", new List<object>() {});
+        object average = this.safeString2(ticker, "avg_price", "index_price");
+        object marketId = this.safeString2(ticker, "symbol", "contract_symbol");
+        object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
+        object last = this.safeString2(ticker, "last_price", "last");
+        object percentage = this.safeString2(ticker, "price_change_percent_24h", "change_24h");
+        object change = this.safeString(ticker, "fluctuation");
+        object high = this.safeString2(ticker, "high_24h", "high_price");
+        object low = this.safeString2(ticker, "low_24h", "low_price");
+        object bid = this.safeString2(ticker, "best_bid", "bid_px");
+        object bidVolume = this.safeString2(ticker, "best_bid_size", "bid_sz");
+        object ask = this.safeString2(ticker, "best_ask", "ask_px");
+        object askVolume = this.safeString2(ticker, "best_ask_size", "ask_sz");
+        object open = this.safeString(ticker, "open_24h");
+        object baseVolume = this.safeStringN(ticker, new List<object>() {"base_volume_24h", "v_24h", "volume_24h"});
+        object quoteVolume = this.safeStringLowerN(ticker, new List<object>() {"quote_volume_24h", "qv_24h", "turnover_24h"});
+        object listMarketId = this.safeString(result, 0);
+        if (isTrue(!isEqual(listMarketId, null)))
+        {
+            marketId = listMarketId;
+            timestamp = this.safeInteger(result, 12);
+            high = this.safeString(result, 5);
+            low = this.safeString(result, 6);
+            bid = this.safeString(result, 8);
+            bidVolume = this.safeString(result, 9);
+            ask = this.safeString(result, 10);
+            askVolume = this.safeString(result, 11);
+            open = this.safeString(result, 4);
+            last = this.safeString(result, 1);
+            change = this.safeString(result, 7);
+            baseVolume = this.safeString(result, 2);
+            quoteVolume = this.safeStringLower(result, 3);
+        }
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         if (isTrue(isEqual(timestamp, null)))
         {
             // ticker from WS has a different field (in seconds)
             timestamp = this.safeIntegerProduct(ticker, "s_t", 1000);
         }
-        object marketId = this.safeString2(ticker, "symbol", "contract_symbol");
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
-        object last = this.safeString2(ticker, "close_24h", "last_price");
-        object percentage = this.safeString(ticker, "price_change_percent_24h");
         if (isTrue(isEqual(percentage, null)))
         {
-            object percentageRaw = this.safeString(ticker, "fluctuation");
-            if (isTrue(isTrue((!isEqual(percentageRaw, null))) && isTrue((!isEqual(percentageRaw, "0")))))
-            {
-                object direction = getValue(percentageRaw, 0);
-                percentage = add(direction, Precise.stringMul(((string)percentageRaw).Replace((string)direction, (string)""), "100"));
-            } else if (isTrue(isEqual(percentageRaw, "0")))
-            {
-                percentage = "0";
-            }
+            percentage = Precise.stringMul(change, "100");
         }
-        object baseVolume = this.safeString(ticker, "base_volume_24h");
-        object quoteVolume = this.safeString(ticker, "quote_volume_24h");
         if (isTrue(isEqual(quoteVolume, null)))
         {
             if (isTrue(isEqual(baseVolume, null)))
@@ -1149,21 +1225,18 @@ public partial class bitmart : Exchange
                 baseVolume = null;
             }
         }
-        object average = this.safeString2(ticker, "avg_price", "index_price");
-        object high = this.safeString2(ticker, "high_24h", "high_price");
-        object low = this.safeString2(ticker, "low_24h", "low_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", high },
             { "low", low },
-            { "bid", this.safeString(ticker, "best_bid") },
-            { "bidVolume", this.safeString(ticker, "best_bid_size") },
-            { "ask", this.safeString(ticker, "best_ask") },
-            { "askVolume", this.safeString(ticker, "best_ask_size") },
+            { "bid", bid },
+            { "bidVolume", bidVolume },
+            { "ask", ask },
+            { "askVolume", askVolume },
             { "vwap", null },
-            { "open", this.safeString(ticker, "open_24h") },
+            { "open", open },
             { "close", last },
             { "last", last },
             { "previousClose", null },
@@ -1172,20 +1245,23 @@ public partial class bitmart : Exchange
             { "average", average },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1193,95 +1269,43 @@ public partial class bitmart : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            ((IDictionary<string,object>)request)["contract_symbol"] = getValue(market, "id");
-            response = await this.publicGetContractV1Tickers(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            response = await this.publicGetContractPublicDetails(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await this.publicGetSpotV1Ticker(this.extend(request, parameters));
+            response = await this.publicGetSpotQuotationV3Ticker(this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTicker() does not support "), getValue(market, "type")), " markets, only spot and swap markets are accepted")) ;
         }
-        //
-        // spot
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
-        //         "data":{
-        //             "tickers":[
-        //                 {
-        //                     "symbol":"ETH_BTC",
-        //                     "last_price":"0.036037",
-        //                     "quote_volume_24h":"4380.6660000000",
-        //                     "base_volume_24h":"159.3582006712",
-        //                     "high_24h":"0.036972",
-        //                     "low_24h":"0.035524",
-        //                     "open_24h":"0.036561",
-        //                     "close_24h":"0.036037",
-        //                     "best_ask":"0.036077",
-        //                     "best_ask_size":"9.9500",
-        //                     "best_bid":"0.035983",
-        //                     "best_bid_size":"4.2792",
-        //                     "fluctuation":"-0.0143",
-        //                     "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //      {
-        //          "message":"OK",
-        //          "code":1000,
-        //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-        //          "data":{
-        //              "tickers":[
-        //                  {
-        //                      "contract_symbol":"DOGEUSDT",
-        //                      "last_price":"0.130180",
-        //                      "index_price":"0.13028635",
-        //                      "last_funding_rate":"0.00002025",
-        //                      "price_change_percent_24h":"-2.326",
-        //                      "volume_24h":"116789313.01797258",
-        //                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-        //                      "high_price":"0.134520",
-        //                      "low_price":"0.128570",
-        //                      "legal_coin_price":"0.13017401"
-        //                  }
-        //              ]
-        //          }
-        //      }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "tickers", new List<object>() {});
         // fails in naming for contract tickers 'contract_symbol'
-        object tickersById = null;
+        object tickers = new List<object>() {};
+        object ticker = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "spot")))
         {
-            tickersById = this.indexBy(tickers, "symbol");
-        } else if (isTrue(getValue(market, "swap")))
+            ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        } else
         {
-            tickersById = this.indexBy(tickers, "contract_symbol");
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            tickers = this.safeList(data, "symbols", new List<object>() {});
+            ticker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         }
-        object ticker = this.safeValue(tickersById, getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1289,7 +1313,7 @@ public partial class bitmart : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbol = this.safeValue(symbols, 0);
+            object symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -1298,39 +1322,56 @@ public partial class bitmart : Exchange
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.publicGetSpotV2Ticker(parameters);
+            response = await this.publicGetSpotQuotationV3Tickers(parameters);
         } else if (isTrue(isEqual(type, "swap")))
         {
-            response = await this.publicGetContractV1Tickers(parameters);
+            response = await this.publicGetContractPublicDetails(parameters);
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets, only spot and swap markets are accepted")) ;
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "tickers", new List<object>() {});
+        object tickers = new List<object>() {};
+        if (isTrue(isEqual(type, "spot")))
+        {
+            tickers = this.safeList(response, "data", new List<object>() {});
+        } else
+        {
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            tickers = this.safeList(data, "symbols", new List<object>() {});
+        }
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(tickers, i));
+            object ticker = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(type, "spot")))
+            {
+                ticker = this.parseTicker(new Dictionary<string, object>() {
+                    { "result", getValue(tickers, i) },
+                });
+            } else
+            {
+                ticker = this.parseTicker(getValue(tickers, i));
+            }
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-        * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1397,7 +1438,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger2(data, "ts", "timestamp");
         return this.parseOrderBook(data, getValue(market, "symbol"), timestamp);
     }
@@ -1407,13 +1448,13 @@ public partial class bitmart : Exchange
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //    {
-        //        "amount": "818.94",
-        //        "order_time": "1637601839035",    // ETH/USDT
-        //        "price": "4221.99",
-        //        "count": "0.19397",
-        //        "type": "buy"
-        //    }
+        //     [
+        //         "BTC_USDT",      // symbol
+        //         "1717212457302", // timestamp
+        //         "67643.11",      // price
+        //         "0.00106",       // size
+        //         "sell"           // side
+        //     ]
         //
         // spot: fetchMyTrades
         //
@@ -1460,17 +1501,18 @@ public partial class bitmart : Exchange
         //        'lastTradeID': 6802340762
         //    }
         //
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"order_time", "createTime", "create_time"});
-        object isPublicTrade = (inOp(trade, "order_time"));
+        object timestamp = this.safeIntegerN(trade, new List<object>() {"createTime", "create_time", 1});
+        object isPublic = this.safeString(trade, 0);
+        object isPublicTrade = (!isEqual(isPublic, null));
         object amount = null;
         object cost = null;
         object type = null;
         object side = null;
         if (isTrue(isPublicTrade))
         {
-            amount = this.safeString(trade, "count");
+            amount = this.safeString2(trade, "count", 3);
             cost = this.safeString(trade, "amount");
-            side = this.safeString(trade, "type");
+            side = this.safeString2(trade, "type", 4);
         } else
         {
             amount = this.safeStringN(trade, new List<object>() {"size", "vol", "fillQty"});
@@ -1478,7 +1520,7 @@ public partial class bitmart : Exchange
             type = this.safeString(trade, "type");
             side = this.parseOrderSide(this.safeString(trade, "side"));
         }
-        object marketId = this.safeString(trade, "symbol");
+        object marketId = this.safeString2(trade, "symbol", 0);
         market = this.safeMarket(marketId, market);
         object feeCostString = this.safeString2(trade, "fee", "paid_fees");
         object fee = null;
@@ -1504,7 +1546,7 @@ public partial class bitmart : Exchange
             { "symbol", getValue(market, "symbol") },
             { "type", type },
             { "side", side },
-            { "price", this.safeString2(trade, "price", "fillPrice") },
+            { "price", this.safeStringN(trade, new List<object>() {"price", "fillPrice", 2}) },
             { "amount", amount },
             { "cost", cost },
             { "takerOrMaker", this.safeStringLower2(trade, "tradeRole", "exec_type") },
@@ -1512,18 +1554,19 @@ public partial class bitmart : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTrades
+     * @description get a list of the most recent trades for a particular symbol
+     * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1534,30 +1577,29 @@ public partial class bitmart : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetSpotV1SymbolsTrades(this.extend(request, parameters));
-        //
-        // spot
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetSpotQuotationV3Trades(this.extend(request, parameters));
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-        //         "data":{
-        //             "trades":[
-        //                 {
-        //                     "amount":"0.005703",
-        //                     "order_time":1599652045394,
-        //                     "price":"0.034029",
-        //                     "count":"0.1676",
-        //                     "type":"sell"
-        //                 },
-        //             ]
-        //         }
+        //         "code": 1000,
+        //         "trace": "58031f9a5bd.111.17117",
+        //         "message": "success",
+        //         "data": [
+        //             [
+        //                 "BTC_USDT",
+        //                 "1717212457302",
+        //                 "67643.11",
+        //                 "0.00106",
+        //                 "sell"
+        //             ],
+        //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTrades(data, market, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1613,23 +1655,23 @@ public partial class bitmart : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-        * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp of the latest candle in ms
-        * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1669,7 +1711,7 @@ public partial class bitmart : Exchange
             }
         } else
         {
-            object maxLimit = 1200;
+            object maxLimit = 500;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = maxLimit;
@@ -1733,26 +1775,26 @@ public partial class bitmart : Exchange
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        object ohlcv = this.safeValue(response, "data", new List<object>() {});
+        object ohlcv = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMyTrades
+     * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMyTrades
-        * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch trades for
-        * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1779,7 +1821,7 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
             }
-            object options = this.safeValue(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
+            object options = this.safeDict(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
             object defaultLimit = this.safeInteger(options, "limit", 200);
             if (isTrue(isEqual(limit, null)))
             {
@@ -1865,47 +1907,47 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrderTrades
+     * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrderTrades
-        * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
-        * @description fetch all the trades made from a single order
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
         object response = await this.privatePostSpotV4QueryOrderTrades(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, null, since, limit);
     }
 
     public virtual object customParseBalance(object response, object marketType)
     {
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object wallet = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            wallet = this.safeValue(response, "data", new List<object>() {});
+            wallet = this.safeList(response, "data", new List<object>() {});
         } else if (isTrue(isEqual(marketType, "margin")))
         {
-            wallet = this.safeValue(data, "symbols", new List<object>() {});
+            wallet = this.safeList(data, "symbols", new List<object>() {});
         } else
         {
-            wallet = this.safeValue(data, "wallet", new List<object>() {});
+            wallet = this.safeList(data, "wallet", new List<object>() {});
         }
         object result = new Dictionary<string, object>() {
             { "info", response },
@@ -1917,8 +1959,8 @@ public partial class bitmart : Exchange
                 object entry = getValue(wallet, i);
                 object marketId = this.safeString(entry, "symbol");
                 object symbol = this.safeSymbol(marketId, null, "_");
-                object bs = this.safeValue(entry, "base", new Dictionary<string, object>() {});
-                object quote = this.safeValue(entry, "quote", new Dictionary<string, object>() {});
+                object bs = this.safeDict(entry, "base", new Dictionary<string, object>() {});
+                object quote = this.safeDict(entry, "quote", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                 object subResult = new Dictionary<string, object>() {};
@@ -1956,19 +1998,20 @@ public partial class bitmart : Exchange
         return account;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
+     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-        * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
-        * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-        * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -2112,19 +2155,21 @@ public partial class bitmart : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "maker_fee_rate") },
             { "taker", this.safeNumber(fee, "taker_fee_rate") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2148,14 +2193,14 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTradingFee(data);
     }
 
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "order_id": 2707217580
@@ -2263,7 +2308,7 @@ public partial class bitmart : Exchange
         object trailingActivationPrice = this.safeNumber(order, "activation_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-            { "clientOrderId", this.safeString(order, "client_order_id") },
+            { "clientOrderId", this.safeString2(order, "client_order_id", "clientOrderId") },
             { "info", order },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2321,22 +2366,22 @@ public partial class bitmart : Exchange
                 { "4", "closed" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        object statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bitmart#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2348,41 +2393,50 @@ public partial class bitmart : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#createOrder
+     * @description create a trade order
+     * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.leverage] *swap only* leverage level
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @param {boolean} [params.reduceOnly] *swap only* reduce only
+     * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+     * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+     * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+     * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+     * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+     * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+     * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+     * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+     * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+     * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#createOrder
-        * @description create a trade order
-        * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated'
-        * @param {string} [params.leverage] *swap only* leverage level
-        * @param {string} [params.clientOrderId] client order id of the order
-        * @param {boolean} [params.reduceOnly] *swap only* reduce only
-        * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
-        * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
-        * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
-        * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
-        * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-        * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
-        * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object result = this.handleMarginModeAndParams("createOrder", parameters);
         object marginMode = this.safeString(result, 0);
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -2401,6 +2455,9 @@ public partial class bitmart : Exchange
             if (isTrue(isTriggerOrder))
             {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+            {
+                response = await this.privatePostContractPrivateSubmitTpSlOrder(swapRequest);
             } else
             {
                 response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
@@ -2421,13 +2478,93 @@ public partial class bitmart : Exchange
         // swap
         // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
         ((IDictionary<string,object>)order)["side"] = side;
         ((IDictionary<string,object>)order)["amount"] = amount;
         ((IDictionary<string,object>)order)["price"] = price;
         return order;
+    }
+
+    /**
+     * @method
+     * @name bitmart#createOrders
+     * @description create a list of trade orders
+     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createOrders(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object ordersRequests = new List<object>() {};
+        object symbol = null;
+        object market = null;
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(orders, i);
+            object marketId = this.safeString(rawOrder, "symbol");
+            market = this.market(marketId);
+            if (!isTrue(getValue(market, "spot")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() supports spot orders only")) ;
+            }
+            if (isTrue(isEqual(symbol, null)))
+            {
+                symbol = marketId;
+            } else
+            {
+                if (isTrue(!isEqual(symbol, marketId)))
+                {
+                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                }
+            }
+            object type = this.safeString(rawOrder, "type");
+            object side = this.safeString(rawOrder, "side");
+            object amount = this.safeValue(rawOrder, "amount");
+            object price = this.safeValue(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, new List<object>() {"symbol"}); // not needed because it goes in the outter object
+            ((IList<object>)ordersRequests).Add(orderRequest);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderParams", ordersRequests },
+        };
+        object response = await this.privatePostSpotV4BatchOrders(request);
+        //
+        // {
+        //     "message": "OK",
+        //     "code": 1000,
+        //     "trace": "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+        //     "data": {
+        //       "code": 0,
+        //       "msg": "success",
+        //       "data": {
+        //         "orderIds": [
+        //           "212751308355553320"
+        //         ]
+        //       }
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object innderData = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object orderIds = this.safeList(innderData, "orderIds", new List<object>() {});
+        object parsedOrders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(orderIds, i);
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "id", orderId },
+            }, market);
+            ((IList<object>)parsedOrders).Add(order);
+        }
+        return parsedOrders;
     }
 
     public virtual object createSwapOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2439,11 +2576,13 @@ public partial class bitmart : Exchange
         * @description create a trade order
         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit' or 'trailing'
+        * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.leverage] leverage level
         * @param {boolean} [params.reduceOnly] *swap only* reduce only
@@ -2455,10 +2594,24 @@ public partial class bitmart : Exchange
         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        if (isTrue(isStopLoss))
+        {
+            type = "stop_loss";
+        } else if (isTrue(isTakeProfit))
+        {
+            type = "take_profit";
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", type },
@@ -2468,7 +2621,7 @@ public partial class bitmart : Exchange
         object mode = this.safeInteger(parameters, "mode"); // only for swap
         object isMarketOrder = isEqual(type, "market");
         object postOnly = null;
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object isExchangeSpecificPo = (isEqual(mode, 4));
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
@@ -2505,7 +2658,10 @@ public partial class bitmart : Exchange
         }
         if (isTrue(isTriggerOrder))
         {
-            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(isTrue(isLimitOrder) || isTrue(!isEqual(price, null))))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
             ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
             if (isTrue(isEqual(side, "buy")))
@@ -2528,6 +2684,26 @@ public partial class bitmart : Exchange
                 }
             }
         }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        {
+            reduceOnly = true;
+            ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
+            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["open_type"] = marginMode;
+        }
         if (isTrue(isEqual(side, "buy")))
         {
             if (isTrue(reduceOnly))
@@ -2547,20 +2723,21 @@ public partial class bitmart : Exchange
                 ((IDictionary<string,object>)request)["side"] = 4; // sell open short
             }
         }
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        ((IDictionary<string,object>)request)["open_type"] = marginMode;
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object leverage = this.safeInteger(parameters, "leverage", 1);
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "reduceOnly", "leverage", "trailingTriggerPrice", "trailingPercent", "triggerPrice", "stopPrice"});
-        ((IDictionary<string,object>)request)["leverage"] = this.numberToString(leverage);
+        object leverage = this.safeInteger(parameters, "leverage");
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "reduceOnly", "leverage", "trailingTriggerPrice", "trailingPercent", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        if (isTrue(!isEqual(leverage, null)))
+        {
+            ((IDictionary<string,object>)request)["leverage"] = this.numberToString(leverage);
+        } else if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["leverage"] = "1"; // for plan orders leverage is required, if not available default to 1
+        }
         return this.extend(request, parameters);
     }
 
@@ -2577,7 +2754,7 @@ public partial class bitmart : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2614,7 +2791,7 @@ public partial class bitmart : Exchange
             // for market buy it requires the amount of quote currency to spend
             if (isTrue(isEqual(side, "buy")))
             {
-                object notional = this.safeNumber2(parameters, "cost", "notional");
+                object notional = this.safeString2(parameters, "cost", "notional");
                 parameters = this.omit(parameters, "cost");
                 object createMarketBuyOrderRequiresPrice = true;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2629,11 +2806,11 @@ public partial class bitmart : Exchange
                     {
                         object amountString = this.numberToString(amount);
                         object priceString = this.numberToString(price);
-                        notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        notional = Precise.stringMul(amountString, priceString);
                     }
                 } else
                 {
-                    notional = ((bool) isTrue((isEqual(notional, null)))) ? amount : notional;
+                    notional = ((bool) isTrue((isEqual(notional, null)))) ? this.numberToString(amount) : notional;
                 }
                 ((IDictionary<string,object>)request)["notional"] = this.decimalToPrecision(notional, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode);
             } else if (isTrue(isEqual(side, "sell")))
@@ -2649,26 +2826,34 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = "ioc";
         }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#cancelOrder
+     * @description cancels an open order
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
+     * @param {boolean} [params.stop] *swap only* whether the order is a stop order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#cancelOrder
-        * @description cancels an open order
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-        * @param {boolean} [params.stop] *swap only* whether the order is a stop order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2694,7 +2879,7 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
         } else
         {
-            object stop = this.safeValue2(parameters, "stop", "trigger");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (!isTrue(stop))
             {
@@ -2734,7 +2919,9 @@ public partial class bitmart : Exchange
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
         {
-            return this.parseOrder(id, market);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+            }, market);
         }
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
@@ -2752,25 +2939,105 @@ public partial class bitmart : Exchange
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " cancelOrder() "), symbol), " order id "), id), " is filled or canceled")) ;
             }
         }
-        object order = this.parseOrder(id, market);
-        return this.extend(order, new Dictionary<string, object>() {
+        object order = this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
-        });
+            { "symbol", getValue(market, "symbol") },
+            { "info", new Dictionary<string, object>() {} },
+        }, market);
+        return order;
     }
 
+    /**
+     * @method
+     * @name bitmart#cancelOrders
+     * @description cancel multiple orders
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelOrders() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
+        }
+        object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(clientOrderIds, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderIds"] = clientOrderIds;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderIds"] = ids;
+        }
+        object response = await this.privatePostSpotV4CancelOrders(this.extend(request, parameters));
+        //
+        //  {
+        //      "message": "OK",
+        //      "code": 1000,
+        //      "trace": "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+        //      "data": {
+        //        "successIds": [
+        //          "213055379155243012"
+        //        ],
+        //        "failIds": [],
+        //        "totalCount": 1,
+        //        "successCount": 1,
+        //        "failedCount": 0
+        //      }
+        //  }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object allOrders = new List<object>() {};
+        object successIds = this.safeList(data, "successIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(successIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(successIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "canceled" },
+            }, market));
+        }
+        object failIds = this.safeList(data, "failIds", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(failIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(failIds, i);
+            ((IList<object>)allOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "id", id },
+                { "status", "failed" },
+            }, market));
+        }
+        return allOrders;
+    }
+
+    /**
+     * @method
+     * @name bitmart#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] *spot only* 'buy' or 'sell'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
-        * @param {string} symbol unified market symbol of the market to cancel orders in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] *spot only* 'buy' or 'sell'
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2787,7 +3054,7 @@ public partial class bitmart : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.privatePostSpotV1CancelOrders(this.extend(request, parameters));
+            response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -2877,33 +3144,33 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(data, "orders", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOpenOrders
+     * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+     * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
+     * @param {string} [params.type] *swap* order type, 'limit' or 'market'
+     * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
+     * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+     * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+     * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOpenOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-        * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
-        * @param {string} [params.type] *swap* order type, 'limit' or 'market'
-        * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
-        * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
-        * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
-        * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2945,7 +3212,7 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
-            object isStop = this.safeValue2(parameters, "stop", "trigger");
+            object isStop = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(isStop))
             {
@@ -3023,26 +3290,27 @@ public partial class bitmart : Exchange
         //         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchClosedOrders
+     * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchClosedOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest entry
-        * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3091,43 +3359,44 @@ public partial class bitmart : Exchange
         {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchCanceledOrders
-        * @description fetches information on multiple canceled orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-        * @param {int} [limit] max number of orders to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+     * @param {string} id the id of the order
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
+     * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+     * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
-        * @param {string} id the id of the order
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
-        * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
-        * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3226,21 +3495,21 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3251,7 +3520,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object networkInner = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (isTrue(!isEqual(networkInner, null)))
@@ -3274,7 +3543,7 @@ public partial class bitmart : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -3298,42 +3567,37 @@ public partial class bitmart : Exchange
             object parts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             object partsLength = getArrayLength(parts);
             object networkId = this.safeString(parts, subtract(partsLength, 1));
-            network = this.safeNetworkCode(networkId, currency);
+            if (isTrue(isEqual(networkId, this.safeString(currency, "name"))))
+            {
+                network = this.safeString(currency, "code");
+            } else
+            {
+                network = this.networkIdToCode(networkId);
+            }
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeString(currency, "code") },
+            { "network", network },
             { "address", address },
             { "tag", this.safeString(depositAddress, "address_memo") },
-            { "network", network },
         };
     }
 
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object name = this.safeString(currency, "name");
-        if (isTrue(isEqual(networkId, name)))
-        {
-            object code = this.safeString(currency, "code");
-            return code;
-        }
-        return this.networkIdToCode(networkId);
-    }
-
+    /**
+     * @method
+     * @name bitmart#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#withdraw
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -3355,7 +3619,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
@@ -3375,7 +3639,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseTransaction(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "code", code },
@@ -3407,7 +3671,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
@@ -3442,22 +3706,22 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDeposit
+     * @description fetch information on a deposit
+     * @param {string} id deposit id
+     * @param {string} code not used by bitmart fetchDeposit ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDeposit
-        * @description fetch information on a deposit
-        * @param {string} id deposit id
-        * @param {string} code not used by bitmart fetchDeposit ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3486,38 +3750,38 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByType("deposit", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @param {string} id withdrawal id
+     * @param {string} code not used by bitmart.fetchWithdrawal
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchWithdrawal
-        * @description fetch data on a currency withdrawal via the withdrawal id
-        * @param {string} id withdrawal id
-        * @param {string} code not used by bitmart.fetchWithdrawal
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3546,23 +3810,23 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object record = this.safeValue(data, "record", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByType("withdraw", code, since, limit, parameters);
     }
@@ -3659,19 +3923,19 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#repayIsolatedMargin
+     * @description repay borrowed margin and interest
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to repay
+     * @param {string} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#repayIsolatedMargin
-        * @description repay borrowed margin and interest
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
-        * @param {string} symbol unified market symbol
-        * @param {string} code unified currency code of the currency to repay
-        * @param {string} amount the amount to repay
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3692,7 +3956,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
@@ -3700,19 +3964,19 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#borrowIsolatedMargin
+     * @description create a loan to borrow margin
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {string} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#borrowIsolatedMargin
-        * @description create a loan to borrow margin
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
-        * @param {string} symbol unified market symbol
-        * @param {string} code unified currency code of the currency to borrow
-        * @param {string} amount the amount to borrow
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3733,7 +3997,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
@@ -3767,17 +4031,17 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchIsolatedBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+     * @param {string} symbol unified symbol of the market to fetch the borrow rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+     */
     public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchIsolatedBorrowRate
-        * @description fetch the rate of interest to borrow a currency for margin trading
-        * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        * @param {string} symbol unified symbol of the market to fetch the borrow rate for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3817,13 +4081,13 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
-        object borrowRate = this.safeValue(symbols, 0);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
+        object borrowRate = this.safeDict(symbols, 0, new List<object>() {});
         return this.parseIsolatedBorrowRate(borrowRate, market);
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(object info, object market = null)
     {
         //
         //     {
@@ -3850,8 +4114,8 @@ public partial class bitmart : Exchange
         //
         object marketId = this.safeString(info, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object baseData = this.safeValue(info, "base", new Dictionary<string, object>() {});
-        object quoteData = this.safeValue(info, "quote", new Dictionary<string, object>() {});
+        object baseData = this.safeDict(info, "base", new Dictionary<string, object>() {});
+        object quoteData = this.safeDict(info, "quote", new Dictionary<string, object>() {});
         object baseId = this.safeString(baseData, "currency");
         object quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
@@ -3867,16 +4131,16 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchIsolatedBorrowRates
+     * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     */
     public async override Task<object> fetchIsolatedBorrowRates(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchIsolatedBorrowRates
-        * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
-        * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetSpotV1MarginIsolatedPairs(parameters);
@@ -3912,32 +4176,27 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-        {
-            object symbol = this.safeValue(symbols, i);
-            ((IList<object>)result).Add(this.parseIsolatedBorrowRate(symbol));
-        }
-        return result;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
+        return this.parseIsolatedBorrowRates(symbols);
     }
 
+    /**
+     * @method
+     * @name bitmart#transfer
+     * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#transfer
-        * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -4004,7 +4263,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
             { "status", this.parseTransferStatus(this.safeString2(response, "code", "message")) },
         });
@@ -4079,21 +4338,21 @@ public partial class bitmart : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name bitmart#fetchTransfers
+     * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
+     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.page] the required number of pages, default is 1, max is 1000
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTransfers
-        * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-        * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of transfer structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.page] the required number of pages, default is 1, max is 1000
-        * @param {int} [params.until] the latest time in ms to fetch transfers for
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(limit, null)))
@@ -4118,9 +4377,9 @@ public partial class bitmart : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till"); // unified in milliseconds
+        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "time_end", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"till", "until"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["time_end"] = endTime;
@@ -4145,25 +4404,25 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object records = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(records, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @param {string} code unified currency code
+     * @param {string} symbol unified market symbol when fetch interest in isolated markets
+     * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchBorrowInterest
-        * @description fetch the interest owed by the user for borrowing currency for margin trading
-        * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
-        * @param {string} code unified currency code
-        * @param {string} symbol unified market symbol when fetch interest in isolated markets
-        * @param {int} [since] the earliest time in ms to fetch borrrow interest for
-        * @param {int} [limit] the maximum number of structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4204,8 +4463,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "records", new List<object>() {});
         object interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -4228,29 +4487,29 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", this.safeString(market, "symbol") },
-            { "marginMode", "isolated" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
             { "interest", this.safeNumber(info, "interest_amount") },
             { "interestRate", this.safeNumber(info, "hourly_interest") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOpenInterest
+     * @description Retrieves the open interest of a currency
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOpenInterest
-        * @description Retrieves the open interest of a currency
-        * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4275,7 +4534,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOpenInterest(data, market);
     }
 
@@ -4301,19 +4560,20 @@ public partial class bitmart : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross'
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'isolated' or 'cross'
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4338,17 +4598,17 @@ public partial class bitmart : Exchange
         return await this.privatePostContractPrivateSubmitLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4373,7 +4633,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseFundingRate(data, market);
     }
 
@@ -4407,20 +4667,22 @@ public partial class bitmart : Exchange
             { "previousFundingRate", this.safeNumber(contract, "rate_value") },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4457,22 +4719,23 @@ public partial class bitmart : Exchange
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchPositions
+     * @description fetch all open contract positions
+     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchPositions
-        * @description fetch all open contract positions
-        * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -4519,7 +4782,7 @@ public partial class bitmart : Exchange
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        object positions = this.safeValue(response, "data", new List<object>() {});
+        object positions = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
@@ -4595,20 +4858,20 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmart api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMyLiquidations
-        * @description retrieves the users liquidated positions
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the bitmart api endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4656,7 +4919,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -4710,6 +4973,110 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#editOrder
+     * @description edits an open order
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much you want to trade in units of the base currency
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+     * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+     * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+     * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
+     * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+     * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " markets, only swap markets are supported")) ;
+        }
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        object presetStopLoss = this.safeString(stopLoss, "triggerPrice");
+        object presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        object isPresetStopLoss = !isEqual(presetStopLoss, null);
+        object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+        }
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"});
+        object response = null;
+        if (isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["type"] = type;
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            response = await this.privatePostContractPrivateModifyPlanOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["category"] = type;
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+            response = await this.privatePostContractPrivateModifyTpSlOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+        {
+            if (isTrue(isPresetStopLoss))
+            {
+                ((IDictionary<string,object>)request)["preset_stop_loss_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_stop_loss_price"] = this.priceToPrecision(symbol, presetStopLoss);
+            } else
+            {
+                ((IDictionary<string,object>)request)["preset_take_profit_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_take_profit_price"] = this.priceToPrecision(symbol, presetTakeProfit);
+            }
+            response = await this.privatePostContractPrivateModifyPresetPlanOrder(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " editOrder() only supports trigger, stop loss and take profit orders")) ;
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
+    }
+
     public override object nonce()
     {
         return this.milliseconds();
@@ -4720,7 +5087,11 @@ public partial class bitmart : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
+        object parts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        // to do: refactor api endpoints with spot/swap sections
+        object category = this.safeString(parts, 0, "spot");
+        object market = ((bool) isTrue((isTrue(isEqual(category, "spot")) || isTrue(isEqual(category, "account"))))) ? "spot" : "swap";
+        object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), market));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object queryString = "";

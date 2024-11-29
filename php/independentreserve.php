@@ -60,8 +60,11 @@ class independentreserve extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -72,6 +75,7 @@ class independentreserve extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -140,17 +144,18 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for independentreserve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
+        $baseCurrenciesPromise = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        $quoteCurrenciesPromise = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        $limits = $this->publicGetGetOrderMinimumVolumes ($params);
+        $limitsPromise = $this->publicGetGetOrderMinimumVolumes ($params);
+        list($baseCurrencies, $quoteCurrencies, $limits) = array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise );
         //
         //     {
         //         "Xbt" => 0.0001,
@@ -261,12 +266,12 @@ class independentreserve extends Exchange {
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
-        $response = $this->publicGetGetOrderBook (array_merge($request, $params));
+        $response = $this->publicGetGetOrderBook ($this->extend($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -327,7 +332,7 @@ class independentreserve extends Exchange {
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         );
-        $response = $this->publicGetGetMarketSummary (array_merge($request, $params));
+        $response = $this->publicGetGetMarketSummary ($this->extend($request, $params));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -344,7 +349,7 @@ class independentreserve extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder
         //
@@ -379,6 +384,21 @@ class independentreserve extends Exchange {
         //         "FeePercent" => 0.005,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice" => 455.48,
+        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price" => 485.76,
+        //        "PrimaryCurrencyCode" => "Xbt",
+        //        "ReservedAmount" => 0.358,
+        //        "SecondaryCurrencyCode" => "Usd",
+        //        "Status" => "Cancelled",
+        //        "Type" => "LimitOffer",
+        //        "VolumeFilled" => 0,
+        //        "VolumeOrdered" => 0.358
+        //    }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
         $quoteId = $this->safe_string($order, 'SecondaryCurrencyCode');
@@ -444,7 +464,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -460,12 +480,13 @@ class independentreserve extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        $response = $this->privatePostGetOrderDetails (array_merge(array(
+        $response = $this->privatePostGetOrderDetails ($this->extend(array(
             'orderGuid' => $id,
         ), $params));
         $market = null;
@@ -497,8 +518,8 @@ class independentreserve extends Exchange {
         }
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
-        $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $response = $this->privatePostGetOpenOrders ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -524,8 +545,8 @@ class independentreserve extends Exchange {
         }
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limit;
-        $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
-        $data = $this->safe_value($response, 'Data', array());
+        $response = $this->privatePostGetClosedOrders ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'Data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
@@ -547,7 +568,7 @@ class independentreserve extends Exchange {
             'pageIndex' => $pageIndex,
             'pageSize' => $limit,
         ));
-        $response = $this->privatePostGetTrades (array_merge($request, $params));
+        $response = $this->privatePostGetTrades ($this->extend($request, $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -555,7 +576,7 @@ class independentreserve extends Exchange {
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
@@ -612,11 +633,11 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
             'numberOfRecentTradesToRetrieve' => 50, // max = 50
         );
-        $response = $this->publicGetGetRecentTrades (array_merge($request, $params));
+        $response = $this->publicGetGetRecentTrades ($this->extend($request, $params));
         return $this->parse_trades($response['Trades'], $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -668,7 +689,7 @@ class independentreserve extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -685,9 +706,9 @@ class independentreserve extends Exchange {
         $request['volume'] = $amount;
         if ($type === 'limit') {
             $request['price'] = $price;
-            $response = $this->privatePostPlaceLimitOrder (array_merge($request, $params));
+            $response = $this->privatePostPlaceLimitOrder ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostPlaceMarketOrder (array_merge($request, $params));
+            $response = $this->privatePostPlaceMarketOrder ($this->extend($request, $params));
         }
         return $this->safe_order(array(
             'info' => $response,
@@ -698,6 +719,9 @@ class independentreserve extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
+         * @see https://www.independentreserve.com/features/api#CancelOrder
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -707,13 +731,31 @@ class independentreserve extends Exchange {
         $request = array(
             'orderGuid' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "AvgPrice" => 455.48,
+        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price" => 485.76,
+        //        "PrimaryCurrencyCode" => "Xbt",
+        //        "ReservedAmount" => 0.358,
+        //        "SecondaryCurrencyCode" => "Usd",
+        //        "Status" => "Cancelled",
+        //        "Type" => "LimitOffer",
+        //        "VolumeFilled" => 0,
+        //        "VolumeOrdered" => 0.358
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -723,7 +765,7 @@ class independentreserve extends Exchange {
         $request = array(
             'primaryCurrencyCode' => $currency['id'],
         );
-        $response = $this->privatePostGetDigitalCurrencyDepositAddress (array_merge($request, $params));
+        $response = $this->privatePostGetDigitalCurrencyDepositAddress ($this->extend($request, $params));
         //
         //    {
         //        Tag => '3307446684',
@@ -735,7 +777,7 @@ class independentreserve extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag => '3307446684',
@@ -749,9 +791,115 @@ class independentreserve extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'Tag'),
+        );
+    }
+
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+        /**
+         * make a withdrawal
+         *
+         * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'primaryCurrencyCode' => $currency['id'],
+            'withdrawalAddress' => $address,
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        if ($tag !== null) {
+            $request['destinationTag'] = $tag;
+        }
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
+        }
+        $response = $this->privatePostWithdrawDigitalCurrency ($this->extend($request, $params));
+        //
+        //    {
+        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode" => "Bch",
+        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount" => array(
+        //            "Total" => 0.1231,
+        //            "Fee" => 0.0001
+        //        ),
+        //        "Destination" => array(
+        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag" => null
+        //        ),
+        //        "Status" => "Pending",
+        //        "Transaction" => null
+        //    }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        //    {
+        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode" => "Bch",
+        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount" => array(
+        //            "Total" => 0.1231,
+        //            "Fee" => 0.0001
+        //        ),
+        //        "Destination" => array(
+        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag" => null
+        //        ),
+        //        "Status" => "Pending",
+        //        "Transaction" => null
+        //    }
+        //
+        $amount = $this->safe_dict($transaction, 'Amount');
+        $destination = $this->safe_dict($transaction, 'Destination');
+        $currencyId = $this->safe_string($transaction, 'PrimaryCurrencyCode');
+        $datetime = $this->safe_string($transaction, 'CreatedTimestampUtc');
+        $address = $this->safe_string($destination, 'Address');
+        $tag = $this->safe_string($destination, 'Tag');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'TransactionGuid'),
+            'txid' => null,
+            'type' => 'withdraw',
+            'currency' => $code,
             'network' => null,
+            'amount' => $this->safe_number($amount, 'Total'),
+            'status' => $this->safe_string($transaction, 'Status'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'address' => $address,
+            'addressFrom' => null,
+            'addressTo' => $address,
+            'tag' => $tag,
+            'tagFrom' => null,
+            'tagTo' => $tag,
+            'updated' => null,
+            'comment' => null,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->safe_number($amount, 'Fee'),
+                'rate' => null,
+            ),
+            'internal' => false,
         );
     }
 

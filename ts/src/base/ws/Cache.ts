@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
-interface CustomArray extends Array {
+interface CustomArray extends Array<any> {
     hashmap: object;
 }
 

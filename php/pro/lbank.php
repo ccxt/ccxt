@@ -24,6 +24,7 @@ class lbank extends \ccxt\async\lbank {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -67,7 +68,9 @@ class lbank extends \ccxt\async\lbank {
     public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -104,7 +107,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -184,7 +189,7 @@ class lbank extends \ccxt\async\lbank {
         //          ),
         //          type => 'kbar',
         //          pair => 'btc_usdt',
-        //          TS => '2022-10-02T12:44:15.864'
+        //          TS => '2022-10-02T12:44:15.865'
         //      }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -240,10 +245,12 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function fetch_ticker_ws($symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the cex api endpoint
@@ -267,7 +274,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$market
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the lbank api endpoint
@@ -374,7 +383,9 @@ class lbank extends \ccxt\async\lbank {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -403,7 +414,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+             *
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -444,7 +457,7 @@ class lbank extends \ccxt\async\lbank {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         ),
         //         "type":"trade",
@@ -485,7 +498,7 @@ class lbank extends \ccxt\async\lbank {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -494,6 +507,8 @@ class lbank extends \ccxt\async\lbank {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($datetime);
         }
+        $side = $this->safe_string_2($trade, 'direction', 3);
+        $side = str_replace('_market', '', $side);
         return $this->safe_trade(array(
             'timestamp' => $timestamp,
             'datetime' => $datetime,
@@ -502,7 +517,7 @@ class lbank extends \ccxt\async\lbank {
             'order' => null,
             'type' => null,
             'takerOrMaker' => null,
-            'side' => $this->safe_string_2($trade, 'direction', 3),
+            'side' => $side,
             'price' => $this->safe_string_2($trade, 'price', 1),
             'amount' => $this->safe_string_2($trade, 'volume', 2),
             'cost' => $this->safe_string($trade, 'amount'),
@@ -514,7 +529,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+             *
+             * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-$orders
+             *
              * get the list of trades associated with the user
              * @param {string} [$symbol] unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -681,7 +698,9 @@ class lbank extends \ccxt\async\lbank {
     public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -710,8 +729,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$market-depth
-             * @see https://www.lbank.com/en-US/docs/index.html#$market-increment-depth
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -800,11 +820,11 @@ class lbank extends \ccxt\async\lbank {
         $orderBook = $this->safe_value($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks');
         $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
@@ -833,10 +853,14 @@ class lbank extends \ccxt\async\lbank {
             //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
             //
             $pingId = $this->safe_string($message, 'ping');
-            Async\await($client->send (array(
-                'action' => 'pong',
-                'pong' => $pingId,
-            )));
+            try {
+                Async\await($client->send (array(
+                    'action' => 'pong',
+                    'pong' => $pingId,
+                )));
+            } catch (Exception $e) {
+                $this->on_error($client, $e);
+            }
         }) ();
     }
 
@@ -893,7 +917,7 @@ class lbank extends \ccxt\async\lbank {
                     $request = array(
                         'subscribeKey' => $authenticated['key'],
                     );
-                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey (array_merge($request, $params)));
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey ($this->extend($request, $params)));
                     //
                     //    array("result" => "true")
                     //

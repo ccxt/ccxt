@@ -117,6 +117,7 @@ public partial class BaseTest
     public static string ed25519() => "ed25519";
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
+    public static object parseFloat(object a) => Exchange.parseFloat(a);
 
     public bool equals(object a, object b)
     {
@@ -163,4 +164,28 @@ public partial class BaseTest
 
     }
 
+    public object json(object a)
+    {
+        return Exchange.Json(a);
+    }
+
+    public object DeepEqual(object a, object b)
+    {
+        return isEqual(json(a), json(b));
+    }
+
+    public void AssertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+    {
+        assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
+    }
+}
+
+
+
+public partial class BaseTest
+{
+    public void testLanguageSpecific()
+    {
+
+    }
 }

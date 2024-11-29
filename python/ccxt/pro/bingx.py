@@ -5,10 +5,12 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.precise import Precise
 
@@ -20,19 +22,23 @@ class bingx(ccxt.async_support.bingx):
             'has': {
                 'ws': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchBalance': True,
             },
             'urls': {
                 'api': {
                     'ws': {
                         'spot': 'wss://open-api-ws.bingx.com/market',
-                        'swap': 'wss://open-api-swap.bingx.com/swap-market',
+                        'linear': 'wss://open-api-swap.bingx.com/swap-market',
+                        'inverse': 'wss://open-api-cswap-ws.bingx.com/market',
                     },
                 },
             },
@@ -73,6 +79,14 @@ class bingx(ccxt.async_support.bingx):
                     'fetchBalanceSnapshot': True,  # needed to be True to keep track of used and free balance
                     'awaitBalanceSnapshot': False,  # whether to wait for the balance snapshot before providing updates
                 },
+                'watchOrderBook': {
+                    'depth': 100,  # 5, 10, 20, 50, 100
+                    'interval': 500,  # 100, 200, 500, 1000
+                },
+                'watchOrderBookForSymbols': {
+                    'depth': 100,  # 5, 10, 20, 50, 100
+                    'interval': 500,  # 100, 200, 500, 1000
+                },
             },
             'streaming': {
                 'keepAlive': 1800000,  # 30 minutes
@@ -82,26 +96,36 @@ class bingx(ccxt.async_support.bingx):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchTrades', market, params)
-        url = self.safe_value(self.urls['api']['ws'], marketType)
-        if url is None:
-            raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
-        messageHash = market['id'] + '@ticker'
+        marketType = None
+        subType = None
+        url = None
+        marketType, params = self.handle_market_type_and_params('watchTicker', market, params)
+        subType, params = self.handle_sub_type_and_params('watchTicker', market, params, 'linear')
+        if marketType == 'swap':
+            url = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            url = self.safe_string(self.urls['api']['ws'], marketType)
+        subscriptionHash = market['id'] + '@ticker'
+        messageHash = self.get_message_hash('ticker', market['symbol'])
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        return await self.watch(url, messageHash, self.extend(request, query), messageHash)
+        return await self.watch(url, messageHash, self.extend(request, params), subscriptionHash)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -167,8 +191,9 @@ class bingx(ccxt.async_support.bingx):
         symbol = market['symbol']
         ticker = self.parse_ws_ticker(data, market)
         self.tickers[symbol] = ticker
-        messageHash = market['id'] + '@ticker'
-        client.resolve(ticker, messageHash)
+        client.resolve(ticker, self.get_message_hash('ticker', symbol))
+        if self.safe_string(message, 'dataType') == 'all@ticker':
+            client.resolve(ticker, self.get_message_hash('ticker'))
 
     def parse_ws_ticker(self, message, market=None):
         #
@@ -193,7 +218,7 @@ class bingx(ccxt.async_support.bingx):
         #         "b": "2.5747"
         #     }
         #
-        timestamp = self.safe_integer(message, 'ts')
+        timestamp = self.safe_integer(message, 'C')
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
@@ -220,40 +245,235 @@ class bingx(ccxt.async_support.bingx):
             'info': message,
         }, market)
 
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+
+        :param str[] symbols: unified symbol of the market to watch the tickers for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, False)
+        firstMarket = None
+        marketType = None
+        subType = None
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            firstMarket = self.market(symbols[0])
+        marketType, params = self.handle_market_type_and_params('watchTickers', firstMarket, params)
+        subType, params = self.handle_sub_type_and_params('watchTickers', firstMarket, params, 'linear')
+        if marketType == 'spot':
+            raise NotSupported(self.id + ' watchTickers is not supported for spot markets yet')
+        if subType == 'inverse':
+            raise NotSupported(self.id + ' watchTickers is not supported for inverse markets yet')
+        messageHashes = []
+        subscriptionHashes = ['all@ticker']
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                messageHashes.append(self.get_message_hash('ticker', market['symbol']))
+        else:
+            messageHashes.append(self.get_message_hash('ticker'))
+        url = self.safe_string(self.urls['api']['ws'], subType)
+        uuid = self.uuid()
+        request: dict = {
+            'id': uuid,
+            'dataType': 'all@ticker',
+        }
+        if marketType == 'swap':
+            request['reqType'] = 'sub'
+        result = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), subscriptionHashes)
+        if self.newUpdates:
+            newDict: dict = {}
+            newDict[result['symbol']] = result
+            return newDict
+        return self.tickers
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        symbols = self.market_symbols(symbols, None, True, True, False)
+        firstMarket = None
+        marketType = None
+        subType = None
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            firstMarket = self.market(symbols[0])
+        marketType, params = self.handle_market_type_and_params('watchOrderBookForSymbols', firstMarket, params)
+        subType, params = self.handle_sub_type_and_params('watchOrderBookForSymbols', firstMarket, params, 'linear')
+        if marketType == 'spot':
+            raise NotSupported(self.id + ' watchOrderBookForSymbols is not supported for spot markets yet')
+        if subType == 'inverse':
+            raise NotSupported(self.id + ' watchOrderBookForSymbols is not supported for inverse markets yet')
+        limit = self.get_order_book_limit_by_market_type(marketType, limit)
+        interval = None
+        interval, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'interval', 500)
+        self.check_required_argument('watchOrderBookForSymbols', interval, 'interval', [100, 200, 500, 1000])
+        channelName = 'depth' + str(limit) + '@' + str(interval) + 'ms'
+        subscriptionHash = 'all@' + channelName
+        messageHashes = []
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                messageHashes.append(self.get_message_hash('orderbook', market['symbol']))
+        else:
+            messageHashes.append(self.get_message_hash('orderbook'))
+        url = self.safe_string(self.urls['api']['ws'], subType)
+        uuid = self.uuid()
+        request: dict = {
+            'id': uuid,
+            'dataType': subscriptionHash,
+        }
+        if marketType == 'swap':
+            request['reqType'] = 'sub'
+        subscriptionArgs: dict = {
+            'symbols': symbols,
+            'limit': limit,
+            'interval': interval,
+            'params': params,
+        }
+        orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), [subscriptionHash], subscriptionArgs)
+        return orderbook.limit()
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        symbolsLength = len(symbolsAndTimeframes)
+        if symbolsLength != 0 and not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]")
+        await self.load_markets()
+        messageHashes = []
+        marketType = None
+        subType = None
+        chosenTimeframe = None
+        firstMarket = None
+        if symbolsLength != 0:
+            symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
+            symbols = self.market_symbols(symbols, None, True, True, False)
+            firstMarket = self.market(symbols[0])
+        marketType, params = self.handle_market_type_and_params('watchOHLCVForSymbols', firstMarket, params)
+        subType, params = self.handle_sub_type_and_params('watchOHLCVForSymbols', firstMarket, params, 'linear')
+        if marketType == 'spot':
+            raise NotSupported(self.id + ' watchOHLCVForSymbols is not supported for spot markets yet')
+        if subType == 'inverse':
+            raise NotSupported(self.id + ' watchOHLCVForSymbols is not supported for inverse markets yet')
+        marketOptions = self.safe_dict(self.options, marketType)
+        timeframes = self.safe_dict(marketOptions, 'timeframes', {})
+        for i in range(0, len(symbolsAndTimeframes)):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            sym = symbolAndTimeframe[0]
+            tf = symbolAndTimeframe[1]
+            market = self.market(sym)
+            rawTimeframe = self.safe_string(timeframes, tf, tf)
+            if chosenTimeframe is None:
+                chosenTimeframe = rawTimeframe
+            elif chosenTimeframe != rawTimeframe:
+                raise BadRequest(self.id + ' watchOHLCVForSymbols requires all timeframes to be the same')
+            messageHashes.append(self.get_message_hash('ohlcv', market['symbol'], chosenTimeframe))
+        subscriptionHash = 'all@kline_' + chosenTimeframe
+        url = self.safe_string(self.urls['api']['ws'], subType)
+        uuid = self.uuid()
+        request: dict = {
+            'id': uuid,
+            'dataType': subscriptionHash,
+        }
+        if marketType == 'swap':
+            request['reqType'] = 'sub'
+        subscriptionArgs: dict = {
+            'limit': limit,
+            'params': params,
+        }
+        symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, request, [subscriptionHash], subscriptionArgs)
+        if self.newUpdates:
+            limit = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
+    def get_order_book_limit_by_market_type(self, marketType: str, limit: Int = None):
+        if limit is None:
+            limit = 100
+        else:
+            if marketType == 'swap' or marketType == 'future':
+                limit = self.find_nearest_ceiling([5, 10, 20, 50, 100], limit)
+            elif marketType == 'spot':
+                limit = self.find_nearest_ceiling([20, 100], limit)
+        return limit
+
+    def get_message_hash(self, unifiedChannel: str, symbol: Str = None, extra: Str = None):
+        hash = unifiedChannel
+        if symbol is not None:
+            hash += '::' + symbol
+        else:
+            hash += 's'  # tickers, orderbooks, ohlcvs ...
+        if extra is not None:
+            hash += '::' + extra
+        return hash
+
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+
+        https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
+        https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchTrades', market, params)
-        url = self.safe_value(self.urls['api']['ws'], marketType)
-        if url is None:
-            raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
-        messageHash = market['id'] + '@trade'
+        symbol = market['symbol']
+        marketType = None
+        subType = None
+        url = None
+        marketType, params = self.handle_market_type_and_params('watchTrades', market, params)
+        subType, params = self.handle_sub_type_and_params('watchTrades', market, params, 'linear')
+        if marketType == 'swap':
+            url = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            url = self.safe_string(self.urls['api']['ws'], marketType)
+        rawHash = market['id'] + '@trade'
+        messageHash = 'trade::' + symbol
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': rawHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        trades = await self.watch(url, messageHash, self.extend(request, query), messageHash)
+        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
         #
-        # spot
-        # first snapshot
+        # spot: first snapshot
         #
         #    {
         #      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
@@ -262,7 +482,7 @@ class bingx(ccxt.async_support.bingx):
         #      "timestamp": 1690214699854
         #    }
         #
-        # subsequent updates
+        # spot: subsequent updates
         #
         #     {
         #         "code": 0,
@@ -280,9 +500,7 @@ class bingx(ccxt.async_support.bingx):
         #         "success": True
         #     }
         #
-        #
-        # swap
-        # first snapshot
+        # linear swap: first snapshot
         #
         #    {
         #        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
@@ -292,8 +510,7 @@ class bingx(ccxt.async_support.bingx):
         #        "data": null
         #    }
         #
-        # subsequent updates
-        #
+        # linear swap: subsequent updates
         #
         #    {
         #        "code": 0,
@@ -310,13 +527,40 @@ class bingx(ccxt.async_support.bingx):
         #        ]
         #    }
         #
+        # inverse swap: first snapshot
+        #
+        #     {
+        #         "code": 0,
+        #         "id": "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
+        #         "msg": "SUCCESS",
+        #         "timestamp": 1722920589426
+        #     }
+        #
+        # inverse swap: subsequent updates
+        #
+        #     {
+        #         "code": 0,
+        #         "dataType": "BTC-USD@trade",
+        #         "data": {
+        #             "e": "trade",
+        #             "E": 1722920589665,
+        #             "s": "BTC-USD",
+        #             "t": "39125001",
+        #             "p": "55360.0",
+        #             "q": "1",
+        #             "T": 1722920589582,
+        #             "m": False
+        #         }
+        #     }
+        #
         data = self.safe_value(message, 'data', [])
-        messageHash = self.safe_string(message, 'dataType')
-        marketId = messageHash.split('@')[0]
+        rawHash = self.safe_string(message, 'dataType')
+        marketId = rawHash.split('@')[0]
         isSwap = client.url.find('swap') >= 0
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
+        messageHash = 'trade::' + symbol
         trades = None
         if isinstance(data, list):
             trades = self.parse_trades(data, market)
@@ -334,8 +578,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -343,39 +590,55 @@ class bingx(ccxt.async_support.bingx):
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchOrderBook', market, params)
-        if limit is None:
-            limit = 100
+        marketType = None
+        subType = None
+        url = None
+        marketType, params = self.handle_market_type_and_params('watchOrderBook', market, params)
+        subType, params = self.handle_sub_type_and_params('watchOrderBook', market, params, 'linear')
+        if marketType == 'swap':
+            url = self.safe_string(self.urls['api']['ws'], subType)
         else:
-            if marketType == 'swap':
-                if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100):
-                    raise BadRequest(self.id + ' watchOrderBook()(swap) only supports limit 5, 10, 20, 50, and 100')
-            elif marketType == 'spot':
-                if (limit != 20) and (limit != 100):
-                    raise BadRequest(self.id + ' watchOrderBook()(spot) only supports limit 20, and 100')
-        url = self.safe_value(self.urls['api']['ws'], marketType)
-        if url is None:
-            raise BadRequest(self.id + ' watchOrderBook is not supported for ' + marketType + ' markets.')
-        messageHash = market['id'] + '@depth' + str(limit)
+            url = self.safe_string(self.urls['api']['ws'], marketType)
+        limit = self.get_order_book_limit_by_market_type(marketType, limit)
+        channelName = 'depth' + str(limit)
+        interval = None
+        if marketType != 'spot':
+            if not market['inverse']:
+                interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
+                self.check_required_argument('watchOrderBook', interval, 'interval', [100, 200, 500, 1000])
+                channelName = channelName + '@' + str(interval) + 'ms'
+        subscriptionHash = market['id'] + '@' + channelName
+        messageHash = self.get_message_hash('orderbook', market['symbol'])
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        orderbook = await self.watch(url, messageHash, self.deep_extend(request, query), messageHash)
+        subscriptionArgs: dict = {}
+        if market['inverse']:
+            subscriptionArgs = {
+                'count': limit,
+                'params': params,
+            }
+        else:
+            subscriptionArgs = {
+                'level': limit,
+                'interval': interval,
+                'params': params,
+            }
+        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscriptionArgs)
         return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 0)
-        amount = self.safe_float(delta, 1)
+        price = self.safe_float_2(delta, 0, 'p')
+        amount = self.safe_float_2(delta, 1, 'a')
         bookside.store(price, amount)
 
     def handle_order_book(self, client: Client, message):
         #
         # spot
-        #
         #
         #    {
         #        "code": 0,
@@ -394,12 +657,11 @@ class bingx(ccxt.async_support.bingx):
         #        "success": True
         #    }
         #
-        # swap
-        #
+        # linear swap
         #
         #    {
         #        "code": 0,
-        #        "dataType": "BTC-USDT@depth20",
+        #        "dataType": "BTC-USDT@depth20@100ms",  #or "all@depth20@100ms"
         #        "data": {
         #          "bids": [
         #            ['28852.9', "34.2621"],
@@ -408,24 +670,63 @@ class bingx(ccxt.async_support.bingx):
         #          "asks": [
         #            ['28864.9', "23.4079"],
         #            ...
-        #          ]
+        #          ],
+        #          "symbol": "BTC-USDT",  # self key exists only in "all" subscription
         #        }
         #    }
         #
-        data = self.safe_value(message, 'data', [])
-        messageHash = self.safe_string(message, 'dataType')
-        marketId = messageHash.split('@')[0]
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "dataType": "BTC-USD@depth100",
+        #         "data": {
+        #             {
+        #                 "symbol": "BTC-USD",
+        #                 "bids": [
+        #                     {"p": "58074.2", "a": "1.422318", "v": "826.0"},
+        #                     ...
+        #                 ],
+        #                 "asks": [
+        #                     {"p": "62878.0", "a": "0.001590", "v": "1.0"},
+        #                     ...
+        #                 ],
+        #                 "aggPrecision": "0.1",
+        #                 "timestamp": 1723705093529
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        dataType = self.safe_string(message, 'dataType')
+        parts = dataType.split('@')
+        firstPart = parts[0]
+        isAllEndpoint = (firstPart == 'all')
+        marketId = self.safe_string(data, 'symbol', firstPart)
         isSwap = client.url.find('swap') >= 0
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
-        snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 0, 1)
+        if self.safe_value(self.orderbooks, symbol) is None:
+            # limit = [5, 10, 20, 50, 100]
+            subscriptionHash = dataType
+            subscription = client.subscriptions[subscriptionHash]
+            limit = self.safe_integer(subscription, 'limit')
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        snapshot = None
+        if market['inverse']:
+            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 'p', 'a')
+        else:
+            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 0, 1)
         orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
+        messageHash = self.get_message_hash('orderbook', symbol)
         client.resolve(orderbook, messageHash)
+        # resolve for "all"
+        if isAllEndpoint:
+            messageHashForAll = self.get_message_hash('orderbook')
+            client.resolve(orderbook, messageHashForAll)
 
     def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
@@ -440,8 +741,10 @@ class bingx(ccxt.async_support.bingx):
         #    }
         #
         # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
-        # for swap,(T) is the opening time
+        # for linear swap,(T) is the opening time
         timestamp = 't' if (market['spot']) else 'T'
+        if market['swap']:
+            timestamp = 't' if (market['inverse']) else 'T'
         return [
             self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
@@ -453,7 +756,7 @@ class bingx(ccxt.async_support.bingx):
 
     def handle_ohlcv(self, client: Client, message):
         #
-        # spot
+        # spot:
         #
         #   {
         #       "code": 0,
@@ -479,7 +782,8 @@ class bingx(ccxt.async_support.bingx):
         #       "success": True
         #   }
         #
-        # swap
+        # linear swap:
+        #
         #    {
         #        "code": 0,
         #        "dataType": "BTC-USDT@kline_1m",
@@ -496,36 +800,74 @@ class bingx(ccxt.async_support.bingx):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
-        candles = None
-        if isinstance(data, list):
-            candles = data
-        else:
-            candles = [self.safe_value(data, 'K', [])]
-        messageHash = self.safe_string(message, 'dataType')
-        timeframeId = messageHash.split('_')[1]
-        marketId = messageHash.split('@')[0]
+        # inverse swap:
+        #
+        #     {
+        #         "code": 0,
+        #         "timestamp": 1723769354547,
+        #         "dataType": "BTC-USD@kline_1m",
+        #         "data": {
+        #             "t": 1723769340000,
+        #             "o": 57485.1,
+        #             "c": 57468,
+        #             "l": 57464.9,
+        #             "h": 57485.1,
+        #             "a": 0.189663,
+        #             "v": 109,
+        #             "u": 92,
+        #             "s": "BTC-USD"
+        #         }
+        #     }
+        #
         isSwap = client.url.find('swap') >= 0
+        dataType = self.safe_string(message, 'dataType')
+        parts = dataType.split('@')
+        firstPart = parts[0]
+        isAllEndpoint = (firstPart == 'all')
+        marketId = self.safe_string(message, 's', firstPart)
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
+        candles = None
+        if isSwap:
+            if market['inverse']:
+                candles = [self.safe_dict(message, 'data', {})]
+            else:
+                candles = self.safe_list(message, 'data', [])
+        else:
+            data = self.safe_dict(message, 'data', {})
+            candles = [self.safe_dict(data, 'K', {})]
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframeId)
-        if stored is None:
-            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframeId] = stored
+        rawTimeframe = dataType.split('_')[1]
+        marketOptions = self.safe_dict(self.options, marketType)
+        timeframes = self.safe_dict(marketOptions, 'timeframes', {})
+        unifiedTimeframe = self.find_timeframe(rawTimeframe, timeframes)
+        if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
+            subscriptionHash = dataType
+            subscription = client.subscriptions[subscriptionHash]
+            limit = self.safe_integer(subscription, 'limit')
+            self.ohlcvs[symbol][unifiedTimeframe] = ArrayCacheByTimestamp(limit)
+        stored = self.ohlcvs[symbol][unifiedTimeframe]
         for i in range(0, len(candles)):
             candle = candles[i]
             parsed = self.parse_ws_ohlcv(candle, market)
             stored.append(parsed)
-        client.resolve(stored, messageHash)
+        resolveData = [symbol, unifiedTimeframe, stored]
+        messageHash = self.get_message_hash('ohlcv', symbol, unifiedTimeframe)
+        client.resolve(resolveData, messageHash)
+        # resolve for "all"
+        if isAllEndpoint:
+            messageHashForAll = self.get_message_hash('ohlcv', None, unifiedTimeframe)
+            client.resolve(resolveData, messageHashForAll)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -535,33 +877,49 @@ class bingx(ccxt.async_support.bingx):
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchOHLCV', market, params)
-        url = self.safe_value(self.urls['api']['ws'], marketType)
+        marketType = None
+        subType = None
+        url = None
+        marketType, params = self.handle_market_type_and_params('watchOHLCV', market, params)
+        subType, params = self.handle_sub_type_and_params('watchOHLCV', market, params, 'linear')
+        if marketType == 'swap':
+            url = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            url = self.safe_string(self.urls['api']['ws'], marketType)
         if url is None:
             raise BadRequest(self.id + ' watchOHLCV is not supported for ' + marketType + ' markets.')
         options = self.safe_value(self.options, marketType, {})
         timeframes = self.safe_value(options, 'timeframes', {})
-        interval = self.safe_string(timeframes, timeframe, timeframe)
-        messageHash = market['id'] + '@kline_' + interval
+        rawTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        messageHash = self.get_message_hash('ohlcv', market['symbol'], timeframe)
+        subscriptionHash = market['id'] + '@kline_' + rawTimeframe
         uuid = self.uuid()
-        request = {
+        request: dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': subscriptionHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        ohlcv = await self.watch(url, messageHash, self.extend(request, query), messageHash)
+        subscriptionArgs: dict = {
+            'interval': rawTimeframe,
+            'params': params,
+        }
+        result = await self.watch(url, messageHash, self.extend(request, params), subscriptionHash, subscriptionArgs)
+        ohlcv = result[2]
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
         watches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
+        :param str [symbol]: unified market symbol of the market orders are made in
+        :param int [since]: the earliest time in ms to watch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -569,11 +927,13 @@ class bingx(ccxt.async_support.bingx):
         await self.load_markets()
         await self.authenticate()
         type = None
+        subType = None
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
         isSpot = (type == 'spot')
         spotHash = 'spot:private'
         swapHash = 'swap:private'
@@ -583,14 +943,21 @@ class bingx(ccxt.async_support.bingx):
         messageHash = spotMessageHash if isSpot else swapMessageHash
         if market is not None:
             messageHash += ':' + symbol
-        url = self.urls['api']['ws'][type] + '?listenKey=' + self.options['listenKey']
-        request = None
         uuid = self.uuid()
-        if isSpot:
+        baseUrl = None
+        request = None
+        if type == 'swap':
+            if subType == 'inverse':
+                raise NotSupported(self.id + ' watchOrders is not supported for inverse swap markets yet')
+            baseUrl = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            baseUrl = self.safe_string(self.urls['api']['ws'], type)
             request = {
                 'id': uuid,
+                'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             }
+        url = baseUrl + '?listenKey=' + self.options['listenKey']
         orders = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -598,40 +965,52 @@ class bingx(ccxt.async_support.bingx):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market trades were made in
-        :param int [since]: the earliest time in ms to trades orders for
-        :param int [limit]: the maximum number of trades structures to retrieve
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
+        :param str [symbol]: unified market symbol of the market the trades are made in
+        :param int [since]: the earliest time in ms to watch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         await self.authenticate()
         type = None
+        subType = None
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
+        subType, params = self.handle_sub_type_and_params('watchMyTrades', market, params, 'linear')
         isSpot = (type == 'spot')
-        spotSubHash = 'spot:private'
-        swapSubHash = 'swap:private'
-        subscriptionHash = spotSubHash if isSpot else swapSubHash
+        spotHash = 'spot:private'
+        swapHash = 'swap:private'
+        subscriptionHash = spotHash if isSpot else swapHash
         spotMessageHash = 'spot:mytrades'
         swapMessageHash = 'swap:mytrades'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         if market is not None:
             messageHash += ':' + symbol
-        url = self.urls['api']['ws'][type] + '?listenKey=' + self.options['listenKey']
-        request = None
         uuid = self.uuid()
-        if isSpot:
+        baseUrl = None
+        request = None
+        if type == 'swap':
+            if subType == 'inverse':
+                raise NotSupported(self.id + ' watchMyTrades is not supported for inverse swap markets yet')
+            baseUrl = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            baseUrl = self.safe_string(self.urls['api']['ws'], type)
             request = {
                 'id': uuid,
+                'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             }
+        url = baseUrl + '?listenKey=' + self.options['listenKey']
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -639,16 +1018,21 @@ class bingx(ccxt.async_support.bingx):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
         query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
         type = None
+        subType = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        subType, params = self.handle_sub_type_and_params('watchBalance', None, params, 'linear')
         isSpot = (type == 'spot')
         spotSubHash = 'spot:balance'
         swapSubHash = 'swap:private'
@@ -656,16 +1040,22 @@ class bingx(ccxt.async_support.bingx):
         swapMessageHash = 'swap:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
-        url = self.urls['api']['ws'][type] + '?listenKey=' + self.options['listenKey']
         request = None
+        baseUrl = None
         uuid = self.uuid()
-        if type == 'spot':
+        if type == 'swap':
+            if subType == 'inverse':
+                raise NotSupported(self.id + ' watchBalance is not supported for inverse swap markets yet')
+            baseUrl = self.safe_string(self.urls['api']['ws'], subType)
+        else:
+            baseUrl = self.safe_string(self.urls['api']['ws'], type)
             request = {
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             }
+        url = baseUrl + '?listenKey=' + self.options['listenKey']
         client = self.client(url)
-        self.set_balance_cache(client, type, subscriptionHash, params)
+        self.set_balance_cache(client, type, subType, subscriptionHash, params)
         fetchBalanceSnapshot = None
         awaitBalanceSnapshot = None
         fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
@@ -674,7 +1064,7 @@ class bingx(ccxt.async_support.bingx):
             await client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, request, subscriptionHash)
 
-    def set_balance_cache(self, client: Client, type, subscriptionHash, params):
+    def set_balance_cache(self, client: Client, type, subType, subscriptionHash, params):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
@@ -682,12 +1072,12 @@ class bingx(ccxt.async_support.bingx):
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
-                self.spawn(self.load_balance_snapshot, client, messageHash, type)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type, subType)
         else:
             self.balance[type] = {}
 
-    async def load_balance_snapshot(self, client, messageHash, type):
-        response = await self.fetch_balance({'type': type})
+    async def load_balance_snapshot(self, client, messageHash, type, subType):
+        response = await self.fetch_balance({'type': type, 'subType': subType})
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
@@ -713,20 +1103,39 @@ class bingx(ccxt.async_support.bingx):
             client.reject(e)
         return True
 
-    async def authenticate(self, params={}):
-        time = self.milliseconds()
+    async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is None:
-            response = await self.userAuthPrivatePostUserDataStream()
-            self.options['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'] = time
+            # A network error happened: we can't renew a listen key that does not exist.
             return
+        try:
+            await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+        except Exception as error:
+            types = ['spot', 'linear', 'inverse']
+            for i in range(0, len(types)):
+                type = types[i]
+                url = self.urls['api']['ws'][type] + '?listenKey=' + listenKey
+                client = self.client(url)
+                messageHashes = list(client.futures.keys())
+                for j in range(0, len(messageHashes)):
+                    messageHash = messageHashes[j]
+                    client.reject(error, messageHash)
+            self.options['listenKey'] = None
+            self.options['lastAuthenticatedTime'] = 0
+            return
+        # whether or not to schedule another listenKey keepAlive request
+        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
+        self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+
+    async def authenticate(self, params={}):
+        time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePutUserDataStream({'listenKey': listenKey})  # self.extend the expiry
+            response = await self.userAuthPrivatePostUserDataStream()
             self.options['listenKey'] = self.safe_string(response, 'listenKey')
             self.options['lastAuthenticatedTime'] = time
+            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
     async def pong(self, client, message):
         #
@@ -909,13 +1318,16 @@ class bingx(ccxt.async_support.bingx):
         #    }
         #
         isSpot = ('dataType' in message)
-        result = self.safe_value_2(message, 'data', 'o', {})
+        result = self.safe_dict_2(message, 'data', 'o', {})
         cachedTrades = self.myTrades
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
             self.myTrades = cachedTrades
-        parsed = self.parse_trade(result)
+        type = 'spot' if isSpot else 'swap'
+        marketId = self.safe_string(result, 's')
+        market = self.safe_market(marketId, None, '-', type)
+        parsed = self.parse_trade(result, market)
         symbol = parsed['symbol']
         spotHash = 'spot:mytrades'
         swapHash = 'swap:mytrades'
@@ -961,10 +1373,12 @@ class bingx(ccxt.async_support.bingx):
         #         }
         #     }
         #
-        a = self.safe_value(message, 'a', {})
-        data = self.safe_value(a, 'B', [])
+        a = self.safe_dict(message, 'a', {})
+        data = self.safe_list(a, 'B', [])
         timestamp = self.safe_integer_2(message, 'T', 'E')
         type = 'swap' if ('P' in a) else 'spot'
+        if not (type in self.balance):
+            self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)

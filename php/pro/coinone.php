@@ -18,6 +18,7 @@ class coinone extends \ccxt\async\coinone {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => true,
                 'watchTickers' => false,
@@ -54,7 +55,9 @@ class coinone extends \ccxt\async\coinone {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.coinone.co.kr/reference/public-websocket-$orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -72,7 +75,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -137,7 +140,9 @@ class coinone extends \ccxt\async\coinone {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -154,7 +159,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -258,12 +263,14 @@ class coinone extends \ccxt\async\coinone {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
+             *
              * @see https://docs.coinone.co.kr/reference/public-websocket-trade
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -277,7 +284,7 @@ class coinone extends \ccxt\async\coinone {
                     'target_currency' => $market['base'],
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
@@ -316,7 +323,7 @@ class coinone extends \ccxt\async\coinone {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "quote_currency" => "KRW",
@@ -407,7 +414,7 @@ class coinone extends \ccxt\async\coinone {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'request_type' => 'PING',
         );
