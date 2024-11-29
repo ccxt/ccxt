@@ -3084,7 +3084,7 @@ export default class bitrue extends Exchange {
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (access === 'private' || version === 'private') {
+        if (access === 'private') {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
             if (type === 'spot' || type === 'open') {
