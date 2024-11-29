@@ -3077,17 +3077,17 @@ export default class bitrue extends Exchange {
         const version = this.safeString (api, 1);
         const access = this.safeString (api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0)) {
             url = this.urls['api'][type];
         } else {
             url = this.urls['api'][type] + '/' + version;
         }
         url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (access === 'private') {
+        if (access === 'private' || version === 'private') {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
