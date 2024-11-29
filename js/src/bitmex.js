@@ -1517,7 +1517,7 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['endTime'] = this.iso8601(until);
