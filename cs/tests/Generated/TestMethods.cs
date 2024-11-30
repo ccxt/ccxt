@@ -1036,7 +1036,7 @@ public partial class testMainClass
         return result;
     }
 
-    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutputInner(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         if (isTrue(isTrue(isNullValue(newOutput)) && isTrue(isNullValue(storedOutput))))
@@ -1153,6 +1153,39 @@ public partial class testMainClass
             }
         }
         return true;  // c# requ
+    }
+
+    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    {
+        strictTypeCheck ??= true;
+        try
+        {
+            return this.assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+        } catch(Exception e)
+        {
+            if (isTrue(this.info))
+            {
+                object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
+                dump(add("[TEST_FAILURE_DETAIL]", errorMessage));
+            }
+            throw e;
+        }
+    }
+
+    public virtual object varToString(object obj = null)
+    {
+        object newString = null;
+        if (isTrue(isEqual(obj, null)))
+        {
+            newString = "undefined";
+        } else if (isTrue(isNullValue(obj)))
+        {
+            newString = "null";
+        } else
+        {
+            newString = jsonStringify(obj);
+        }
+        return newString;
     }
 
     public virtual void assertStaticRequestOutput(Exchange exchange, object type, object skipKeys, object storedUrl, object requestUrl, object storedOutput, object newOutput)

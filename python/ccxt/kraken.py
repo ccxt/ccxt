@@ -1553,18 +1553,9 @@ class kraken(Exchange, ImplicitAPI):
         # editOrder
         #
         #     {
-        #         "status": "ok",
-        #         "txid": "OAW2BO-7RWEK-PZY5UO",
-        #         "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        #         "newuserref": 1234,
-        #         "olduserref": 123,
-        #         "volume": "0.00075000",
-        #         "price": "13500.0",
-        #         "orders_cancelled": 1,
-        #         "descr": {
-        #             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        #         }
+        #         "amend_id": "TJSMEH-AA67V-YUSQ6O"
         #     }
+        #
         #  ws - createOrder
         #    {
         #        "descr": 'sell 0.00010000 XBTUSDT @ market',
@@ -1687,11 +1678,11 @@ class kraken(Exchange, ImplicitAPI):
                 elif flags.find('fcib') >= 0:
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string_2(order, 'id', 'txid')
+        id = self.safe_string_n(order, ['id', 'txid', 'amend_id'])
         if (id is None) or (id.startswith('[')):
             txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
-        clientOrderId = self.safe_string_2(order, 'userref', 'newuserref')
+        clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades', [])
         trades = []
         for i in range(0, len(rawTrades)):
@@ -1706,22 +1697,26 @@ class kraken(Exchange, ImplicitAPI):
         takeProfitPrice = None
         # the dashed strings are not provided from fields(eg. fetch order)
         # while spaced strings from "order" sentence(when other fields not available)
-        if rawType.startswith('take-profit'):
-            takeProfitPrice = self.safe_string(description, 'price')
-            price = self.omit_zero(self.safe_string(description, 'price2'))
-        elif rawType.startswith('stop-loss'):
-            stopLossPrice = self.safe_string(description, 'price')
-            price = self.omit_zero(self.safe_string(description, 'price2'))
-        elif rawType == 'take profit':
-            takeProfitPrice = triggerPrice
-        elif rawType == 'stop loss':
-            stopLossPrice = triggerPrice
+        if rawType is not None:
+            if rawType.startswith('take-profit'):
+                takeProfitPrice = self.safe_string(description, 'price')
+                price = self.omit_zero(self.safe_string(description, 'price2'))
+            elif rawType.startswith('stop-loss'):
+                stopLossPrice = self.safe_string(description, 'price')
+                price = self.omit_zero(self.safe_string(description, 'price2'))
+            elif rawType == 'take profit':
+                takeProfitPrice = triggerPrice
+            elif rawType == 'stop loss':
+                stopLossPrice = triggerPrice
         finalType = self.parse_order_type(rawType)
         # unlike from endpoints which provide eg: "take-profit-limit"
         # for "space-delimited" orders we dont have market/limit suffixes, their format is
         # eg: `stop loss > limit 123`, so we need to parse them manually
         if self.in_array(finalType, ['stop loss', 'take profit']):
             finalType = 'market' if (price is None) else 'limit'
+        amendId = self.safe_string(order, 'amend_id')
+        if amendId is not None:
+            isPostOnly = None
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1751,10 +1746,10 @@ class kraken(Exchange, ImplicitAPI):
         }, market)
 
     def order_request(self, method: str, symbol: str, type: str, request: dict, amount: Num, price: Num = None, params={}):
-        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
-        params = self.omit(params, ['userref', 'clientOrderId'])
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        params = self.omit(params, ['clientOrderId'])
         if clientOrderId is not None:
-            request['userref'] = clientOrderId
+            request['cl_ord_id'] = clientOrderId
         stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
@@ -1854,21 +1849,24 @@ class kraken(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+        https://docs.kraken.com/api/docs/rest-api/amend-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
-        :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
-        :param str [params.trailingAmount]: *margin only* the quote price away from the current market price
-        :param str [params.trailingLimitAmount]: *margin only* the quote amount away from the trailingAmount
-        :param str [params.offset]: *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-        :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
+        :param str [params.trailingAmount]: the quote amount to trail away from the current market price
+        :param str [params.trailingPercent]: the percent to trail away from the current market price
+        :param str [params.trailingLimitAmount]: the quote amount away from the trailingAmount
+        :param str [params.trailingLimitPercent]: the percent away from the trailingAmount
+        :param str [params.offset]: '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+        :param boolean [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param str [params.clientOrderId]: the orders client order id
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1877,30 +1875,41 @@ class kraken(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request: dict = {
             'txid': id,
-            'pair': market['id'],
         }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['cl_ord_id'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+            request = self.omit(request, 'txid')
+        isMarket = (type == 'market')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, False, params)
+        if postOnly:
+            request['post_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         if amount is not None:
-            request['volume'] = self.amount_to_precision(symbol, amount)
-        orderRequest = self.order_request('editOrder', symbol, type, request, amount, price, params)
-        response = self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
+            request['order_qty'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['limit_price'] = self.price_to_precision(symbol, price)
+        allTriggerPrices = self.safe_string_n(params, ['stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent'])
+        if allTriggerPrices is not None:
+            offset = self.safe_string(params, 'offset')
+            params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset'])
+            if offset is not None:
+                allTriggerPrices = offset + allTriggerPrices
+                request['trigger_price'] = allTriggerPrices
+            else:
+                request['trigger_price'] = self.price_to_precision(symbol, allTriggerPrices)
+        response = self.privatePostAmendOrder(self.extend(request, params))
         #
         #     {
         #         "error": [],
         #         "result": {
-        #             "status": "ok",
-        #             "txid": "OAW2BO-7RWEK-PZY5UO",
-        #             "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        #             "volume": "0.00075000",
-        #             "price": "13500.0",
-        #             "orders_cancelled": 1,
-        #             "descr": {
-        #                 "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        #             }
+        #             "amend_id": "TJSMEH-AA67V-YUSQ6O"
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'result', {})
-        return self.parse_order(data, market)
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

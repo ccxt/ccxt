@@ -937,7 +937,7 @@ class testMainClass {
         }
         return result;
     }
-    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+    assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue(newOutput) && isNullValue(storedOutput)) {
             return true;
             // c# requirement
@@ -1041,6 +1041,31 @@ class testMainClass {
             }
         }
         return true; // c# requ
+    }
+    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+        try {
+            return this.assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+        }
+        catch (e) {
+            if (this.info) {
+                const errorMessage = this.varToString(newOutput) + '(calculated)' + ' != ' + this.varToString(storedOutput) + '(stored)';
+                dump('[TEST_FAILURE_DETAIL]' + errorMessage);
+            }
+            throw e;
+        }
+    }
+    varToString(obj = undefined) {
+        let newString = undefined;
+        if (obj === undefined) {
+            newString = 'undefined';
+        }
+        else if (isNullValue(obj)) {
+            newString = 'null';
+        }
+        else {
+            newString = jsonStringify(obj);
+        }
+        return newString;
     }
     assertStaticRequestOutput(exchange, type, skipKeys, storedUrl, requestUrl, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
