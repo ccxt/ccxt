@@ -1985,7 +1985,7 @@ export default class kraken extends Exchange {
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly) {
-            request['post_only'] = postOnly;
+            request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount !== undefined) {
             request['order_qty'] = this.amountToPrecision (symbol, amount);
