@@ -36,7 +36,6 @@ export default class probit extends probitRest {
                     'filter': 'order_books_l2',
                     'interval': 100, // or 500
                 },
-                'tempFiltersData': {}, // temporary container
             },
             'streaming': {
             },
@@ -298,10 +297,6 @@ export default class probit extends probitRest {
             client.resolve (stored, symbolSpecificMessageHash);
         }
         client.resolve (stored, messageHash);
-    }
-
-    parseTrade (rawTrade: Dict, market: Market = undefined): Trade {
-        return super.parseTrade (rawTrade, market);
     }
 
     /**
