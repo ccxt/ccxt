@@ -1651,18 +1651,9 @@ class kraken extends Exchange {
         // editOrder
         //
         //     {
-        //         "status" => "ok",
-        //         "txid" => "OAW2BO-7RWEK-PZY5UO",
-        //         "originaltxid" => "OXL6SS-UPNMC-26WBE7",
-        //         "newuserref" => 1234,
-        //         "olduserref" => 123,
-        //         "volume" => "0.00075000",
-        //         "price" => "13500.0",
-        //         "orders_cancelled" => 1,
-        //         "descr" => {
-        //             "order" => "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //         }
+        //         "amend_id" => "TJSMEH-AA67V-YUSQ6O"
         //     }
+        //
         //  ws - createOrder
         //    {
         //        "descr" => 'sell 0.00010000 XBTUSDT @ market',
@@ -1796,12 +1787,12 @@ class kraken extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'id', 'txid');
+        $id = $this->safe_string_n($order, array( 'id', 'txid', 'amend_id' ));
         if (($id === null) || (str_starts_with($id, '['))) {
             $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
-        $clientOrderId = $this->safe_string_2($order, 'userref', 'newuserref');
+        $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
@@ -1818,16 +1809,18 @@ class kraken extends Exchange {
         $takeProfitPrice = null;
         // the dashed strings are not provided from fields (eg. fetch $order)
         // while spaced strings from "order" sentence (when other fields not available)
-        if (str_starts_with($rawType, 'take-profit')) {
-            $takeProfitPrice = $this->safe_string($description, 'price');
-            $price = $this->omit_zero($this->safe_string($description, 'price2'));
-        } elseif (str_starts_with($rawType, 'stop-loss')) {
-            $stopLossPrice = $this->safe_string($description, 'price');
-            $price = $this->omit_zero($this->safe_string($description, 'price2'));
-        } elseif ($rawType === 'take profit') {
-            $takeProfitPrice = $triggerPrice;
-        } elseif ($rawType === 'stop loss') {
-            $stopLossPrice = $triggerPrice;
+        if ($rawType !== null) {
+            if (str_starts_with($rawType, 'take-profit')) {
+                $takeProfitPrice = $this->safe_string($description, 'price');
+                $price = $this->omit_zero($this->safe_string($description, 'price2'));
+            } elseif (str_starts_with($rawType, 'stop-loss')) {
+                $stopLossPrice = $this->safe_string($description, 'price');
+                $price = $this->omit_zero($this->safe_string($description, 'price2'));
+            } elseif ($rawType === 'take profit') {
+                $takeProfitPrice = $triggerPrice;
+            } elseif ($rawType === 'stop loss') {
+                $stopLossPrice = $triggerPrice;
+            }
         }
         $finalType = $this->parse_order_type($rawType);
         // unlike from endpoints which provide eg => "take-profit-limit"
@@ -1835,6 +1828,10 @@ class kraken extends Exchange {
         // eg => `stop loss > limit 123`, so we need to parse them manually
         if ($this->in_array($finalType, array( 'stop loss', 'take profit' ))) {
             $finalType = ($price === null) ? 'market' : 'limit';
+        }
+        $amendId = $this->safe_string($order, 'amend_id');
+        if ($amendId !== null) {
+            $isPostOnly = null;
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -1866,10 +1863,10 @@ class kraken extends Exchange {
     }
 
     public function order_request(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
-        $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
-        $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $params = $this->omit($params, array( 'clientOrderId' ));
         if ($clientOrderId !== null) {
-            $request['userref'] = $clientOrderId;
+            $request['cl_ord_id'] = $clientOrderId;
         }
         $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
@@ -1991,21 +1988,24 @@ class kraken extends Exchange {
             /**
              * edit a trade order
              *
-             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+             * @see https://docs.kraken.com/api/docs/rest-api/amend-order
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
-             * @param {string} [$params->trailingAmount] *margin only* the quote $price away from the current $market $price
-             * @param {string} [$params->trailingLimitAmount] *margin only* the quote $amount away from the trailingAmount
-             * @param {string} [$params->offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-             * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
+             * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
+             * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
+             * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
+             * @param {string} [$params->trailingLimitAmount] the quote $amount away from the trailingAmount
+             * @param {string} [$params->trailingLimitPercent] the percent away from the trailingAmount
+             * @param {string} [$params->offset] '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+             * @param {boolean} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
+             * @param {string} [$params->clientOrderId] the orders client order $id
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2015,31 +2015,47 @@ class kraken extends Exchange {
             }
             $request = array(
                 'txid' => $id,
-                'pair' => $market['id'],
             );
-            if ($amount !== null) {
-                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['cl_ord_id'] = $clientOrderId;
+                $params = $this->omit($params, 'clientOrderId');
+                $request = $this->omit($request, 'txid');
             }
-            $orderRequest = $this->order_request('editOrder', $symbol, $type, $request, $amount, $price, $params);
-            $response = Async\await($this->privatePostEditOrder ($this->extend($orderRequest[0], $orderRequest[1])));
+            $isMarket = ($type === 'market');
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
+            if ($postOnly) {
+                $request['post_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
+            }
+            if ($amount !== null) {
+                $request['order_qty'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($price !== null) {
+                $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $allTriggerPrices = $this->safe_string_n($params, array( 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ));
+            if ($allTriggerPrices !== null) {
+                $offset = $this->safe_string($params, 'offset');
+                $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ));
+                if ($offset !== null) {
+                    $allTriggerPrices = $offset . $allTriggerPrices;
+                    $request['trigger_price'] = $allTriggerPrices;
+                } else {
+                    $request['trigger_price'] = $this->price_to_precision($symbol, $allTriggerPrices);
+                }
+            }
+            $response = Async\await($this->privatePostAmendOrder ($this->extend($request, $params)));
             //
             //     {
             //         "error" => array(),
             //         "result" => {
-            //             "status" => "ok",
-            //             "txid" => "OAW2BO-7RWEK-PZY5UO",
-            //             "originaltxid" => "OXL6SS-UPNMC-26WBE7",
-            //             "volume" => "0.00075000",
-            //             "price" => "13500.0",
-            //             "orders_cancelled" => 1,
-            //             "descr" => {
-            //                 "order" => "buy 0.00075000 XBTUSDT @ limit 13500.0"
-            //             }
+            //             "amend_id" => "TJSMEH-AA67V-YUSQ6O"
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'result', array());
-            return $this->parse_order($data, $market);
+            $result = $this->safe_dict($response, 'result', array());
+            return $this->parse_order($result, $market);
         }) ();
     }
 

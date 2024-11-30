@@ -132,6 +132,7 @@ class ImplicitAPI:
     wallets_v1_private_post_capital_deposit_createsubaddress = walletsV1PrivatePostCapitalDepositCreateSubAddress = Entry('capital/deposit/createSubAddress', ['wallets', 'v1', 'private'], 'POST', {'cost': 2})
     subaccount_v1_private_get_list = subAccountV1PrivateGetList = Entry('list', ['subAccount', 'v1', 'private'], 'GET', {'cost': 10})
     subaccount_v1_private_get_assets = subAccountV1PrivateGetAssets = Entry('assets', ['subAccount', 'v1', 'private'], 'GET', {'cost': 2})
+    subaccount_v1_private_get_allaccountbalance = subAccountV1PrivateGetAllAccountBalance = Entry('allAccountBalance', ['subAccount', 'v1', 'private'], 'GET', {'cost': 2})
     subaccount_v1_private_post_create = subAccountV1PrivatePostCreate = Entry('create', ['subAccount', 'v1', 'private'], 'POST', {'cost': 10})
     subaccount_v1_private_post_apikey_create = subAccountV1PrivatePostApiKeyCreate = Entry('apiKey/create', ['subAccount', 'v1', 'private'], 'POST', {'cost': 2})
     subaccount_v1_private_post_apikey_edit = subAccountV1PrivatePostApiKeyEdit = Entry('apiKey/edit', ['subAccount', 'v1', 'private'], 'POST', {'cost': 2})

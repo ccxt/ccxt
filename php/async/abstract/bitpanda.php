@@ -34,24 +34,6 @@ abstract class bitpanda extends \ccxt\async\onetrading {
     public function private_get_account_balances($params = array()) {
         return $this->request('account/balances', 'private', 'GET', $params, null, null, array());
     }
-    public function private_get_account_deposit_crypto_currency_code($params = array()) {
-        return $this->request('account/deposit/crypto/{currency_code}', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_deposit_fiat_eur($params = array()) {
-        return $this->request('account/deposit/fiat/EUR', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_deposits($params = array()) {
-        return $this->request('account/deposits', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_deposits_bitpanda($params = array()) {
-        return $this->request('account/deposits/bitpanda', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_withdrawals($params = array()) {
-        return $this->request('account/withdrawals', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_withdrawals_bitpanda($params = array()) {
-        return $this->request('account/withdrawals/bitpanda', 'private', 'GET', $params, null, null, array());
-    }
     public function private_get_account_fees($params = array()) {
         return $this->request('account/fees', 'private', 'GET', $params, null, null, array());
     }
@@ -69,21 +51,6 @@ abstract class bitpanda extends \ccxt\async\onetrading {
     }
     public function private_get_account_trades_trade_id($params = array()) {
         return $this->request('account/trades/{trade_id}', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_account_trading_volume($params = array()) {
-        return $this->request('account/trading-volume', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_post_account_deposit_crypto($params = array()) {
-        return $this->request('account/deposit/crypto', 'private', 'POST', $params, null, null, array());
-    }
-    public function private_post_account_withdraw_crypto($params = array()) {
-        return $this->request('account/withdraw/crypto', 'private', 'POST', $params, null, null, array());
-    }
-    public function private_post_account_withdraw_fiat($params = array()) {
-        return $this->request('account/withdraw/fiat', 'private', 'POST', $params, null, null, array());
-    }
-    public function private_post_account_fees($params = array()) {
-        return $this->request('account/fees', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_account_orders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array());
@@ -124,24 +91,6 @@ abstract class bitpanda extends \ccxt\async\onetrading {
     public function privateGetAccountBalances($params = array()) {
         return $this->request('account/balances', 'private', 'GET', $params, null, null, array());
     }
-    public function privateGetAccountDepositCryptoCurrencyCode($params = array()) {
-        return $this->request('account/deposit/crypto/{currency_code}', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountDepositFiatEUR($params = array()) {
-        return $this->request('account/deposit/fiat/EUR', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountDeposits($params = array()) {
-        return $this->request('account/deposits', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountDepositsBitpanda($params = array()) {
-        return $this->request('account/deposits/bitpanda', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountWithdrawals($params = array()) {
-        return $this->request('account/withdrawals', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountWithdrawalsBitpanda($params = array()) {
-        return $this->request('account/withdrawals/bitpanda', 'private', 'GET', $params, null, null, array());
-    }
     public function privateGetAccountFees($params = array()) {
         return $this->request('account/fees', 'private', 'GET', $params, null, null, array());
     }
@@ -159,21 +108,6 @@ abstract class bitpanda extends \ccxt\async\onetrading {
     }
     public function privateGetAccountTradesTradeId($params = array()) {
         return $this->request('account/trades/{trade_id}', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetAccountTradingVolume($params = array()) {
-        return $this->request('account/trading-volume', 'private', 'GET', $params, null, null, array());
-    }
-    public function privatePostAccountDepositCrypto($params = array()) {
-        return $this->request('account/deposit/crypto', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePostAccountWithdrawCrypto($params = array()) {
-        return $this->request('account/withdraw/crypto', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePostAccountWithdrawFiat($params = array()) {
-        return $this->request('account/withdraw/fiat', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePostAccountFees($params = array()) {
-        return $this->request('account/fees', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostAccountOrders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array());

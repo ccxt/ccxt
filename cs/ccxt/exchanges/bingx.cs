@@ -358,6 +358,7 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "list", 10 },
                                 { "assets", 2 },
+                                { "allAccountBalance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "create", 10 },
@@ -5881,10 +5882,10 @@ public partial class bingx : Exchange
         path = this.implodeParams(path, parameters);
         url = add(url, path);
         parameters = this.omit(parameters, this.extractParams(path));
+        ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
         parameters = this.keysort(parameters);
         if (isTrue(isEqual(access, "public")))
         {
-            ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
@@ -5892,23 +5893,23 @@ public partial class bingx : Exchange
         } else if (isTrue(isEqual(access, "private")))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
+            object isJsonContentType = (isTrue((isEqual(type, "subAccount"))) && isTrue((isEqual(method, "POST"))));
             object parsedParams = this.parseParams(parameters);
-            object query = this.urlencode(parsedParams);
             object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
-            {
-                query = add(add("?", query), "&");
-            } else
-            {
-                query = add(query, "?");
-            }
-            query = add(query, add("signature=", signature));
             headers = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },
             };
-            url = add(url, query);
+            if (isTrue(isJsonContentType))
+            {
+                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                ((IDictionary<string,object>)parsedParams)["signature"] = signature;
+                body = this.json(parsedParams);
+            } else
+            {
+                object query = this.urlencode(parsedParams);
+                url = add(url, add(add(add("?", query), "&signature="), signature));
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },

@@ -714,7 +714,7 @@ class testMainClass:
             result[key] = value
         return result
 
-    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
+    def assert_new_and_stored_output_inner(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return True
         if not new_output and not stored_output:
@@ -795,6 +795,25 @@ class testMainClass:
                         numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
                         self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output, asserting_key)
         return True   # c# requ
+
+    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
+        try:
+            return self.assert_new_and_stored_output_inner(exchange, skip_keys, new_output, stored_output, strict_type_check, asserting_key)
+        except Exception as e:
+            if self.info:
+                error_message = self.var_to_string(new_output) + '(calculated)' + ' != ' + self.var_to_string(stored_output) + '(stored)'
+                dump('[TEST_FAILURE_DETAIL]' + error_message)
+            raise e
+
+    def var_to_string(self, obj=None):
+        new_string = None
+        if obj is None:
+            new_string = 'undefined'
+        elif is_null_value(obj):
+            new_string = 'null'
+        else:
+            new_string = json_stringify(obj)
+        return new_string
 
     def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:
@@ -1064,7 +1083,15 @@ class testMainClass:
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
             else:
                 promises.append(self.test_exchange_response_statically(exchange_name, exchange_data, test_name))
-        await asyncio.gather(*promises)
+        try:
+            await asyncio.gather(*promises)
+        except Exception as e:
+            if type == 'request':
+                self.request_tests_failed = True
+            else:
+                self.response_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + str(e)
+            dump('[TEST_FAILURE]' + error_message)
         if self.request_tests_failed or self.response_tests_failed:
             exit_script(1)
         else:

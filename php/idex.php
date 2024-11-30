@@ -190,10 +190,8 @@ class idex extends Exchange {
         // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes")
         //
         $market = $this->market($symbol);
-        $info = $this->safe_value($market, 'info', array());
-        $quoteAssetPrecision = $this->safe_integer($info, 'quoteAssetPrecision');
         $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
-        return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return $this->decimal_to_precision($price, TRUNCATE, $market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
     }
 
     public function fetch_markets($params = array ()): array {
@@ -302,6 +300,8 @@ class idex extends Exchange {
                 'precision' => array(
                     'amount' => $basePrecision,
                     'price' => $this->safe_number($entry, 'tickSize'),
+                    'base' => $basePrecision,
+                    'quote' => $quotePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(

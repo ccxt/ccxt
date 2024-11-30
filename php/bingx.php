@@ -362,6 +362,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'list' => 10,
                                 'assets' => 2,
+                                'allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'create' => 10,
@@ -6341,29 +6342,29 @@ class bingx extends Exchange {
         $path = $this->implode_params($path, $params);
         $url .= $path;
         $params = $this->omit($params, $this->extract_params($path));
+        $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
         if ($access === 'public') {
-            $params['timestamp'] = $this->nonce();
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {
             $this->check_required_credentials();
-            $params['timestamp'] = $this->nonce();
+            $isJsonContentType = (($type === 'subAccount') && ($method === 'POST'));
             $parsedParams = $this->parse_params($params);
-            $query = $this->urlencode($parsedParams);
             $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
-            if ($params) {
-                $query = '?' . $query . '&';
-            } else {
-                $query .= '?';
-            }
-            $query .= 'signature=' . $signature;
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
-            $url .= $query;
+            if ($isJsonContentType) {
+                $headers['Content-Type'] = 'application/json';
+                $parsedParams['signature'] = $signature;
+                $body = $this->json($parsedParams);
+            } else {
+                $query = $this->urlencode($parsedParams);
+                $url .= '?' . $query . '&$signature=' . $signature;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

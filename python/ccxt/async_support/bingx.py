@@ -381,6 +381,7 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'list': 10,
                                 'assets': 2,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'create': 10,
@@ -6068,27 +6069,27 @@ class bingx(Exchange, ImplicitAPI):
         path = self.implode_params(path, params)
         url += path
         params = self.omit(params, self.extract_params(path))
+        params['timestamp'] = self.nonce()
         params = self.keysort(params)
         if access == 'public':
-            params['timestamp'] = self.nonce()
             if params:
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()
-            params['timestamp'] = self.nonce()
+            isJsonContentType = ((type == 'subAccount') and (method == 'POST'))
             parsedParams = self.parse_params(params)
-            query = self.urlencode(parsedParams)
             signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
-            if params:
-                query = '?' + query + '&'
-            else:
-                query += '?'
-            query += 'signature=' + signature
             headers = {
                 'X-BX-APIKEY': self.apiKey,
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
-            url += query
+            if isJsonContentType:
+                headers['Content-Type'] = 'application/json'
+                parsedParams['signature'] = signature
+                body = self.json(parsedParams)
+            else:
+                query = self.urlencode(parsedParams)
+                url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self):

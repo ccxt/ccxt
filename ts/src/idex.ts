@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/idex.js';
-import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE } from './base/functions/number.js';
 import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -198,10 +198,8 @@ export default class idex extends Exchange {
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         const market = this.market (symbol);
-        const info = this.safeValue (market, 'info', {});
-        const quoteAssetPrecision = this.safeInteger (info, 'quoteAssetPrecision');
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
-        return this.decimalToPrecision (price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return this.decimalToPrecision (price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
     }
 
     /**
@@ -310,6 +308,8 @@ export default class idex extends Exchange {
                 'precision': {
                     'amount': basePrecision,
                     'price': this.safeNumber (entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {

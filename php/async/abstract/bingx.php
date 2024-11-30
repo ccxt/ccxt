@@ -397,6 +397,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function subaccount_v1_private_get_assets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function subaccount_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function subaccount_v1_private_post_create($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
@@ -843,6 +846,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function subAccountV1PrivateGetAssets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function subAccountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function subAccountV1PrivatePostCreate($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
