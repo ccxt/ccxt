@@ -824,12 +824,8 @@ export default class bitmart extends Exchange {
                     },
                 },
                 'future': {
-                    'linear': {
-                        'extends': 'forDerivatives',
-                    },
-                    'inverse': {
-                        'extends': 'forDerivatives',
-                    },
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });
