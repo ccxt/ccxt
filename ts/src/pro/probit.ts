@@ -303,7 +303,7 @@ export default class probit extends probitRest {
     parseTrade (rawTrade: Dict, market: Market = undefined): Trade {
         return super.parseTrade (rawTrade, market);
     }
-    
+
     /**
      * @method
      * @name probit#watchOrders
