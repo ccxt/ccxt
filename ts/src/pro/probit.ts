@@ -231,8 +231,7 @@ export default class probit extends probitRest {
         await this.authenticate (params);
         let messageHash = 'trades';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         const trades = await this.subscribePrivate (messageHash, 'trade_history', params);

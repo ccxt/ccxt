@@ -141,6 +141,7 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "filter", "ticker");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         return await this.subscribeOrderBook(symbol, "ticker", filter, parameters);
     }
 
@@ -193,6 +194,8 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "filter", "recent_trades");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
         object trades = await this.subscribeOrderBook(symbol, "trades", filter, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -265,8 +268,7 @@ public partial class probit : ccxt.probit
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -358,8 +360,7 @@ public partial class probit : ccxt.probit
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object channel = null;
@@ -455,6 +456,7 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         object orderbook = await this.subscribeOrderBook(symbol, "orderbook", filter, parameters);
         return (orderbook as IOrderBook).limit();
     }

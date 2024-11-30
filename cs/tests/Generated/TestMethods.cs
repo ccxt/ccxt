@@ -1554,7 +1554,21 @@ public partial class testMainClass
                 ((IList<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
             }
         }
-        await promiseAll(promises);
+        try
+        {
+            await promiseAll(promises);
+        } catch(Exception e)
+        {
+            if (isTrue(isEqual(type, "request")))
+            {
+                this.requestTestsFailed = true;
+            } else
+            {
+                this.responseTestsFailed = true;
+            }
+            object errorMessage = add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), ((object)e).ToString());
+            dump(add("[TEST_FAILURE]", errorMessage));
+        }
         if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
         {
             exitScript(1);

@@ -132,6 +132,7 @@ class probit(ccxt.async_support.probit):
         """
         filter = None
         filter, params = self.handle_option_and_params(params, 'watchTicker', 'filter', 'ticker')
+        symbol = self.safe_symbol(symbol)
         return await self.subscribe_order_book(symbol, 'ticker', filter, params)
 
     def handle_ticker(self, client: Client, message):
@@ -177,6 +178,8 @@ class probit(ccxt.async_support.probit):
         """
         filter = None
         filter, params = self.handle_option_and_params(params, 'watchTrades', 'filter', 'recent_trades')
+        await self.load_markets()
+        symbol = self.safe_symbol(symbol)
         trades = await self.subscribe_order_book(symbol, 'trades', filter, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -237,8 +240,7 @@ class probit(ccxt.async_support.probit):
         await self.authenticate(params)
         messageHash = 'myTrades'
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(symbol)
             messageHash = messageHash + ':' + symbol
         url = self.urls['api']['ws']
         channel = 'trade_history'
@@ -313,8 +315,7 @@ class probit(ccxt.async_support.probit):
         url = self.urls['api']['ws']
         messageHash = 'orders'
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(symbol)
             messageHash = messageHash + ':' + symbol
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchOrders', 'channel', 'open_order')
@@ -390,6 +391,7 @@ class probit(ccxt.async_support.probit):
         """
         filter = None
         filter, params = self.handle_option_and_params(params, 'watchOrderBook', 'filter', 'order_books')
+        symbol = self.safe_symbol(symbol)
         orderbook = await self.subscribe_order_book(symbol, 'orderbook', filter, params)
         return orderbook.limit()
 
