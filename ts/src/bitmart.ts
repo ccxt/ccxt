@@ -692,6 +692,66 @@ export default class bitmart extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        // exchange-supported features
+                        // 'leverage': true,
+                        // 'selfTradePrevention': false,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                    },
+                },
+                'forDerivatives': {
+                    'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -723,64 +783,19 @@ export default class bitmart extends Exchange {
                         // 'iceberg': false,
                         // 'oco': false,
                     },
-                    'createOrders': {
-                        'max': 10,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': true,
-                        'limit': 200,
+                        'limit': undefined,
                         'daysBack': undefined,
                         'untilDays': 99999,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
-                        'trailing': false,
-                    },
-                    'fetchOpenOrders': {
-                        'marginMode': true,
-                        'limit': 200,
-                        'trigger': false,
-                        'trailing': false,
-                    },
-                    'createOrderSwap': {
-                        'marginMode': true,
-                        'triggerPrice': false,
-                        'triggerPriceType': false,
-                        'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
-                        'attachedStopLossTakeProfit': undefined,
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': false,
-                            'PO': true,
-                            'GTD': false,
-                        },
-                        'hedged': false,
-                        'trailing': false,
-                        'marketBuyRequiresPrice': true,
-                        'marketBuyByCost': true,
-                        // exchange-supported features
-                        // 'leverage': true,
-                        // 'selfTradePrevention': false,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
-                    },
-                    'createOrdersSwap': undefined,
-                    'fetchMyTradesSwap': {
-                        'marginMode': true,
-                        'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': 99999,
-                    },
-                    'fetchOrderSwap': {
-                        'marginMode': false,
-                        'trigger': false,
                         'trailing': true,
                     },
-                    'fetchOpenOrdersSwap': {
+                    'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
                         'trigger': true,
@@ -792,12 +807,28 @@ export default class bitmart extends Exchange {
                         'limit': 200,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
-                        'untilDays': 90,
+                        'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
                     },
                 },
             },
@@ -3387,11 +3418,6 @@ export default class bitmart extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
             }
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
-        if (marginMode === 'isolated') {
-            request['orderMode'] = 'iso_margin';
-        }
         if (since !== undefined) {
             const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
             request[startTimeKey] = since;
@@ -3404,6 +3430,11 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (type === 'spot') {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
+            if (marginMode === 'isolated') {
+                request['orderMode'] = 'iso_margin';
+            }
             response = await this.privatePostSpotV4QueryHistoryOrders (this.extend (request, params));
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
