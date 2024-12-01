@@ -19,6 +19,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -216,7 +217,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Insufficient spot balance asset': InsufficientFunds,
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
             },
             'options': {
@@ -496,9 +497,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
-            amountPrecision = self.safe_integer(innerBaseTokenInfo, 'szDecimals')
+            amountPrecisionStr = self.safe_string(innerBaseTokenInfo, 'szDecimals')
+            amountPrecision = int(amountPrecisionStr)
             price = self.safe_number(extraData, 'midPx')
             pricePrecision = self.calculate_price_precision(price, amountPrecision, 8)
+            pricePrecisionStr = self.number_to_string(pricePrecision)
             # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
             baseId = self.number_to_string(i + 10000)
             markets.append(self.safe_market_structure({
@@ -529,8 +532,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionStr)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -591,9 +594,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, 'swap', {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
-        amountPrecision = self.safe_integer(market, 'szDecimals')
+        amountPrecisionStr = self.safe_string(market, 'szDecimals')
+        amountPrecision = int(amountPrecisionStr)
         price = self.safe_number(market, 'markPx', 0)
         pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
+        pricePrecisionStr = self.number_to_string(pricePrecision)
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -621,8 +626,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': self.parse_number(self.parse_precision(amountPrecisionStr)),
+                'price': self.parse_number(self.parse_precision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -1094,7 +1099,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         significantDigits = max(5, len(integerPart))
         result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
         maxDecimals = 8 if market['spot'] else 6
-        return self.decimal_to_precision(result, ROUND, maxDecimals - market['precision']['amount'], self.precisionMode, self.paddingMode)
+        subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
+        return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
 
     def hash_message(self, message):
         return '0x' + self.hash(message, 'keccak', 'hex')

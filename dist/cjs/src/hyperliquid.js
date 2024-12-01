@@ -206,7 +206,7 @@ class hyperliquid extends hyperliquid$1 {
                     'Insufficient spot balance asset': errors.InsufficientFunds,
                 },
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
@@ -491,9 +491,11 @@ class hyperliquid extends hyperliquid$1 {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.safeInteger(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecision = parseInt(amountPrecisionStr);
             const price = this.safeNumber(extraData, 'midPx');
             const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(i + 10000);
             markets.push(this.safeMarketStructure({
@@ -524,8 +526,8 @@ class hyperliquid extends hyperliquid$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                    'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -589,9 +591,11 @@ class hyperliquid extends hyperliquid$1 {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeNumber(fees, 'taker');
         const maker = this.safeNumber(fees, 'maker');
-        const amountPrecision = this.safeInteger(market, 'szDecimals');
+        const amountPrecisionStr = this.safeString(market, 'szDecimals');
+        const amountPrecision = parseInt(amountPrecisionStr);
         const price = this.safeNumber(market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        const pricePrecisionStr = this.numberToString(pricePrecision);
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -619,8 +623,8 @@ class hyperliquid extends hyperliquid$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -1102,7 +1106,8 @@ class hyperliquid extends hyperliquid$1 {
         const significantDigits = Math.max(5, integerPart.length);
         const result = this.decimalToPrecision(price, number.ROUND, significantDigits, number.SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? 8 : 6;
-        return this.decimalToPrecision(result, number.ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
+        return this.decimalToPrecision(result, number.ROUND, subtractedValue, number.DECIMAL_PLACES, this.paddingMode);
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3.keccak_256, 'hex');
