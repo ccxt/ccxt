@@ -140,7 +140,33 @@
                 "input": []
             }
         ],
-        "createOrder": [
+"createOrder": [
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://api.defx.com/v1/auth/api/order",
+                "input": [
+                    "DOGE/USDC:USDC",
+                    "market",
+                    "buy",
+                    250,
+                    null
+                ],
+                "output": "{\"quantity\":\"250\",\"side\":\"BUY\",\"symbol\":\"DOGE_USDC\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://api.defx.com/v1/auth/api/order",
+                "input": [
+                    "DOGE/USDC:USDC",
+                    "market",
+                    "sell",
+                    250,
+                    null
+                ],
+                "output": "{\"quantity\":\"250\",\"side\":\"SELL\",\"symbol\":\"DOGE_USDC\",\"type\":\"MARKET\"}"
+            },
             {
                 "description": "createOrder",
                 "method": "createOrder",
