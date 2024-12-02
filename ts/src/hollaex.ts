@@ -266,7 +266,7 @@ export default class hollaex extends Exchange {
         //         "status": true
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', {});
+        const pairs = this.safeDict (response, 'pairs', {});
         const keys = Object.keys (pairs);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -291,7 +291,7 @@ export default class hollaex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (market, 'active'),
+                'active': this.safeBool (market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -374,7 +374,7 @@ export default class hollaex extends Exchange {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue (response, 'coins', {});
+        const coins = this.safeDict (response, 'coins', {});
         const keys = Object.keys (coins);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -384,9 +384,9 @@ export default class hollaex extends Exchange {
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
-            const depositEnabled = this.safeValue (currency, 'allow_deposit');
-            const withdrawEnabled = this.safeValue (currency, 'allow_withdrawal');
-            const isActive = this.safeValue (currency, 'active');
+            const depositEnabled = this.safeBool (currency, 'allow_deposit');
+            const withdrawEnabled = this.safeBool (currency, 'allow_withdrawal');
+            const isActive = this.safeBool (currency, 'active');
             const active = isActive && depositEnabled && withdrawEnabled;
             const fee = this.safeNumber (currency, 'withdrawal_fee');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
@@ -744,10 +744,10 @@ export default class hollaex extends Exchange {
         //         ...
         //     }
         //
-        const firstTier = this.safeValue (response, '1', {});
-        const fees = this.safeValue (firstTier, 'fees', {});
-        const makerFees = this.safeValue (fees, 'maker', {});
-        const takerFees = this.safeValue (fees, 'taker', {});
+        const firstTier = this.safeDict (response, '1', {});
+        const fees = this.safeDict (firstTier, 'fees', {});
+        const makerFees = this.safeDict (fees, 'maker', {});
+        const takerFees = this.safeDict (fees, 'taker', {});
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
@@ -1132,7 +1132,7 @@ export default class hollaex extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const meta = this.safeValue (order, 'meta', {});
+        const meta = this.safeDict (order, 'meta', {});
         const postOnly = this.safeBool (meta, 'post_only', false);
         return this.safeOrder ({
             'id': id,
@@ -1442,7 +1442,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const wallet = this.safeValue (response, 'wallet', []);
+        const wallet = this.safeList (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
         return this.parseDepositAddresses (addresses, codes) as DepositAddress[];
     }
@@ -1552,7 +1552,7 @@ export default class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const transaction = this.safeDict (data, 0, {});
         return this.parseTransaction (transaction, currency);
     }
@@ -1672,8 +1672,8 @@ export default class hollaex extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         let status = this.safeValue (transaction, 'status');
-        const dismissed = this.safeValue (transaction, 'dismissed');
-        const rejected = this.safeValue (transaction, 'rejected');
+        const dismissed = this.safeBool (transaction, 'dismissed');
+        const rejected = this.safeBool (transaction, 'rejected');
         if (status) {
             status = 'ok';
         } else if (dismissed) {
@@ -1805,7 +1805,7 @@ export default class hollaex extends Exchange {
             },
             'networks': {},
         };
-        const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
+        const allowWithdrawal = this.safeBool (fee, 'allow_withdrawal');
         if (allowWithdrawal) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
