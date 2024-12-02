@@ -777,7 +777,11 @@ export default class bitfinex2 extends Exchange {
             const name = this.safeString (label, 1);
             const pool = this.safeValue (indexed['pool'], id, []);
             const rawType = this.safeString (pool, 1);
-            const type = (rawType === undefined) ? 'other' : 'crypto';
+            const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+            let type = undefined;
+            if (isCryptoCoin) {
+                type = 'crypto';
+            }
             const feeValues = this.safeValue (indexed['fees'], id, []);
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
