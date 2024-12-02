@@ -1746,7 +1746,8 @@ export default class bitfinex2 extends Exchange {
         }
         const orders = this.safeList (response, 4, []);
         const order = this.safeList (orders, 0);
-        return this.parseOrder (this.extend ({ 'result': order }), market);
+        const newOrder = { 'result': order };
+        return this.parseOrder (newOrder, market);
     }
 
     /**
@@ -1848,6 +1849,10 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         if (cid !== undefined) {
             const cidDate = this.safeValue (params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
@@ -1865,8 +1870,8 @@ export default class bitfinex2 extends Exchange {
         }
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, params));
         const order = this.safeValue (response, 4);
-        const orderObject = { 'result': order };
-        return this.parseOrder (orderObject);
+        const newOrder = { 'result': order };
+        return this.parseOrder (newOrder, market);
     }
 
     /**
@@ -3675,7 +3680,8 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const order = this.safeList (response, 0);
-        return this.parseOrder (order, market);
+        const newOrder = { 'result': order };
+        return this.parseOrder (newOrder, market);
     }
 
     /**
