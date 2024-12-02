@@ -688,7 +688,7 @@ export default class bitmart extends Exchange {
                 'brokerId': 'CCXTxBitmart000',
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -750,6 +750,7 @@ export default class bitmart extends Exchange {
                     },
                 },
                 'forDerivatives': {
+                    'extends': 'default',
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -783,7 +784,6 @@ export default class bitmart extends Exchange {
                         // 'iceberg': false,
                         // 'oco': false,
                     },
-                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': true,
                         'limit': undefined,
@@ -801,7 +801,6 @@ export default class bitmart extends Exchange {
                         'trigger': true,
                         'trailing': false,
                     },
-                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
@@ -814,6 +813,9 @@ export default class bitmart extends Exchange {
                     'fetchOHLCV': {
                         'limit': 500,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'swap': {
                     'linear': {
