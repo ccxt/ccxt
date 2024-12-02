@@ -467,7 +467,6 @@ export default class kraken extends Exchange {
                     ':IInsufficient funds': InsufficientFunds,
                     ':Cancel pending': CancelPending,
                     ':Rate limit exceeded': RateLimitExceeded,
-                    
                 },
             },
         });
