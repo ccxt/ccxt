@@ -1763,6 +1763,7 @@ export default class bitso extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
+            endpoint = '/api' + endpoint;
             let request = [ nonce, method, endpoint ].join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length) {
@@ -1774,7 +1775,7 @@ export default class bitso extends Exchange {
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
