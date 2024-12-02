@@ -5579,9 +5579,9 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             }
         }
+        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         if (isTrue(!isTrue(isStopLossTriggerOrder) && !isTrue(isTakeProfitTriggerOrder)))
         {
-            object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only", false);
             if (isTrue(reduceOnly))
             {
                 ((IDictionary<string,object>)request)["reduce_only"] = 1;
@@ -5592,10 +5592,21 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["order_price_type"] = type;
             }
         }
+        object hedged = this.safeBool(parameters, "hedged", false);
+        if (isTrue(hedged))
+        {
+            if (isTrue(reduceOnly))
+            {
+                ((IDictionary<string,object>)request)["offset"] = "close";
+            } else
+            {
+                ((IDictionary<string,object>)request)["offset"] = "open";
+            }
+        }
         object broker = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
         object brokerId = this.safeString(broker, "id");
         ((IDictionary<string,object>)request)["channel_code"] = brokerId;
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice"});
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"});
         return this.extend(request, parameters);
     }
 
@@ -5610,6 +5621,8 @@ public partial class htx : Exchange
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
      * @param {string} symbol unified symbol of the market to create an order in
@@ -5630,6 +5643,7 @@ public partial class htx : Exchange
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+     * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
