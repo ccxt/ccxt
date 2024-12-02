@@ -433,7 +433,7 @@ class NewTranspiler {
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addTaskIfNeeded('object'); // default if type is unknown;
+            return addTaskIfNeeded('interface{}'); // default if type is unknown;
         }
 
         if (wrappedType === 'string[][]') {
@@ -487,12 +487,10 @@ class NewTranspiler {
     }
 
     safeGoName(name: string): string {
-        return name;
-        // const csharpReservedWordsReplacement = {
-        //     'params': 'parameters',
-        //     'base': 'baseArg',
-        // }
-        // return csharpReservedWordsReplacement[name] || name;
+        const goReservedWordsReplacement = {
+            'type': 'typeVar',
+        }
+        return goReservedWordsReplacement[name] || name;
     }
 
     convertParamsToGo(methodName: string, params: any[]): string {
@@ -601,11 +599,11 @@ class NewTranspiler {
     }
 
     unwrapTaskIfNeeded(type: string): string {
-        return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
+        return type.replace('<- chan ', '');
     }
 
     unwrapListIfNeeded(type: string): string {
-        return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
+        return type.replace('[]', '');
     }
 
     unwrapDictionaryIfNeeded(type: string): string {
@@ -613,43 +611,24 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
-        // handle watchOrderBook exception here
-        if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
-        }
 
         // custom handling for now
         if (methodName === 'fetchTime'){
-            return `return (res).(int64)`;
+            return `(res).(int64)`;
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
-            return `return res.(map[string]interface{})`;
+        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]interface{}') {
+            return `res.(map[string]interface{})`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
-        if (unwrappedType.startsWith('List<')) {
-            if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
-            } else {
-                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
-            }
-        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
-            const type = this.unwrapDictionaryIfNeeded(unwrappedType);
-            const returnParts = [
-                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
-                `        var result = new Dictionary<string, ${type}>();`,
-                `        foreach (var key in keys)`,
-                `        {`,
-                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
-                `        }`,
-                `        return result;`,
-            ].join("\n");
-            return returnParts;
+        if (unwrappedType.startsWith('[]')) {
+            const typeWithoutList = this.unwrapListIfNeeded(unwrappedType);
+            returnStatement = `Create${this.capitalize(typeWithoutList)}Array(res)`;
         } else {
-            returnStatement =  needsToInstantiate ? `return Create${this.capitalize(unwrappedType)}(res)` :  `return res.(${unwrappedType})`;            ;
+            returnStatement =  needsToInstantiate ? `Create${this.capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
         }
         return returnStatement;
     }
@@ -659,12 +638,12 @@ class NewTranspiler {
 
         const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
-        const i1 = this.inden(1);
+        const i1 = this.inden(2);
         if (hasOptionalParams) {
-            const structName = isOnlyParams ? 'Options' : name + 'Options';
+            const structName = isOnlyParams ? 'Options' : this.capitalize(name) + 'Options';
             const initOptions = [
                 '',
-                'options := ' + structName,
+                'options := ' + structName + '{}',
                 '',
                 'for _, opt := range opts {',
                 '    opt(&options)',
@@ -680,7 +659,7 @@ class NewTranspiler {
                 const capName = this.capitalize(param.name);
                 // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                 let decl = `
-${i1}${param.name} := nil
+${i1}${this.safeGoName(param.name)} := nil
 ${i1}if options.${capName} != nil {
 ${i1}    ${capName} = options.${capName}
 ${i1}}`
@@ -738,15 +717,29 @@ ${i1}}`
 
         const one = this.inden(0);
         const two = this.inden(1);
+        const three = this.inden(2);
         const methodDoc = [] as any[];
         if (goComments[exchangeName] && goComments[exchangeName][methodName]) {
             methodDoc.push(goComments[exchangeName][methodName]);
         }
+
+        const body = [
+            `${two}ch:= make(chan ${unwrappedType})`,
+            `${two}go func() {`,
+            `${three}defer close(ch)`,
+            `${three}defer ReturnError(ch)`,
+             this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
+            `${three}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params})`,
+            `${three}ch <- ${this.createReturnStatement(methodName, unwrappedType)}`,
+            `${two}}()`,
+            `${two}return ch`,
+        ]
         const method = [
             `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) ${returnType} {`,
-            this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
-            `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
-            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
+            ...body,
+            // this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
+            // `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
+            // `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
         return methodDoc.concat(method).filter(e => !!e).join('\n')

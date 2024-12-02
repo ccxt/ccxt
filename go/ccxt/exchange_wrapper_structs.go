@@ -194,7 +194,7 @@ type FetchDepositWithdrawFeesOptions struct {
 }
 
 type WithdrawOptions struct {
-    Tag *object
+    Tag *interface{}
     Params *map[string]interface{}
 }
 
