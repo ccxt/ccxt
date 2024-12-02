@@ -152,7 +152,7 @@ export default class defx extends Exchange {
                     '',
                 ],
                 'referral': {
-                    'url': '',
+                    'url': 'https://app.defx.com/join/6I2CZ7',
                 },
             },
             'api': {
