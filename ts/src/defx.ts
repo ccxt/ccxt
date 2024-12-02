@@ -25,6 +25,7 @@ export default class defx extends Exchange {
             'certified': false,
             'pro': false,
             'hostname': 'defx.com',
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -134,7 +135,7 @@ export default class defx extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/4e92bace-d7a9-45ea-92be-122168dc87e4',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
