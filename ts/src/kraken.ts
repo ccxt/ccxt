@@ -431,31 +431,44 @@ export default class kraken extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
-                'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
-                'EFunding:Invalid amount': InsufficientFunds,
-                'EService:Unavailable': ExchangeNotAvailable,
-                'EDatabase:Internal error': ExchangeNotAvailable,
-                'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
-                'EAPI:Rate limit exceeded': DDoSProtection,
-                'EOrder:Rate limit exceeded': DDoSProtection,
-                'EGeneral:Internal error': ExchangeNotAvailable,
-                'EGeneral:Temporary lockout': DDoSProtection,
-                'EGeneral:Permission denied': PermissionDenied,
-                'EGeneral:Invalid arguments:price': InvalidOrder,
-                'EOrder:Unknown order': InvalidOrder,
-                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
-                'EOrder:Order minimum not met': InvalidOrder,
-                'EGeneral:Invalid arguments': BadRequest,
-                'ESession:Invalid session': AuthenticationError,
-                'EAPI:Invalid nonce': InvalidNonce,
-                'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
-                'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
-                'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
-                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
-                'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                'exact': {
+                    'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
+                    'EAPI:Invalid key': AuthenticationError,
+                    'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
+                    'EFunding:Invalid amount': InsufficientFunds,
+                    'EService:Unavailable': ExchangeNotAvailable,
+                    'EDatabase:Internal error': ExchangeNotAvailable,
+                    'EService:Busy': ExchangeNotAvailable,
+                    'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
+                    'EAPI:Rate limit exceeded': DDoSProtection,
+                    'EOrder:Rate limit exceeded': DDoSProtection,
+                    'EGeneral:Internal error': ExchangeNotAvailable,
+                    'EGeneral:Temporary lockout': DDoSProtection,
+                    'EGeneral:Permission denied': PermissionDenied,
+                    'EGeneral:Invalid arguments:price': InvalidOrder,
+                    'EOrder:Unknown order': InvalidOrder,
+                    'EOrder:Invalid price:Invalid price argument': InvalidOrder,
+                    'EOrder:Order minimum not met': InvalidOrder,
+                    'EOrder:Insufficient funds': InsufficientFunds,
+                    'EGeneral:Invalid arguments': BadRequest,
+                    'ESession:Invalid session': AuthenticationError,
+                    'EAPI:Invalid nonce': InvalidNonce,
+                    'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                    'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
+                    'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                },
+                'broad': {
+                    ':Invalid order': InvalidOrder,
+                    ':Invalid arguments:volume': InvalidOrder,
+                    ':Invalid arguments:viqc': InvalidOrder,
+                    ':Invalid nonce': InvalidNonce,
+                    ':IInsufficient funds': InsufficientFunds,
+                    ':Cancel pending': CancelPending,
+                    ':Rate limit exceeded': RateLimitExceeded,
+                    
+                },
             },
         });
     }
@@ -3254,28 +3267,6 @@ export default class kraken extends Exchange {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }
-        // todo: rewrite this for "broad" exceptions matching
-        if (body.indexOf ('Invalid order') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid nonce') >= 0) {
-            throw new InvalidNonce (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Insufficient funds') >= 0) {
-            throw new InsufficientFunds (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Cancel pending') >= 0) {
-            throw new CancelPending (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid arguments:volume') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid arguments:viqc') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Rate limit exceeded') >= 0) {
-            throw new RateLimitExceeded (this.id + ' ' + body);
-        }
         if (response === undefined) {
             return undefined;
         }
@@ -3287,7 +3278,8 @@ export default class kraken extends Exchange {
                         const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
-                            this.throwExactlyMatchedException (this.exceptions, error, message);
+                            this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
+                            this.throwExactlyMatchedException (this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError (message);
                     }
