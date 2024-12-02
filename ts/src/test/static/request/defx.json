@@ -3,6 +3,18 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://api.defx.com/v1/auth/api/users/metadata/leverage",
+                "input": [
+                    11,
+                    "DOGE/USDC:USDC"
+                ],
+                "output": "{\"leverage\":\"11\",\"symbol\":\"DOGE_USDC\"}"
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "fetchStatus",

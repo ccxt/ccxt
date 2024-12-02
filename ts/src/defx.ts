@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, ExchangeError } from './base/errors.js';
-import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency, Transaction } from './base/types.js';
+import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency, Transaction, Leverage } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ export default class defx extends Exchange {
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -1943,6 +1943,58 @@ export default class defx extends Exchange {
             'comment': undefined,
             'fee': undefined,
         };
+    }
+
+    /**
+     * @method
+     * @name defx#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://api-docs.defx.com/#4cb4ecc4-6c61-4194-8353-be67faaf7ca7
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const request: Dict = {
+            'leverage': this.numberToString (leverage),
+        };
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
+        const response = await this.v1PrivatePostApiUsersMetadataLeverage (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "data": {
+        //       "leverage": "11",
+        //       "symbol": "BTC_USDC"
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     "data": {
+        //       "leverage": "11",
+        //       "symbol": "BTC_USDC"
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     nonce () {
