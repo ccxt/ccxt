@@ -693,7 +693,7 @@ export default class bitmart extends Exchange {
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': false,
-                        'triggerPriceType': false,
+                        'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
