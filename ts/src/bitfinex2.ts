@@ -3807,6 +3807,7 @@ export default class bitfinex2 extends Exchange {
             throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList (response, 4, []);
-        return this.parseOrder (order, market);
+        const newOrder = { 'result': order };
+        return this.parseOrder (newOrder, market);
     }
 }
