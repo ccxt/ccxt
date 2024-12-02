@@ -2405,6 +2405,8 @@ export default class bitfinex2 extends Exchange {
             }
             tag = this.safeString (data, 3);
             type = 'withdrawal';
+            const networkId = this.safeString (data, 2);
+            network = this.networkIdToCode (networkId.toUpperCase ()); // withdraw returns in lowercase
         } else if (transactionLength === 22) {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
@@ -2718,10 +2720,7 @@ export default class bitfinex2 extends Exchange {
         if (text !== 'success') {
             this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
         }
-        const transaction = this.parseTransaction (response, currency);
-        return this.extend (transaction, {
-            'address': address,
-        });
+        return this.parseTransaction (response, currency);
     }
 
     /**
