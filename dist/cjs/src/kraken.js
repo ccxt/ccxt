@@ -429,31 +429,43 @@ class kraken extends kraken$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                'EQuery:Invalid asset pair': errors.BadSymbol,
-                'EAPI:Invalid key': errors.AuthenticationError,
-                'EFunding:Unknown withdraw key': errors.InvalidAddress,
-                'EFunding:Invalid amount': errors.InsufficientFunds,
-                'EService:Unavailable': errors.ExchangeNotAvailable,
-                'EDatabase:Internal error': errors.ExchangeNotAvailable,
-                'EService:Busy': errors.ExchangeNotAvailable,
-                'EQuery:Unknown asset': errors.BadSymbol,
-                'EAPI:Rate limit exceeded': errors.DDoSProtection,
-                'EOrder:Rate limit exceeded': errors.DDoSProtection,
-                'EGeneral:Internal error': errors.ExchangeNotAvailable,
-                'EGeneral:Temporary lockout': errors.DDoSProtection,
-                'EGeneral:Permission denied': errors.PermissionDenied,
-                'EGeneral:Invalid arguments:price': errors.InvalidOrder,
-                'EOrder:Unknown order': errors.InvalidOrder,
-                'EOrder:Invalid price:Invalid price argument': errors.InvalidOrder,
-                'EOrder:Order minimum not met': errors.InvalidOrder,
-                'EGeneral:Invalid arguments': errors.BadRequest,
-                'ESession:Invalid session': errors.AuthenticationError,
-                'EAPI:Invalid nonce': errors.InvalidNonce,
-                'EFunding:No funding method': errors.BadRequest,
-                'EFunding:Unknown asset': errors.BadSymbol,
-                'EService:Market in post_only mode': errors.OnMaintenance,
-                'EGeneral:Too many requests': errors.DDoSProtection,
-                'ETrade:User Locked': errors.AccountSuspended, // {"error":["ETrade:User Locked"]}
+                'exact': {
+                    'EQuery:Invalid asset pair': errors.BadSymbol,
+                    'EAPI:Invalid key': errors.AuthenticationError,
+                    'EFunding:Unknown withdraw key': errors.InvalidAddress,
+                    'EFunding:Invalid amount': errors.InsufficientFunds,
+                    'EService:Unavailable': errors.ExchangeNotAvailable,
+                    'EDatabase:Internal error': errors.ExchangeNotAvailable,
+                    'EService:Busy': errors.ExchangeNotAvailable,
+                    'EQuery:Unknown asset': errors.BadSymbol,
+                    'EAPI:Rate limit exceeded': errors.DDoSProtection,
+                    'EOrder:Rate limit exceeded': errors.DDoSProtection,
+                    'EGeneral:Internal error': errors.ExchangeNotAvailable,
+                    'EGeneral:Temporary lockout': errors.DDoSProtection,
+                    'EGeneral:Permission denied': errors.PermissionDenied,
+                    'EGeneral:Invalid arguments:price': errors.InvalidOrder,
+                    'EOrder:Unknown order': errors.InvalidOrder,
+                    'EOrder:Invalid price:Invalid price argument': errors.InvalidOrder,
+                    'EOrder:Order minimum not met': errors.InvalidOrder,
+                    'EOrder:Insufficient funds': errors.InsufficientFunds,
+                    'EGeneral:Invalid arguments': errors.BadRequest,
+                    'ESession:Invalid session': errors.AuthenticationError,
+                    'EAPI:Invalid nonce': errors.InvalidNonce,
+                    'EFunding:No funding method': errors.BadRequest,
+                    'EFunding:Unknown asset': errors.BadSymbol,
+                    'EService:Market in post_only mode': errors.OnMaintenance,
+                    'EGeneral:Too many requests': errors.DDoSProtection,
+                    'ETrade:User Locked': errors.AccountSuspended, // {"error":["ETrade:User Locked"]}
+                },
+                'broad': {
+                    ':Invalid order': errors.InvalidOrder,
+                    ':Invalid arguments:volume': errors.InvalidOrder,
+                    ':Invalid arguments:viqc': errors.InvalidOrder,
+                    ':Invalid nonce': errors.InvalidNonce,
+                    ':IInsufficient funds': errors.InsufficientFunds,
+                    ':Cancel pending': errors.CancelPending,
+                    ':Rate limit exceeded': errors.RateLimitExceeded,
+                },
             },
         });
     }
@@ -3221,28 +3233,6 @@ class kraken extends kraken$1 {
         if (code === 520) {
             throw new errors.ExchangeNotAvailable(this.id + ' ' + code.toString() + ' ' + reason);
         }
-        // todo: rewrite this for "broad" exceptions matching
-        if (body.indexOf('Invalid order') >= 0) {
-            throw new errors.InvalidOrder(this.id + ' ' + body);
-        }
-        if (body.indexOf('Invalid nonce') >= 0) {
-            throw new errors.InvalidNonce(this.id + ' ' + body);
-        }
-        if (body.indexOf('Insufficient funds') >= 0) {
-            throw new errors.InsufficientFunds(this.id + ' ' + body);
-        }
-        if (body.indexOf('Cancel pending') >= 0) {
-            throw new errors.CancelPending(this.id + ' ' + body);
-        }
-        if (body.indexOf('Invalid arguments:volume') >= 0) {
-            throw new errors.InvalidOrder(this.id + ' ' + body);
-        }
-        if (body.indexOf('Invalid arguments:viqc') >= 0) {
-            throw new errors.InvalidOrder(this.id + ' ' + body);
-        }
-        if (body.indexOf('Rate limit exceeded') >= 0) {
-            throw new errors.RateLimitExceeded(this.id + ' ' + body);
-        }
         if (response === undefined) {
             return undefined;
         }
@@ -3254,7 +3244,8 @@ class kraken extends kraken$1 {
                         const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
-                            this.throwExactlyMatchedException(this.exceptions, error, message);
+                            this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
+                            this.throwExactlyMatchedException(this.exceptions['broad'], error, message);
                         }
                         throw new errors.ExchangeError(message);
                     }

@@ -424,31 +424,43 @@ class kraken extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
-                'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
-                'EFunding:Unknown withdraw key' => '\\ccxt\\InvalidAddress', // array("error":["EFunding:Unknown withdraw key"])
-                'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
-                'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
-                'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
-                'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
-                'EQuery:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Unknown asset"])
-                'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
-                'EOrder:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
-                'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
-                'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
-                'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
-                'EGeneral:Invalid arguments:price' => '\\ccxt\\InvalidOrder',
-                'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
-                'EOrder:Invalid price:Invalid price argument' => '\\ccxt\\InvalidOrder',
-                'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
-                'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
-                'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
-                'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
-                'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
-                'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
-                'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
-                'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
-                'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
+                'exact' => array(
+                    'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
+                    'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
+                    'EFunding:Unknown withdraw key' => '\\ccxt\\InvalidAddress', // array("error":["EFunding:Unknown withdraw key"])
+                    'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
+                    'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
+                    'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
+                    'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
+                    'EQuery:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Unknown asset"])
+                    'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
+                    'EOrder:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
+                    'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
+                    'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
+                    'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
+                    'EGeneral:Invalid arguments:price' => '\\ccxt\\InvalidOrder',
+                    'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
+                    'EOrder:Invalid price:Invalid price argument' => '\\ccxt\\InvalidOrder',
+                    'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
+                    'EOrder:Insufficient funds' => '\\ccxt\\InsufficientFunds',
+                    'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
+                    'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
+                    'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
+                    'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
+                    'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
+                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
+                    'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
+                    'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
+                ),
+                'broad' => array(
+                    ':Invalid order' => '\\ccxt\\InvalidOrder',
+                    ':Invalid arguments:volume' => '\\ccxt\\InvalidOrder',
+                    ':Invalid arguments:viqc' => '\\ccxt\\InvalidOrder',
+                    ':Invalid nonce' => '\\ccxt\\InvalidNonce',
+                    ':IInsufficient funds' => '\\ccxt\\InsufficientFunds',
+                    ':Cancel pending' => '\\ccxt\\CancelPending',
+                    ':Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                ),
             ),
         ));
     }
@@ -3247,28 +3259,6 @@ class kraken extends Exchange {
         if ($code === 520) {
             throw new ExchangeNotAvailable($this->id . ' ' . (string) $code . ' ' . $reason);
         }
-        // todo => rewrite this for "broad" exceptions matching
-        if (mb_strpos($body, 'Invalid order') !== false) {
-            throw new InvalidOrder($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Invalid nonce') !== false) {
-            throw new InvalidNonce($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Insufficient funds') !== false) {
-            throw new InsufficientFunds($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Cancel pending') !== false) {
-            throw new CancelPending($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Invalid arguments:volume') !== false) {
-            throw new InvalidOrder($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Invalid arguments:viqc') !== false) {
-            throw new InvalidOrder($this->id . ' ' . $body);
-        }
-        if (mb_strpos($body, 'Rate limit exceeded') !== false) {
-            throw new RateLimitExceeded($this->id . ' ' . $body);
-        }
         if ($response === null) {
             return null;
         }
@@ -3280,7 +3270,8 @@ class kraken extends Exchange {
                         $message = $this->id . ' ' . $body;
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
-                            $this->throw_exactly_matched_exception($this->exceptions, $error, $message);
+                            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
+                            $this->throw_exactly_matched_exception($this->exceptions['broad'], $error, $message);
                         }
                         throw new ExchangeError($message);
                     }
