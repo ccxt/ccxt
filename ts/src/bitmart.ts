@@ -757,6 +757,7 @@ export default class bitmart extends Exchange {
                         'triggerPriceType': {
                             'last': true,
                             'mark': true,
+                            'index': false,
                         },
                         'triggerDirection': true, // todo: implementation broken
                         'stopLossPrice': true,
@@ -765,6 +766,7 @@ export default class bitmart extends Exchange {
                             'triggerPriceType': {
                                 'last': true,
                                 'mark': true,
+                                'index': false,
                             },
                             'limitPrice': false,
                         },
