@@ -1,38 +1,38 @@
 package ccxt
 
 // Order Options
-type OrderOptions struct {
-	Price  float64
-	Params map[string]interface{}
-}
+// type OrderOptions struct {
+// 	Price  float64
+// 	Params map[string]interface{}
+// }
 
-type OrderOption func(*OrderOptions)
+// type OrderOption func(*OrderOptions)
 
-func WithPrice(price float64) OrderOption {
-	return func(opts *OrderOptions) {
-		opts.Price = price
-	}
-}
+// func WithPrice(price float64) OrderOption {
+// 	return func(opts *OrderOptions) {
+// 		opts.Price = price
+// 	}
+// }
 
-type Options struct {
-	Limit  int64
-	Since  int64
-	Params map[string]interface{}
-}
+// type Options struct {
+// 	Limit  int64
+// 	Since  int64
+// 	Params map[string]interface{}
+// }
 
-type Option func(*Options)
+// type Option func(*Options)
 
-func WithLimit(limit int64) Option {
-	return func(opts *Options) {
-		opts.Limit = limit
-	}
-}
+// func WithLimit(limit int64) Option {
+// 	return func(opts *Options) {
+// 		opts.Limit = limit
+// 	}
+// }
 
-func WithSince(since int64) Option {
-	return func(opts *Options) {
-		opts.Since = since
-	}
-}
+// func WithSince(since int64) Option {
+// 	return func(opts *Options) {
+// 		opts.Since = since
+// 	}
+// }
 
 // generic with Params
 

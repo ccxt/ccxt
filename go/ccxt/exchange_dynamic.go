@@ -230,6 +230,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         digifinexItf := &digifinex{}
         digifinexItf.Init(exchangeArgs)
         return digifinexItf, true
+    case "ellipx":
+        ellipxItf := &ellipx{}
+        ellipxItf.Init(exchangeArgs)
+        return ellipxItf, true
     case "exmo":
         exmoItf := &exmo{}
         exmoItf.Init(exchangeArgs)

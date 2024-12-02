@@ -56,7 +56,10 @@ const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
-const goComments ={};
+const goComments = {};
+
+const goTypeOptions = {};
+
 let goTests: string[] = [];
 
 const VIRTUAL_BASE_METHODS = [
@@ -460,7 +463,7 @@ class NewTranspiler {
         }
         if (this.isNumberType(wrappedType)) {
             // return addTaskIfNeeded('float');
-            return addTaskIfNeeded('double');
+            return addTaskIfNeeded('float64');
         }
         if (this.isBooleanType(wrappedType)) {
             return addTaskIfNeeded('bool');
@@ -651,15 +654,37 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(rawParameters) {
-        const res: string[] = [];
+    getDefaultParamsWrappers(name: string, rawParameters) {
+        let res: string[] = [];
+
+        const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
+        const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
+        const i1 = this.inden(1);
+        if (hasOptionalParams) {
+            const structName = isOnlyParams ? 'Options' : name + 'Options';
+            const initOptions = [
+                '',
+                'options := ' + structName,
+                '',
+                'for _, opt := range opts {',
+                '    opt(&options)',
+                '}'
+            ].map(e => e!='' ? i1 + e : e);
+            res = res.concat(initOptions);
+        }
 
         rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined';
+            const isOptional =  param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}';
             // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
+            if (isOptional) {
+                const capName = this.capitalize(param.name);
+                // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+                let decl = `
+${i1}${param.name} := nil
+${i1}if options.${capName} != nil {
+${i1}    ${capName} = options.${capName}
+${i1}}`
+            res.push(decl);
             }
         });
 
@@ -668,6 +693,33 @@ class NewTranspiler {
 
     inden(level: number) {
         return '    '.repeat(level);
+    }
+
+    createOptionsStruct(methodName: string, params) {
+        const capName = this.capitalize(methodName);
+        const optionalParams = params.filter(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}');
+        if (optionalParams.length === 0) {
+            return
+        }
+        if (capName in goTypeOptions) {
+            return
+        }
+        if (optionalParams.length === 1 && optionalParams[0].name === 'params') {
+            return;
+        }
+        const i1 = this.inden(1);
+        const res = [
+            'type ' + capName + 'Options struct {'
+        ];
+        for (const param of optionalParams) {
+            const name = this.capitalize(param.name);
+            const type = this.convertJavascriptTypeToGoType(param.name, param.type);
+            const decl = `${i1}${name} *${type}`;
+            res.push(decl);
+        }
+
+        res.push('}');
+        goTypeOptions[capName] = res.join("\n");
     }
 
     createWrapper (exchangeName, methodWrapper, isWs = false) {
@@ -680,6 +732,7 @@ class NewTranspiler {
         const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
+        this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
@@ -691,7 +744,7 @@ class NewTranspiler {
         }
         const method = [
             `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) ${returnType} {`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
+            this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
             `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
@@ -1032,6 +1085,29 @@ ${caseStatements.join('\n')}
         return flatResult;
     }
 
+    safeOptionsStructFile() {
+        const EXCHANGE_OPTIONS_FILE = './go/ccxt/exchange_wrapper_structs.go';
+
+        const file = [
+            'package ccxt',
+            this.createGeneratedHeader().join('\n'),
+            ''
+        ];
+        // add simple Options
+        file.push('type Options struct {');
+        file.push('    Params *map[string]interface{}');
+        file.push('}');
+        file.push('');
+
+        for (const key in goTypeOptions) {
+            const struct = goTypeOptions[key];
+            file.push(struct);
+            file.push('');
+        }
+
+        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
+    }
+
     async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false, ws = false) {
 
         // todo normalize jsFolder and other arguments
@@ -1064,7 +1140,7 @@ ${caseStatements.join('\n')}
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
-                // this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
+                this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
@@ -1077,6 +1153,7 @@ ${caseStatements.join('\n')}
         }
         exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
 
+        this.safeOptionsStructFile();
         const classes = {}
 
         return classes

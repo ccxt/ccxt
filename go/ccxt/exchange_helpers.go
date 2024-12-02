@@ -1023,7 +1023,8 @@ func Replace(input interface{}, old interface{}, new interface{}) string {
 }
 
 // PadEnd pads the input string on the right with padStr until it reaches the specified length
-func PadEnd(input interface{}, length int, padStr interface{}) string {
+func PadEnd(input interface{}, length2 interface{}, padStr interface{}) string {
+	length := int(length2.(int64))
 	str := ToString(input)
 	pad := ToString(padStr)
 	for len(str) < length {
@@ -1033,7 +1034,8 @@ func PadEnd(input interface{}, length int, padStr interface{}) string {
 }
 
 // PadStart pads the input string on the left with padStr until it reaches the specified length
-func PadStart(input interface{}, length int, padStr interface{}) string {
+func PadStart(input interface{}, length2 interface{}, padStr interface{}) string {
+	length := int(length2.(int64))
 	str := ToString(input)
 	pad := ToString(padStr)
 	for len(str) < length {
