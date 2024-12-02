@@ -197,7 +197,7 @@ public partial class hyperliquid : Exchange
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                 } },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
@@ -501,9 +501,11 @@ public partial class hyperliquid : Exchange
             object symbol = add(add(bs, "/"), quote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            object amountPrecision = this.safeInteger(innerBaseTokenInfo, "szDecimals");
+            object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
+            object amountPrecision = parseInt(amountPrecisionStr);
             object price = this.safeNumber(extraData, "midPx");
             object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(i, 10000));
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -534,8 +536,8 @@ public partial class hyperliquid : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", amountPrecision },
-                    { "price", pricePrecision },
+                    { "amount", this.parseNumber(this.parsePrecision(amountPrecisionStr)) },
+                    { "price", this.parseNumber(this.parsePrecision(pricePrecisionStr)) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -603,9 +605,11 @@ public partial class hyperliquid : Exchange
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
-        object amountPrecision = this.safeInteger(market, "szDecimals");
+        object amountPrecisionStr = this.safeString(market, "szDecimals");
+        object amountPrecision = parseInt(amountPrecisionStr);
         object price = this.safeNumber(market, "markPx", 0);
         object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        object pricePrecisionStr = this.numberToString(pricePrecision);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
@@ -633,8 +637,8 @@ public partial class hyperliquid : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", amountPrecision },
-                { "price", pricePrecision },
+                { "amount", this.parseNumber(this.parsePrecision(amountPrecisionStr)) },
+                { "price", this.parseNumber(this.parsePrecision(pricePrecisionStr)) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -1155,7 +1159,8 @@ public partial class hyperliquid : Exchange
         object significantDigits = mathMax(5, ((string)integerPart).Length);
         object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         object maxDecimals = ((bool) isTrue(getValue(market, "spot"))) ? 8 : 6;
-        return this.decimalToPrecision(result, ROUND, subtract(maxDecimals, getValue(getValue(market, "precision"), "amount")), this.precisionMode, this.paddingMode);
+        object subtractedValue = subtract(maxDecimals, this.precisionFromString(this.safeString(getValue(market, "precision"), "amount")));
+        return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
     public virtual object hashMessage(object message)
