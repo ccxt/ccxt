@@ -1762,6 +1762,8 @@
 	      }
     },
     "hashkey": {
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"
