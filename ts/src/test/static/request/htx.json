@@ -11,7 +11,23 @@
     ],
     "outputType": "json",
     "methods": {
-        "createOrder": [
+    "createOrder": [
+            {
+                "description": "market buy in hedged mode",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A10%3A49&Signature=UEdfY1wFs1SjNrtboBA1DBhw%2BzQE%2FXbtof4LGH3NqKw%3D",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"open\",\"channel_code\":\"AA03022abc\"}"
+            },
             {
                 "description": "Spot market buy",
                 "method": "createOrder",

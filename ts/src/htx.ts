@@ -5337,8 +5337,8 @@ export default class htx extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         if (!isStopLossTriggerOrder && !isTakeProfitTriggerOrder) {
-            const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only', false);
             if (reduceOnly) {
                 request['reduce_only'] = 1;
             }
@@ -5347,10 +5347,18 @@ export default class htx extends Exchange {
                 request['order_price_type'] = type;
             }
         }
+        const hedged = this.safeBool (params, 'hedged', false);
+        if (hedged) {
+            if (reduceOnly) {
+                request['offset'] = 'close';
+            } else {
+                request['offset'] = 'open';
+            }
+        }
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged' ]);
         return this.extend (request, params);
     }
 
@@ -5385,6 +5393,7 @@ export default class htx extends Exchange {
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
      * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+     * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
