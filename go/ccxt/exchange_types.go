@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -470,4 +471,133 @@ func CreateOHLCV(data interface{}) OHLCV {
 		Close:     SafeFloatTyped(ohlcv, 4),
 		Volume:    SafeFloatTyped(ohlcv, 5),
 	}
+}
+
+// transaction
+
+type Transaction struct {
+	ID        string
+	TxID      string
+	Address   string
+	Tag       string
+	Type      string
+	Currency  string
+	Amount    float64
+	Status    string
+	Updated   int64
+	Timestamp int64
+	Datetime  string
+}
+
+// NewTransaction initializes a Transaction struct from a map.
+func CreateTransaction(transaction map[string]interface{}) Transaction {
+	return Transaction{
+		ID:        SafeStringTyped(transaction, "id"),
+		TxID:      SafeStringTyped(transaction, "txid"),
+		Address:   SafeStringTyped(transaction, "address"),
+		Tag:       SafeStringTyped(transaction, "tag"),
+		Type:      SafeStringTyped(transaction, "type"),
+		Currency:  SafeStringTyped(transaction, "currency"),
+		Amount:    SafeFloatTyped(transaction, "amount"),
+		Status:    SafeStringTyped(transaction, "status"),
+		Updated:   SafeInt64Typed(transaction, "updated"),
+		Timestamp: SafeInt64Typed(transaction, "timestamp"),
+		Datetime:  SafeStringTyped(transaction, "datetime"),
+	}
+}
+
+// orderbook
+
+type OrderBook struct {
+	Bids      [][]float64
+	Asks      [][]float64
+	Symbol    string
+	Timestamp int64
+	Datetime  string
+	Nonce     int64
+}
+
+// NewOrderBook initializes an OrderBook struct from a map.
+func CreateOrderBook(orderbook2 interface{}) OrderBook {
+	orderbook := orderbook2.(map[string]interface{})
+	return OrderBook{
+		Bids:      parseOrderBookEntries(orderbook, "bids"),
+		Asks:      parseOrderBookEntries(orderbook, "asks"),
+		Symbol:    SafeStringTyped(orderbook, "symbol"),
+		Timestamp: SafeInt64Typed(orderbook, "timestamp"),
+		Datetime:  SafeStringTyped(orderbook, "datetime"),
+		Nonce:     SafeInt64Typed(orderbook, "nonce"),
+	}
+}
+
+// parseOrderBookEntries extracts and converts order book entries to [][]float64.
+func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]float64 {
+	if value, ok := orderbook[key]; ok {
+		if entries, ok := value.([]interface{}); ok {
+			var result [][]float64
+			for _, entry := range entries {
+				if pair, ok := entry.([]interface{}); ok {
+					var floatPair []float64
+					for _, v := range pair {
+						if num, ok := v.(float64); ok {
+							floatPair = append(floatPair, num)
+						}
+					}
+					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+						result = append(result, floatPair)
+					}
+				}
+			}
+			return result
+		}
+	}
+	return nil
+}
+
+// tickers
+// Tickers struct
+type Tickers struct {
+	Info    map[string]interface{}
+	Tickers map[string]Ticker
+}
+
+// NewTickers initializes a Tickers struct from a map.
+func CreateTickers(tickersData2 interface{}) Tickers {
+	info := GetInfo(tickersData) // Assuming Helper.GetInfo is implemented as GetInfo
+	tickersMap := make(map[string]Ticker)
+
+	for key, value := range tickersData {
+		if key != "info" {
+			if tickerData, ok := value.(map[string]interface{}); ok {
+				tickersMap[key] = CreateTicker(tickerData) // Assuming NewTicker is the Ticker constructor
+			}
+		}
+	}
+
+	return Tickers{
+		Info:    info,
+		Tickers: tickersMap,
+	}
+}
+
+// GetTicker retrieves a Ticker by key, similar to the indexer in C#.
+func (t *Tickers) GetTicker(key string) (Ticker, error) {
+	ticker, exists := t.Tickers[key]
+	if !exists {
+		return Ticker{}, fmt.Errorf("the key '%s' was not found in the tickers", key)
+	}
+	return ticker, nil
+}
+
+// SetTicker sets or updates a Ticker by key.
+func (t *Tickers) SetTicker(key string, ticker Ticker) {
+	t.Tickers[key] = ticker
+}
+
+// Mocked GetInfo function for demonstration purposes.
+func GetInfo(data map[string]interface{}) map[string]interface{} {
+	if info, ok := data["info"].(map[string]interface{}); ok {
+		return info
+	}
+	return nil
 }
