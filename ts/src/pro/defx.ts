@@ -290,6 +290,7 @@ export default class defx extends defxRest {
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
@@ -467,7 +468,7 @@ export default class defx extends defxRest {
      * @name defx#unWatchTradesForSymbols
      * @description unWatches from the stream channel
      * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -807,6 +808,8 @@ export default class defx extends defxRest {
      * @description watch all open positions
      * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

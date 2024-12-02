@@ -1202,11 +1202,7 @@ export default class defx extends Exchange {
         if (reduceOnly) {
             request['reduceOnly'] = reduceOnly;
         }
-        const isPriceRequired = isLimit;
-        if (isPriceRequired && price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for ' + type + ' orders');
-        }
-        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
@@ -1228,7 +1224,7 @@ export default class defx extends Exchange {
                 }
             }
         }
-        if (isPriceRequired && price !== undefined) {
+        if (isLimit && price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['quantity'] = this.amountToPrecision (symbol, amount);
