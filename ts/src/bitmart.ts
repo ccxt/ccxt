@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -779,7 +779,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params = {}): Promise<MarketInterface[]> {
         const response = await this.publicGetSpotV1SymbolsDetails (params);
         //
         //     {
@@ -823,7 +823,7 @@ export default class bitmart extends Exchange {
             const minSellCost = this.safeString (market, 'min_sell_amount');
             const minCost = Precise.stringMax (minBuyCost, minSellCost);
             const baseMinSize = this.safeNumber (market, 'base_min_size');
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -872,12 +872,12 @@ export default class bitmart extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
 
-    async fetchContractMarkets (params = {}) {
+    async fetchContractMarkets (params = {}): Promise<MarketInterface[]> {
         const response = await this.publicGetContractPublicDetails (params);
         //
         //     {
@@ -938,7 +938,7 @@ export default class bitmart extends Exchange {
             if (!isFutures && (expiry === 0)) {
                 expiry = undefined;
             }
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': undefined,
                 'symbol': symbol,
@@ -987,7 +987,7 @@ export default class bitmart extends Exchange {
                 },
                 'created': this.safeInteger (market, 'open_timestamp'),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -2952,7 +2952,7 @@ export default class bitmart extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }

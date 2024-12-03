@@ -622,6 +622,10 @@ class NewTranspiler {
             return `res.(map[string]interface{})`;
         }
 
+        if (unwrappedType === '[]map[string]interface{}') {
+            return `res.([]map[string]interface{})`;
+        }
+
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('[]')) {
