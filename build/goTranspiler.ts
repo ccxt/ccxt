@@ -626,9 +626,9 @@ class NewTranspiler {
         let returnStatement = "";
         if (unwrappedType.startsWith('[]')) {
             const typeWithoutList = this.unwrapListIfNeeded(unwrappedType);
-            returnStatement = `Create${this.capitalize(typeWithoutList)}Array(res)`;
+            returnStatement = `New${this.capitalize(typeWithoutList)}Array(res)`;
         } else {
-            returnStatement =  needsToInstantiate ? `Create${this.capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
+            returnStatement =  needsToInstantiate ? `New${this.capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
         }
         return returnStatement;
     }
@@ -638,35 +638,38 @@ class NewTranspiler {
 
         const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
-        const i1 = this.inden(2);
-        if (hasOptionalParams) {
-            const structName = isOnlyParams ? 'Options' : this.capitalize(name) + 'Options';
+        const i2 = this.inden(2);
+        const i1 = this.inden(1);
+        if (hasOptionalParams && !isOnlyParams) {
+            const structName = this.capitalize(name) + 'Options';
             const initOptions = [
                 '',
-                'options := ' + structName + '{}',
+                'opts := ' + structName + 'Struct{}',
                 '',
-                'for _, opt := range opts {',
-                '    opt(&options)',
+                'for _, opt := range options {',
+                '    opt(&opts)',
                 '}'
-            ].map(e => e!='' ? i1 + e : e);
+            ].map(e => e!='' ? i2 + e : e);
             res = res.concat(initOptions);
         }
+        if (!isOnlyParams) {
+            rawParameters.forEach(param => {
 
-        rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional) {
-                const capName = this.capitalize(param.name);
-                // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                let decl = `
-${i1}${this.safeGoName(param.name)} := nil
-${i1}if options.${capName} != nil {
-${i1}    ${capName} = options.${capName}
-${i1}}`
-            res.push(decl);
-            }
-        });
+                const isOptional =  param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}';
+                // const isOptional =  param.optional || param.initializer !== undefined;
+                if (isOptional) {
+                    const capName = this.capitalize(param.name);
+                    // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+                    let decl = `
+    ${i1}var ${this.safeGoName(param.name)} interface{} = nil
+    ${i1}if opts.${capName} != nil {
+    ${i1}    ${this.safeGoName(param.name)} = opts.${capName}
+    ${i1}}`
+                res.push(decl);
+                }
+            });
 
+        }
         return res.join("\n");
     }
 
@@ -683,12 +686,12 @@ ${i1}}`
         if (capName in goTypeOptions) {
             return
         }
-        if (optionalParams.length === 1 && optionalParams[0].name === 'params') {
+        if (params.length === 1 && params[0].name === 'params') {
             return;
         }
         const i1 = this.inden(1);
         const res = [
-            'type ' + capName + 'Options struct {'
+            'type ' + capName + 'OptionsStruct struct {'
         ];
         for (const param of optionalParams) {
             const name = this.capitalize(param.name);
@@ -698,13 +701,15 @@ ${i1}}`
         }
 
         res.push('}');
+        res.push('');
+        res.push(`type ${capName}Options func(opts *${capName}OptionsStruct)`);
         goTypeOptions[capName] = res.join("\n");
     }
 
     createWrapper (exchangeName, methodWrapper, isWs = false) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName, isWs)) {
+        if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
@@ -727,9 +732,10 @@ ${i1}}`
             `${two}ch:= make(chan ${unwrappedType})`,
             `${two}go func() {`,
             `${three}defer close(ch)`,
-            `${three}defer ReturnError(ch)`,
+            // `${three}defer ReturnPanicError(ch)`,
              this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
-            `${three}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params})`,
+            `${three}res := ${isAsync ? '<-' : ''}this.Core.${methodNameCapitalized}(${params})`,
+            `${three}PanicOnError(ch)`,
             `${three}ch <- ${this.createReturnStatement(methodName, unwrappedType)}`,
             `${two}}()`,
             `${two}return ch`,
@@ -765,11 +771,28 @@ ${i1}}`
         const namespace = 'package ccxt';
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        const exchangeStruct = `type ${capitizedName} struct { ${exchange} }`;
+        const exchangeStruct = [
+            `type ${capitizedName} struct {`,
+            `   ${exchange}`,
+            `   Core ${exchange}`,
+            `}`
+        ].join('\n');
+
+        const newMethod = [
+            'func New' + capitizedName + '(userConfig map[string]interface{}) ' + capitizedName + ' {',
+            `   p := ${capitizedName}{}`,
+            '   setDefaults(&p)',
+            '   p.Core.Init(userConfig)',
+            '   return p',
+            '}'
+        ].join('\n');
+
         const file = [
             namespace,
             '',
             exchangeStruct,
+            '',
+            newMethod,
             '',
             this.createGeneratedHeader().join('\n'),
             '',
@@ -1169,6 +1192,7 @@ ${caseStatements.join('\n')}
         let isAlias = baseClass !== 'Exchange';
 
         if (!ws) {
+            content = content.replace(/func\sNew(\w+)\(\)/g, "func New$1Core()");
             content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\./gm, "this.Exchange.");
             content = content.replace(/base\./gm, "this.Exchange.");
