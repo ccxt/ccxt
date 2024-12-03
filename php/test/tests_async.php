@@ -893,7 +893,7 @@ class testMainClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+    public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
         }
@@ -987,6 +987,30 @@ class testMainClass {
             }
         }
         return true;  // c# requ
+    }
+
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+        try {
+            return $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check, $asserting_key);
+        } catch(\Throwable $e) {
+            if ($this->info) {
+                $error_message = $this->var_to_string($new_output) . '(calculated)' . ' != ' . $this->var_to_string($stored_output) . '(stored)';
+                dump('[TEST_FAILURE_DETAIL]' . $error_message);
+            }
+            throw $e;
+        }
+    }
+
+    public function var_to_string($obj = null) {
+        $new_string = null;
+        if ($obj === null) {
+            $new_string = 'undefined';
+        } elseif (is_null_value($obj)) {
+            $new_string = 'null';
+        } else {
+            $new_string = json_stringify($obj);
+        }
+        return $new_string;
     }
 
     public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
@@ -1325,7 +1349,17 @@ class testMainClass {
                     $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
                 }
             }
-            Async\await(Promise\all($promises));
+            try {
+                Async\await(Promise\all($promises));
+            } catch(\Throwable $e) {
+                if ($type === 'request') {
+                    $this->request_tests_failed = true;
+                } else {
+                    $this->response_tests_failed = true;
+                }
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . ((string) $e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
             if ($this->request_tests_failed || $this->response_tests_failed) {
                 exit_script(1);
             } else {

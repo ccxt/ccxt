@@ -1527,7 +1527,7 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100, max 500
         }
-        $until = $this->safe_integer_2($params, 'until', 'endTime');
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $this->iso8601($until);

@@ -210,7 +210,7 @@ class hyperliquid extends Exchange {
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
             ),
             'options' => array(
@@ -508,9 +508,11 @@ class hyperliquid extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
                 // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
-                $amountPrecision = $this->safe_integer($innerBaseTokenInfo, 'szDecimals');
+                $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
+                $amountPrecision = intval($amountPrecisionStr);
                 $price = $this->safe_number($extraData, 'midPx');
                 $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+                $pricePrecisionStr = $this->number_to_string($pricePrecision);
                 // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
                 $baseId = $this->number_to_string($i + 10000);
                 $markets[] = $this->safe_market_structure(array(
@@ -541,8 +543,8 @@ class hyperliquid extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $pricePrecision,
+                        'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                        'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -608,9 +610,11 @@ class hyperliquid extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
-        $amountPrecision = $this->safe_integer($market, 'szDecimals');
+        $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
+        $amountPrecision = intval($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecisionStr = $this->number_to_string($pricePrecision);
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -638,8 +642,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
+                'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1143,7 +1147,8 @@ class hyperliquid extends Exchange {
         $significantDigits = max (5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
         $maxDecimals = $market['spot'] ? 8 : 6;
-        return $this->decimal_to_precision($result, ROUND, $maxDecimals - $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
+        return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
     public function hash_message($message) {

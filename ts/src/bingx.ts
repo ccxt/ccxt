@@ -367,6 +367,7 @@ export default class bingx extends Exchange {
                             'get': {
                                 'list': 10,
                                 'assets': 2,
+                                'allAccountBalance': 2,
                             },
                             'post': {
                                 'create': 10,
@@ -6354,29 +6355,29 @@ export default class bingx extends Exchange {
         path = this.implodeParams (path, params);
         url += path;
         params = this.omit (params, this.extractParams (path));
+        params['timestamp'] = this.nonce ();
         params = this.keysort (params);
         if (access === 'public') {
-            params['timestamp'] = this.nonce ();
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
-            params['timestamp'] = this.nonce ();
+            const isJsonContentType = ((type === 'subAccount') && (method === 'POST'));
             const parsedParams = this.parseParams (params);
-            let query = this.urlencode (parsedParams);
             const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
-            if (Object.keys (params).length) {
-                query = '?' + query + '&';
-            } else {
-                query += '?';
-            }
-            query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString (this.options, 'broker', 'CCXT'),
             };
-            url += query;
+            if (isJsonContentType) {
+                headers['Content-Type'] = 'application/json';
+                parsedParams['signature'] = signature;
+                body = this.json (parsedParams);
+            } else {
+                const query = this.urlencode (parsedParams);
+                url += '?' + query + '&signature=' + signature;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

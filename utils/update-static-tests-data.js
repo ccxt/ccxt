@@ -32,7 +32,6 @@ function getExchangeSettings (exchangeId) {
     const keysLocal = path.resolve (rootDir + '/keys.local.json');
     const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
     const settingsFile  = fs.readFileSync(keysFile);
-    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
     let settings = JSON.parse(settingsFile.toString());
     settings = settings[exchangeId] || {};
     return settings;
@@ -230,7 +229,7 @@ function updateMarketsOrCurrencies (exchange, type, source) {
             destination[key] = source[key];
         } else {
             // if symbol or currency is removed from exchange
-            console.log ('[info] can not update data for key, it is no longer found in latest fetched ' + exchangeId + ' > ' + type + ' > ' + key);
+            console.log ('[info] can not update data for key, it is no longer found in latest fetched ' + exchange.id + ' > ' + type + ' > ' + key);
         }
     }
     const filePath = type === 'markets' ? dataContainer.filePathForMarkets : dataContainer.filePathForCurrencies;
@@ -245,7 +244,7 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
     const targetObject = isMarketOrCurrency ? exchange.markets[symbolOrCurrency] : exchange.currencies[symbolOrCurrency];
     if (!targetObject) {
         // @ts-expect-error
-        die ('Symbol or Currency not found in ' + exchangeId, 1);
+        die ('Symbol or Currency ['  + (symbolOrCurrency || 'undefined')  + '] not found in '+ exchange.id, 1);
     }
     // writeJson to file
     if (isMarketOrCurrency) {

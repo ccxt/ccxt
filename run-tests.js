@@ -43,6 +43,8 @@ const exchangeSpecificFlags = {
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,
+    '--request': false,
+    '--response': false,
 }
 
 let exchanges = []
@@ -172,20 +174,24 @@ const exec = (bin, ...args) => {
             }
     }
 
-    return timeout (timeoutSeconds, new Promise (return_ => {
+    return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
 
-        psSpawn.on ('exit', code => return_ (generateResultFromOutput (output, stderr, code)) )
+        psSpawn.on ('exit', code => {
+            const result = generateResultFromOutput (output, stderr, code)
+            return resolver (result) ;
+        })
 
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
-            return generateResultFromOutput (output, stderr, 0);
+            const result = generateResultFromOutput (output, stderr, 0);
+            return result;
         }
         return {
             failed: true,
@@ -290,19 +296,19 @@ const testExchange = async (exchange) => {
         selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
 
-    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
-    , failed         = completeTests.find (test => test.failed)
-    , hasWarnings    = completeTests.find (test => test.warnings.length)
-    , warnings       = completeTests.reduce (
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)));
+    const failed         = completeTests.find (test => test.failed);
+    const hasWarnings    = completeTests.find (test => test.warnings.length);
+    const warnings       = completeTests.reduce (
         (total, { warnings }) => {
-            return total.concat(['\n\n']).concat (warnings)
+            return warnings.length ? total.concat(['\n\n']).concat (warnings) : []
         }, []
-    )
-    , infos       = completeTests.reduce (
+    );
+    const infos          = completeTests.reduce (
         (total, { infos }) => {
-            return total.concat(['\n\n']).concat (infos)
+            return infos.length ? total.concat(['\n\n']).concat (infos) : []
         }, []
-    )
+    );
 
     // Print interactive log output
     let logMessage = '';

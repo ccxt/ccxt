@@ -1819,6 +1819,7 @@ public partial class bitso : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
+            endpoint = add("/api", endpoint);
             object request = String.Join("", ((IList<object>)new List<object>() {nonce, method, endpoint}).ToArray());
             if (isTrue(isTrue(!isEqual(method, "GET")) && isTrue(!isEqual(method, "DELETE"))))
             {
@@ -1832,7 +1833,6 @@ public partial class bitso : Exchange
             object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Bitso ", auth) },
-                { "Content-Type", "application/json" },
             };
         }
         return new Dictionary<string, object>() {
