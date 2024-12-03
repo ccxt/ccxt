@@ -283,7 +283,7 @@ export default class bitmex extends Exchange {
                         'createOrder': {
                             'marginMode': true,
                             'triggerPrice': true,
-                            'triggerPriceType':{
+                            'triggerPriceType': {
                                 'last': true,
                                 'mark': true,
                             },
@@ -298,7 +298,8 @@ export default class bitmex extends Exchange {
                                 'GTD': false,
                             },
                             'hedged': false,
-                            'trailing': true, 'marketBuyRequiresPrice': false,
+                            'trailing': true,
+                            'marketBuyRequiresPrice': false,
                             'marketBuyByCost': false,
                             // exchange-supported features
                             // 'selfTradePrevention': true,
@@ -348,7 +349,7 @@ export default class bitmex extends Exchange {
                     'spot': {
                         'extends': 'default',
                         'createOrder': {
-                            'triggerPriceType':{
+                            'triggerPriceType': {
                                 'index': false,
                             },
                         },
@@ -356,7 +357,7 @@ export default class bitmex extends Exchange {
                     'forDeriv': {
                         'extends': 'default',
                         'createOrder': {
-                            'triggerPriceType':{
+                            'triggerPriceType': {
                                 'index': true,
                             },
                         },
