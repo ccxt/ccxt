@@ -642,6 +642,45 @@ public struct OrderBook
     }
 }
 
+public struct OrderBooks
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OrderBook> orderbooks;
+
+    public OrderBooks(object tickers2)
+    {
+        var orderbooks = (Dictionary<string, object>)tickers2;
+
+        info = Helper.GetInfo(orderbooks);
+        this.orderbooks = new Dictionary<string, OrderBook>();
+        foreach (var ticker in orderbooks)
+        {
+            if (ticker.Key != "info")
+                this.orderbooks.Add(ticker.Key, new OrderBook(ticker.Value));
+        }
+    }
+
+    // Indexer
+    public OrderBook this[string key]
+    {
+        get
+        {
+            if (orderbooks.ContainsKey(key))
+            {
+                return orderbooks[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OrderBooks.");
+            }
+        }
+        set
+        {
+            orderbooks[key] = value;
+        }
+    }
+}
+
 public struct OHLCV
 {
     public Int64? timestamp;

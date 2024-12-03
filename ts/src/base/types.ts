@@ -156,6 +156,9 @@ export interface OrderBook {
     symbol: Str;
 }
 
+export interface OrderBooks extends Dictionary<OrderBook> {
+}
+
 export interface Ticker {
     symbol: string;
     info: any;
