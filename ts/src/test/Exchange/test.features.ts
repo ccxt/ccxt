@@ -24,7 +24,10 @@ async function testFeatures (exchange: Exchange, skippedProperties: object) {
                     const subKey = subKeys[j];
                     testSharedMethods.assertInArray (exchange, skippedProperties, 'features', subKeys, j, subTypes);
                     const subValue = value[subKey];
-                    testFeaturesInner (exchange, skippedProperties, subValue);
+                    // sometimes it might not be available for exchange, eg. future>inverse)
+                    if (subValue !== undefined) {
+                        testFeaturesInner (exchange, skippedProperties, subValue);
+                    }
                 }
             }
         }
