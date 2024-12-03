@@ -226,6 +226,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                     'Private rate limit exceeded': RateLimitExceeded,
                     'Trading pair not available': PermissionDenied,
                     'Product not found': InvalidOrder,
+                    'order with this orderID was not found': OrderNotFound,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
