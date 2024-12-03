@@ -36,16 +36,16 @@ package ccxt
 
 // generic with Params
 
-func WithParams(params map[string]interface{}) interface{} {
-	return func(opts interface{}) {
-		switch o := opts.(type) {
-		case *Options:
-			o.Params = params
-		case *OrderOptions:
-			o.Params = params
-		}
-	}
-}
+// func WithParams(params map[string]interface{}) interface{} {
+// 	return func(opts interface{}) {
+// 		switch o := opts.(type) {
+// 		case *Options:
+// 			o.Params = params
+// 		case *OrderOptions:
+// 			o.Params = params
+// 		}
+// 	}
+// }
 
 // func CreateOrder2(symbol string, amount float64, options ...Option) {
 // 	// Start with default options
