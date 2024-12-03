@@ -413,12 +413,10 @@ export default class bitfinex2 extends Exchange {
                     'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'address': InvalidAddress,
                     'available balance is only': InsufficientFunds,
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
-                    'Invalid order': InvalidOrder,
                 },
             },
             'commonCurrencies': {
