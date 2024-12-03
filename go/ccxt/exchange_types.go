@@ -1939,3 +1939,40 @@ func NewLongShortRatioArray(orders2 interface{}) []LongShortRatio {
 	}
 	return result
 }
+
+// OrderBooks struct
+type OrderBooks struct {
+	Info       map[string]interface{}
+	OrderBooks map[string]OrderBook
+}
+
+// Constructor for OrderBooks
+func NewOrderBooks(tickers interface{}) OrderBooks {
+	tickersMap := tickers.(map[string]interface{})
+
+	info := GetInfo(tickersMap)
+	orderBooks := make(map[string]OrderBook)
+
+	for key, value := range tickersMap {
+		if key != "info" {
+			orderBooks[key] = NewOrderBook(value)
+		}
+	}
+
+	return OrderBooks{
+		Info:       info,
+		OrderBooks: orderBooks,
+	}
+}
+
+// Indexer-like access for OrderBooks
+func (o *OrderBooks) Get(key string) (OrderBook, error) {
+	if val, exists := o.OrderBooks[key]; exists {
+		return val, nil
+	}
+	return OrderBook{}, fmt.Errorf("the key '%s' was not found in the OrderBooks", key)
+}
+
+func (o *OrderBooks) Set(key string, value OrderBook) {
+	o.OrderBooks[key] = value
+}
