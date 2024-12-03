@@ -1940,6 +1940,42 @@ func NewLongShortRatioArray(orders2 interface{}) []LongShortRatio {
 	return result
 }
 
+func NewDepositAddressArray(orders2 interface{}) []DepositAddress {
+	orders := orders2.([]interface{})
+	result := make([]DepositAddress, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewDepositAddress(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
+func NewLeverageTierArray(orders2 interface{}) []LeverageTier {
+	orders := orders2.([]interface{})
+	result := make([]LeverageTier, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewLeverageTier(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
+func NewAccountArray(orders2 interface{}) []Account {
+	orders := orders2.([]interface{})
+	result := make([]Account, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewAccount(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
 // OrderBooks struct
 type OrderBooks struct {
 	Info       map[string]interface{}
@@ -1975,4 +2011,16 @@ func (o *OrderBooks) Get(key string) (OrderBook, error) {
 
 func (o *OrderBooks) Set(key string, value OrderBook) {
 	o.OrderBooks[key] = value
+}
+
+type CancellationRequest struct {
+	Symbol string
+	ID     string
+}
+
+func NewCancellationRequest(request map[string]interface{}) CancellationRequest {
+	return CancellationRequest{
+		ID:     SafeStringTyped(request, "id"),
+		Symbol: SafeStringTyped(request, "symbol"),
+	}
 }

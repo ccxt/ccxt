@@ -2831,7 +2831,7 @@ export default class phemex extends Exchange {
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType = undefined, side: OrderSide = undefined, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

@@ -1793,7 +1793,7 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async fetchDepositAddress (code: Str = undefined, params = {}): Promise<DepositAddress> {
+    async fetchDepositAddress (code: Str, params = {}): Promise<DepositAddress> {
         const request: Dict = {};
         request['nonce'] = this.uuidv1 ();
         const response = await this.privateGetWallets (this.extend (request, params));

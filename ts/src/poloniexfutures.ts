@@ -1435,7 +1435,7 @@ export default class poloniexfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;

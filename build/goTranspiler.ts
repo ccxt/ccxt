@@ -586,7 +586,10 @@ class NewTranspiler {
             'watchPrivate',
             'watchPublic',
             'setPositionsCache',
-            'setPositionCache'
+            'setPositionCache',
+            'createSpotOrder',
+            'createContractOrder',
+            'createSwapOrder'
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -1077,7 +1080,7 @@ ${caseStatements.join('\n')}
         }
 
 
-        this.transpileTests()
+        // this.transpileTests() // tmp debug remove
 
         // this.transpileErrorHierarchy ()
 
@@ -1108,6 +1111,7 @@ ${caseStatements.join('\n')}
     safeOptionsStructFile() {
         const EXCHANGE_OPTIONS_FILE = './go/ccxt/exchange_wrapper_structs.go';
 
+        console.log('safeOptionsStructFile with ', Object.keys(goTypeOptions).length, 'options');
         const file = [
             'package ccxt',
             this.createGeneratedHeader().join('\n'),

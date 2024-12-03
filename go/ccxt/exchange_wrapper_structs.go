@@ -883,20 +883,6 @@ type FetchTickerV3OptionsStruct struct {
 
 type FetchTickerV3Options func(opts *FetchTickerV3OptionsStruct)
 
-type CreateSpotOrderOptionsStruct struct {
-    Price *float64
-    Params *map[string]interface{}
-}
-
-type CreateSpotOrderOptions func(opts *CreateSpotOrderOptionsStruct)
-
-type CreateSwapOrderOptionsStruct struct {
-    Price *float64
-    Params *map[string]interface{}
-}
-
-type CreateSwapOrderOptions func(opts *CreateSwapOrderOptionsStruct)
-
 type CreateOrderWithTakeProfitAndStopLossOptionsStruct struct {
     Price *float64
     TakeProfit *float64
@@ -1303,13 +1289,6 @@ type CreateTrailingAmountOrderOptionsStruct struct {
 }
 
 type CreateTrailingAmountOrderOptions func(opts *CreateTrailingAmountOrderOptionsStruct)
-
-type CreateContractOrderOptionsStruct struct {
-    Price *interface{}
-    Params *map[string]interface{}
-}
-
-type CreateContractOrderOptions func(opts *CreateContractOrderOptionsStruct)
 
 type FetchTickersHelperOptionsStruct struct {
     Params *map[string]interface{}
