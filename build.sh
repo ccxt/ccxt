@@ -212,7 +212,8 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
   npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
-  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
+  # php async exit code is not captured well, so let's use runtests
+  npm run runtests -- --request --php -- $exchange && npm run runtests -- --request --php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
@@ -220,7 +221,8 @@ done
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
   npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
-  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
+  # php async exit code is not captured well, so let's use runtests
+  npm run runtests -- --response --php -- $exchange && npm run runtests -- --response --php-async -- $exchange
   npm run response-cs -- $exchange
 done
 
