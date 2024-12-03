@@ -780,17 +780,19 @@ class NewTranspiler {
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const exchangeStruct = [
             `type ${capitizedName} struct {`,
-            `   ${exchange}`,
-            `   Core ${exchange}`,
+            `   *${exchange}`,
+            `   Core *${exchange}`,
             `}`
         ].join('\n');
 
         const newMethod = [
             'func New' + capitizedName + '(userConfig map[string]interface{}) ' + capitizedName + ' {',
-            `   p := ${capitizedName}{}`,
-            '   setDefaults(&p)',
-            '   p.Core.Init(userConfig)',
-            '   return p',
+            `   p := &${exchange}{}`,
+            '   p.Init(userConfig)',
+            `   return ${capitizedName}{`,
+            `       ${exchange}: p,`,
+            `       Core:  p,`,
+            `   }`,
             '}'
         ].join('\n');
 

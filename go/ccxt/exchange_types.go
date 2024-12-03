@@ -8,7 +8,7 @@ import (
 
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m interface{}, key interface{}) float64 {
-	res := SafeFloat(m, key, nil)
+	res := SafeFloat(m, key, math.NaN())
 	if res != nil {
 		return res.(float64)
 	}
