@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Liquidation } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -858,6 +858,92 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidations
+     * @description watch the private liquidations of a trading pair
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+     */
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidationsForSymbols
+     * @description watch the private liquidations of a trading pair
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+     */
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('watchMyLiquidationsForSymbols', params);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const messageHash = 'myLiquidations';
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userEvents',
+                'user': userAddress,
+            },
+        };
+        const newLiquidations = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
+    }
+
+    handleMyLiquidation (client: Client, message) {
+        //
+        // interface WsLiquidation {
+        //     lid: number;
+        //     liquidator: string;
+        //     liquidated_user: string;
+        //     liquidated_ntl_pos: string;
+        //     liquidated_account_value: string;
+        // }
+        //
+        // const entry = this.safeDict (message, 'data', {});
+        // const liquidation = this.parseWsLiquidation (entry);
+        // let myLiquidations = this.safeValue (this.myLiquidations, symbol);
+        // if (myLiquidations === undefined) {
+        //     const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+        //     myLiquidations = new ArrayCache (limit);
+        // }
+        // myLiquidations.append (liquidation);
+        // this.myLiquidations[symbol] = myLiquidations;
+        // client.resolve ([ liquidation ], 'myLiquidations');
+        // client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        return this.safeLiquidation ({
+            'info': liquidation,
+            'symbol': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'price': undefined,
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        });
+    }
+
     handleErrorMessage (client: Client, message) {
         //
         //     {
@@ -976,6 +1062,15 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleUserEvents (client: Client, message) {
+        const data = this.safeDict (message, 'data');
+        if (data !== undefined) {
+            if ('liquidation' in data) {
+                this.handleMyLiquidation (client, message);
+            }
+        }
+    }
+
     handleMessage (client: Client, message) {
         //
         // {
@@ -1002,6 +1097,7 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
+            'userEvents': this.handleUserEvents,
             'webData2': this.handleWsTickers,
             'post': this.handleWsPost,
             'subscriptionResponse': this.handleSubscriptionResponse,
