@@ -1626,7 +1626,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2291,6 +2291,27 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testDefx()
+    {
+        Exchange exchange = this.initOfflineExchange("defx");
+        object reqHeaders = null;
+        try
+        {
+            await exchange.createOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        object id = "ccxt";
+        assert(isEqual(getValue(reqHeaders, "X-DEFX-SOURCE"), id), add(add("defx - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

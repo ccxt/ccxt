@@ -258,6 +258,103 @@ public partial class bitmex : Exchange
                     { "SOL", "sol" },
                     { "ADA", "ada" },
                 } },
+                { "features", new Dictionary<string, object>() {
+                    { "default", new Dictionary<string, object>() {
+                        { "sandbox", true },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "marginMode", true },
+                            { "triggerPrice", true },
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                            } },
+                            { "triggerDirection", true },
+                            { "stopLossPrice", false },
+                            { "takeProfitPrice", false },
+                            { "attachedStopLossTakeProfit", null },
+                            { "timeInForce", new Dictionary<string, object>() {
+                                { "IOC", true },
+                                { "FOK", true },
+                                { "PO", true },
+                                { "GTD", false },
+                            } },
+                            { "hedged", false },
+                            { "trailing", true },
+                            { "marketBuyRequiresPrice", false },
+                            { "marketBuyByCost", false },
+                        } },
+                        { "createOrders", null },
+                        { "fetchMyTrades", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBack", null },
+                            { "untilDays", 1000000 },
+                        } },
+                        { "fetchOrder", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOpenOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBack", null },
+                            { "untilDays", 1000000 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchClosedOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBackClosed", null },
+                            { "daysBackCanceled", null },
+                            { "untilDays", 1000000 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOHLCV", new Dictionary<string, object>() {
+                            { "limit", 10000 },
+                        } },
+                    } },
+                    { "spot", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "index", false },
+                            } },
+                        } },
+                    } },
+                    { "forDeriv", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "index", true },
+                            } },
+                        } },
+                    } },
+                    { "swap", new Dictionary<string, object>() {
+                        { "linear", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                        { "inverse", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                    } },
+                    { "future", new Dictionary<string, object>() {
+                        { "linear", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                        { "inverse", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                    } },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "USDt", "USDT" },
@@ -1073,7 +1170,7 @@ public partial class bitmex : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["count"] = limit;
+            ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
         object until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))

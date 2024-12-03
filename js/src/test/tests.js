@@ -1430,7 +1430,8 @@ class testMainClass {
             this.testVertex(),
             this.testParadex(),
             this.testHashkey(),
-            this.testCoincatch()
+            this.testCoincatch(),
+            this.testDefx()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1963,6 +1964,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testDefx() {
+        const exchange = this.initOfflineExchange('defx');
+        let reqHeaders = undefined;
+        try {
+            await exchange.createOrder('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        const id = 'ccxt';
+        assert(reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

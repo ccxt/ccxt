@@ -271,6 +271,108 @@ class bitmex extends Exchange {
                     'SOL' => 'sol',
                     'ADA' => 'ada',
                 ),
+                'features' => array(
+                    'default' => array(
+                        'sandbox' => true,
+                        'createOrder' => array(
+                            'marginMode' => true,
+                            'triggerPrice' => true,
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                            ),
+                            'triggerDirection' => true,
+                            'stopLossPrice' => false,
+                            'takeProfitPrice' => false,
+                            'attachedStopLossTakeProfit' => null,
+                            'timeInForce' => array(
+                                'IOC' => true,
+                                'FOK' => true,
+                                'PO' => true,
+                                'GTD' => false,
+                            ),
+                            'hedged' => false,
+                            'trailing' => true,
+                            'marketBuyRequiresPrice' => false,
+                            'marketBuyByCost' => false,
+                            // exchange-supported features
+                            // 'selfTradePrevention' => true,
+                            // 'twap' => false,
+                            // 'iceberg' => false,
+                            // 'oco' => false,
+                        ),
+                        'createOrders' => null,
+                        'fetchMyTrades' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBack' => null,
+                            'untilDays' => 1000000,
+                        ),
+                        'fetchOrder' => array(
+                            'marginMode' => false,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOpenOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBack' => null,
+                            'untilDays' => 1000000,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchClosedOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBackClosed' => null,
+                            'daysBackCanceled' => null,
+                            'untilDays' => 1000000,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOHLCV' => array(
+                            'limit' => 10000,
+                        ),
+                    ),
+                    'spot' => array(
+                        'extends' => 'default',
+                        'createOrder' => array(
+                            'triggerPriceType' => array(
+                                'index' => false,
+                            ),
+                        ),
+                    ),
+                    'forDeriv' => array(
+                        'extends' => 'default',
+                        'createOrder' => array(
+                            'triggerPriceType' => array(
+                                'index' => true,
+                            ),
+                        ),
+                    ),
+                    'swap' => array(
+                        'linear' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                        'inverse' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                    ),
+                    'future' => array(
+                        'linear' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                        'inverse' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                    ),
+                ),
             ),
             'commonCurrencies' => array(
                 'USDt' => 'USDT',
@@ -1018,7 +1120,7 @@ class bitmex extends Exchange {
             $request['startTime'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['count'] = $limit;
+            $request['count'] = min (500, $limit);
         }
         $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
