@@ -1298,7 +1298,7 @@ export default class defx extends Exchange {
         // }
         //
         const orderId = this.safeString (order, 'orderId');
-        const clientOrderId = this.omitZero (this.safeString (order, 'clientOrderId'));
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];

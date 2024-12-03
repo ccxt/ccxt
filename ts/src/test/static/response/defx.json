@@ -1596,71 +1596,6 @@
             }
         ],
         "closePosition": [
-            {
-                "description": "closePosition",
-                "method": "closePosition",
-                "input": [
-                    null,
-                    null,
-                    {
-                        "positionId": "0192fa60-9728-7849-987e-b1c8e0bfa0f3",
-                        "type": "MARKET",
-                        "quantity": "0.5"
-                    }
-                ],
-                "httpResponse": {},
-                "parsedResponse": {}
-            }
-        ],
-        "closeAllPositions": [
-            {
-                "description": "closeAllPositions",
-                "method": "closeAllPositions",
-                "input": [],
-                "httpResponse": {
-                    "data": [
-                        {
-                            "positionId": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
-                            "success": true
-                        }
-                    ]
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "positionId": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
-                            "success": true
-                        },
-                        "id": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
-                        "symbol": null,
-                        "timestamp": null,
-                        "datetime": null,
-                        "lastUpdateTimestamp": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "entryPrice": null,
-                        "notional": null,
-                        "leverage": null,
-                        "unrealizedPnl": null,
-                        "realizedPnl": null,
-                        "contracts": null,
-                        "contractSize": null,
-                        "marginRatio": null,
-                        "liquidationPrice": null,
-                        "markPrice": null,
-                        "lastPrice": null,
-                        "collateral": null,
-                        "marginMode": null,
-                        "side": null,
-                        "percentage": null,
-                        "stopLossPrice": null,
-                        "takeProfitPrice": null,
-                        "hedged": null
-                    }
-                ]
-            }
         ],
         "closeAllPositions": [
             {
@@ -1771,7 +1706,7 @@
                 "input": [
                     "USDC",
                     5,
-                    null,
+                    "",
                     null,
                     {
                         "network": "ARB_SEPOLIA",
