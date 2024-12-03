@@ -251,11 +251,11 @@
                 ]
             },
             {
-                "description": "fetchPosition",
-                "method": "fetchPosition",
+                "description": "fetchOrder",
+                "method": "fetchOrder",
                 "url": "https://api.defx.com/v1/auth/api/order/0192e678-02d9-7657-96fb-fbfaa03e604d?idType=clientOrderId&symbol=SOL_USDC",
                 "input": [
-                    null,
+                    "",
                     "SOL/USDC:USDC",
                     {
                         "clientOrderId": "0192e678-02d9-7657-96fb-fbfaa03e604d"
@@ -329,7 +329,7 @@
                 "method": "closePosition",
                 "url": "https://api.defx.com/v1/auth/api/position/0192fa60-9728-7849-987e-b1c8e0bfa0f3",
                 "input": [
-                    null,
+                    "",
                     null,
                     {
                         "positionId": "0192fa60-9728-7849-987e-b1c8e0bfa0f3",
@@ -344,7 +344,7 @@
                 "method": "closePosition",
                 "url": "https://api.defx.com/v1/auth/api/position/0192fa60-9728-7849-987e-b1c8e0bfa0f3",
                 "input": [
-                    null,
+                    "",
                     null,
                     {
                         "positionId": "0192fa60-9728-7849-987e-b1c8e0bfa0f3",
@@ -388,7 +388,7 @@
                 "input": [
                     "USDC",
                     5,
-                    null,
+                    "",
                     null,
                     {
                         "network": "ARB_SEPOLIA",
