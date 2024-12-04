@@ -6364,7 +6364,7 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = ((type === 'subAccount') && (method === 'POST'));
-            const parsedParams = this.parseParams (params);
+            const parsedParams = isJsonContentType ? params : this.parseParams (params);
             const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
