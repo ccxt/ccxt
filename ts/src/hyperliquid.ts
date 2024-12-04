@@ -239,13 +239,13 @@ export default class hyperliquid extends Exchange {
                         'trailing': false,
                     },
                     'createOrders': {
-                        'max': 5,
+                        'max': 1000,
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
-                        'daysBack': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
-                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -254,29 +254,29 @@ export default class hyperliquid extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': 2000,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
-                        'limit': 1000,
-                        'daysBack': 20000, // since epoch
-                        'untilDays': 7,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': 1000,
+                        'limit': 2000,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
-                        'untilDays': 7,
+                        'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1440,
+                        'limit': 5000,
                     },
                 },
                 'spot': {
@@ -289,7 +289,23 @@ export default class hyperliquid extends Exchange {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // todo, in two orders
                     }
-                }
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         });
     }
