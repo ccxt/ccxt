@@ -849,7 +849,7 @@ class NewTranspiler {
 
         function GoMakeErrorFile (name, parent) {
             const exception =
-`   func ${name}(v ...interface{}) interface{} {
+`   func ${name}(v ...interface{}) error {
         return NewError("${name}", v...)
     }`;
             return exception
@@ -1084,7 +1084,7 @@ ${caseStatements.join('\n')}
 
         // this.transpileTests() // tmp debug remove
 
-        // this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }

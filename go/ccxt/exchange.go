@@ -325,15 +325,22 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
-func NewError(err interface{}, v ...interface{}) string {
-	str := ToString(err)
-	// for i := 0; i < len(v); i++ {
-	// 	if i > 0 {
-	// 		str = str.ToString() + " "
-	// 	}
-	// 	str += str + ToString(v[i])
-	// } // to do check this out later
-	return str
+type BaseError struct {
+	ErrType string
+	Message string
+}
+
+func (e *BaseError) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrType, e.Message)
+}
+
+func NewError(errType interface{}, message ...interface{}) error {
+	typeErr := ToString(errType)
+	msg := ""
+	if len(message) > 0 {
+		msg = ToString(message[0])
+	}
+	return &BaseError{ErrType: typeErr, Message: msg}
 }
 
 func Exception(v ...interface{}) interface{} {

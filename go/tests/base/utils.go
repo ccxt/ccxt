@@ -21,31 +21,31 @@ const (
 	// TEST_METHODS         = map[string]interface{}{}
 )
 
-func AuthenticationError(v ...interface{}) interface{} {
+func AuthenticationError(v ...interface{}) error {
 	return ccxt.AuthenticationError(v)
 }
 
-func ExchangeError(v ...interface{}) interface{} {
+func ExchangeError(v ...interface{}) error {
 	return ccxt.ExchangeError(v)
 }
 
-func NotSupported(v ...interface{}) interface{} {
+func NotSupported(v ...interface{}) error {
 	return ccxt.NotSupported(v)
 }
 
-func OnMaintenance(v ...interface{}) interface{} {
+func OnMaintenance(v ...interface{}) error {
 	return ccxt.OnMaintenance(v)
 }
 
-func ExchangeNotAvailable(v ...interface{}) interface{} {
+func ExchangeNotAvailable(v ...interface{}) error {
 	return ccxt.ExchangeNotAvailable(v)
 }
 
-func OperationFailed(v ...interface{}) interface{} {
+func OperationFailed(v ...interface{}) error {
 	return ccxt.OperationFailed(v)
 }
 
-func InvalidProxySettings(v ...interface{}) interface{} {
+func InvalidProxySettings(v ...interface{}) error {
 	return ccxt.InvalidProxySettings(v)
 }
 
