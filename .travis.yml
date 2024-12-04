@@ -1,5 +1,6 @@
 language: python
 dist: jammy
+install: travis_wait mvn install
 python:
 - 3.8.3
 git:
