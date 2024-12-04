@@ -222,33 +222,21 @@ export default class hyperliquid extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': ,
-                        'triggerPrice': ,
-                        'triggerPriceType': {
-                            'last': ,
-                            'mark': ,
-                            'index': ,
-                        },
-                        'triggerDirection': ,
-                        'stopLossPrice': ,
-                        'takeProfitPrice': ,
-                        'attachedStopLossTakeProfit': {
-                            'triggerPriceType': {
-                                'last': ,
-                                'mark': ,
-                                'index': ,
-                            },
-                            'limitPrice': ,
-                        },
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
-                            'FOK': true,
+                            'FOK': false,
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': ,
-                        'trailing': ,
+                        'hedged': false,
+                        'trailing': false,
                     },
                     'createOrders': {
                         'max': 5,
@@ -291,6 +279,17 @@ export default class hyperliquid extends Exchange {
                         'limit': 1440,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                    }
+                }
             },
         });
     }
@@ -1447,9 +1446,12 @@ export default class hyperliquid extends Exchange {
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
             let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
+            if (triggerPrice !== undefined) {
+                throw new InvalidOrder (this.id + ' triggerPrice is not supported, you can use stopLossPrice or takeProfitPrice');
+            }
+            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice');
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const isProtective = (stopLossPrice || takeProfitPrice);
             let px = undefined;
             if (isMarket) {
                 if (price === undefined) {
@@ -1463,7 +1465,7 @@ export default class hyperliquid extends Exchange {
             const sz = this.amountToPrecision (symbol, amount);
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             const orderType: Dict = {};
-            if (isTrigger) {
+            if (isProtective) {
                 let isTp = false;
                 if (takeProfitPrice !== undefined) {
                     triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
