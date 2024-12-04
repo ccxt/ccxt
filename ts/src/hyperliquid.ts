@@ -288,7 +288,7 @@ export default class hyperliquid extends Exchange {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // todo, in two orders
-                    }
+                    },
                 },
                 'swap': {
                     'linear': {
