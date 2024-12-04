@@ -251,7 +251,7 @@ class NewTranspiler {
     /// </item>`
     }
 
-    createCsharpCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
+    createGOCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
         //
         // Summary:
         //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
@@ -278,8 +278,8 @@ class NewTranspiler {
     return commentWithoutEmptyLines;
     }
 
-    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
-        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
+    transformTSCommentIntoGO(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
+        return this.createGOCommentTemplate(name, desc, sees, params, returnType, returnDesc);
     }
 
     transformLeadingComment(comment) {
@@ -302,30 +302,30 @@ class NewTranspiler {
             return comment;
         }
         const methodName = nameMatches[2];
-        const commentDescriptionRegex = /@description\s(.+)/;
-        const descriptionMatches = comment.match(commentDescriptionRegex);
-        const description = descriptionMatches ? descriptionMatches[1] : undefined;
-        const seeRegex = /@see\s(.+)/g;
-        const seeMatches = comment.match(seeRegex);
-        const sees: string[] = [];
-        if (seeMatches) {
-            seeMatches.forEach(match => {
-                const [, link] = match.split(' ');
-                sees.push(link);
-            });
-        }
-        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
-        const params = [] as any;
-        let paramMatch;
-        while ((paramMatch = paramRegex.exec(comment)) !== null) {
-            const [, type, name, description] = paramMatch;
-            params.push({type, name, description});
-        }
-        const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
-        const returnMatch = comment.match(returnRegex);
-        const returnType = returnMatch ? returnMatch[1] : undefined;
-        const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
+        // const commentDescriptionRegex = /@description\s(.+)/;
+        // const descriptionMatches = comment.match(commentDescriptionRegex);
+        // const description = descriptionMatches ? descriptionMatches[1] : undefined;
+        // const seeRegex = /@see\s(.+)/g;
+        // const seeMatches = comment.match(seeRegex);
+        // const sees: string[] = [];
+        // if (seeMatches) {
+        //     seeMatches.forEach(match => {
+        //         const [, link] = match.split(' ');
+        //         sees.push(link);
+        //     });
+        // }
+        // // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
+        // const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
+        // const params = [] as any;
+        // let paramMatch;
+        // while ((paramMatch = paramRegex.exec(comment)) !== null) {
+        //     const [, type, name, description] = paramMatch;
+        //     params.push({type, name, description});
+        // }
+        // // const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
+        // // const returnMatch = comment.match(returnRegex);
+        // const returnType = returnMatch ? returnMatch[1] : undefined;
+        // const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
         let exchangeData = goComments[exchangeName];
         if (!exchangeData) {
             exchangeData = goComments[exchangeName] = {}
@@ -334,8 +334,8 @@ class NewTranspiler {
         if (!exchangeMethods) {
             exchangeMethods = {}
         }
-        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
-        exchangeMethods[methodName] = transformedComment;
+        // const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
+        exchangeMethods[methodName] = comment;
         goComments[exchangeName] = exchangeMethods
         return comment;
     }
