@@ -12,7 +12,7 @@ export default class fmfwio extends hitbtc {
             'name': 'FMFW.io',
             'countries': [ 'KN' ],
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/07f884a3-fd5f-4b3b-b55b-4afd9592948f',
                 'api': {
                     'public': 'https://api.fmfw.io/api/3',
                     'private': 'https://api.fmfw.io/api/3',

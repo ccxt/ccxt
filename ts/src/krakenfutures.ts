@@ -87,7 +87,7 @@ export default class krakenfutures extends Exchange {
                     'history': 'https://demo-futures.kraken.com/api/history/',
                     'www': 'https://demo-futures.kraken.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/67fa8bdd-1503-4e8b-bb29-3f8b17d05f81',
                 'api': {
                     'charts': 'https://futures.kraken.com/api/charts/',
                     'history': 'https://futures.kraken.com/api/history/',

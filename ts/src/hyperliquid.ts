@@ -137,7 +137,7 @@ export default class hyperliquid extends Exchange {
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b',
+                'logo': 'https://github.com/user-attachments/assets/79496521-ddd6-468b-90cc-08eca7cb9003',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',

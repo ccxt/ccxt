@@ -128,7 +128,7 @@ export default class cryptocom extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
+                'logo': 'https://github.com/user-attachments/assets/4b9fbb00-f010-4d19-aad9-d5e035353153',
                 'test': {
                     'v1': 'https://uat-api.3ona.co/exchange/v1',
                     'v2': 'https://uat-api.3ona.co/v2',

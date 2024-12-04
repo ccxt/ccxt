@@ -101,7 +101,7 @@ export default class indodax extends Exchange {
             },
             'version': '2.0', // as of 9 April 2018
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
+                'logo': 'https://github.com/user-attachments/assets/7460de74-3236-4533-8c05-41161a5ecb4a',
                 'api': {
                     'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',

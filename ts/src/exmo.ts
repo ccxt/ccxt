@@ -104,7 +104,7 @@ export default class exmo extends Exchange {
                 '1M': 'M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c1d45beb-6726-472b-baca-5c7f9d61e536',
                 'api': {
                     'public': 'https://api.exmo.com',
                     'private': 'https://api.exmo.com',

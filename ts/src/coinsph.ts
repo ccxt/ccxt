@@ -140,7 +140,7 @@ export default class coinsph extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/225719995-48ab2026-4ddb-496c-9da7-0d7566617c9b.jpg',
+                'logo': 'https://github.com/user-attachments/assets/3206f644-a1a0-4736-b0b8-573af0af1f72',
                 'api': {
                     'public': 'https://api.pro.coins.ph',
                     'private': 'https://api.pro.coins.ph',

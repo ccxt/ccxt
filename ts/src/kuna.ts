@@ -112,7 +112,7 @@ export default class kuna extends Exchange {
             'urls': {
                 'extension': '.json',
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
-                'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
+                'logo': 'https://github.com/user-attachments/assets/f1cd82f2-c6be-48c3-a0d7-8f4b3d78bdf3',
                 'api': {
                     'xreserve': 'https://api.xreserve.fund',
                     'v3': 'https://api.kuna.io',

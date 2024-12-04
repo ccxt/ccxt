@@ -111,7 +111,7 @@ export default class digifinex extends Exchange {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
+                'logo': 'https://github.com/user-attachments/assets/02028458-97cc-407b-9596-4ad4879b7a30',
                 'api': {
                     'rest': 'https://openapi.digifinex.com',
                 },

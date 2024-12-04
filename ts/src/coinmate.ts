@@ -80,7 +80,7 @@ export default class coinmate extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
+                'logo': 'https://github.com/user-attachments/assets/b258cfda-e78d-4d75-aef9-070ed30fcb59',
                 'api': {
                     'rest': 'https://coinmate.io/api',
                 },

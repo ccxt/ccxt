@@ -59,7 +59,7 @@ export default class cex extends Exchange {
                 'transfer': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
+                'logo': 'https://github.com/user-attachments/assets/ab5430ec-2908-40c0-a55d-ff637aed3c9e',
                 'api': {
                     'public': 'https://trade.cex.io/api/spot/rest-public',
                     'private': 'https://trade.cex.io/api/spot/rest',

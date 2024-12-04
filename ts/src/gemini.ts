@@ -91,7 +91,7 @@ export default class gemini extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
+                'logo': 'https://github.com/user-attachments/assets/2d2b6aec-9234-4cda-87f5-2575e14275f9',
                 'api': {
                     'public': 'https://api.gemini.com',
                     'private': 'https://api.gemini.com',

@@ -22,7 +22,7 @@ export default class gate extends Exchange {
             'certified': true,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c6786d99-b2a3-4075-a522-9af2cca7ba3d',
                 'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {

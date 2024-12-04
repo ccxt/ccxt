@@ -83,7 +83,7 @@ export default class independentreserve extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
+                'logo': 'https://github.com/user-attachments/assets/479cf159-be47-4fca-815d-f1f81b47ccdc',
                 'api': {
                     'public': 'https://api.independentreserve.com/Public',
                     'private': 'https://api.independentreserve.com/Private',

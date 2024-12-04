@@ -124,7 +124,7 @@ export default class currencycom extends Exchange {
             },
             'hostname': 'backend.currency.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/534b5e36-7bbe-4d4b-8b20-9f8278e0bb75',
                 'api': {
                     'public': 'https://api-adapter.{hostname}/api',
                     'private': 'https://api-adapter.{hostname}/api',

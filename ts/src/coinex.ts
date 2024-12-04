@@ -137,7 +137,7 @@ export default class coinex extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
+                'logo': 'https://github.com/user-attachments/assets/54ffefe9-46d6-4d76-8ea0-7c01e23e1bc3',
                 'api': {
                     'public': 'https://api.coinex.com',
                     'private': 'https://api.coinex.com',

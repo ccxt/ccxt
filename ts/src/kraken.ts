@@ -110,7 +110,7 @@ export default class kraken extends Exchange {
                 '2w': 21600,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg',
+                'logo': 'https://github.com/user-attachments/assets/5f263eda-0b9f-4fb6-b92f-dc55a14a6d85',
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',

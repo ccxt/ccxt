@@ -139,7 +139,7 @@ export default class coincatch extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3d49065f-f05d-4573-88a2-1b5201ec6ff3',
+                'logo': 'https://github.com/user-attachments/assets/55b2975d-fed6-4965-a237-807c754adc0a',
                 'api': {
                     'public': 'https://api.coincatch.com',
                     'private': 'https://api.coincatch.com',

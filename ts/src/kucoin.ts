@@ -117,7 +117,7 @@ export default class kucoin extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0d68480b-3419-443b-9ea8-a769f58bf0da',
                 'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
