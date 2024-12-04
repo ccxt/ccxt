@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import bitfinexRest from '../bitfinex.js';
+import bitfinex1Rest from '../bitfinex1.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitfinex extends bitfinexRest {
+export default class bitfinex1 extends bitfinex1Rest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
