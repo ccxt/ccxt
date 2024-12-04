@@ -28,7 +28,7 @@ Exchange::$exchanges = array(
     'binanceusdm',
     'bingx',
     'bitcoincom',
-    'bitfinex',
+    'bitfinex1',
     'bitfinex2',
     'bitget',
     'bithumb',
