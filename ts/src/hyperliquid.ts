@@ -264,7 +264,7 @@ export default class hyperliquid extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (data, 'szDecimals'))),
                 'info': data,
                 'active': undefined,
                 'deposit': undefined,
