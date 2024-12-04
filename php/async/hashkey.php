@@ -649,7 +649,7 @@ class hashkey extends Exchange {
             //                 )
             //             }
             //         ),
-            //         "options" => array(),
+            //         "options" => [ ],
             //         "contracts" => array(
             //             {
             //                 "filters" => array(

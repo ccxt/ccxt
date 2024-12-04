@@ -388,31 +388,43 @@ public partial class kraken : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "EQuery:Invalid asset pair", typeof(BadSymbol) },
-                { "EAPI:Invalid key", typeof(AuthenticationError) },
-                { "EFunding:Unknown withdraw key", typeof(InvalidAddress) },
-                { "EFunding:Invalid amount", typeof(InsufficientFunds) },
-                { "EService:Unavailable", typeof(ExchangeNotAvailable) },
-                { "EDatabase:Internal error", typeof(ExchangeNotAvailable) },
-                { "EService:Busy", typeof(ExchangeNotAvailable) },
-                { "EQuery:Unknown asset", typeof(BadSymbol) },
-                { "EAPI:Rate limit exceeded", typeof(DDoSProtection) },
-                { "EOrder:Rate limit exceeded", typeof(DDoSProtection) },
-                { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
-                { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
-                { "EGeneral:Permission denied", typeof(PermissionDenied) },
-                { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
-                { "EOrder:Unknown order", typeof(InvalidOrder) },
-                { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
-                { "EOrder:Order minimum not met", typeof(InvalidOrder) },
-                { "EGeneral:Invalid arguments", typeof(BadRequest) },
-                { "ESession:Invalid session", typeof(AuthenticationError) },
-                { "EAPI:Invalid nonce", typeof(InvalidNonce) },
-                { "EFunding:No funding method", typeof(BadRequest) },
-                { "EFunding:Unknown asset", typeof(BadSymbol) },
-                { "EService:Market in post_only mode", typeof(OnMaintenance) },
-                { "EGeneral:Too many requests", typeof(DDoSProtection) },
-                { "ETrade:User Locked", typeof(AccountSuspended) },
+                { "exact", new Dictionary<string, object>() {
+                    { "EQuery:Invalid asset pair", typeof(BadSymbol) },
+                    { "EAPI:Invalid key", typeof(AuthenticationError) },
+                    { "EFunding:Unknown withdraw key", typeof(InvalidAddress) },
+                    { "EFunding:Invalid amount", typeof(InsufficientFunds) },
+                    { "EService:Unavailable", typeof(ExchangeNotAvailable) },
+                    { "EDatabase:Internal error", typeof(ExchangeNotAvailable) },
+                    { "EService:Busy", typeof(ExchangeNotAvailable) },
+                    { "EQuery:Unknown asset", typeof(BadSymbol) },
+                    { "EAPI:Rate limit exceeded", typeof(DDoSProtection) },
+                    { "EOrder:Rate limit exceeded", typeof(DDoSProtection) },
+                    { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
+                    { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
+                    { "EGeneral:Permission denied", typeof(PermissionDenied) },
+                    { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
+                    { "EOrder:Unknown order", typeof(InvalidOrder) },
+                    { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
+                    { "EOrder:Order minimum not met", typeof(InvalidOrder) },
+                    { "EOrder:Insufficient funds", typeof(InsufficientFunds) },
+                    { "EGeneral:Invalid arguments", typeof(BadRequest) },
+                    { "ESession:Invalid session", typeof(AuthenticationError) },
+                    { "EAPI:Invalid nonce", typeof(InvalidNonce) },
+                    { "EFunding:No funding method", typeof(BadRequest) },
+                    { "EFunding:Unknown asset", typeof(BadSymbol) },
+                    { "EService:Market in post_only mode", typeof(OnMaintenance) },
+                    { "EGeneral:Too many requests", typeof(DDoSProtection) },
+                    { "ETrade:User Locked", typeof(AccountSuspended) },
+                } },
+                { "broad", new Dictionary<string, object>() {
+                    { ":Invalid order", typeof(InvalidOrder) },
+                    { ":Invalid arguments:volume", typeof(InvalidOrder) },
+                    { ":Invalid arguments:viqc", typeof(InvalidOrder) },
+                    { ":Invalid nonce", typeof(InvalidNonce) },
+                    { ":IInsufficient funds", typeof(InsufficientFunds) },
+                    { ":Cancel pending", typeof(CancelPending) },
+                    { ":Rate limit exceeded", typeof(RateLimitExceeded) },
+                } },
             } },
         });
     }
@@ -3510,35 +3522,6 @@ public partial class kraken : Exchange
         {
             throw new ExchangeNotAvailable ((string)add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason)) ;
         }
-        // todo: rewrite this for "broad" exceptions matching
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid order"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid nonce"), 0)))
-        {
-            throw new InvalidNonce ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Insufficient funds"), 0)))
-        {
-            throw new InsufficientFunds ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Cancel pending"), 0)))
-        {
-            throw new CancelPending ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid arguments:volume"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid arguments:viqc"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Rate limit exceeded"), 0)))
-        {
-            throw new RateLimitExceeded ((string)add(add(this.id, " "), body)) ;
-        }
         if (isTrue(isEqual(response, null)))
         {
             return null;
@@ -3556,7 +3539,8 @@ public partial class kraken : Exchange
                         for (object i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
                         {
                             object error = getValue(getValue(response, "error"), i);
-                            this.throwExactlyMatchedException(this.exceptions, error, message);
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "broad"), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
                     }

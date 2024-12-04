@@ -447,31 +447,43 @@ class kraken(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
-                'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': InvalidAddress,  # {"error":["EFunding:Unknown withdraw key"]}
-                'EFunding:Invalid amount': InsufficientFunds,
-                'EService:Unavailable': ExchangeNotAvailable,
-                'EDatabase:Internal error': ExchangeNotAvailable,
-                'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': BadSymbol,  # {"error":["EQuery:Unknown asset"]}
-                'EAPI:Rate limit exceeded': DDoSProtection,
-                'EOrder:Rate limit exceeded': DDoSProtection,
-                'EGeneral:Internal error': ExchangeNotAvailable,
-                'EGeneral:Temporary lockout': DDoSProtection,
-                'EGeneral:Permission denied': PermissionDenied,
-                'EGeneral:Invalid arguments:price': InvalidOrder,
-                'EOrder:Unknown order': InvalidOrder,
-                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
-                'EOrder:Order minimum not met': InvalidOrder,
-                'EGeneral:Invalid arguments': BadRequest,
-                'ESession:Invalid session': AuthenticationError,
-                'EAPI:Invalid nonce': InvalidNonce,
-                'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
-                'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
-                'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
-                'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
-                'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
+                'exact': {
+                    'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
+                    'EAPI:Invalid key': AuthenticationError,
+                    'EFunding:Unknown withdraw key': InvalidAddress,  # {"error":["EFunding:Unknown withdraw key"]}
+                    'EFunding:Invalid amount': InsufficientFunds,
+                    'EService:Unavailable': ExchangeNotAvailable,
+                    'EDatabase:Internal error': ExchangeNotAvailable,
+                    'EService:Busy': ExchangeNotAvailable,
+                    'EQuery:Unknown asset': BadSymbol,  # {"error":["EQuery:Unknown asset"]}
+                    'EAPI:Rate limit exceeded': DDoSProtection,
+                    'EOrder:Rate limit exceeded': DDoSProtection,
+                    'EGeneral:Internal error': ExchangeNotAvailable,
+                    'EGeneral:Temporary lockout': DDoSProtection,
+                    'EGeneral:Permission denied': PermissionDenied,
+                    'EGeneral:Invalid arguments:price': InvalidOrder,
+                    'EOrder:Unknown order': InvalidOrder,
+                    'EOrder:Invalid price:Invalid price argument': InvalidOrder,
+                    'EOrder:Order minimum not met': InvalidOrder,
+                    'EOrder:Insufficient funds': InsufficientFunds,
+                    'EGeneral:Invalid arguments': BadRequest,
+                    'ESession:Invalid session': AuthenticationError,
+                    'EAPI:Invalid nonce': InvalidNonce,
+                    'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
+                    'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
+                    'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
+                },
+                'broad': {
+                    ':Invalid order': InvalidOrder,
+                    ':Invalid arguments:volume': InvalidOrder,
+                    ':Invalid arguments:viqc': InvalidOrder,
+                    ':Invalid nonce': InvalidNonce,
+                    ':IInsufficient funds': InsufficientFunds,
+                    ':Cancel pending': CancelPending,
+                    ':Rate limit exceeded': RateLimitExceeded,
+                },
             },
         })
 
@@ -3064,21 +3076,6 @@ class kraken(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if code == 520:
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
-        # todo: rewrite self for "broad" exceptions matching
-        if body.find('Invalid order') >= 0:
-            raise InvalidOrder(self.id + ' ' + body)
-        if body.find('Invalid nonce') >= 0:
-            raise InvalidNonce(self.id + ' ' + body)
-        if body.find('Insufficient funds') >= 0:
-            raise InsufficientFunds(self.id + ' ' + body)
-        if body.find('Cancel pending') >= 0:
-            raise CancelPending(self.id + ' ' + body)
-        if body.find('Invalid arguments:volume') >= 0:
-            raise InvalidOrder(self.id + ' ' + body)
-        if body.find('Invalid arguments:viqc') >= 0:
-            raise InvalidOrder(self.id + ' ' + body)
-        if body.find('Rate limit exceeded') >= 0:
-            raise RateLimitExceeded(self.id + ' ' + body)
         if response is None:
             return None
         if body[0] == '{':
@@ -3089,6 +3086,7 @@ class kraken(Exchange, ImplicitAPI):
                         message = self.id + ' ' + body
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
-                            self.throw_exactly_matched_exception(self.exceptions, error, message)
+                            self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
+                            self.throw_exactly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
         return None

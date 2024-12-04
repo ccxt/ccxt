@@ -64,6 +64,7 @@ var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
 var currencycom = require('./src/currencycom.js');
+var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
@@ -156,6 +157,7 @@ var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
+var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
@@ -198,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.35';
+const version = '4.4.36';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -253,6 +255,7 @@ const exchanges = {
     'coinspot': coinspot,
     'cryptocom': cryptocom,
     'currencycom': currencycom,
+    'defx': defx,
     'delta': delta,
     'deribit': deribit,
     'digifinex': digifinex,
@@ -347,6 +350,7 @@ const pro = {
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
+    'defx': defx$1,
     'deribit': deribit$1,
     'exmo': exmo$1,
     'gate': gate$1,
@@ -489,6 +493,7 @@ exports.coinsph = coinsph;
 exports.coinspot = coinspot;
 exports.cryptocom = cryptocom;
 exports.currencycom = currencycom;
+exports.defx = defx;
 exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;

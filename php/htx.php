@@ -5326,8 +5326,8 @@ class htx extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         if (!$isStopLossTriggerOrder && !$isTakeProfitTriggerOrder) {
-            $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only', false);
             if ($reduceOnly) {
                 $request['reduce_only'] = 1;
             }
@@ -5336,10 +5336,18 @@ class htx extends Exchange {
                 $request['order_price_type'] = $type;
             }
         }
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        if ($hedged) {
+            if ($reduceOnly) {
+                $request['offset'] = 'close';
+            } else {
+                $request['offset'] = 'open';
+            }
+        }
         $broker = $this->safe_value($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, 'id');
         $request['channel_code'] = $brokerId;
-        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged' ));
         return $this->extend($request, $params);
     }
 
@@ -5354,6 +5362,8 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
          * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
          * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
          *
@@ -5375,6 +5385,7 @@ class htx extends Exchange {
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
          * @param {float} [$params->trailingTriggerPrice] *contract only* the $price to trigger a trailing order, default uses the $price argument
+         * @param {bool} [$params->hedged] *contract only* true for hedged mode, false for one way mode, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
