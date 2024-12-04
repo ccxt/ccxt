@@ -218,6 +218,80 @@ export default class hyperliquid extends Exchange {
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': ,
+                        'triggerPrice': ,
+                        'triggerPriceType': {
+                            'last': ,
+                            'mark': ,
+                            'index': ,
+                        },
+                        'triggerDirection': ,
+                        'stopLossPrice': ,
+                        'takeProfitPrice': ,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': ,
+                                'mark': ,
+                                'index': ,
+                            },
+                            'limitPrice': ,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': ,
+                        'trailing': ,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
+                        'daysBack': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 20000, // since epoch
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+            },
         });
     }
 
