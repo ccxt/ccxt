@@ -2143,16 +2143,18 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 // }
 
 func PanicOnError(msg interface{}) {
-	caller := getCallerName()
+	// caller := getCallerName()
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
+			// panic(fmt.Sprintf("panic:%v:%v", caller, msg))
+			panic(v)
 		}
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				panic(fmt.Sprintf("panic:%v:%v", caller, str))
+				// panic(fmt.Sprintf("panic:%v:%v", caller, str))
+				panic(str)
 			} else if nestedSlice, ok := item.([]interface{}); ok {
 				// Handle nested []interface{} cases recursively
 				PanicOnError(nestedSlice)
@@ -2167,7 +2169,12 @@ func ReturnPanicError(ch chan interface{}) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
 	if r := recover(); r != nil {
 		if r != "break" {
-			ch <- "panic:" + ToString(r)
+			strErr := ToString(r)
+			if !strings.HasPrefix(strErr, "panic:") {
+				ch <- "panic:" + strErr
+			} else {
+				ch <- strErr
+			}
 		}
 	}
 }

@@ -656,7 +656,7 @@ class NewTranspiler {
                 'for _, opt := range options {',
                 '    opt(&opts)',
                 '}'
-            ].map(e => e!='' ? i2 + e : e);
+            ].map(e => e!='' ? i1 + e : e);
             res = res.concat(initOptions);
         }
         if (!isOnlyParams) {
@@ -668,10 +668,10 @@ class NewTranspiler {
                     const capName = this.capitalize(param.name);
                     // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                     let decl = `
-    ${i1}var ${this.safeGoName(param.name)} interface{} = nil
-    ${i1}if opts.${capName} != nil {
-    ${i1}    ${this.safeGoName(param.name)} = opts.${capName}
-    ${i1}}`
+    var ${this.safeGoName(param.name)} interface{} = nil
+    if opts.${capName} != nil {
+        ${this.safeGoName(param.name)} = opts.${capName}
+    }`
                 res.push(decl);
                 }
             });
@@ -735,20 +735,31 @@ class NewTranspiler {
             methodDoc.push(goComments[exchangeName][methodName]);
         }
 
+        let emtpyObject = `${unwrappedType}{}`;
+        if (unwrappedType.startsWith('[]')) {
+            emtpyObject = 'nil'
+        } else if (unwrappedType.includes('int64')) {
+            emtpyObject = '-1'
+        } else if (unwrappedType === 'string') {
+            emtpyObject = '""'
+        }
+
         const body = [
-            `${two}ch:= make(chan ${unwrappedType})`,
-            `${two}go func() {`,
-            `${three}defer close(ch)`,
+            // `${two}ch:= make(chan ${unwrappedType})`,
+            // `${two}go func() {`,
+            // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
-             this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
-            `${three}res := ${isAsync ? '<-' : ''}this.Core.${methodNameCapitalized}(${params})`,
-            `${three}PanicOnError(ch)`,
-            `${three}ch <- ${this.createReturnStatement(methodName, unwrappedType)}`,
-            `${two}}()`,
-            `${two}return ch`,
+            this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
+            `${two}res := <- this.Core.${methodNameCapitalized}(${params})`,
+            `${two}if IsError(res) {`,
+            `${three}return ${emtpyObject}, CreateReturnError(res)`,
+            `${two}}`,
+            `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
+            // `${two}}()`,
+            // `${two}return ch`,
         ]
         const method = [
-            `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) ${returnType} {`,
+            `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
             ...body,
             // this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
             // `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
@@ -842,37 +853,37 @@ class NewTranspiler {
             return Array.from (generator (map, parent, generate, classes))
         }
 
-
-        // CSHARP ----------------------------------------------------------------
-
-        // ---------------------------------------------------------------------
-
+        const errorNames: string[] = [];
         function GoMakeErrorFile (name, parent) {
+            errorNames.push(name);
             const exception =
-`   func ${name}(v ...interface{}) error {
-        return NewError("${name}", v...)
-    }`;
+`func ${name}(v ...interface{}) error {
+    return NewError("${name}", v...)
+}`;
             return exception
         }
 
-//             const csharpBaseError =
-// `   public class BaseError : Exception
-//     {
-//         public BaseError() : base() { }
-//         public BaseError(string message) : base(message) { }
-//         public BaseError(string message, Exception inner) : base(message, inner) { }
-//     }`;
+        const goErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined)
 
-        // const pythonExports = [ 'error_hierarchy', 'BaseError' ]
-        const csharpBody = undefined;
-        const csharpErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined)
-        const csharpBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpErrors.join ('\n') + '\n'
-        const csharpFile = ""
+
+        // createError function
+        const caseStatements = errorNames.map(error => {
+            return`    case "${error}":
+        return ${error}(v...)`;
+        })
+
+        const functionDecl = `func CreateError(err string, v ...interface{}) error {
+    switch err {
+${caseStatements.join('\n')}
+        default:
+            return NewError(err, v...)
+    }
+}`
+
+        const goBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n'
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-            // const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
-            // replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
-            overwriteFileAndFolder (ERRORS_FILE, csharpBodyIntellisense)
+            overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense)
         }
 
         log.bright.cyan (message, (ERRORS_FILE as any).yellow)

@@ -325,13 +325,15 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 	return ch
 }
 
+// error related functions
+
 type BaseError struct {
 	ErrType string
 	Message string
 }
 
 func (e *BaseError) Error() string {
-	return fmt.Sprintf("%s: %s", e.ErrType, e.Message)
+	return fmt.Sprintf("ccxtError:%s:%s", e.ErrType, e.Message)
 }
 
 func NewError(errType interface{}, message ...interface{}) error {
@@ -343,9 +345,33 @@ func NewError(errType interface{}, message ...interface{}) error {
 	return &BaseError{ErrType: typeErr, Message: msg}
 }
 
-func Exception(v ...interface{}) interface{} {
+func Exception(v ...interface{}) error {
 	return NewError("Exception", v...)
 }
+
+func IsError(res interface{}) bool {
+	resStr, ok := res.(string)
+	if ok {
+		return strings.HasPrefix(resStr, "panic:")
+	}
+	return false
+}
+
+func CreateReturnError(res interface{}) error {
+	resStr := res.(string)
+	resStr = strings.ReplaceAll(resStr, "panic:", "")
+	if strings.Contains(resStr, "ccxtError") {
+		resStr = strings.ReplaceAll(resStr, "ccxtError:", "")
+		splitted := strings.Split(resStr, ":")
+		exceptionName := splitted[0]
+		message := splitted[1]
+		return CreateError(exceptionName, message)
+
+	}
+	return Exception(resStr)
+}
+
+// emd of error related functions
 
 func ToSafeFloat(v interface{}) (float64, error) {
 	switch v := v.(type) {
