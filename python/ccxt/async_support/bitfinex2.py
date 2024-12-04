@@ -16,7 +16,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -433,12 +432,10 @@ class bitfinex2(Exchange, ImplicitAPI):
                     'temporarily_unavailable': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'address': InvalidAddress,
                     'available balance is only': InsufficientFunds,
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
-                    'Invalid order': InvalidOrder,
                 },
             },
             'commonCurrencies': {
@@ -782,7 +779,10 @@ class bitfinex2(Exchange, ImplicitAPI):
             name = self.safe_string(label, 1)
             pool = self.safe_value(indexed['pool'], id, [])
             rawType = self.safe_string(pool, 1)
-            type = 'other' if (rawType is None) else 'crypto'
+            isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
+            type = None
+            if isCryptoCoin:
+                type = 'crypto'
             feeValues = self.safe_value(indexed['fees'], id, [])
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
@@ -1681,7 +1681,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
         orders = self.safe_list(response, 4, [])
         order = self.safe_list(orders, 0)
-        return self.parse_order(self.extend({'result': order}), market)
+        newOrder = {'result': order}
+        return self.parse_order(newOrder, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -1777,6 +1778,9 @@ class bitfinex2(Exchange, ImplicitAPI):
         await self.load_markets()
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
@@ -1792,8 +1796,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             }
         response = await self.privatePostAuthWOrderCancel(self.extend(request, params))
         order = self.safe_value(response, 4)
-        orderObject = {'result': order}
-        return self.parse_order(orderObject)
+        newOrder = {'result': order}
+        return self.parse_order(newOrder, market)
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -2294,6 +2298,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 status = 'failed'
             tag = self.safe_string(data, 3)
             type = 'withdrawal'
+            networkId = self.safe_string(data, 2)
+            network = self.network_id_to_code(networkId.upper())  # withdraw returns in lowercase
         elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
@@ -2590,10 +2596,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         text = self.safe_string(response, 7)
         if text != 'success':
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
-        transaction = self.parse_transaction(response, currency)
-        return self.extend(transaction, {
-            'address': address,
-        })
+        return self.parse_transaction(response, currency)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
@@ -3502,7 +3505,8 @@ class bitfinex2(Exchange, ImplicitAPI):
         #     ]
         #
         order = self.safe_list(response, 0)
-        return self.parse_order(order, market)
+        newOrder = {'result': order}
+        return self.parse_order(newOrder, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
@@ -3617,4 +3621,5 @@ class bitfinex2(Exchange, ImplicitAPI):
             errorText = response[7]
             raise ExchangeError(self.id + ' ' + response[6] + ': ' + errorText + '(#' + errorCode + ')')
         order = self.safe_list(response, 4, [])
-        return self.parse_order(order, market)
+        newOrder = {'result': order}
+        return self.parse_order(newOrder, market)
