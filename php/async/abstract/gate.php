@@ -97,6 +97,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function public_futures_get_settle_liq_orders($params = array()) {
         return $this->request('{settle}/liq_orders', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_futures_get_settle_risk_limit_tiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_delivery_get_settle_contracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'delivery'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -163,6 +166,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_withdrawals_post_withdrawals($params = array()) {
         return $this->request('withdrawals', array('private', 'withdrawals'), 'POST', $params, null, null, array("cost" => 20));
     }
+    public function private_withdrawals_post_push($params = array()) {
+        return $this->request('push', array('private', 'withdrawals'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_withdrawals_delete_withdrawals_withdrawal_id($params = array()) {
         return $this->request('withdrawals/{withdrawal_id}', array('private', 'withdrawals'), 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -177,6 +183,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_wallet_get_sub_account_transfers($params = array()) {
         return $this->request('sub_account_transfers', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_wallet_get_order_status($params = array()) {
+        return $this->request('order_status', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_wallet_get_withdraw_status($params = array()) {
         return $this->request('withdraw_status', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
@@ -207,6 +216,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_wallet_get_small_balance_history($params = array()) {
         return $this->request('small_balance_history', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_wallet_get_push($params = array()) {
+        return $this->request('push', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_wallet_post_transfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
@@ -286,6 +298,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_unified_get_loan_margin_tiers($params = array()) {
         return $this->request('loan_margin_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_unified_get_leverage_user_currency_config($params = array()) {
+        return $this->request('leverage/user_currency_config', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_get_leverage_user_currency_setting($params = array()) {
+        return $this->request('leverage/user_currency_setting', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_unified_post_account_mode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -294,6 +312,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function private_unified_post_portfolio_calculator($params = array()) {
         return $this->request('portfolio_calculator', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_post_leverage_user_currency_setting($params = array()) {
+        return $this->request('leverage/user_currency_setting', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_unified_put_unified_mode($params = array()) {
         return $this->request('unified_mode', array('private', 'unified'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
@@ -679,8 +700,20 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_options_get_my_trades($params = array()) {
         return $this->request('my_trades', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_options_get_mmp($params = array()) {
+        return $this->request('mmp', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_options_post_orders($params = array()) {
         return $this->request('orders', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_options_post_countdown_cancel_all($params = array()) {
+        return $this->request('countdown_cancel_all', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_options_post_mmp($params = array()) {
+        return $this->request('mmp', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_options_post_mmp_reset($params = array()) {
+        return $this->request('mmp/reset', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_options_delete_orders($params = array()) {
         return $this->request('orders', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
@@ -763,6 +796,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_loan_get_multi_collateral_fixed_rate($params = array()) {
         return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_loan_get_multi_collateral_current_rate($params = array()) {
+        return $this->request('multi_collateral/current_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_loan_post_collateral_orders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -784,11 +820,17 @@ abstract class gate extends \ccxt\async\Exchange {
     public function private_account_get_detail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_account_get_rate_limit($params = array()) {
+        return $this->request('rate_limit', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_account_get_stp_groups($params = array()) {
         return $this->request('stp_groups', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_account_get_stp_groups_stp_id_users($params = array()) {
         return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_account_get_stp_groups_debit_fee($params = array()) {
+        return $this->request('stp_groups/debit_fee', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_account_post_stp_groups($params = array()) {
         return $this->request('stp_groups', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
@@ -895,6 +937,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function publicFuturesGetSettleLiqOrders($params = array()) {
         return $this->request('{settle}/liq_orders', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicFuturesGetSettleRiskLimitTiers($params = array()) {
+        return $this->request('{settle}/risk_limit_tiers', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicDeliveryGetSettleContracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'delivery'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -961,6 +1006,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateWithdrawalsPostWithdrawals($params = array()) {
         return $this->request('withdrawals', array('private', 'withdrawals'), 'POST', $params, null, null, array("cost" => 20));
     }
+    public function privateWithdrawalsPostPush($params = array()) {
+        return $this->request('push', array('private', 'withdrawals'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privateWithdrawalsDeleteWithdrawalsWithdrawalId($params = array()) {
         return $this->request('withdrawals/{withdrawal_id}', array('private', 'withdrawals'), 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -975,6 +1023,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateWalletGetSubAccountTransfers($params = array()) {
         return $this->request('sub_account_transfers', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateWalletGetOrderStatus($params = array()) {
+        return $this->request('order_status', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateWalletGetWithdrawStatus($params = array()) {
         return $this->request('withdraw_status', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
@@ -1005,6 +1056,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateWalletGetSmallBalanceHistory($params = array()) {
         return $this->request('small_balance_history', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateWalletGetPush($params = array()) {
+        return $this->request('push', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateWalletPostTransfers($params = array()) {
         return $this->request('transfers', array('private', 'wallet'), 'POST', $params, null, null, array("cost" => 2.5));
@@ -1084,6 +1138,12 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateUnifiedGetLoanMarginTiers($params = array()) {
         return $this->request('loan_margin_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateUnifiedGetLeverageUserCurrencyConfig($params = array()) {
+        return $this->request('leverage/user_currency_config', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedGetLeverageUserCurrencySetting($params = array()) {
+        return $this->request('leverage/user_currency_setting', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateUnifiedPostAccountMode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1092,6 +1152,9 @@ abstract class gate extends \ccxt\async\Exchange {
     }
     public function privateUnifiedPostPortfolioCalculator($params = array()) {
         return $this->request('portfolio_calculator', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedPostLeverageUserCurrencySetting($params = array()) {
+        return $this->request('leverage/user_currency_setting', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateUnifiedPutUnifiedMode($params = array()) {
         return $this->request('unified_mode', array('private', 'unified'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1477,8 +1540,20 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateOptionsGetMyTrades($params = array()) {
         return $this->request('my_trades', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateOptionsGetMmp($params = array()) {
+        return $this->request('mmp', array('private', 'options'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateOptionsPostOrders($params = array()) {
         return $this->request('orders', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateOptionsPostCountdownCancelAll($params = array()) {
+        return $this->request('countdown_cancel_all', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateOptionsPostMmp($params = array()) {
+        return $this->request('mmp', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateOptionsPostMmpReset($params = array()) {
+        return $this->request('mmp/reset', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateOptionsDeleteOrders($params = array()) {
         return $this->request('orders', array('private', 'options'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
@@ -1561,6 +1636,9 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateLoanGetMultiCollateralFixedRate($params = array()) {
         return $this->request('multi_collateral/fixed_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateLoanGetMultiCollateralCurrentRate($params = array()) {
+        return $this->request('multi_collateral/current_rate', array('private', 'loan'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateLoanPostCollateralOrders($params = array()) {
         return $this->request('collateral/orders', array('private', 'loan'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1582,11 +1660,17 @@ abstract class gate extends \ccxt\async\Exchange {
     public function privateAccountGetDetail($params = array()) {
         return $this->request('detail', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateAccountGetRateLimit($params = array()) {
+        return $this->request('rate_limit', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateAccountGetStpGroups($params = array()) {
         return $this->request('stp_groups', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateAccountGetStpGroupsStpIdUsers($params = array()) {
         return $this->request('stp_groups/{stp_id}/users', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateAccountGetStpGroupsDebitFee($params = array()) {
+        return $this->request('stp_groups/debit_fee', array('private', 'account'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateAccountPostStpGroups($params = array()) {
         return $this->request('stp_groups', array('private', 'account'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
