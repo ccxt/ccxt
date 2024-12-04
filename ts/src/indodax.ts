@@ -333,9 +333,9 @@ export default class indodax extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'return', {});
-        const free = this.safeValue (balances, 'balance', {});
-        const used = this.safeValue (balances, 'balance_hold', {});
+        const balances = this.safeDict (response, 'return', {});
+        const free = this.safeDict (balances, 'balance', {});
+        const used = this.safeDict (balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result: Dict = {
             'info': response,
@@ -900,7 +900,7 @@ export default class indodax extends Exchange {
             request[market['baseId']] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
-        const data = this.safeValue (result, 'return', {});
+        const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
             'info': result,
@@ -983,7 +983,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
+        const data = this.safeDict (response, 'return', {});
         const currencyId = this.safeString (data, 'currency');
         return {
             'info': response,
@@ -1069,9 +1069,9 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
-        const withdraw = this.safeValue (data, 'withdraw', {});
-        const deposit = this.safeValue (data, 'deposit', {});
+        const data = this.safeDict (response, 'return', {});
+        const withdraw = this.safeDict (data, 'withdraw', {});
+        const deposit = this.safeDict (data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {
