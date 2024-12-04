@@ -495,7 +495,7 @@ export default class bitstamp extends Exchange {
                     'Ensure that there are no more than': InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
-            'features2': {
+            'features': {
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
