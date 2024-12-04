@@ -154,6 +154,7 @@ export default class bitstamp extends Exchange {
                         'user_transactions/': 1,
                         'user_transactions/{pair}/': 1,
                         'crypto-transactions/': 1,
+                        'open_order': 1,
                         'open_orders/all/': 1,
                         'open_orders/{pair}/': 1,
                         'order_status/': 1,
@@ -532,25 +533,10 @@ export default class bitstamp extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'daysBack': 20000, // since epoch
-                        'untilDays': 7,
-                        'trigger': false,
-                        'trailing': false,
-                    },
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'daysBackClosed': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 7,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
-                        'limit': 1440,
+                        'limit': 1000,
                     },
                 },
                 'swap': {
