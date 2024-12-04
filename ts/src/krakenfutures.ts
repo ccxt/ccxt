@@ -330,7 +330,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        const instruments = this.safeValue (response, 'instruments', []);
+        const instruments = this.safeList (response, 'instruments', []);
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
@@ -912,7 +912,7 @@ export default class krakenfutures extends Exchange {
         let side = this.safeString (trade, 'side');
         let type = undefined;
         const priorEdit = this.safeValue (trade, 'orderPriorEdit');
-        const priorExecution = this.safeValue (trade, 'orderPriorExecution');
+        const priorExecution = this.safeDict (trade, 'orderPriorExecution', {});
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
             marketId = this.safeString (priorExecution, 'symbol');
@@ -1090,7 +1090,7 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
         //
-        const sendStatus = this.safeValue (response, 'sendStatus');
+        const sendStatus = this.safeDict (response, 'sendStatus', {});
         const status = this.safeString (sendStatus, 'status');
         this.verifyOrderActionSuccess (status, 'createOrder', [ 'filled' ]);
         return this.parseOrder (sendStatus, market);
@@ -1115,7 +1115,7 @@ export default class krakenfutures extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
@@ -1762,7 +1762,7 @@ export default class krakenfutures extends Exchange {
         //        }
         //    }
         //
-        const orderEvents = this.safeValue (order, 'orderEvents', []);
+        const orderEvents = this.safeList (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
         if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
@@ -2144,7 +2144,7 @@ export default class krakenfutures extends Exchange {
         const accountType = this.safeString2 (response, 'accountType', 'type');
         const isFlex = (accountType === 'multiCollateralMarginAccount');
         const isCash = (accountType === 'cashAccount');
-        const balances = this.safeValue2 (response, 'balances', 'currencies', {});
+        const balances = this.safeDict2 (response, 'balances', 'currencies', {});
         const result: Dict = {};
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -2297,7 +2297,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const rates = this.safeValue (response, 'rates');
+        const rates = this.safeList (response, 'rates', []);
         const result = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
@@ -2349,7 +2349,7 @@ export default class krakenfutures extends Exchange {
 
     parsePositions (response, symbols: Strings = undefined, params = {}) {
         const result = [];
-        const positions = this.safeValue (response, 'openPositions');
+        const positions = this.safeList (response, 'openPositions', []);
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
             result.push (position);
@@ -2513,7 +2513,7 @@ export default class krakenfutures extends Exchange {
         //        "tags": [],
         //    }
         //
-        const marginLevels = this.safeValue (info, 'marginLevels');
+        const marginLevels = this.safeList (info, 'marginLevels', []);
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const tiers = [];
