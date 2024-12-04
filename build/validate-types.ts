@@ -19,7 +19,7 @@ const skipExchanges = [
 ]
 
 const skipMethodsPerExchange = {
-    'bitfinex': [
+    'bitfinex1': [
         'fetchPositions',
     ],
     'bitflyer': [
