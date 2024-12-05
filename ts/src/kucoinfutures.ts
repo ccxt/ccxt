@@ -381,7 +381,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -465,7 +465,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const result = [];
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -484,7 +484,7 @@ export default class kucoinfutures extends kucoin {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const inverse = this.safeValue (market, 'isInverse');
+            const inverse = this.safeBool (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
             const tickSize = this.safeNumber (market, 'tickSize');
@@ -684,7 +684,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const address = this.safeString (data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -747,7 +747,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.parseToInt (this.safeInteger (data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
@@ -1081,8 +1081,8 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
-        const dataList = this.safeValue (data, 'dataList', []);
+        const data = this.safeDict (response, 'data', {});
+        const dataList = this.safeList (data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -1397,7 +1397,7 @@ export default class kucoinfutures extends kucoin {
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
-        const crossMode = this.safeValue (position, 'crossMode');
+        const crossMode = this.safeBool (position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         let marginMode = undefined;
         if (crossMode !== undefined) {
@@ -1778,7 +1778,7 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        return this.safeDict (response, 'data', {});
     }
 
     /**
@@ -1850,7 +1850,7 @@ export default class kucoinfutures extends kucoin {
         //        "msg":"Position does not exist"
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseMarginModification (data, market), {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': 'in',
@@ -1906,7 +1906,7 @@ export default class kucoinfutures extends kucoin {
         const id = this.safeString (info, 'id');
         market = this.safeMarket (id, market);
         const currencyId = this.safeString (info, 'settleCurrency');
-        const crossMode = this.safeValue (info, 'crossMode');
+        const crossMode = this.safeBool (info, 'crossMode');
         const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (info, 'currentTimestamp');
@@ -2031,7 +2031,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const responseData = this.safeValue (response, 'data', {});
+        const responseData = this.safeDict (response, 'data', {});
         const orders = this.safeList (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -2250,7 +2250,7 @@ export default class kucoinfutures extends kucoin {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeValue (order, 'isActive');
+        const isActive = this.safeBool (order, 'isActive');
         const cancelExist = this.safeBool (order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
@@ -2267,8 +2267,8 @@ export default class kucoinfutures extends kucoin {
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        const postOnly = this.safeValue (order, 'postOnly');
-        const reduceOnly = this.safeValue (order, 'reduceOnly');
+        const postOnly = this.safeBool (order, 'postOnly');
+        const reduceOnly = this.safeBool (order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedAt');
         return this.safeOrder ({
             'id': orderId,
@@ -2972,7 +2972,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseMarketLeverageTiers (data, market);
     }
 
@@ -3063,7 +3063,7 @@ export default class kucoinfutures extends kucoin {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
