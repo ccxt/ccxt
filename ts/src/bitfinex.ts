@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import Exchange from './abstract/bitfinex2.js';
+import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
@@ -9,13 +9,13 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
 // ---------------------------------------------------------------------------
 
 /**
- * @class bitfinex2
+ * @class bitfinex
  * @augments Exchange
  */
-export default class bitfinex2 extends Exchange {
+export default class bitfinex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitfinex2',
+            'id': 'bitfinex',
             'name': 'Bitfinex',
             'countries': [ 'VG' ],
             'version': 'v2',
@@ -497,7 +497,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchStatus
+     * @name bitfinex#fetchStatus
      * @description the latest known information on the availability of the exchange API
      * @see https://docs.bitfinex.com/reference/rest-public-platform-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -521,8 +521,8 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchMarkets
-     * @description retrieves data on all markets for bitfinex2
+     * @name bitfinex#fetchMarkets
+     * @description retrieves data on all markets for bitfinex
      * @see https://docs.bitfinex.com/reference/rest-public-conf
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -652,7 +652,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchCurrencies
+     * @name bitfinex#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://docs.bitfinex.com/reference/rest-public-conf
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -848,7 +848,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchBalance
+     * @name bitfinex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.bitfinex.com/reference/rest-auth-wallets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -894,7 +894,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#transfer
+     * @name bitfinex#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://docs.bitfinex.com/reference/rest-auth-transfer
      * @param {string} code unified currency code
@@ -1043,7 +1043,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOrderBook
+     * @name bitfinex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.bitfinex.com/reference/rest-public-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -1163,7 +1163,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchTickers
+     * @name bitfinex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.bitfinex.com/reference/rest-public-tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1233,7 +1233,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchTicker
+     * @name bitfinex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.bitfinex.com/reference/rest-public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -1337,7 +1337,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchTrades
+     * @name bitfinex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.bitfinex.com/reference/rest-public-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1390,7 +1390,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOHLCV
+     * @name bitfinex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.bitfinex.com/reference/rest-public-candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1574,7 +1574,7 @@ export default class bitfinex2 extends Exchange {
         /**
          * @method
          * @ignore
-         * @name bitfinex2#createOrderRequest
+         * @name bitfinex#createOrderRequest
          * @description helper function to build an order request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1664,7 +1664,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#createOrder
+     * @name bitfinex#createOrder
      * @description create an order on the exchange
      * @see https://docs.bitfinex.com/reference/rest-auth-submit-order
      * @param {string} symbol unified CCXT market symbol
@@ -1750,7 +1750,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#createOrders
+     * @name bitfinex#createOrders
      * @description create a list of trade orders
      * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -1812,7 +1812,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#cancelAllOrders
+     * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
@@ -1835,11 +1835,11 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#cancelOrder
+     * @name bitfinex#cancelOrder
      * @description cancels an open order
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-order
      * @param {string} id order id
-     * @param {string} symbol Not used by bitfinex2 cancelOrder ()
+     * @param {string} symbol Not used by bitfinex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1874,7 +1874,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#cancelOrders
+     * @name bitfinex#cancelOrders
      * @description cancel multiple orders at the same time
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
      * @param {string[]} ids order ids
@@ -1955,7 +1955,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOpenOrder
+     * @name bitfinex#fetchOpenOrder
      * @description fetch an open order by it's id
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
@@ -1978,7 +1978,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchClosedOrder
+     * @name bitfinex#fetchClosedOrder
      * @description fetch an open order by it's id
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
@@ -2001,7 +2001,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOpenOrders
+     * @name bitfinex#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
@@ -2070,7 +2070,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchClosedOrders
+     * @name bitfinex#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
@@ -2154,7 +2154,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOrderTrades
+     * @name bitfinex#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see https://docs.bitfinex.com/reference/rest-auth-order-trades
      * @param {string} id order id
@@ -2186,7 +2186,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchMyTrades
+     * @name bitfinex#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://docs.bitfinex.com/reference/rest-auth-trades
      * @see https://docs.bitfinex.com/reference/rest-auth-trades-by-symbol
@@ -2225,7 +2225,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#createDepositAddress
+     * @name bitfinex#createDepositAddress
      * @description create a currency deposit address
      * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
@@ -2242,7 +2242,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchDepositAddress
+     * @name bitfinex#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
      * @param {string} code unified currency code
@@ -2461,7 +2461,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchTradingFees
+     * @name bitfinex#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see https://docs.bitfinex.com/reference/rest-auth-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2574,7 +2574,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchDepositsWithdrawals
+     * @name bitfinex#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.bitfinex.com/reference/movement-info
      * @see https://docs.bitfinex.com/reference/rest-auth-movements
@@ -2635,7 +2635,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#withdraw
+     * @name bitfinex#withdraw
      * @description make a withdrawal
      * @see https://docs.bitfinex.com/reference/rest-auth-withdraw
      * @param {string} code unified currency code
@@ -2723,7 +2723,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchPositions
+     * @name bitfinex#fetchPositions
      * @description fetch all open positions
      * @see https://docs.bitfinex.com/reference/rest-auth-positions
      * @param {string[]|undefined} symbols list of unified market symbols
@@ -2981,7 +2981,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchLedger
+     * @name bitfinex#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
      * @param {string} [code] unified currency code, default is undefined
@@ -3041,7 +3041,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchFundingRates
+     * @name bitfinex#fetchFundingRates
      * @description fetch the current funding rate for multiple symbols
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string[]} symbols list of unified market symbols
@@ -3093,7 +3093,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchFundingRateHistory
+     * @name bitfinex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
      * @param {string} symbol unified market symbol
@@ -3277,7 +3277,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOpenInterest
+     * @name bitfinex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string} symbol unified CCXT market symbol
@@ -3327,11 +3327,11 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOpenInterestHistory
+     * @name bitfinex#fetchOpenInterestHistory
      * @description retrieves the open interest history of a currency
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
      * @param {string} symbol unified CCXT market symbol
-     * @param {string} timeframe the time period of each row of data, not used by bitfinex2
+     * @param {string} timeframe the time period of each row of data, not used by bitfinex
      * @param {int} [since] the time in ms of the earliest record to retrieve as a unix timestamp
      * @param {int} [limit] the number of records in the response
      * @param {object} [params] exchange specific parameters
@@ -3465,7 +3465,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchLiquidations
+     * @name bitfinex#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
      * @see https://docs.bitfinex.com/reference/rest-public-liquidations
      * @param {string} symbol unified CCXT market symbol
@@ -3557,7 +3557,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#setMargin
+     * @name bitfinex#setMargin
      * @description either adds or reduces margin in a swap position in order to set the margin to a specific value
      * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
      * @param {string} symbol unified market symbol of the market to set margin in
@@ -3615,7 +3615,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#fetchOrder
+     * @name bitfinex#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
      * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
@@ -3683,7 +3683,7 @@ export default class bitfinex2 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex2#editOrder
+     * @name bitfinex#editOrder
      * @description edit a trade order
      * @see https://docs.bitfinex.com/reference/rest-auth-update-order
      * @param {string} id edit order id
