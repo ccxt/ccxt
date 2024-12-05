@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# note, don't run commands inline, as shown 
+# note, don't run commands inline, as shown https://github.com/ccxt/ccxt/pull/24460
 set -e
 
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
@@ -223,8 +223,10 @@ done
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
-  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
+  npm run response-py-sync -- $exchange
+  npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange
+  npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 
