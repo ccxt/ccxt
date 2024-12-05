@@ -789,7 +789,7 @@ public partial class Exchange
                 object entryFiledEqualValue = isEqual(getValue(entry, field), value);
                 object firstCondition = ((bool) isTrue(valueIsDefined)) ? entryFiledEqualValue : true;
                 object entryKeyValue = this.safeValue(entry, key);
-                object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue(since)) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
+                object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue((!isEqual(since, null)))) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
                 object secondCondition = ((bool) isTrue(sinceIsDefined)) ? entryKeyGESince : true;
                 if (isTrue(isTrue(firstCondition) && isTrue(secondCondition)))
                 {
@@ -1473,10 +1473,16 @@ public partial class Exchange
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
+            }
+            // default 'GTC' to true
+            object gtcValue = this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "gtc");
+            if (isTrue(isEqual(gtcValue, null)))
+            {
+                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["gtc"] = true;
             }
         }
         return featuresObj;

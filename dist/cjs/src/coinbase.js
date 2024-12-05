@@ -78,6 +78,8 @@ class coinbase extends coinbase$1 {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchDepositId': true,
+                'fetchDepositIds': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -2240,7 +2242,8 @@ class coinbase extends coinbase$1 {
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @param {object} [params.type] "spot" (default) or "swap" or "future"
+     * @param {string} [params.type] "spot" (default) or "swap" or "future"
+     * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -2260,7 +2263,7 @@ class coinbase extends coinbase$1 {
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, params));
         }
         else {
-            request['limit'] = 100;
+            request['limit'] = 250;
             response = await this.v2PrivateGetAccounts(this.extend(request, params));
         }
         //
@@ -4280,6 +4283,91 @@ class coinbase extends coinbase$1 {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data);
+    }
+    /**
+     * @method
+     * @name coinbase#fetchDepositIds
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    async fetchDepositIds(params = {}) {
+        await this.loadMarkets();
+        const response = await this.v3PrivateGetBrokeragePaymentMethods(params);
+        //
+        //     {
+        //         "payment_methods": [
+        //             {
+        //                 "id": "21b39a5d-f7b46876fb2e",
+        //                 "type": "COINBASE_FIAT_ACCOUNT",
+        //                 "name": "CAD Wallet",
+        //                 "currency": "CAD",
+        //                 "verified": true,
+        //                 "allow_buy": false,
+        //                 "allow_sell": true,
+        //                 "allow_deposit": false,
+        //                 "allow_withdraw": false,
+        //                 "created_at": "2023-06-29T19:58:46Z",
+        //                 "updated_at": "2023-10-30T20:25:01Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList(response, 'payment_methods', []);
+        return this.parseDepositIds(result);
+    }
+    /**
+     * @method
+     * @name coinbase#fetchDepositId
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+     * @param {string} id the deposit payment method id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    async fetchDepositId(id, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'payment_method_id': id,
+        };
+        const response = await this.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(this.extend(request, params));
+        //
+        //     {
+        //         "payment_method": {
+        //             "id": "21b39a5d-f7b46876fb2e",
+        //             "type": "COINBASE_FIAT_ACCOUNT",
+        //             "name": "CAD Wallet",
+        //             "currency": "CAD",
+        //             "verified": true,
+        //             "allow_buy": false,
+        //             "allow_sell": true,
+        //             "allow_deposit": false,
+        //             "allow_withdraw": false,
+        //             "created_at": "2023-06-29T19:58:46Z",
+        //             "updated_at": "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'payment_method', {});
+        return this.parseDepositId(result);
+    }
+    parseDepositIds(ids, params = {}) {
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = this.extend(this.parseDepositId(ids[i]), params);
+            result.push(id);
+        }
+        return result;
+    }
+    parseDepositId(depositId) {
+        return {
+            'info': depositId,
+            'id': this.safeString(depositId, 'id'),
+            'currency': this.safeString(depositId, 'currency'),
+            'verified': this.safeBool(depositId, 'verified'),
+            'tag': this.safeString(depositId, 'name'),
+        };
     }
     /**
      * @method

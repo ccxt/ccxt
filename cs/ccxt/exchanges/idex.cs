@@ -185,10 +185,8 @@ public partial class idex : Exchange
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         object market = this.market(symbol);
-        object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-        object quoteAssetPrecision = this.safeInteger(info, "quoteAssetPrecision");
         price = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode);
-        return this.decimalToPrecision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return this.decimalToPrecision(price, TRUNCATE, getValue(getValue(market, "precision"), "quote"), TICK_SIZE, PAD_WITH_ZERO);
     }
 
     /**
@@ -301,6 +299,8 @@ public partial class idex : Exchange
                 { "precision", new Dictionary<string, object>() {
                     { "amount", basePrecision },
                     { "price", this.safeNumber(entry, "tickSize") },
+                    { "base", basePrecision },
+                    { "quote", quotePrecision },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {

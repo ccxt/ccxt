@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.33';
+const version = '4.4.36';
 
 (Exchange as any).ccxtVersion = version
 
@@ -61,7 +61,7 @@ import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
-import bitfinex2 from  './src/bitfinex2.js'
+import bitfinex1 from  './src/bitfinex1.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
@@ -98,9 +98,11 @@ import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import currencycom from  './src/currencycom.js'
+import defx from  './src/defx.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import digifinex from  './src/digifinex.js'
+import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
@@ -168,7 +170,7 @@ import binanceusdmPro from  './src/pro/binanceusdm.js'
 import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
-import bitfinex2Pro from  './src/pro/bitfinex2.js'
+import bitfinex1Pro from  './src/pro/bitfinex1.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
@@ -192,6 +194,7 @@ import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
 import currencycomPro from  './src/pro/currencycom.js'
+import defxPro from  './src/pro/defx.js'
 import deribitPro from  './src/pro/deribit.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
@@ -248,7 +251,7 @@ const exchanges = {
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
-    'bitfinex2':              bitfinex2,
+    'bitfinex1':              bitfinex1,
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
@@ -285,9 +288,11 @@ const exchanges = {
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
+    'defx':                   defx,
     'delta':                  delta,
     'deribit':                deribit,
     'digifinex':              digifinex,
+    'ellipx':                 ellipx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'gate':                   gate,
@@ -355,7 +360,7 @@ const pro = {
     'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
-    'bitfinex2':              bitfinex2Pro,
+    'bitfinex1':              bitfinex1Pro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
@@ -379,6 +384,7 @@ const pro = {
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
     'currencycom':            currencycomPro,
+    'defx':                   defxPro,
     'deribit':                deribitPro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
@@ -574,7 +580,7 @@ export {
     bitbns,
     bitcoincom,
     bitfinex,
-    bitfinex2,
+    bitfinex1,
     bitflyer,
     bitget,
     bithumb,
@@ -611,9 +617,11 @@ export {
     coinspot,
     cryptocom,
     currencycom,
+    defx,
     delta,
     deribit,
     digifinex,
+    ellipx,
     exmo,
     fmfwio,
     gate,

@@ -13,6 +13,39 @@
     "methods": {
         "createOrder": [
             {
+                "description": "market sell in hedged mode and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A20%3A43&Signature=5XXNO0j22IP1G%2FnMNsvEfJTy6xx51wYNiwSXP%2Bi5xfM%3D",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "hedged": true,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"reduce_only\":1,\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"close\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "market buy in hedged mode",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-12-02T16%3A10%3A49&Signature=UEdfY1wFs1SjNrtboBA1DBhw%2BzQE%2FXbtof4LGH3NqKw%3D",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"offset\":\"open\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-10-31T18%3A05%3A01&Signature=%2FSW3LCI9ob9vzRUna%2F3iwfAfKDZRIj5X1oPKMxO0Re0%3D",

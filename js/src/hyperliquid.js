@@ -6,9 +6,9 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
+import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -205,9 +205,11 @@ export default class hyperliquid extends Exchange {
                     'User or API Wallet ': InvalidOrder,
                     'Order has invalid size': InvalidOrder,
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
+                    'Order has zero size.': InvalidOrder,
+                    'Insufficient spot balance asset': InsufficientFunds,
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
@@ -356,6 +358,55 @@ export default class hyperliquid extends Exchange {
     }
     /**
      * @method
+     * @name calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    calculatePricePrecision(price, amountPrecision, maxDecimals) {
+        let pricePrecision = 0;
+        const priceStr = this.numberToString(price);
+        if (priceStr === undefined) {
+            return 0;
+        }
+        const priceSplitted = priceStr.split('.');
+        if (Precise.stringEq(priceStr, '0')) {
+            // Significant digits is always 5 in this case
+            const significantDigits = 5;
+            // Integer digits is always 0 in this case (0 doesn't count)
+            const integerDigits = 0;
+            // Calculate the price precision
+            pricePrecision = Math.min(maxDecimals - amountPrecision, significantDigits - integerDigits);
+        }
+        else if (Precise.stringGt(priceStr, '0') && Precise.stringLt(priceStr, '1')) {
+            // Significant digits, always 5 in this case
+            const significantDigits = 5;
+            // Get the part after the decimal separator
+            const decimalPart = this.safeString(priceSplitted, 1, '');
+            // Count the number of leading zeros in the decimal part
+            let leadingZeros = 0;
+            while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
+                leadingZeros = leadingZeros + 1;
+            }
+            // Calculate price precision based on leading zeros and significant digits
+            pricePrecision = leadingZeros + significantDigits;
+            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = Math.min(maxDecimals - amountPrecision, pricePrecision);
+        }
+        else {
+            // Count the numbers before the decimal separator
+            const integerPart = this.safeString(priceSplitted, 0, '');
+            // Get significant digits, take the max() of 5 and the integer digits count
+            const significantDigits = Math.max(5, integerPart.length);
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
+            pricePrecision = Math.min(maxDecimals - amountPrecision, significantDigits - integerPart.length);
+        }
+        return this.parseToInt(pricePrecision);
+    }
+    /**
+     * @method
      * @name hyperliquid#fetchMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
@@ -443,7 +494,11 @@ export default class hyperliquid extends Exchange {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.safeInteger(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecision = parseInt(amountPrecisionStr);
+            const price = this.safeNumber(extraData, 'midPx');
+            const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString(i + 10000);
             markets.push(this.safeMarketStructure({
@@ -474,8 +529,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
+                    'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                    'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -539,7 +594,11 @@ export default class hyperliquid extends Exchange {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeNumber(fees, 'taker');
         const maker = this.safeNumber(fees, 'maker');
-        const amountPrecision = this.safeInteger(market, 'szDecimals');
+        const amountPrecisionStr = this.safeString(market, 'szDecimals');
+        const amountPrecision = parseInt(amountPrecisionStr);
+        const price = this.safeNumber(market, 'markPx', 0);
+        const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        const pricePrecisionStr = this.numberToString(pricePrecision);
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -567,8 +626,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
+                'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -1045,10 +1104,13 @@ export default class hyperliquid extends Exchange {
     }
     priceToPrecision(symbol, price) {
         const market = this.market(symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        const result = this.decimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
-        const decimalParsedResult = this.decimalToPrecision(result, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
-        return decimalParsedResult;
+        const priceStr = this.numberToString(price);
+        const integerPart = priceStr.split('.')[0];
+        const significantDigits = Math.max(5, integerPart.length);
+        const result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        const maxDecimals = market['spot'] ? 8 : 6;
+        const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
+        return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
     hashMessage(message) {
         return '0x' + this.hash(message, keccak, 'hex');
@@ -1142,13 +1204,24 @@ export default class hyperliquid extends Exchange {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildTransferSig(message) {
+    buildUsdSendSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    buildUsdClassSendSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
@@ -2625,26 +2698,36 @@ export default class hyperliquid extends Exchange {
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
                 throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
             }
+            let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
             params = this.omit(params, 'vaultAddress');
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action(action, nonce, vaultAddress);
-            const innerRequest = {
-                'action': action,
+            const transferPayload = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig(transferPayload);
+            const transferRequest = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange(innerRequest);
+            const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2661,7 +2744,7 @@ export default class hyperliquid extends Exchange {
             'amount': this.numberToString(amount),
             'time': nonce,
         };
-        const sig = this.buildTransferSig(payload);
+        const sig = this.buildUsdSendSig(payload);
         const request = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],

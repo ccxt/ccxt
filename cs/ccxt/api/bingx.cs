@@ -661,6 +661,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("subAccountV1PrivateGetAssets",parameters);
     }
 
+    public async Task<object> subAccountV1PrivateGetAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("subAccountV1PrivateGetAllAccountBalance",parameters);
+    }
+
     public async Task<object> subAccountV1PrivatePostCreate (object parameters = null)
     {
         return await this.callAsync ("subAccountV1PrivatePostCreate",parameters);

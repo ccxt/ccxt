@@ -1183,7 +1183,7 @@ class kucoin extends kucoin$1 {
                 'type': 'spot',
                 'spot': true,
                 'margin': isMarginable,
-                'marginMode': {
+                'marginModes': {
                     'cross': hasCrossMargin,
                     'isolated': hasIsolatedMargin,
                 },

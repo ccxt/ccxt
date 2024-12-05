@@ -1750,6 +1750,7 @@ class bitso extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
+            $endpoint = '/api' . $endpoint;
             $request = implode('', array($nonce, $method, $endpoint));
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if ($query) {
@@ -1761,7 +1762,7 @@ class bitso extends Exchange {
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array(
                 'Authorization' => 'Bitso ' . $auth,
-                'Content-Type' => 'application/json',
+                // 'Content-Type' => 'application/json',
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

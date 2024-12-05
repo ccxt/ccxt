@@ -980,7 +980,7 @@ class testMainClass {
         return result;
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1076,6 +1076,30 @@ class testMainClass {
             }
         }
         return true; // c# requ
+    }
+
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+        try {
+            return this.assertNewAndStoredOutputInner (exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+        } catch (e) {
+            if (this.info) {
+                const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
+                dump ('[TEST_FAILURE_DETAIL]' + errorMessage);
+            }
+            throw e;
+        }
+    }
+
+    varToString (obj:any = undefined) {
+        let newString = undefined;
+        if (obj === undefined) {
+            newString = 'undefined';
+        } else if (isNullValue (obj)) {
+            newString = 'null';
+        } else {
+            newString = jsonStringify (obj);
+        }
+        return newString;
     }
 
     assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
@@ -1388,7 +1412,17 @@ class testMainClass {
                 promises.push (this.testExchangeResponseStatically (exchangeName, exchangeData, testName));
             }
         }
-        await Promise.all (promises);
+        try {
+            await Promise.all (promises);
+        } catch (e) {
+            if (type === 'request') {
+                this.requestTestsFailed = true;
+            } else {
+                this.responseTestsFailed = true;
+            }
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            dump ('[TEST_FAILURE]' + errorMessage);
+        }
         if (this.requestTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {
@@ -1434,7 +1468,8 @@ class testMainClass {
             this.testVertex (),
             this.testParadex (),
             this.testHashkey (),
-            this.testCoincatch ()
+            this.testCoincatch (),
+            this.testDefx ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1960,6 +1995,24 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+
+    async testDefx () {
+        const exchange = this.initOfflineExchange ('defx');
+        let reqHeaders = undefined;
+        try {
+            await exchange.createOrder ('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        const id = 'ccxt';
+        assert (reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }

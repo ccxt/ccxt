@@ -203,6 +203,7 @@ class deribit extends Exchange {
                         'enable_api_key' => 1,
                         'get_access_log' => 1,
                         'get_account_summary' => 1,
+                        'get_account_summaries' => 1,
                         'get_affiliate_program_info' => 1,
                         'get_email_language' => 1,
                         'get_new_announcements' => 1,
@@ -939,13 +940,22 @@ class deribit extends Exchange {
         $result = array(
             'info' => $balance,
         );
-        $currencyId = $this->safe_string($balance, 'currency');
-        $currencyCode = $this->safe_currency_code($currencyId);
-        $account = $this->account();
-        $account['free'] = $this->safe_string($balance, 'available_funds');
-        $account['used'] = $this->safe_string($balance, 'maintenance_margin');
-        $account['total'] = $this->safe_string($balance, 'equity');
-        $result[$currencyCode] = $account;
+        $summaries = array();
+        if (is_array($balance) && array_key_exists('summaries', $balance)) {
+            $summaries = $this->safe_list($balance, 'summaries');
+        } else {
+            $summaries = array( $balance );
+        }
+        for ($i = 0; $i < count($summaries); $i++) {
+            $data = $summaries[$i];
+            $currencyId = $this->safe_string($data, 'currency');
+            $currencyCode = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($data, 'available_funds');
+            $account['used'] = $this->safe_string($data, 'maintenance_margin');
+            $account['total'] = $this->safe_string($data, 'equity');
+            $result[$currencyCode] = $account;
+        }
         return $this->safe_balance($result);
     }
 
@@ -954,17 +964,26 @@ class deribit extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://docs.deribit.com/#private-get_account_summary
+         * @see https://docs.deribit.com/#private-get_account_summaries
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->code] unified currency $code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $code = $this->code_from_options('fetchBalance', $params);
-        $currency = $this->currency($code);
+        $code = $this->safe_string($params, 'code');
+        $params = $this->omit($params, 'code');
         $request = array(
-            'currency' => $currency['id'],
         );
-        $response = $this->privateGetGetAccountSummary ($this->extend($request, $params));
+        if ($code !== null) {
+            $request['currency'] = $this->currency_id($code);
+        }
+        $response = null;
+        if ($code === null) {
+            $response = $this->privateGetGetAccountSummaries ($params);
+        } else {
+            $response = $this->privateGetGetAccountSummary ($this->extend($request, $params));
+        }
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -1007,7 +1026,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_balance($result);
     }
 

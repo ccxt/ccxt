@@ -81,6 +81,7 @@ public partial class onetrading
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#market-ticker-for-instrument"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -100,6 +101,7 @@ public partial class onetrading
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#market-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -119,6 +121,7 @@ public partial class onetrading
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -145,6 +148,7 @@ public partial class onetrading
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#candlesticks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -175,42 +179,10 @@ public partial class onetrading
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
-    /// get the list of most recent trades for a particular symbol
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest trade to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of trades to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -225,129 +197,6 @@ public partial class onetrading
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
-    }
-    /// <summary>
-    /// create a currency deposit address
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createDepositAddress(code, parameters);
-        return new DepositAddress(res);
-    }
-    /// <summary>
-    /// fetch the deposit address for a currency associated with this account
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddress(code, parameters);
-        return new DepositAddress(res);
-    }
-    /// <summary>
-    /// fetch all deposits made to an account
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : the earliest time in ms to fetch deposits for
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of deposits structures to retrieve
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchDeposits(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
-    /// <summary>
-    /// fetch all withdrawals made from an account
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : the earliest time in ms to fetch withdrawals for
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of withdrawals structures to retrieve
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchWithdrawals(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
-    /// <summary>
-    /// make a withdrawal
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.withdraw(code, amount, address, tag, parameters);
-        return new Transaction(res);
     }
     /// <summary>
     /// create a trade order
@@ -386,6 +235,7 @@ public partial class onetrading
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#close-order-by-order-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -405,6 +255,7 @@ public partial class onetrading
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#close-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -424,6 +275,7 @@ public partial class onetrading
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#close-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -443,6 +295,7 @@ public partial class onetrading
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -462,6 +315,7 @@ public partial class onetrading
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -495,6 +349,7 @@ public partial class onetrading
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#get-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -528,6 +383,7 @@ public partial class onetrading
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#trades-for-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -561,6 +417,7 @@ public partial class onetrading
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#all-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

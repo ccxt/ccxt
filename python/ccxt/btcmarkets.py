@@ -313,7 +313,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         type = self.parse_transaction_type(self.safe_string_lower(transaction, 'type'))
         if type == 'withdraw':
             type = 'withdrawal'
-        cryptoPaymentDetail = self.safe_value(transaction, 'paymentDetail', {})
+        cryptoPaymentDetail = self.safe_dict(transaction, 'paymentDetail', {})
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
         address = self.safe_string(cryptoPaymentDetail, 'address')
         tag = None
@@ -394,7 +394,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
+        fees = self.safe_value(self.safe_dict(self.options, 'fees', {}), quote, self.fees)
         pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
         minAmount = self.safe_number(market, 'minOrderAmount')
         maxAmount = self.safe_number(market, 'maxOrderAmount')
@@ -1016,7 +1016,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
-        postOnly = self.safe_value(order, 'postOnly')
+        postOnly = self.safe_bool(order, 'postOnly')
         return self.safe_order({
             'info': order,
             'id': id,

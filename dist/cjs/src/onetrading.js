@@ -34,7 +34,7 @@ class onetrading extends onetrading$1 {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
-                'createDepositAddress': true,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -49,10 +49,10 @@ class onetrading extends onetrading$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -85,7 +85,7 @@ class onetrading extends onetrading$1 {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': true,
+                'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFee': false,
@@ -94,14 +94,14 @@ class onetrading extends onetrading$1 {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -136,32 +136,20 @@ class onetrading extends onetrading$1 {
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
                         'time',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balances',
-                        'account/deposit/crypto/{currency_code}',
-                        'account/deposit/fiat/EUR',
-                        'account/deposits',
-                        'account/deposits/bitpanda',
-                        'account/withdrawals',
-                        'account/withdrawals/bitpanda',
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
                         'account/trades/{trade_id}',
-                        'account/trading-volume',
                     ],
                     'post': [
-                        'account/deposit/crypto',
-                        'account/withdraw/crypto',
-                        'account/withdraw/fiat',
-                        'account/fees',
                         'account/orders',
                     ],
                     'delete': [
@@ -631,6 +619,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.onetrading.com/#market-ticker-for-instrument
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -666,7 +655,8 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @see https://docs.onetrading.com/#market-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -706,6 +696,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.onetrading.com/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -831,6 +822,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.onetrading.com/#candlesticks
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -955,47 +947,6 @@ class onetrading extends onetrading$1 {
             'info': trade,
         }, market);
     }
-    /**
-     * @method
-     * @name onetrading#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'instrument_code': market['id'],
-            // 'from': this.iso8601 (since),
-            // 'to': this.iso8601 (this.milliseconds ()),
-        };
-        if (since !== undefined) {
-            // returns price ticks for a specific market with an interval of maximum of 4 hours
-            // sorted by latest first
-            request['from'] = this.iso8601(since);
-            request['to'] = this.iso8601(this.sum(since, 14400000));
-        }
-        const response = await this.publicGetPriceTicksInstrumentCode(this.extend(request, params));
-        //
-        //     [
-        //         {
-        //             "instrument_code":"BTC_EUR",
-        //             "price":"8137.28",
-        //             "amount":"0.22269",
-        //             "taker_side":"BUY",
-        //             "volume":"1812.0908832",
-        //             "time":"2020-07-10T14:44:32.299Z",
-        //             "trade_timestamp":1594392272299,
-        //             "sequence":603047
-        //         }
-        //     ]
-        //
-        return this.parseTrades(response, market, since, limit);
-    }
     parseBalance(response) {
         const balances = this.safeValue(response, 'balances', []);
         const result = { 'info': response };
@@ -1014,6 +965,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.onetrading.com/#balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -1037,341 +989,6 @@ class onetrading extends onetrading$1 {
         //     }
         //
         return this.parseBalance(response);
-    }
-    parseDepositAddress(depositAddress, currency = undefined) {
-        let code = undefined;
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        const address = this.safeString(depositAddress, 'address');
-        const tag = this.safeString(depositAddress, 'destination_tag');
-        this.checkAddress(address);
-        return {
-            'info': depositAddress,
-            'currency': code,
-            'network': undefined,
-            'address': address,
-            'tag': tag,
-        };
-    }
-    /**
-     * @method
-     * @name onetrading#createDepositAddress
-     * @description create a currency deposit address
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privatePostAccountDepositCrypto(this.extend(request, params));
-        //
-        //     {
-        //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
-        //         "destination_tag":"865690307",
-        //         "enabled":true,
-        //         "is_smart_contract":false
-        //     }
-        //
-        return this.parseDepositAddress(response, currency);
-    }
-    /**
-     * @method
-     * @name onetrading#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency_code': currency['id'],
-        };
-        const response = await this.privateGetAccountDepositCryptoCurrencyCode(this.extend(request, params));
-        //
-        //     {
-        //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
-        //         "destination_tag":"865690307",
-        //         "enabled":true,
-        //         "is_smart_contract":false,
-        //         "can_create_more":false
-        //     }
-        //
-        return this.parseDepositAddress(response, currency);
-    }
-    /**
-     * @method
-     * @name onetrading#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {
-        // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['currency_code'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified');
-            }
-            request['from'] = this.iso8601(since);
-        }
-        const response = await this.privateGetAccountDeposits(this.extend(request, params));
-        //
-        //     {
-        //         "deposit_history": [
-        //             {
-        //                 "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //                 "amount": "100",
-        //                 "type": "CRYPTO",
-        //                 "funds_source": "INTERNAL",
-        //                 "time": "2020-04-22T09:57:47Z",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.0",
-        //                 "fee_currency": "BTC"
-        //             },
-        //             {
-        //                 "transaction_id": "79793d00-2899-4a4d-95b7-73ae6b31384f",
-        //                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //                 "time": "2020-05-05T11:22:07.925Z",
-        //                 "currency": "EUR",
-        //                 "funds_source": "EXTERNAL",
-        //                 "type": "FIAT",
-        //                 "amount": "50.0",
-        //                 "fee_amount": "0.01",
-        //                 "fee_currency": "EUR"
-        //             }
-        //         ],
-        //         "max_page_size": 2,
-        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
-        //     }
-        //
-        const depositHistory = this.safeList(response, 'deposit_history', []);
-        return this.parseTransactions(depositHistory, currency, since, limit, { 'type': 'deposit' });
-    }
-    /**
-     * @method
-     * @name onetrading#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {
-        // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['currency_code'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified');
-            }
-            request['from'] = this.iso8601(since);
-        }
-        const response = await this.privateGetAccountWithdrawals(this.extend(request, params));
-        //
-        //     {
-        //         "withdrawal_history": [
-        //             {
-        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        //                 "amount": "0.1",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.00002",
-        //                 "fee_currency": "BTC",
-        //                 "funds_source": "EXTERNAL",
-        //                 "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157",
-        //                 "time": "2020-05-05T11:11:32.110Z",
-        //                 "transaction_id": "6693ff40-bb10-4dcf-ada7-3b287727c882",
-        //                 "type": "CRYPTO"
-        //             },
-        //             {
-        //                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        //                 "amount": "0.1",
-        //                 "currency": "BTC",
-        //                 "fee_amount": "0.0",
-        //                 "fee_currency": "BTC",
-        //                 "funds_source": "INTERNAL",
-        //                 "time": "2020-05-05T10:29:53.464Z",
-        //                 "transaction_id": "ec9703b1-954b-4f76-adea-faac66eabc0b",
-        //                 "type": "CRYPTO"
-        //             }
-        //         ],
-        //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6ZWM5NzAzYjEtOTU0Yi00Zjc2LWFkZWEtZmFhYzY2ZWFiYzBiIiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODY3NDU5MzQ2NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19",
-        //         "max_page_size": 2
-        //     }
-        //
-        const withdrawalHistory = this.safeList(response, 'withdrawal_history', []);
-        return this.parseTransactions(withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
-    }
-    /**
-     * @method
-     * @name onetrading#withdraw
-     * @description make a withdrawal
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': code,
-            'amount': this.currencyToPrecision(code, amount),
-            // 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2', // fiat only
-            // 'recipient': { // crypto only
-            //     'address': address,
-            //     // 'destination_tag': '',
-            // },
-        };
-        const options = this.safeValue(this.options, 'fiat', []);
-        const isFiat = this.inArray(code, options);
-        const method = isFiat ? 'privatePostAccountWithdrawFiat' : 'privatePostAccountWithdrawCrypto';
-        if (isFiat) {
-            const payoutAccountId = this.safeString(params, 'payout_account_id');
-            if (payoutAccountId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
-            }
-        }
-        else {
-            const recipient = { 'address': address };
-            if (tag !== undefined) {
-                recipient['destination_tag'] = tag;
-            }
-            request['recipient'] = recipient;
-        }
-        const response = await this[method](this.extend(request, params));
-        //
-        // crypto
-        //
-        //     {
-        //         "amount": "1234.5678",
-        //         "fee": "1234.5678",
-        //         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        //         "destination_tag": "",
-        //         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        //     }
-        //
-        // fiat
-        //
-        //     {
-        //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        //     }
-        //
-        return this.parseTransaction(response, currency);
-    }
-    parseTransaction(transaction, currency = undefined) {
-        //
-        // fetchDeposits, fetchWithdrawals
-        //
-        //     {
-        //         "transaction_id": "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-        //         "type": "FIAT",
-        //         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        //         "amount": "1234.5678",
-        //         "time": "2019-08-24T14:15:22Z",
-        //         "funds_source": "INTERNAL",
-        //         "currency": "BTC",
-        //         "fee_amount": "1234.5678",
-        //         "fee_currency": "BTC",
-        //         "blockchain_transaction_id": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
-        //         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
-        //     }
-        //
-        // withdraw
-        //
-        //
-        //     crypto
-        //
-        //     {
-        //         "amount": "1234.5678",
-        //         "fee": "1234.5678",
-        //         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        //         "destination_tag": "",
-        //         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        //     }
-        //
-        //     fiat
-        //
-        //     {
-        //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        //     }
-        //
-        const id = this.safeString(transaction, 'transaction_id');
-        const amount = this.safeNumber(transaction, 'amount');
-        const timestamp = this.parse8601(this.safeString(transaction, 'time'));
-        const currencyId = this.safeString(transaction, 'currency');
-        currency = this.safeCurrency(currencyId, currency);
-        const status = 'ok'; // the exchange returns cleared transactions only
-        const feeCost = this.safeNumber2(transaction, 'fee_amount', 'fee');
-        let fee = undefined;
-        const addressTo = this.safeString(transaction, 'recipient');
-        const tagTo = this.safeString(transaction, 'destination_tag');
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString(transaction, 'fee_currency', currencyId);
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': currency['code'],
-            'amount': amount,
-            'network': undefined,
-            'address': addressTo,
-            'addressFrom': undefined,
-            'addressTo': addressTo,
-            'tag': tagTo,
-            'tagFrom': undefined,
-            'tagTo': tagTo,
-            'status': status,
-            'type': undefined,
-            'updated': undefined,
-            'txid': this.safeString(transaction, 'blockchain_transaction_id'),
-            'comment': undefined,
-            'internal': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'fee': fee,
-        };
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1581,6 +1198,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#cancelOrder
      * @description cancels an open order
+     * @see https://docs.onetrading.com/#close-order-by-order-id
      * @param {string} id order id
      * @param {string} symbol not used by bitmex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1609,6 +1227,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#cancelAllOrders
      * @description cancel all open orders
+     * @see https://docs.onetrading.com/#close-all-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1632,6 +1251,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#cancelOrders
      * @description cancel multiple orders
+     * @see https://docs.onetrading.com/#close-all-orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1654,6 +1274,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchOrder
      * @description fetches information on an order made by the user
+     * @see https://docs.onetrading.com/#get-order
      * @param {string} id the order id
      * @param {string} symbol not used by onetrading fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1712,6 +1333,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @see https://docs.onetrading.com/#get-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1832,6 +1454,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.onetrading.com/#get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1848,6 +1471,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchOrderTrades
      * @description fetch all the trades made from a single order
+     * @see https://docs.onetrading.com/#trades-for-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1907,6 +1531,7 @@ class onetrading extends onetrading$1 {
      * @method
      * @name onetrading#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://docs.onetrading.com/#all-trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve

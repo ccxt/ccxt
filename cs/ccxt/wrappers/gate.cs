@@ -1061,9 +1061,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1126,9 +1126,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1188,7 +1188,7 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if the order to be cancelled is a trigger order
     /// </description>

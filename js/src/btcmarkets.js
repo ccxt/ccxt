@@ -312,7 +312,7 @@ export default class btcmarkets extends Exchange {
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const cryptoPaymentDetail = this.safeValue(transaction, 'paymentDetail', {});
+        const cryptoPaymentDetail = this.safeDict(transaction, 'paymentDetail', {});
         const txid = this.safeString(cryptoPaymentDetail, 'txId');
         let address = this.safeString(cryptoPaymentDetail, 'address');
         let tag = undefined;
@@ -396,7 +396,7 @@ export default class btcmarkets extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        const fees = this.safeValue(this.safeValue(this.options, 'fees', {}), quote, this.fees);
+        const fees = this.safeValue(this.safeDict(this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
@@ -1042,7 +1042,7 @@ export default class btcmarkets extends Exchange {
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const stopPrice = this.safeNumber(order, 'triggerPrice');
-        const postOnly = this.safeValue(order, 'postOnly');
+        const postOnly = this.safeBool(order, 'postOnly');
         return this.safeOrder({
             'info': order,
             'id': id,

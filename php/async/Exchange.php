@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.33';
+$version = '4.4.36';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.33';
+    const VERSION = '4.4.36';
 
     public $browser;
     public $marketsLoading = null;
@@ -1029,7 +1029,7 @@ class Exchange extends \ccxt\Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -1554,9 +1554,14 @@ class Exchange extends \ccxt\Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
                 $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
             }
         }
         return $featuresObj;

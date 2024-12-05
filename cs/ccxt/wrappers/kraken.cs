@@ -420,8 +420,14 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/amend-order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much of the currency you want to trade in units of the base currency
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>price</term>
     /// <description>
@@ -437,37 +443,55 @@ public partial class kraken
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : *margin only* the price that a stop loss order is triggered at
+    /// float : the price that a stop loss order is triggered at
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : *margin only* the price that a take profit order is triggered at
+    /// float : the price that a take profit order is triggered at
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.trailingAmount</term>
     /// <description>
-    /// string : *margin only* the quote price away from the current market price
+    /// string : the quote amount to trail away from the current market price
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// string : the percent to trail away from the current market price
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.trailingLimitAmount</term>
     /// <description>
-    /// string : *margin only* the quote amount away from the trailingAmount
+    /// string : the quote amount away from the trailingAmount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingLimitPercent</term>
+    /// <description>
+    /// string : the percent away from the trailingAmount
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.offset</term>
     /// <description>
-    /// string : *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+    /// string : '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trigger</term>
+    /// <term>params.postOnly</term>
     /// <description>
-    /// string : *margin only* the activation price type, 'last' or 'index', default is 'last'
+    /// boolean : if true, the order will only be posted to the order book and not executed immediately
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the orders client order id
     /// </description>
     /// </item>
     /// </list>

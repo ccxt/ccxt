@@ -893,7 +893,7 @@ class testMainClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+    public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
         }
@@ -987,6 +987,30 @@ class testMainClass {
             }
         }
         return true;  // c# requ
+    }
+
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+        try {
+            return $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check, $asserting_key);
+        } catch(\Throwable $e) {
+            if ($this->info) {
+                $error_message = $this->var_to_string($new_output) . '(calculated)' . ' != ' . $this->var_to_string($stored_output) . '(stored)';
+                dump('[TEST_FAILURE_DETAIL]' . $error_message);
+            }
+            throw $e;
+        }
+    }
+
+    public function var_to_string($obj = null) {
+        $new_string = null;
+        if ($obj === null) {
+            $new_string = 'undefined';
+        } elseif (is_null_value($obj)) {
+            $new_string = 'null';
+        } else {
+            $new_string = json_stringify($obj);
+        }
+        return $new_string;
     }
 
     public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
@@ -1325,7 +1349,17 @@ class testMainClass {
                     $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
                 }
             }
-            Async\await(Promise\all($promises));
+            try {
+                Async\await(Promise\all($promises));
+            } catch(\Throwable $e) {
+                if ($type === 'request') {
+                    $this->request_tests_failed = true;
+                } else {
+                    $this->response_tests_failed = true;
+                }
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . ((string) $e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
             if ($this->request_tests_failed || $this->response_tests_failed) {
                 exit_script(1);
             } else {
@@ -1351,7 +1385,7 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1954,6 +1988,25 @@ class testMainClass {
                 $req_headers = $exchange->last_request_headers;
             }
             assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'coincatch - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_defx() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('defx');
+            $req_headers = null;
+            try {
+                Async\await($exchange->create_order('DOGE/USDC:USDC', 'limit', 'buy', 100, 1));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = $exchange->last_request_headers;
+            }
+            $id = 'ccxt';
+            assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
             if (!is_sync()) {
                 Async\await(close($exchange));
             }

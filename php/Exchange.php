@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.33';
+$version = '4.4.36';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.33';
+    const VERSION = '4.4.36';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -351,7 +351,7 @@ class Exchange {
         'bitbns',
         'bitcoincom',
         'bitfinex',
-        'bitfinex2',
+        'bitfinex1',
         'bitflyer',
         'bitget',
         'bithumb',
@@ -388,9 +388,11 @@ class Exchange {
         'coinspot',
         'cryptocom',
         'currencycom',
+        'defx',
         'delta',
         'deribit',
         'digifinex',
+        'ellipx',
         'exmo',
         'fmfwio',
         'gate',
@@ -2169,6 +2171,11 @@ class Exchange {
     }
 
     function array_slice($array, $first, $second = null){
+        if (is_string($array)) {
+            // this is needed because we convert
+            // base64ToBinary to base64_decode in php
+            return substr($array, $first, $second);
+        }
         if ($second === null) {
             return array_slice($array, $first);
         } else {
@@ -2932,7 +2939,7 @@ class Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -3447,9 +3454,14 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
                 $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
             }
         }
         return $featuresObj;

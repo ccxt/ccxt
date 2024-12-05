@@ -31,7 +31,7 @@ class gate extends Exchange {
             'certified' => true,
             'pro' => true,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
                 'doc' => 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www' => 'https://gate.io/',
                 'api' => array(
@@ -230,6 +230,7 @@ class gate extends Exchange {
                             '{settle}/contract_stats' => 1,
                             '{settle}/index_constituents/{index}' => 1,
                             '{settle}/liq_orders' => 1,
+                            '{settle}/risk_limit_tiers' => 1,
                         ),
                     ),
                     'delivery' => array(
@@ -271,6 +272,7 @@ class gate extends Exchange {
                     'withdrawals' => array(
                         'post' => array(
                             'withdrawals' => 20, // 1r/s cost = 20 / 1 = 20
+                            'push' => 1,
                         ),
                         'delete' => array(
                             'withdrawals/{withdrawal_id}' => 1,
@@ -282,6 +284,7 @@ class gate extends Exchange {
                             'withdrawals' => 1,
                             'deposits' => 1,
                             'sub_account_transfers' => 1,
+                            'order_status' => 1,
                             'withdraw_status' => 1,
                             'sub_account_balances' => 2.5,
                             'sub_account_margin_balances' => 2.5,
@@ -292,6 +295,7 @@ class gate extends Exchange {
                             'total_balance' => 2.5,
                             'small_balance' => 1,
                             'small_balance_history' => 1,
+                            'push' => 1,
                         ),
                         'post' => array(
                             'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
@@ -334,11 +338,14 @@ class gate extends Exchange {
                             'risk_units' => 20 / 15,
                             'unified_mode' => 20 / 15,
                             'loan_margin_tiers' => 20 / 15,
+                            'leverage/user_currency_config' => 20 / 15,
+                            'leverage/user_currency_setting' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                             'portfolio_calculator' => 20 / 15,
+                            'leverage/user_currency_setting' => 20 / 15,
                         ),
                         'put' => array(
                             'unified_mode' => 20 / 15,
@@ -518,9 +525,13 @@ class gate extends Exchange {
                             'orders' => 20 / 15,
                             'orders/{order_id}' => 20 / 15,
                             'my_trades' => 20 / 15,
+                            'mmp' => 20 / 15,
                         ),
                         'post' => array(
                             'orders' => 20 / 15,
+                            'countdown_cancel_all' => 20 / 15,
+                            'mmp' => 20 / 15,
+                            'mmp/reset' => 20 / 15,
                         ),
                         'delete' => array(
                             'orders' => 20 / 15,
@@ -564,6 +575,7 @@ class gate extends Exchange {
                             'multi_collateral/currencies' => 20 / 15,
                             'multi_collateral/ltv' => 20 / 15,
                             'multi_collateral/fixed_rate' => 20 / 15,
+                            'multi_collateral/current_rate' => 20 / 15,
                         ),
                         'post' => array(
                             'collateral/orders' => 20 / 15,
@@ -577,8 +589,10 @@ class gate extends Exchange {
                     'account' => array(
                         'get' => array(
                             'detail' => 20 / 15,
+                            'rate_limit' => 20 / 15,
                             'stp_groups' => 20 / 15,
                             'stp_groups/{stp_id}/users' => 20 / 15,
+                            'stp_groups/debit_fee' => 20 / 15,
                         ),
                         'post' => array(
                             'stp_groups' => 20 / 15,
@@ -696,6 +710,110 @@ class gate extends Exchange {
                 'future' => array(
                     'fetchMarkets' => array(
                         'settlementCurrencies' => array( 'usdt' ),
+                    ),
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true, // todo => implementation edit needed
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        // exchange-specific features
+                        'iceberg' => true,
+                        'selfTradePrevention' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 40, // NOTE! max 10 per symbol
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 30,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'limit' => 100,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'limit' => 100,
+                        'untilDays' => 30,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'spot',
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'untilDays' => null,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'untilDays' => null,
+                        'limit' => 1000,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1999,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
                     ),
                 ),
             ),
@@ -1572,23 +1690,23 @@ class gate extends Exchange {
         return array( $request, $params );
     }
 
-    public function spot_order_prepare_request($market = null, $stop = false, $params = array ()) {
+    public function spot_order_prepare_request($market = null, $trigger = false, $params = array ()) {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {array} $market CCXT $market
-         * @param {bool} $stop true if for a $stop order
+         * @param {bool} $trigger true if for a $trigger order
          * @param {array} [$params] $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($trigger, $params);
         $request = array();
-        if (!$stop) {
+        if (!$trigger) {
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$stop orders');
+                throw new ArgumentsRequired($this->id . ' spotOrderPrepareRequest() requires a $market argument for non-$trigger orders');
             }
             $request['account'] = $marginMode;
-            $request['currency_pair'] = $market['id']; // Should always be set for non-$stop
+            $request['currency_pair'] = $market['id']; // Should always be set for non-$trigger
         }
         return array( $request, $query );
     }
@@ -1598,7 +1716,7 @@ class gate extends Exchange {
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {array} $market CCXT $market
-         * @param {bool} stop true if for a stop order
+         * @param {bool} $trigger true if for a $trigger order
          * @param {array} [$params] $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
@@ -1608,7 +1726,7 @@ class gate extends Exchange {
         );
         if ($market !== null) {
             if ($trigger) {
-                // gate spot and margin stop orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                // gate spot and margin $trigger orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single $trigger order, but createOrder does not call this method
                 $request['market'] = $market['id'];
             } else {
                 $request['currency_pair'] = $market['id'];
@@ -1617,11 +1735,11 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_mode($stop, $params) {
+    public function get_margin_mode($trigger, $params) {
         /**
          * @ignore
          * Gets the margin type for this api call
-         * @param {bool} $stop True if for a $stop order
+         * @param {bool} $trigger True if for a $trigger order
          * @param {array} [$params] Request $params
          * @return The $marginMode and the updated request $params with $marginMode removed, $marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
@@ -1635,13 +1753,13 @@ class gate extends Exchange {
         } elseif ($marginMode === '') {
             $marginMode = 'spot';
         }
-        if ($stop) {
+        if ($trigger) {
             if ($marginMode === 'spot') {
-                // gate spot $stop orders use the term normal instead of spot
+                // gate spot $trigger orders use the term normal instead of spot
                 $marginMode = 'normal';
             }
             if ($marginMode === 'cross_margin') {
-                throw new BadRequest($this->id . ' getMarginMode() does not support $stop orders for cross margin');
+                throw new BadRequest($this->id . ' getMarginMode() does not support $trigger orders for cross margin');
             }
         }
         $isUnifiedAccount = false;
@@ -3148,7 +3266,6 @@ class gate extends Exchange {
             }
             $response = null;
             if ($market['contract']) {
-                $maxLimit = 1999;
                 $isMark = ($price === 'mark');
                 $isIndex = ($price === 'index');
                 if ($isMark || $isIndex) {
@@ -3500,7 +3617,7 @@ class gate extends Exchange {
                 }
             } else {
                 if ($market !== null) {
-                    $request['currency_pair'] = $market['id']; // Should always be set for non-stop
+                    $request['currency_pair'] = $market['id']; // Should always be set for non-trigger
                 }
                 list($marginMode, $params) = $this->get_margin_mode(false, $params);
                 $request['account'] = $marginMode;
@@ -4058,8 +4175,8 @@ class gate extends Exchange {
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
             $isStopLossOrder = $stopLossPrice !== null;
             $isTakeProfitOrder = $takeProfitPrice !== null;
-            $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
-            $nonTriggerOrder = !$isStopOrder && ($trigger === null);
+            $isTpsl = $isStopLossOrder || $isTakeProfitOrder;
+            $nonTriggerOrder = !$isTpsl && ($trigger === null);
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['spot'] || $market['margin']) {
@@ -4224,7 +4341,7 @@ class gate extends Exchange {
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isStopLossOrder = $stopLossPrice !== null;
         $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $isTpsl = $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopLossOrder && $isTakeProfitOrder) {
             throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
         }
@@ -4269,7 +4386,7 @@ class gate extends Exchange {
             }
         }
         $request = null;
-        $nonTriggerOrder = !$isStopOrder && ($trigger === null);
+        $nonTriggerOrder = !$isTpsl && ($trigger === null);
         if ($nonTriggerOrder) {
             if ($contract) {
                 // $contract order
@@ -4877,7 +4994,7 @@ class gate extends Exchange {
 
     public function fetch_order_request(string $id, ?string $symbol = null, $params = array ()) {
         $market = ($symbol === null) ? null : $this->market($symbol);
-        $stop = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
+        $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
         $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
         $orderId = $id;
@@ -4890,7 +5007,7 @@ class gate extends Exchange {
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
-        list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $stop, $query);
+        list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $trigger, $query);
         $request['order_id'] = (string) $orderId;
         return array( $request, $requestParams );
     }
@@ -4908,7 +5025,7 @@ class gate extends Exchange {
              * @param {string} $id Order $id
              * @param {string} $symbol Unified $market $symbol, *required for spot and margin*
              * @param {array} [$params] Parameters specified by the exchange api
-             * @param {bool} [$params->trigger] True if the order being fetched is a trigger order
+             * @param {bool} [$params->trigger] True if the order being fetched is a $trigger order
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
@@ -4920,23 +5037,23 @@ class gate extends Exchange {
             $market = ($symbol === null) ? null : $this->market($symbol);
             $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
             $type = $this->safe_string($result, 0);
-            $stop = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
+            $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
             list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
             $response = null;
             if ($type === 'spot' || $type === 'margin') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateSpotGetPriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateSpotGetOrdersOrderId ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'swap') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateFuturesGetSettlePriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateFuturesGetSettleOrdersOrderId ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'future') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateDeliveryGetSettlePriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateDeliveryGetSettleOrdersOrderId ($this->extend($request, $requestParams)));
@@ -4962,7 +5079,7 @@ class gate extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] true for fetching stop orders
+             * @param {bool} [$params->trigger] true for fetching trigger orders
              * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
              * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
@@ -4990,7 +5107,7 @@ class gate extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] true for fetching stop orders
+             * @param {bool} [$params->trigger] true for fetching trigger orders
              * @param {string} [$params->type] spot, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {boolean} [$params->historical] *swap only* true for using historical endpoint
@@ -5187,7 +5304,7 @@ class gate extends Exchange {
             //        }
             //    )
             //
-            // $spot stop
+            // $spot $trigger
             //
             //    array(
             //        {
@@ -5287,33 +5404,33 @@ class gate extends Exchange {
              * @param {string} $id Order $id
              * @param {string} $symbol Unified $market $symbol
              * @param {array} [$params] Parameters specified by the exchange api
-             * @param {bool} [$params->stop] True if the order to be cancelled is a trigger order
+             * @param {bool} [$params->trigger] True if the order to be cancelled is a $trigger order
              * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+            $trigger = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
             $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+            list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
             $request['order_id'] = $id;
             $response = null;
             if ($type === 'spot' || $type === 'margin') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateSpotDeletePriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateSpotDeleteOrdersOrderId ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'swap') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateFuturesDeleteSettlePriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateFuturesDeleteSettleOrdersOrderId ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'future') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateDeliveryDeleteSettlePriceOrdersOrderId ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateDeliveryDeleteSettleOrdersOrderId ($this->extend($request, $requestParams)));
@@ -5521,25 +5638,25 @@ class gate extends Exchange {
             Async\await($this->load_markets());
             Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-            list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+            list($request, $requestParams) = ($type === 'spot') ? $this->multi_order_spot_prepare_request($market, $trigger, $query) : $this->prepare_request($market, $type, $query);
             $response = null;
             if ($type === 'spot' || $type === 'margin') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateSpotDeletePriceOrders ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateSpotDeleteOrders ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'swap') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateFuturesDeleteSettlePriceOrders ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateFuturesDeleteSettleOrders ($this->extend($request, $requestParams)));
                 }
             } elseif ($type === 'future') {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->privateDeliveryDeleteSettlePriceOrders ($this->extend($request, $requestParams)));
                 } else {
                     $response = Async\await($this->privateDeliveryDeleteSettleOrders ($this->extend($request, $requestParams)));
