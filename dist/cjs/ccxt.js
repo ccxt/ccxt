@@ -26,8 +26,8 @@ var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
+var bitfinex = require('./src/bitfinex.js');
 var bitfinex1 = require('./src/bitfinex1.js');
-var bitfinex2 = require('./src/bitfinex2.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
@@ -132,8 +132,8 @@ var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
 var bitcoincom$1 = require('./src/pro/bitcoincom.js');
+var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex1$1 = require('./src/pro/bitfinex1.js');
-var bitfinex2$1 = require('./src/pro/bitfinex2.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
@@ -217,8 +217,8 @@ const exchanges = {
     'bitbank': bitbank,
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
+    'bitfinex': bitfinex,
     'bitfinex1': bitfinex1,
-    'bitfinex2': bitfinex2,
     'bitflyer': bitflyer,
     'bitget': bitget,
     'bithumb': bithumb,
@@ -325,8 +325,8 @@ const pro = {
     'binanceusdm': binanceusdm$1,
     'bingx': bingx$1,
     'bitcoincom': bitcoincom$1,
+    'bitfinex': bitfinex$1,
     'bitfinex1': bitfinex1$1,
-    'bitfinex2': bitfinex2$1,
     'bitget': bitget$1,
     'bithumb': bithumb$1,
     'bitmart': bitmart$1,
@@ -455,8 +455,8 @@ exports.bit2c = bit2c;
 exports.bitbank = bitbank;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
+exports.bitfinex = bitfinex;
 exports.bitfinex1 = bitfinex1;
-exports.bitfinex2 = bitfinex2;
 exports.bitflyer = bitflyer;
 exports.bitget = bitget;
 exports.bithumb = bithumb;
