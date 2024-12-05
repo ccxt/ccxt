@@ -1463,12 +1463,9 @@ export default class hyperliquid extends Exchange {
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
             let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            if (triggerPrice !== undefined) {
-                throw new InvalidOrder (this.id + ' triggerPrice is not supported, you can use stopLossPrice or takeProfitPrice');
-            }
-            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice');
+            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
-            const isProtective = (stopLossPrice || takeProfitPrice);
+            const isTrigger = (stopLossPrice || takeProfitPrice);
             let px = undefined;
             if (isMarket) {
                 if (price === undefined) {
@@ -1482,7 +1479,7 @@ export default class hyperliquid extends Exchange {
             const sz = this.amountToPrecision (symbol, amount);
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             const orderType: Dict = {};
-            if (isProtective) {
+            if (isTrigger) {
                 let isTp = false;
                 if (takeProfitPrice !== undefined) {
                     triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
