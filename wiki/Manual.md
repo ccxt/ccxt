@@ -5360,7 +5360,69 @@ The ledger entry type can be associated with a regular trade or a funding transa
 
 ## Deposit
 
-In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user.
+In order to deposit cryptocurrency funds to an exchange you must get an address from the exchange for the currency you want to deposit using `fetchDepositAddress`. You can then call the `withdraw` method with the specified currency and address.
+
+To deposit fiat currency on an exchange you can use the `deposit` method with data retrieved from the `fetchDepositId` method.
+*this deposit feature is currently supported on coinbase only, feel free to report any issues you find*
+
+- `deposit ()`
+
+```javascript
+deposit (id, code = undefined, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Deposit id
+- **code** (String) Fiat currency code, required (e.g. `"USD"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"account": "fiat"}`)
+
+Returns
+
+- A [transaction structure](#transaction-structure)
+
+- `fetchDepositId ()`
+
+```javascript
+fetchDepositId (id, params = {})
+```
+
+Parameters
+
+- **id** (String) *required* Deposit id
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"account": "fiat"}`)
+
+Returns
+
+- A [deposit id structure](#deposit-id-structure)
+
+- `fetchDepositIds ()`
+
+```javascript
+fetchDepositIds (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"account": "fiat"}`)
+
+Returns
+
+- An array of [deposit id structures](#deposit-id-structure)
+
+### Deposit Id Structure
+
+The deposit id structure returned from `fetchDepositId`, `fetchDepositIds` look like this:
+
+```javascript
+{
+    'info': {},                 // raw unparsed data as returned from the exchange
+    'id': '75ab52ff-f25t',      // the deposit id
+    'currency': 'USD',          // fiat currency
+    'verified': true,           // whether funding through this id is verified or not
+    'tag': 'from credit card',  // tag / memo / name of funding source
+}
+```
 
 Data on deposits made to an account can be retrieved using
 
