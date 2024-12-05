@@ -1249,13 +1249,25 @@ class hyperliquid extends Exchange {
         return $signature;
     }
 
-    public function build_transfer_sig($message) {
+    public function build_usd_send_sig($message) {
         $messageTypes = array(
             'HyperliquidTransaction:UsdSend' => array(
                 array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
                 array( 'name' => 'destination', 'type' => 'string' ),
                 array( 'name' => 'amount', 'type' => 'string' ),
                 array( 'name' => 'time', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function build_usd_class_send_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:UsdClassTransfer' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'amount', 'type' => 'string' ),
+                array( 'name' => 'toPerp', 'type' => 'bool' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
             ),
         );
         return $this->sign_user_signed_action($messageTypes, $message);
@@ -2783,26 +2795,36 @@ class hyperliquid extends Exchange {
                 if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
                     throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
                 }
+                $strAmount = $this->number_to_string($amount);
                 $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
                 $params = $this->omit($params, 'vaultAddress');
+                if ($vaultAddress !== null) {
+                    $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
+                }
                 $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
-                $action = array(
-                    'type' => 'spotUser',
-                    'classTransfer' => array(
-                        'usdc' => $amount,
-                        'toPerp' => $toPerp,
-                    ),
-                );
-                $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
-                $innerRequest = array(
-                    'action' => $action,
+                $transferPayload = array(
+                    'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                    'amount' => $strAmount,
+                    'toPerp' => $toPerp,
                     'nonce' => $nonce,
-                    'signature' => $signature,
+                );
+                $transferSig = $this->build_usd_class_send_sig($transferPayload);
+                $transferRequest = array(
+                    'action' => array(
+                        'hyperliquidChain' => $transferPayload['hyperliquidChain'],
+                        'signatureChainId' => '0x66eee',
+                        'type' => 'usdClassTransfer',
+                        'amount' => $strAmount,
+                        'toPerp' => $toPerp,
+                        'nonce' => $nonce,
+                    ),
+                    'nonce' => $nonce,
+                    'signature' => $transferSig,
                 );
                 if ($vaultAddress !== null) {
-                    $innerRequest['vaultAddress'] = $vaultAddress;
+                    $transferRequest['vaultAddress'] = $vaultAddress;
                 }
-                $transferResponse = Async\await($this->privatePostExchange ($innerRequest));
+                $transferResponse = Async\await($this->privatePostExchange ($transferRequest));
                 return $transferResponse;
             }
             // handle sub-account/different account transfer
@@ -2819,7 +2841,7 @@ class hyperliquid extends Exchange {
                 'amount' => $this->number_to_string($amount),
                 'time' => $nonce,
             );
-            $sig = $this->build_transfer_sig($payload);
+            $sig = $this->build_usd_send_sig($payload);
             $request = array(
                 'action' => array(
                     'hyperliquidChain' => $payload['hyperliquidChain'],
