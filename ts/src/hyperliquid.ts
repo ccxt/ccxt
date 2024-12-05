@@ -1230,13 +1230,25 @@ export default class hyperliquid extends Exchange {
         return signature;
     }
 
-    buildTransferSig (message) {
+    buildUsdSendSig (message) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
+    buildUsdClassSendSig (message) {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction (messageTypes, message);
@@ -2735,26 +2747,36 @@ export default class hyperliquid extends Exchange {
             if (!this.inArray (toAccount, [ 'spot', 'swap', 'perp' ])) {
                 throw new NotSupported (this.id + 'transfer() only support spot <> swap transfer');
             }
+            let strAmount = this.numberToString (amount);
             const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
             params = this.omit (params, 'vaultAddress');
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action: Dict = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action (action, nonce, vaultAddress);
-            const innerRequest: Dict = {
-                'action': action,
+            const transferPayload: Dict = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig (transferPayload);
+            const transferRequest: Dict = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange (innerRequest);
+            const transferResponse = await this.privatePostExchange (transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2771,7 +2793,7 @@ export default class hyperliquid extends Exchange {
             'amount': this.numberToString (amount),
             'time': nonce,
         };
-        const sig = this.buildTransferSig (payload);
+        const sig = this.buildUsdSendSig (payload);
         const request: Dict = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],

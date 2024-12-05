@@ -1173,6 +1173,46 @@ public partial class coinbase
         return new Transaction(res);
     }
     /// <summary>
+    /// fetch the deposit id for a fiat currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchDepositIds(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositIds(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetch the deposit id for a fiat currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositId(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositId(id, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch a quote for converting from one currency to another
     /// </summary>
     /// <remarks>

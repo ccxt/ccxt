@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import bitfinex2Rest from '../bitfinex2.js';
+import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitfinex2 extends bitfinex2Rest {
+export default class bitfinex extends bitfinexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -78,7 +78,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchOHLCV
+     * @name bitfinex#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -194,7 +194,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchTrades
+     * @name bitfinex#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -212,7 +212,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchMyTrades
+     * @name bitfinex#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -236,7 +236,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchTicker
+     * @name bitfinex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -531,7 +531,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchOrderBook
+     * @name bitfinex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -705,7 +705,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchBalance
+     * @name bitfinex#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
@@ -905,7 +905,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     /**
      * @method
-     * @name bitfinex2#watchOrders
+     * @name bitfinex#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for

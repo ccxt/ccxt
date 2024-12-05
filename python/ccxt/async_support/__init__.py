@@ -77,8 +77,8 @@ from ccxt.async_support.bit2c import bit2c                                      
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
+from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitfinex1 import bitfinex1                              # noqa: F401
-from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
@@ -190,8 +190,8 @@ exchanges = [
     'bitbank',
     'bitbns',
     'bitcoincom',
+    'bitfinex',
     'bitfinex1',
-    'bitfinex2',
     'bitflyer',
     'bitget',
     'bithumb',

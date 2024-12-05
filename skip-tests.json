@@ -189,7 +189,7 @@
             }
         }
     },
-    "bitfinex2": {
+    "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"

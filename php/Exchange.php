@@ -350,8 +350,8 @@ class Exchange {
         'bitbank',
         'bitbns',
         'bitcoincom',
+        'bitfinex',
         'bitfinex1',
-        'bitfinex2',
         'bitflyer',
         'bitget',
         'bithumb',
@@ -3454,9 +3454,14 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
                 $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
             }
         }
         return $featuresObj;

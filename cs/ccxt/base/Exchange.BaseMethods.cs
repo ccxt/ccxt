@@ -1473,10 +1473,16 @@ public partial class Exchange
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
+            }
+            // default 'GTC' to true
+            object gtcValue = this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "gtc");
+            if (isTrue(isEqual(gtcValue, null)))
+            {
+                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["gtc"] = true;
             }
         }
         return featuresObj;
