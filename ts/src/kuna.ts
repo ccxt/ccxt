@@ -422,7 +422,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.safeInteger (data, 'timestamp_miliseconds');
     }
 
@@ -460,7 +460,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseCurrencies (data);
     }
 
@@ -542,7 +542,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const markets = [];
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -777,7 +777,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const ticker = this.safeDict (data, 0);
         return this.parseTicker (ticker, market);
     }
@@ -869,10 +869,10 @@ export default class kuna extends Exchange {
         //
         const datetime = this.safeString (trade, 'createdAt');
         const marketId = this.safeString (trade, 'pair');
-        const isTaker = this.safeValue (trade, 'isMaker');
+        const isTaker = this.safeBool (trade, 'isMaker');
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
-            const isBuyer = this.safeValue (trade, 'isBuyer');
+            const isBuyer = this.safeBool (trade, 'isBuyer');
             side = isBuyer ? 'buy' : 'sell';
         }
         return this.safeTrade ({
@@ -938,7 +938,7 @@ export default class kuna extends Exchange {
         //        }]
         //    }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseBalance (data);
     }
 
@@ -1026,7 +1026,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1130,7 +1130,7 @@ export default class kuna extends Exchange {
         } else if (side === 'Ask') {
             side = 'sell';
         }
-        const trades = this.safeValue (order, 'trades', []);
+        const trades = this.safeList (order, 'trades', []);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'id', 'orderId'),
