@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -21,7 +21,7 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 1667,
+            'rateLimit': 300,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -33,6 +33,8 @@ export default class cex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -121,7 +123,8 @@ export default class cex extends Exchange {
                     'check failed': BadRequest,
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
-                    'Market Trigger orders are not allowed': BadRequest, // for some reason, triggerPrice does not work for market orders
+                    'Market Trigger orders are not allowed': BadRequest,
+                    'key not passed or incorrect': AuthenticationError,
                 },
             },
             'timeframes': {
@@ -852,7 +855,7 @@ export default class cex extends Exchange {
             const code = this.safeCurrencyCode(key);
             const account = {
                 'used': this.safeString(balance, 'balanceOnHold'),
-                'free': this.safeString(balance, 'balance'),
+                'total': this.safeString(balance, 'balance'),
             };
             result[code] = account;
         }
@@ -863,7 +866,7 @@ export default class cex extends Exchange {
      * @name cex#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-     * @param status
+     * @param {string} status order status to fetch for
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -939,7 +942,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     /**
@@ -1008,10 +1011,16 @@ export default class cex extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1061,7 +1070,7 @@ export default class cex extends Exchange {
             const currencyId = this.safeString(order, 'feeCurrency');
             const feeCode = this.safeCurrencyCode(currencyId);
             fee['currency'] = feeCode;
-            fee['fee'] = feeAmount;
+            fee['cost'] = feeAmount;
         }
         const timestamp = this.safeInteger(order, 'serverCreateTimestamp');
         const requestedBase = this.safeNumber(order, 'requestedAmountCcy1');
@@ -1105,6 +1114,7 @@ export default class cex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

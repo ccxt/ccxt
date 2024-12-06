@@ -19,7 +19,6 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
@@ -206,10 +205,8 @@ class idex(Exchange, ImplicitAPI):
         # {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided, and always require 4 decimals ending with 4 zeroes"}
         #
         market = self.market(symbol)
-        info = self.safe_value(market, 'info', {})
-        quoteAssetPrecision = self.safe_integer(info, 'quoteAssetPrecision')
         price = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
-        return self.decimal_to_precision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO)
+        return self.decimal_to_precision(price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -316,6 +313,8 @@ class idex(Exchange, ImplicitAPI):
                 'precision': {
                     'amount': basePrecision,
                     'price': self.safe_number(entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {

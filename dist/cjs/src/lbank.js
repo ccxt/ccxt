@@ -209,6 +209,7 @@ class lbank extends lbank$1 {
                 },
             },
             'commonCurrencies': {
+                'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
             },

@@ -424,6 +424,18 @@ public partial class gate
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
@@ -1049,9 +1061,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1114,9 +1126,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1176,7 +1188,7 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if the order to be cancelled is a trigger order
     /// </description>

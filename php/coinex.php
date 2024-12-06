@@ -51,6 +51,7 @@ class coinex extends Exchange {
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLossOrder' => true,
+                'createStopOrder' => true,
                 'createTakeProfitOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
@@ -3363,7 +3364,7 @@ class coinex extends Exchange {
          * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
          * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-$stop-order
          *
-         * @param $status
+         * @param {string} $status order $status to fetch for
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -4754,6 +4755,7 @@ class coinex extends Exchange {
             'not_pass' => 'failed',
             'cancel' => 'canceled',
             'finish' => 'ok',
+            'finished' => 'ok',
             'fail' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);

@@ -78,7 +78,8 @@ export default class probit extends probitRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    subscribeOrderBook(symbol: string, messageHash: any, filter: any, params?: {}): Promise<any>;
+    subscribePrivate(messageHash: any, channel: any, params: any): Promise<any>;
+    subscribePublic(methodName: string, symbol: string, dataType: any, filter: any, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any, orderBook: any): void;
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleDelta(orderbook: any, delta: any): void;

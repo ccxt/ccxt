@@ -101,8 +101,8 @@ public partial class bitbank : Exchange
                     { "get", new List<object>() {"{pair}/ticker", "tickers", "tickers_jpy", "{pair}/depth", "{pair}/transactions", "{pair}/transactions/{yyyymmdd}", "{pair}/candlestick/{candletype}/{yyyymmdd}", "{pair}/circuit_break_info"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"user/assets", "user/spot/order", "user/spot/active_orders", "user/spot/trade_history", "user/deposit_history", "user/withdrawal_account", "user/withdrawal_history", "spot/status", "spot/pairs"} },
-                    { "post", new List<object>() {"user/spot/order", "user/spot/cancel_order", "user/spot/cancel_orders", "user/spot/orders_info", "user/request_withdrawal"} },
+                    { "get", new List<object>() {"user/assets", "user/spot/order", "user/spot/active_orders", "user/margin/positions", "user/spot/trade_history", "user/deposit_history", "user/unconfirmed_deposits", "user/deposit_originators", "user/withdrawal_account", "user/withdrawal_history", "spot/status", "spot/pairs"} },
+                    { "post", new List<object>() {"user/spot/order", "user/spot/cancel_order", "user/spot/cancel_orders", "user/spot/orders_info", "user/confirm_deposits", "user/confirm_deposits_all", "user/request_withdrawal"} },
                 } },
                 { "markets", new Dictionary<string, object>() {
                     { "get", new List<object>() {"spot/pairs"} },

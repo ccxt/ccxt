@@ -195,8 +195,8 @@ public partial class btcturk : Exchange
         //        ],
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object markets = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object markets = this.safeList(data, "symbols", new List<object>() {});
         return this.parseMarkets(markets);
     }
 
@@ -207,7 +207,7 @@ public partial class btcturk : Exchange
         object quoteId = this.safeString(entry, "denominator");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object filters = this.safeValue(entry, "filters", new List<object>() {});
+        object filters = this.safeList(entry, "filters", new List<object>() {});
         object minPrice = null;
         object maxPrice = null;
         object minAmount = null;
@@ -280,7 +280,7 @@ public partial class btcturk : Exchange
 
     public override object parseBalance(object response)
     {
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -362,7 +362,7 @@ public partial class btcturk : Exchange
         //         ]
         //       }
         //     }
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
     }
@@ -673,21 +673,21 @@ public partial class btcturk : Exchange
         timeframe ??= "1m";
         tail ??= false;
         object results = new List<object>() {};
-        object timestamp = this.safeValue(ohlcvs, "t");
-        object high = this.safeValue(ohlcvs, "h");
-        object open = this.safeValue(ohlcvs, "o");
-        object low = this.safeValue(ohlcvs, "l");
-        object close = this.safeValue(ohlcvs, "c");
-        object volume = this.safeValue(ohlcvs, "v");
+        object timestamp = this.safeList(ohlcvs, "t", new List<object>() {});
+        object high = this.safeList(ohlcvs, "h", new List<object>() {});
+        object open = this.safeList(ohlcvs, "o", new List<object>() {});
+        object low = this.safeList(ohlcvs, "l", new List<object>() {});
+        object close = this.safeList(ohlcvs, "c", new List<object>() {});
+        object volume = this.safeList(ohlcvs, "v", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(timestamp)); postFixIncrement(ref i))
         {
             object ohlcv = new Dictionary<string, object>() {
-                { "timestamp", this.safeValue(timestamp, i) },
-                { "high", this.safeValue(high, i) },
-                { "open", this.safeValue(open, i) },
-                { "low", this.safeValue(low, i) },
-                { "close", this.safeValue(close, i) },
-                { "volume", this.safeValue(volume, i) },
+                { "timestamp", this.safeInteger(timestamp, i) },
+                { "high", this.safeNumber(high, i) },
+                { "open", this.safeNumber(open, i) },
+                { "low", this.safeNumber(low, i) },
+                { "close", this.safeNumber(close, i) },
+                { "volume", this.safeNumber(volume, i) },
             };
             ((IList<object>)results).Add(this.parseOHLCV(ohlcv, market));
         }
@@ -787,8 +787,8 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)request)["pairSymbol"] = getValue(market, "id");
         }
         object response = await this.privateGetOpenOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object bids = this.safeList(data, "bids", new List<object>() {});
         object asks = this.safeList(data, "asks", new List<object>() {});
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }

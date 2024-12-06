@@ -306,10 +306,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action')
         response = self.safe_value(message, 'response')
         ohlcv = self.parse_ohlcvs(response, None, None, None)
-        messageHash = self.build_message_hash(action)
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(ohlcv, messageHash)
 
     def handle_ohlcv(self, client: Client, message):
@@ -687,14 +686,15 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }]
         #    }
         #
-        action = self.safe_string(message, 'action')
-        response = self.safe_value(message, 'response')
-        firstRawOrder = self.safe_value(response, 0, {})
-        marketId = self.safe_string(firstRawOrder, 'market')
+        # action = self.safe_string(message, 'action')
+        response = self.safe_list(message, 'response')
+        # firstRawOrder = self.safe_value(response, 0, {})
+        # marketId = self.safe_string(firstRawOrder, 'market')
         orders = self.parse_orders(response)
-        messageHash = self.build_message_hash(action, {'market': marketId})
-        client.resolve(orders, messageHash)
-        messageHash = self.build_message_hash(action, message)
+        # messageHash = self.build_message_hash(action, {'market': marketId})
+        # client.resolve(orders, messageHash)
+        # messageHash = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(orders, messageHash)
 
     async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
@@ -739,13 +739,19 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders = await self.watch_request('privateGetOrders', request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
+    def request_id(self):
+        ts = str(self.milliseconds())
+        randomNumber = self.rand_number(4)
+        randomPart = str(randomNumber)
+        return int(ts + randomPart)
+
     async def watch_request(self, action, request):
+        messageHash = self.request_id()
+        messageHashStr = str(messageHash)
         request['action'] = action
-        messageHash = self.build_message_hash(action, request)
-        self.check_message_hash_does_not_exist(messageHash)
+        request['requestId'] = messageHash
         url = self.urls['api']['ws']
-        randomSubHash = str(self.rand_number(5)) + ':' + messageHash
-        return await self.watch(url, messageHash, request, randomSubHash)
+        return await self.watch(url, messageHashStr, request, messageHashStr)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -810,12 +816,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         #
-        action = self.safe_string(message, 'action')
-        response = self.safe_value(message, 'response')
-        firstRawTrade = self.safe_value(response, 0, {})
-        marketId = self.safe_string(firstRawTrade, 'market')
+        # action = self.safe_string(message, 'action')
+        response = self.safe_list(message, 'response')
+        # marketId = self.safe_string(firstRawTrade, 'market')
         trades = self.parse_trades(response, None, None, None)
-        messageHash = self.build_message_hash(action, {'market': marketId})
+        # messageHash = self.build_message_hash(action, {'market': marketId})
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
     async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
@@ -846,8 +852,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }
         #    }
         #
-        action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
+        # action = self.safe_string(message, 'action')
+        # messageHash = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId')
         response = self.safe_value(message, 'response')
         withdraw = self.parse_transaction(response)
         client.resolve(withdraw, messageHash)
@@ -886,9 +893,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
-        response = self.safe_value(message, 'response')
+        # action = self.safe_string(message, 'action')
+        # messageHash = self.build_message_hash(action, message)
+        response = self.safe_list(message, 'response')
+        messageHash = self.safe_string(message, 'requestId')
         withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
         client.resolve(withdrawals, messageHash)
 
@@ -945,10 +953,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
         response = self.safe_value(message, 'response')
         deposits = self.parse_transactions(response, None, None, None, {'type': 'deposit'})
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(deposits, messageHash)
 
     async def fetch_trading_fees_ws(self, params={}) -> TradingFees:
@@ -1008,8 +1015,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId')
         response = self.safe_value(message, 'response')
         currencies = self.parse_currencies(response)
         client.resolve(currencies, messageHash)
@@ -1027,8 +1033,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }
         #    }
         #
-        action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId')
         response = self.safe_value(message, 'response')
         fees = self.parse_trading_fees(response)
         client.resolve(fees, messageHash)
@@ -1059,8 +1064,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action', 'privateGetBalance')
-        messageHash = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId')
         response = self.safe_value(message, 'response', [])
         balance = self.parse_balance(response)
         client.resolve(balance, messageHash)
@@ -1094,10 +1098,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }
         #    }
         #
-        action = self.safe_string(message, 'action')
         response = self.safe_value(message, 'response', {})
         order = self.parse_order(response)
-        messageHash = self.build_message_hash(action, response)
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(order, messageHash)
 
     def handle_markets(self, client: Client, message):
@@ -1120,10 +1123,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        action = self.safe_string(message, 'action')
         response = self.safe_value(message, 'response', {})
         markets = self.parse_markets(response)
-        messageHash = self.build_message_hash(action, response)
+        messageHash = self.safe_string(message, 'requestId')
         client.resolve(markets, messageHash)
 
     def build_message_hash(self, action, params={}):
@@ -1139,15 +1141,6 @@ class bitvavo(ccxt.async_support.bitvavo):
         if method is not None:
             messageHash = method(action, params)
         return messageHash
-
-    def check_message_hash_does_not_exist(self, messageHash):
-        supressMultipleWsRequestsError = self.safe_bool(self.options, 'supressMultipleWsRequestsError', False)
-        if not supressMultipleWsRequestsError:
-            client = self.safe_value(self.clients, self.urls['api']['ws'])
-            if client is not None:
-                future = self.safe_value(client.futures, messageHash)
-                if future is not None:
-                    raise ExchangeError(self.id + ' a similar request with messageHash ' + messageHash + ' is already pending, you must wait for a response, or turn off self error by setting supressMultipleWsRequestsError in the options to True')
 
     def action_and_market_message_hash(self, action, params={}):
         symbol = self.safe_string(params, 'market', '')
@@ -1292,11 +1285,19 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        errorCode: 217,
         #        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
         #    }
+        #    {
+        #        action: 'privateCreateOrder',
+        #        requestId: '17317539426571916',
+        #        market: 'USDT-EUR',
+        #        errorCode: 216,
+        #        error: 'You do not have sufficient balance to complete self operation.'
+        #    }
         #
         error = self.safe_string(message, 'error')
         code = self.safe_integer(error, 'errorCode')
         action = self.safe_string(message, 'action')
-        messageHash = self.build_message_hash(action, message)
+        buildMessage = self.build_message_hash(action, message)
+        messageHash = self.safe_string(message, 'requestId', buildMessage)
         rejected = False
         try:
             self.handle_errors(code, error, client.url, None, None, error, message, None, None)

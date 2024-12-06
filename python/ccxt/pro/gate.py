@@ -336,7 +336,7 @@ class gate(ccxt.async_support.gate):
         https://www.gate.io/docs/developers/futures/ws/en/#order-list
 
         fetches information on multiple orders made by the user by status
- @param status
+        :param str status: requested order status
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None [since]: the earliest time in ms to fetch orders for
         :param int|None [limit]: the maximum number of order structures to retrieve
@@ -1067,9 +1067,9 @@ class gate(ccxt.async_support.gate):
         https://www.gate.io/docs/developers/options/ws/en/#positions-channel
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
+        :param str[] [symbols]: list of unified market symbols to watch positions for
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

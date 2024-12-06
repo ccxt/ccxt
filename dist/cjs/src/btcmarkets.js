@@ -35,6 +35,7 @@ class btcmarkets extends btcmarkets$1 {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -308,7 +309,7 @@ class btcmarkets extends btcmarkets$1 {
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const cryptoPaymentDetail = this.safeValue(transaction, 'paymentDetail', {});
+        const cryptoPaymentDetail = this.safeDict(transaction, 'paymentDetail', {});
         const txid = this.safeString(cryptoPaymentDetail, 'txId');
         let address = this.safeString(cryptoPaymentDetail, 'address');
         let tag = undefined;
@@ -392,7 +393,7 @@ class btcmarkets extends btcmarkets$1 {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        const fees = this.safeValue(this.safeValue(this.options, 'fees', {}), quote, this.fees);
+        const fees = this.safeValue(this.safeDict(this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
@@ -792,6 +793,7 @@ class btcmarkets extends btcmarkets$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1037,7 +1039,7 @@ class btcmarkets extends btcmarkets$1 {
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const stopPrice = this.safeNumber(order, 'triggerPrice');
-        const postOnly = this.safeValue(order, 'postOnly');
+        const postOnly = this.safeBool(order, 'postOnly');
         return this.safeOrder({
             'info': order,
             'id': id,

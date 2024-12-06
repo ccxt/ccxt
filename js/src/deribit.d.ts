@@ -73,7 +73,9 @@ export default class deribit extends Exchange {
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/#private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -438,8 +440,8 @@ export default class deribit extends Exchange {
      * @description fetch the current funding rate
      * @see https://docs.deribit.com/#public-get_funding_rate_history
      * @param {string} symbol unified market symbol
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch funding rate history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

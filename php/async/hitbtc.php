@@ -1601,7 +1601,7 @@ class hitbtc extends Exchange {
              *
              * @see https://api.hitbtc.com/#order-books
              *
-             * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+             * @param {string[]} [$symbols] list of unified market $symbols, all $symbols fetched if null, default is null
              * @param {int} [$limit] max number of entries per $orderbook to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
@@ -3667,8 +3667,8 @@ class hitbtc extends Exchange {
              *
              * @see https://api.hitbtc.com/#close-all-futures-margin-positions
              *
-             * @param $symbol
-             * @param $side
+             * @param {string} $symbol unified ccxt $market $symbol
+             * @param {string} $side 'buy' or 'sell'
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @param {string} [$params->symbol] *required* unified $market $symbol
              * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'

@@ -36,14 +36,6 @@
                     }
                 ]
             }
-        ],
-        "fetchDeposits": [
-            {
-                "description": "Fetch deposits",
-                "method": "fetchDeposits",
-                "url": "https://api.onetrading.com/fast/v1/account/deposits",
-                "input": []
-            }
         ]
     }
 }

@@ -225,7 +225,7 @@ public partial class binance : ccxt.binance
      * @description watch the public liquidations of a trading pair
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
-     * @param {string[]} symbols
+     * @param {string[]} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
@@ -466,7 +466,7 @@ public partial class binance : ccxt.binance
      * @description watch the private liquidations of a trading pair
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
-     * @param symbols
+     * @param {string[]} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
@@ -3581,7 +3581,7 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
-     * @param {string} symbol unified market symbol, default is undefined
+     * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.cancelRestrictions] Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3632,7 +3632,7 @@ public partial class binance : ccxt.binance
      * @name binance#cancelAllOrdersWs
      * @description cancel all open orders in a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -3675,8 +3675,8 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
@@ -4182,8 +4182,8 @@ public partial class binance : ccxt.binance
      * @name binance#watchPositions
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}

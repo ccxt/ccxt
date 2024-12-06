@@ -1265,8 +1265,8 @@ class kucoinfutures extends kucoin {
              * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
              *
              * @param {string[]} [$symbols] list of unified market $symbols
-             * @param $since
-             * @param $limit
+             * @param {int} [$since] the earliest time in ms to fetch position history for
+             * @param {int} [$limit] the maximum number of entries to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] closing end time
              * @param {int} [$params->pageId] page id
@@ -1487,7 +1487,7 @@ class kucoinfutures extends kucoin {
              * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
              * @param {float} [$params->cost] the cost of the order in units of USDT
              * ----------------- Exchange Specific Parameters -----------------
-             * @param {float} [$params->leverage] Leverage size of the order
+             * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
              * @param {string} [$params->stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down => Triggers when the $price reaches or goes below the stopPrice. up => Triggers when the $price reaches or goes above the stopPrice.
@@ -2502,6 +2502,10 @@ class kucoinfutures extends kucoin {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
+             * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+             * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -2509,41 +2513,93 @@ class kucoinfutures extends kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
-            if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
-                throw new BadRequest($this->id . ' transfer() only supports transfers from contract(future) account to main(funding) account');
-            }
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $amountToPrecision = $this->currency_to_precision($code, $amount);
             $request = array(
-                'currency' => $this->safe_string($currency, 'id'), // Currency,including XBT,USDT
+                'currency' => $this->safe_string($currency, 'id'),
                 'amount' => $amountToPrecision,
             );
-            // transfer from usdm futures wallet to spot wallet
-            $response = Async\await($this->futuresPrivatePostTransferOut ($this->extend($request, $params)));
-            //
-            //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
-            //        }
-            //    }
-            //
-            $data = $this->safe_value($response, 'data');
+            $toAccountString = $this->parse_transfer_type($toAccount);
+            $response = null;
+            if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
+                $request['recAccountType'] = $toAccountString;
+                $response = Async\await($this->futuresPrivatePostTransferOut ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "200000",
+                //         "data" => {
+                //             "applyId" => "6738754373ceee00011ec3f8",
+                //             "bizNo" => "6738754373ceee00011ec3f7",
+                //             "payAccountType" => "CONTRACT",
+                //             "payTag" => "DEFAULT",
+                //             "remark" => "",
+                //             "recAccountType" => "MAIN",
+                //             "recTag" => "DEFAULT",
+                //             "recRemark" => "",
+                //             "recSystem" => "KUCOIN",
+                //             "status" => "PROCESSING",
+                //             "currency" => "USDT",
+                //             "amount" => "5",
+                //             "fee" => "0",
+                //             "sn" => 1519769124846692,
+                //             "reason" => "",
+                //             "createdAt" => 1731753283000,
+                //             "updatedAt" => 1731753283000
+                //         }
+                //     }
+                //
+            } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
+                $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
+                $response = Async\await($this->futuresPrivatePostTransferIn ($this->extend($request, $params)));
+                //
+                //    {
+                //        "code" => "200000",
+                //        "data" => {
+                //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
+                //        }
+                //    }
+                //
+            } else {
+                throw new BadRequest($this->id . ' transfer() only supports transfers between future/swap, spot and funding accounts');
+            }
+            $data = $this->safe_dict($response, 'data', array());
             return $this->extend($this->parse_transfer($data, $currency), array(
                 'amount' => $this->parse_number($amountToPrecision),
-                'fromAccount' => 'future',
-                'toAccount' => 'spot',
+                'fromAccount' => $fromAccount,
+                'toAccount' => $toAccount,
             ));
         }) ();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // $transfer to spot or funding account
         //
         //     {
         //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        // $transfer to future account
+        //
+        //     {
+        //         "applyId" => "6738754373ceee00011ec3f8",
+        //         "bizNo" => "6738754373ceee00011ec3f7",
+        //         "payAccountType" => "CONTRACT",
+        //         "payTag" => "DEFAULT",
+        //         "remark" => "",
+        //         "recAccountType" => "MAIN",
+        //         "recTag" => "DEFAULT",
+        //         "recRemark" => "",
+        //         "recSystem" => "KUCOIN",
+        //         "status" => "PROCESSING",
+        //         "currency" => "USDT",
+        //         "amount" => "5",
+        //         "fee" => "0",
+        //         "sn" => 1519769124846692,
+        //         "reason" => "",
+        //         "createdAt" => 1731753283000,
+        //         "updatedAt" => 1731753283000
         //     }
         //
         $timestamp = $this->safe_integer($transfer, 'updatedAt');
@@ -2552,7 +2608,7 @@ class kucoinfutures extends kucoin {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
+            'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => null,
             'toAccount' => null,
             'status' => $this->safe_string($transfer, 'status'),
@@ -2565,6 +2621,14 @@ class kucoinfutures extends kucoin {
             'PROCESSING' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer_type(?string $transferType): ?string {
+        $transferTypes = array(
+            'spot' => 'TRADE',
+            'funding' => 'MAIN',
+        );
+        return $this->safe_string_upper($transferTypes, $transferType, $transferType);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

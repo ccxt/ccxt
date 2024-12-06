@@ -224,6 +224,7 @@ class testMainClass {
         $is_load_markets = ($method_name === 'loadMarkets');
         $is_fetch_currencies = ($method_name === 'fetchCurrencies');
         $is_proxy_test = ($method_name === $this->proxy_test_file_name);
+        $is_feature_test = ($method_name === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!$is_public && (is_array($this->checked_public_tests) && array_key_exists($method_name, $this->checked_public_tests)) && !$is_fetch_currencies) {
             return;
@@ -232,7 +233,7 @@ class testMainClass {
         $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
         if (!$is_load_markets && (count($this->only_specific_tests) > 0 && !$exchange->in_array($method_name, $this->only_specific_tests))) {
             $skip_message = '[INFO] IGNORED_TEST';
-        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
+        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test) {
             $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } elseif (is_string($skipped_properties_for_method)) {
             $skip_message = '[INFO] SKIPPED_TEST';
@@ -410,6 +411,7 @@ class testMainClass {
 
     public function run_public_tests($exchange, $symbol) {
         $tests = array(
+            'features' => [],
             'fetchCurrencies' => [],
             'fetchTicker' => [$symbol],
             'fetchTickers' => [$symbol],
@@ -869,7 +871,7 @@ class testMainClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+    public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
         }
@@ -963,6 +965,30 @@ class testMainClass {
             }
         }
         return true;  // c# requ
+    }
+
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+        try {
+            return $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check, $asserting_key);
+        } catch(\Throwable $e) {
+            if ($this->info) {
+                $error_message = $this->var_to_string($new_output) . '(calculated)' . ' != ' . $this->var_to_string($stored_output) . '(stored)';
+                dump('[TEST_FAILURE_DETAIL]' . $error_message);
+            }
+            throw $e;
+        }
+    }
+
+    public function var_to_string($obj = null) {
+        $new_string = null;
+        if ($obj === null) {
+            $new_string = 'undefined';
+        } elseif (is_null_value($obj)) {
+            $new_string = 'null';
+        } else {
+            $new_string = json_stringify($obj);
+        }
+        return $new_string;
     }
 
     public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
@@ -1289,7 +1315,17 @@ class testMainClass {
                 $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
             }
         }
-        ($promises);
+        try {
+            ($promises);
+        } catch(\Throwable $e) {
+            if ($type === 'request') {
+                $this->request_tests_failed = true;
+            } else {
+                $this->response_tests_failed = true;
+            }
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . ((string) $e);
+            dump('[TEST_FAILURE]' . $error_message);
+        }
         if ($this->request_tests_failed || $this->response_tests_failed) {
             exit_script(1);
         } else {
@@ -1310,7 +1346,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1863,6 +1899,23 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'coincatch - id: ' . $id . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_defx() {
+        $exchange = $this->init_offline_exchange('defx');
+        $req_headers = null;
+        try {
+            $exchange->create_order('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        $id = 'ccxt';
+        assert($req_headers['X-DEFX-SOURCE'] === $id, 'defx - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

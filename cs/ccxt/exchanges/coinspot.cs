@@ -384,7 +384,7 @@ public partial class coinspot : Exchange
         object response = await this.publicGetLatest(parameters);
         object id = getValue(market, "id");
         id = ((string)id).ToLower();
-        object prices = this.safeValue(response, "prices");
+        object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
         //     {
         //         "status":"ok",
@@ -418,22 +418,22 @@ public partial class coinspot : Exchange
         //
         //    {
         //        "status": "ok",
-        //        "prices": {
-        //        "btc": {
-        //        "bid": "25050",
-        //        "ask": "25370",
-        //        "last": "25234"
-        //        },
-        //        "ltc": {
-        //        "bid": "79.39192993",
-        //        "ask": "87.98",
-        //        "last": "87.95"
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
+        //            }
         //        }
-        //      }
         //    }
         //
         object result = new Dictionary<string, object>() {};
-        object prices = this.safeValue(response, "prices");
+        object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)prices).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -508,37 +508,37 @@ public partial class coinspot : Exchange
         }
         object response = await this.privatePostRoMyTransactions(this.extend(request, parameters));
         //  {
-        //   "status": "ok",
-        //   "buyorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "ALGO/AUD",
-        //       "amount": 386.95197925,
-        //       "created": "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst": 1.80018002,
-        //       "audGst": 0.180018,
-        //       "audtotal": 200
-        //     },
-        //   ],
-        //   "sellorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "SOLO/ALGO",
-        //       "amount": 154.52345614,
-        //       "total": 115.78858204658796,
-        //       "created": "2022-04-16T09:36:43.698Z",
-        //       "audfeeExGst": 1.08995731,
-        //       "audGst": 0.10899573,
-        //       "audtotal": 118.7
-        //     },
-        //   ]
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
         // }
-        object buyTrades = this.safeValue(response, "buyorders", new List<object>() {});
+        object buyTrades = this.safeList(response, "buyorders", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(buyTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(buyTrades, i))["side"] = "buy";
         }
-        object sellTrades = this.safeValue(response, "sellorders", new List<object>() {});
+        object sellTrades = this.safeList(response, "sellorders", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(sellTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";

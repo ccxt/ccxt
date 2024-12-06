@@ -510,7 +510,7 @@ class phemex extends phemex$1 {
     parseSwapMarket(market) {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -518,7 +518,7 @@ class phemex extends phemex$1 {
         //         "markSymbol":".MBTC",
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
-        //         "contractUnderlyingAssets":"USD",
+        //         "contractUnderlyingAssets":"USD", // or eg. `1000 SHIB`
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
@@ -561,7 +561,8 @@ class phemex extends phemex$1 {
         const baseId = this.safeString2(market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString(market, 'quoteCurrency');
         const settleId = this.safeString(market, 'settleCurrency');
-        const base = this.safeCurrencyCode(baseId);
+        let base = this.safeCurrencyCode(baseId);
+        base = base.replace(' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const quote = this.safeCurrencyCode(quoteId);
         const settle = this.safeCurrencyCode(settleId);
         let inverse = false;
@@ -2636,12 +2637,35 @@ class phemex extends phemex$1 {
             if (triggerPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
+                // set direction & exchange specific order type
+                let triggerDirection = undefined;
+                [triggerDirection, params] = this.handleParamString(params, 'triggerDirection');
+                if (triggerDirection === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                }
+                // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
+                if (triggerDirection === 'up') {
+                    if (side === 'sell') {
+                        request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    }
+                    else if (side === 'buy') {
+                        request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
+                    }
+                }
+                else if (triggerDirection === 'down') {
+                    if (side === 'sell') {
+                        request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
+                    }
+                    else if (side === 'buy') {
+                        request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    }
+                }
             }
             if (stopLossDefined || takeProfitDefined) {
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -2661,7 +2685,7 @@ class phemex extends phemex$1 {
                 if (takeProfitDefined) {
                     const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['takeProfitRp'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
@@ -2851,7 +2875,7 @@ class phemex extends phemex$1 {
                 request['baseQtyEV'] = this.toEv(amount, market);
             }
         }
-        const stopPrice = this.safeString2(params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeStringN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (stopPrice !== undefined) {
             if (isUSDTSettled) {
                 request['stopPxRp'] = this.priceToPrecision(symbol, stopPrice);
@@ -2860,7 +2884,7 @@ class phemex extends phemex$1 {
                 request['stopPxEp'] = this.toEp(stopPrice, market);
             }
         }
-        params = this.omit(params, ['stopPx', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         let response = undefined;
         if (isUSDTSettled) {
             const posSide = this.safeString(params, 'posSide');
@@ -4204,6 +4228,7 @@ class phemex extends phemex$1 {
      * @method
      * @name phemex#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
+     * @see https://phemex-docs.github.io/#set-leverage
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4494,6 +4519,8 @@ class phemex extends phemex$1 {
      * @method
      * @name phemex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://phemex-docs.github.io/#transfer-between-spot-and-futures
+     * @see https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -4581,6 +4608,7 @@ class phemex extends phemex$1 {
      * @method
      * @name phemex#fetchTransfers
      * @description fetch a history of internal transfers made on an account
+     * @see https://phemex-docs.github.io/#query-transfer-history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve

@@ -36,15 +36,6 @@ export default class probit extends probitRest {
                     'filter': 'order_books_l2',
                     'interval': 100, // or 500
                 },
-                'watchTrades': {
-                    'filter': 'recent_trades',
-                },
-                'watchTicker': {
-                    'filter': 'ticker',
-                },
-                'watchOrders': {
-                    'channel': 'open_order',
-                },
             },
             'streaming': {
             },
@@ -62,13 +53,7 @@ export default class probit extends probitRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = 'balance';
-        const url = this.urls['api']['ws'];
-        const subscribe: Dict = {
-            'type': 'subscribe',
-            'channel': 'balance',
-        };
-        const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.subscribePrivate (messageHash, 'balance', params);
     }
 
     handleBalance (client: Client, message) {
@@ -131,9 +116,8 @@ export default class probit extends probitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        let filter = undefined;
-        [ filter, params ] = this.handleOptionAndParams (params, 'watchTicker', 'filter', 'ticker');
-        return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
+        const channel = 'ticker';
+        return await this.subscribePublic ('watchTicker', symbol, 'ticker', channel, params);
     }
 
     handleTicker (client: Client, message) {
@@ -178,9 +162,9 @@ export default class probit extends probitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let filter = undefined;
-        [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
-        const trades = await this.subscribeOrderBook (symbol, 'trades', filter, params);
+        const channel = 'recent_trades';
+        symbol = this.safeSymbol (symbol);
+        const trades = await this.subscribePublic ('watchTrades', symbol, 'trades', channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -212,10 +196,12 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const trades = this.safeValue (message, 'recent_trades', []);
-        const reset = this.safeBool (message, 'reset', false);
+        if (this.safeBool (message, 'reset', false)) {
+            return; // see comment in handleMessage
+        }
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
-        if (stored === undefined || reset) {
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
@@ -243,20 +229,12 @@ export default class probit extends probitRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         await this.authenticate (params);
-        let messageHash = 'myTrades';
+        let messageHash = 'trades';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
-        const url = this.urls['api']['ws'];
-        const channel = 'trade_history';
-        const message: Dict = {
-            'type': 'subscribe',
-            'channel': channel,
-        };
-        const request = this.extend (message, params);
-        const trades = await this.watch (url, messageHash, request, channel);
+        const trades = await this.subscribePrivate (messageHash, 'trade_history', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -288,10 +266,12 @@ export default class probit extends probitRest {
         if (length === 0) {
             return;
         }
-        const reset = this.safeBool (message, 'reset', false);
-        const messageHash = 'myTrades';
+        if (this.safeBool (message, 'reset', false)) {
+            return; // see comment in handleMessage
+        }
+        const messageHash = 'trades';
         let stored = this.myTrades;
-        if ((stored === undefined) || reset) {
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCacheBySymbolById (limit);
             this.myTrades = stored;
@@ -300,10 +280,18 @@ export default class probit extends probitRest {
         const tradeSymbols: Dict = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
+            // don't include 'executed' state, because it's just blanket state of the trade, emited before actual trade event
+            if (this.safeString (trade['info'], 'status') === 'executed') {
+                continue;
+            }
             tradeSymbols[trade['symbol']] = true;
             stored.append (trade);
         }
         const unique = Object.keys (tradeSymbols);
+        const uniqueLength = unique.length;
+        if (uniqueLength === 0) {
+            return;
+        }
         for (let i = 0; i < unique.length; i++) {
             const symbol = unique[i];
             const symbolSpecificMessageHash = messageHash + ':' + symbol;
@@ -326,21 +314,12 @@ export default class probit extends probitRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.authenticate (params);
-        const url = this.urls['api']['ws'];
         let messageHash = 'orders';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
-        let channel = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrders', 'channel', 'open_order');
-        const subscribe: Dict = {
-            'type': 'subscribe',
-            'channel': channel,
-        };
-        const request = this.extend (subscribe, params);
-        const orders = await this.watch (url, messageHash, request, channel);
+        const orders = await this.subscribePrivate (messageHash, 'open_order', params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -412,42 +391,53 @@ export default class probit extends probitRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        let filter = undefined;
-        [ filter, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
-        const orderbook = await this.subscribeOrderBook (symbol, 'orderbook', filter, params);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
+        const orderbook = await this.subscribePublic ('watchOrderBook', symbol, 'orderbook', channel, params);
         return orderbook.limit ();
     }
 
-    async subscribeOrderBook (symbol: string, messageHash, filter, params = {}) {
+    async subscribePrivate (messageHash, channel, params) {
+        const url = this.urls['api']['ws'];
+        const subscribe: Dict = {
+            'type': 'subscribe',
+            'channel': channel,
+        };
+        const request = this.extend (subscribe, params);
+        const subscribeHash = messageHash;
+        return await this.watch (url, messageHash, request, subscribeHash);
+    }
+
+    async subscribePublic (methodName: string, symbol: string, dataType, filter, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        let interval = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
-        const subscriptionHash = 'marketdata:' + symbol;
-        messageHash = messageHash + ':' + symbol;
+        const subscribeHash = 'marketdata:' + symbol;
+        const messageHash = dataType + ':' + symbol;
         let filters = {};
-        if (subscriptionHash in client.subscriptions) {
+        if (subscribeHash in client.subscriptions) {
             // already subscribed
-            filters = client.subscriptions[subscriptionHash];
+            filters = client.subscriptions[subscribeHash];
             if (!(filter in filters)) {
                 // resubscribe
-                delete client.subscriptions[subscriptionHash];
+                delete client.subscriptions[subscribeHash];
             }
         }
         filters[filter] = true;
         const keys = Object.keys (filters);
-        const message: Dict = {
-            'channel': 'marketdata',
-            'interval': interval,
-            'market_id': market['id'],
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, methodName, 'interval', 100);
+        let request: Dict = {
             'type': 'subscribe',
+            'channel': 'marketdata',
+            'market_id': market['id'],
             'filter': keys,
+            'interval': interval,
         };
-        const request = this.extend (message, params);
-        return await this.watch (url, messageHash, request, messageHash, filters);
+        request = this.extend (request, params);
+        return await this.watch (url, messageHash, request, subscribeHash, filters);
     }
 
     handleOrderBook (client: Client, message, orderBook) {
@@ -530,7 +520,8 @@ export default class probit extends probitRest {
         const result = this.safeString (message, 'result');
         const future = client.subscriptions['authenticated'];
         if (result === 'ok') {
-            future.resolve (true);
+            const messageHash = 'authenticated';
+            client.resolve (message, messageHash);
         } else {
             future.reject (message);
             delete client.subscriptions['authenticated'];
@@ -543,11 +534,13 @@ export default class probit extends probitRest {
             this.handleTicker (client, message);
         }
         const trades = this.safeValue (message, 'recent_trades', []);
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook.length) {
+        const orderBookLength = orderBook.length;
+        if (orderBookLength) {
             this.handleOrderBook (client, message, orderBook);
         }
     }
@@ -561,6 +554,9 @@ export default class probit extends probitRest {
         //             "interval": "invalid"
         //         }
         //     }
+        //
+        // Note about 'reset' field
+        // 'reset': true field - it happens once after initial subscription, which just returns old items by the moment of subscription (like "fetchMyTrades" does)
         //
         const errorCode = this.safeString (message, 'errorCode');
         if (errorCode !== undefined) {

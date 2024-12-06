@@ -1557,6 +1557,159 @@ export default class binance extends Exchange {
                     'BUSD': 'USD',
                 },
             },
+            'features': {
+                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // not supported
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': true,
+                        'oco': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 1, // days between start-end
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'mark': true,
+                            'last': true,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // not supported
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                            // 'GTX': true,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': undefined,
+                        'limit': 1000,
+                        'untilDays': 7,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 90,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': 3,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 'spot': {
                     'exact': {
@@ -1952,12 +2105,15 @@ export default class binance extends Exchange {
                         '-4088': PermissionDenied, // User can not place order currently
                         '-4114': BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115': BadRequest, // DUPLICATED_CLIENT_TRAN_ID
+                        '-4116': InvalidOrder, // DUPLICATED_CLIENT_ORDER_ID
+                        '-4117': OperationRejected, // STOP_ORDER_TRIGGERING
                         '-4118': OperationRejected, // REDUCE_ONLY_MARGIN_CHECK_FAILED
                         '-4131': OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
                         '-4140': BadRequest, // Invalid symbol status for opening position
                         '-4141': OperationRejected, // Symbol is closed
                         '-4144': BadSymbol, // Invalid pair
-                        '-4164': InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."}
+                        '-4164': InvalidOrder, // {"code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."},
+                        '-4136': InvalidOrder, // {"code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition true"}
                         '-4165': BadRequest, // Invalid time interval
                         '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -6154,6 +6310,7 @@ export default class binance extends Exchange {
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        const closePosition = this.safeBool (params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -6223,13 +6380,14 @@ export default class binance extends Exchange {
             stopPriceIsRequired = true;
             priceIsRequired = true;
         } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeBool (params, 'closePosition');
-            if (closePosition === undefined) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            if (!closePosition) {
+                quantityIsRequired = true;
+            }
             if (trailingPercent === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
@@ -11580,11 +11738,11 @@ export default class binance extends Exchange {
     getExceptionsByUrl (url: string, exactOrBroad: string) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith ('https://api.' + hostname + '/')) {
+        if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://testnet.binance.vision')) {
             marketType = 'spot';
-        } else if (url.startsWith ('https://dapi.' + hostname + '/')) {
+        } else if (url.startsWith ('https://dapi.' + hostname + '/') || url.startsWith ('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
-        } else if (url.startsWith ('https://fapi.' + hostname + '/')) {
+        } else if (url.startsWith ('https://fapi.' + hostname + '/') || url.startsWith ('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         } else if (url.startsWith ('https://eapi.' + hostname + '/')) {
             marketType = 'option';
@@ -13207,6 +13365,7 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @name binance#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History

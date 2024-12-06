@@ -662,7 +662,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
@@ -1042,8 +1042,8 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
      * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
      * @param {string} [type] "add" or "reduce"
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}

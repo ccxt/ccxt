@@ -8,14 +8,14 @@ export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: boolean): void;
     /**
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @method
-     * @name gate#isUnifiedEnabled
+     * @name gate#loadUnifiedStatus
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    loadUnifiedStatus(params?: {}): Promise<void>;
+    loadUnifiedStatus(params?: {}): Promise<any>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
     /**
      * @method
@@ -97,9 +97,9 @@ export default class gate extends Exchange {
     fetchOptionMarkets(params?: {}): Promise<any[]>;
     fetchOptionUnderlyings(): Promise<any[]>;
     prepareRequest(market?: any, type?: any, params?: {}): Dict[];
-    spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
+    spotOrderPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
     multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
-    getMarginMode(stop: any, params: any): any[];
+    getMarginMode(trigger: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     /**
      * @method
@@ -300,6 +300,8 @@ export default class gate extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
@@ -520,7 +522,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
@@ -543,7 +545,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
@@ -564,7 +566,7 @@ export default class gate extends Exchange {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */

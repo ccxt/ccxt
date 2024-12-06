@@ -154,8 +154,8 @@ export default class kucoinfutures extends kucoin {
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
      * @param {string[]} [symbols] list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
@@ -185,7 +185,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
-     * @param {float} [params.leverage] Leverage size of the order
+     * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
      * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
@@ -356,6 +356,8 @@ export default class kucoinfutures extends kucoin {
      * @method
      * @name kucoinfutures#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -366,6 +368,7 @@ export default class kucoinfutures extends kucoin {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
+    parseTransferType(transferType: Str): Str;
     /**
      * @method
      * @name kucoinfutures#fetchMyTrades
@@ -492,7 +495,7 @@ export default class kucoinfutures extends kucoin {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<MarginMode>;
     /**
      * @method
-     * @name kucoin#fetchLeverage
+     * @name kucoinfutures#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
      * @param {string} symbol unified market symbol

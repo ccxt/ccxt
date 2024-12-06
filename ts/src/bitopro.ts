@@ -36,6 +36,8 @@ export default class bitopro extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -145,6 +147,7 @@ export default class bitopro extends Exchange {
                         'wallet/withdraw/{currency}/id/{id}': 1,
                         'wallet/depositHistory/{currency}': 1,
                         'wallet/withdrawHistory/{currency}': 1,
+                        'orders/open': 1,
                     },
                     'post': {
                         'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
@@ -1016,6 +1019,7 @@ export default class bitopro extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1297,11 +1301,28 @@ export default class bitopro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitopro#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        const request: Dict = {
-            'statusKind': 'OPEN',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        const response = await this.privateGetOrdersOpen (this.extend (request, params));
+        const orders = this.safeList (response, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**

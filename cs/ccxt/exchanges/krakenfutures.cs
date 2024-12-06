@@ -28,6 +28,8 @@ public partial class krakenfutures : Exchange
                 { "cancelOrders", true },
                 { "createMarketOrder", false },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
@@ -129,7 +131,7 @@ public partial class krakenfutures : Exchange
                     { "invalidAmount", typeof(BadRequest) },
                     { "insufficientFunds", typeof(InsufficientFunds) },
                     { "Bad Request", typeof(BadRequest) },
-                    { "Unavailable", typeof(InsufficientFunds) },
+                    { "Unavailable", typeof(ExchangeNotAvailable) },
                     { "invalidUnit", typeof(BadRequest) },
                     { "Json Parse Error", typeof(ExchangeError) },
                     { "nonceBelowThreshold", typeof(InvalidNonce) },
@@ -2718,6 +2720,8 @@ public partial class krakenfutures : Exchange
     }
 
     /**
+     * @method
+     * @name krakenfutures#transferOut
      * @description transfer from futures wallet to spot wallet
      * @param {str} code Unified currency code
      * @param {float} amount Size of the transfer

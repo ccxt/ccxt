@@ -32,15 +32,17 @@ export default class bitrue extends bitrueRest {
             },
             'api': {
                 'open': {
-                    'private': {
-                        'post': {
-                            'poseidon/api/v1/listenKey': 1,
-                        },
-                        'put': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
-                        },
-                        'delete': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'poseidon/api/v1/listenKey': 1,
+                            },
+                            'put': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
+                            'delete': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
                         },
                     },
                 },
@@ -425,7 +427,7 @@ export default class bitrue extends bitrueRest {
     async authenticate (params = {}) {
         const listenKey = this.safeValue (this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
+            const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
             //
             //     {
             //         "msg": "succ",
@@ -451,7 +453,7 @@ export default class bitrue extends bitrueRest {
             'listenKey': listenKey,
         };
         try {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {

@@ -39,6 +39,8 @@ public partial class hyperliquid : Exchange
                 { "createOrder", true },
                 { "createOrders", true },
                 { "createReduceOnlyOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -191,9 +193,11 @@ public partial class hyperliquid : Exchange
                     { "User or API Wallet ", typeof(InvalidOrder) },
                     { "Order has invalid size", typeof(InvalidOrder) },
                     { "Order price cannot be more than 80% away from the reference price", typeof(InvalidOrder) },
+                    { "Order has zero size.", typeof(InvalidOrder) },
+                    { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                 } },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
@@ -353,6 +357,60 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
+     * @name calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    public virtual object calculatePricePrecision(object price, object amountPrecision, object maxDecimals)
+    {
+        object pricePrecision = 0;
+        object priceStr = this.numberToString(price);
+        if (isTrue(isEqual(priceStr, null)))
+        {
+            return 0;
+        }
+        object priceSplitted = ((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        if (isTrue(Precise.stringEq(priceStr, "0")))
+        {
+            // Significant digits is always 5 in this case
+            object significantDigits = 5;
+            // Integer digits is always 0 in this case (0 doesn't count)
+            object integerDigits = 0;
+            // Calculate the price precision
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, integerDigits));
+        } else if (isTrue(isTrue(Precise.stringGt(priceStr, "0")) && isTrue(Precise.stringLt(priceStr, "1"))))
+        {
+            // Significant digits, always 5 in this case
+            object significantDigits = 5;
+            // Get the part after the decimal separator
+            object decimalPart = this.safeString(priceSplitted, 1, "");
+            // Count the number of leading zeros in the decimal part
+            object leadingZeros = 0;
+            while (isTrue((isLessThanOrEqual(leadingZeros, ((string)decimalPart).Length))) && isTrue((isEqual(getValue(decimalPart, leadingZeros), "0"))))
+            {
+                leadingZeros = add(leadingZeros, 1);
+            }
+            // Calculate price precision based on leading zeros and significant digits
+            pricePrecision = add(leadingZeros, significantDigits);
+            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), pricePrecision);
+        } else
+        {
+            // Count the numbers before the decimal separator
+            object integerPart = this.safeString(priceSplitted, 0, "");
+            // Get significant digits, take the max() of 5 and the integer digits count
+            object significantDigits = mathMax(5, ((string)integerPart).Length);
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, ((string)integerPart).Length));
+        }
+        return this.parseToInt(pricePrecision);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
@@ -443,7 +501,11 @@ public partial class hyperliquid : Exchange
             object symbol = add(add(bs, "/"), quote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            object amountPrecision = this.safeInteger(innerBaseTokenInfo, "szDecimals");
+            object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
+            object amountPrecision = parseInt(amountPrecisionStr);
+            object price = this.safeNumber(extraData, "midPx");
+            object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(i, 10000));
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -474,8 +536,8 @@ public partial class hyperliquid : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", amountPrecision },
-                    { "price", subtract(8, amountPrecision) },
+                    { "amount", this.parseNumber(this.parsePrecision(amountPrecisionStr)) },
+                    { "price", this.parseNumber(this.parsePrecision(pricePrecisionStr)) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -543,7 +605,11 @@ public partial class hyperliquid : Exchange
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
-        object amountPrecision = this.safeInteger(market, "szDecimals");
+        object amountPrecisionStr = this.safeString(market, "szDecimals");
+        object amountPrecision = parseInt(amountPrecisionStr);
+        object price = this.safeNumber(market, "markPx", 0);
+        object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        object pricePrecisionStr = this.numberToString(pricePrecision);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
@@ -571,8 +637,8 @@ public partial class hyperliquid : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", amountPrecision },
-                { "price", subtract(6, amountPrecision) },
+                { "amount", this.parseNumber(this.parsePrecision(amountPrecisionStr)) },
+                { "price", this.parseNumber(this.parsePrecision(pricePrecisionStr)) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -751,8 +817,9 @@ public partial class hyperliquid : Exchange
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', by default fetches both
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -761,7 +828,19 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        object response = await this.fetchMarkets(parameters);
+        object response = new List<object>() {};
+        object type = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, "type");
+        if (isTrue(isEqual(type, "spot")))
+        {
+            response = await this.fetchSpotMarkets(parameters);
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            response = await this.fetchSwapMarkets(parameters);
+        } else
+        {
+            response = await this.fetchMarkets(parameters);
+        }
         // same response as under "fetchMarkets"
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -1075,10 +1154,13 @@ public partial class hyperliquid : Exchange
     public override object priceToPrecision(object symbol, object price)
     {
         object market = this.market(symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        object result = this.decimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
-        object decimalParsedResult = this.decimalToPrecision(result, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
-        return decimalParsedResult;
+        object priceStr = this.numberToString(price);
+        object integerPart = getValue(((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 0);
+        object significantDigits = mathMax(5, ((string)integerPart).Length);
+        object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        object maxDecimals = ((bool) isTrue(getValue(market, "spot"))) ? 8 : 6;
+        object subtractedValue = subtract(maxDecimals, this.precisionFromString(this.safeString(getValue(market, "precision"), "amount")));
+        return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
     public virtual object hashMessage(object message)
@@ -1192,7 +1274,7 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual object buildTransferSig(object message)
+    public virtual object buildUsdSendSig(object message)
     {
         object messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UsdSend", new List<object>() {new Dictionary<string, object>() {
@@ -1206,6 +1288,26 @@ public partial class hyperliquid : Exchange
     { "type", "string" },
 }, new Dictionary<string, object>() {
     { "name", "time" },
+    { "type", "uint64" },
+}} },
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    public virtual object buildUsdClassSendSig(object message)
+    {
+        object messageTypes = new Dictionary<string, object>() {
+            { "HyperliquidTransaction:UsdClassTransfer", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "amount" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "toPerp" },
+    { "type", "bool" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
     { "type", "uint64" },
 }} },
         };
@@ -2842,27 +2944,38 @@ public partial class hyperliquid : Exchange
             {
                 throw new NotSupported ((string)add(this.id, "transfer() only support spot <> swap transfer")) ;
             }
+            object strAmount = this.numberToString(amount);
             object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
             parameters = this.omit(parameters, "vaultAddress");
+            if (isTrue(!isEqual(vaultAddress, null)))
+            {
+                strAmount = add(add(strAmount, " subaccount:"), vaultAddress);
+            }
             object toPerp = isTrue((isEqual(toAccount, "perp"))) || isTrue((isEqual(toAccount, "swap")));
-            object action = new Dictionary<string, object>() {
-                { "type", "spotUser" },
-                { "classTransfer", new Dictionary<string, object>() {
-                    { "usdc", amount },
-                    { "toPerp", toPerp },
-                } },
-            };
-            object signature = this.signL1Action(action, nonce, vaultAddress);
-            object innerRequest = new Dictionary<string, object>() {
-                { "action", action },
+            object transferPayload = new Dictionary<string, object>() {
+                { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
+                { "amount", strAmount },
+                { "toPerp", toPerp },
                 { "nonce", nonce },
-                { "signature", signature },
+            };
+            object transferSig = this.buildUsdClassSendSig(transferPayload);
+            object transferRequest = new Dictionary<string, object>() {
+                { "action", new Dictionary<string, object>() {
+                    { "hyperliquidChain", getValue(transferPayload, "hyperliquidChain") },
+                    { "signatureChainId", "0x66eee" },
+                    { "type", "usdClassTransfer" },
+                    { "amount", strAmount },
+                    { "toPerp", toPerp },
+                    { "nonce", nonce },
+                } },
+                { "nonce", nonce },
+                { "signature", transferSig },
             };
             if (isTrue(!isEqual(vaultAddress, null)))
             {
-                ((IDictionary<string,object>)innerRequest)["vaultAddress"] = vaultAddress;
+                ((IDictionary<string,object>)transferRequest)["vaultAddress"] = vaultAddress;
             }
-            object transferResponse = await this.privatePostExchange(innerRequest);
+            object transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2881,7 +2994,7 @@ public partial class hyperliquid : Exchange
             { "amount", this.numberToString(amount) },
             { "time", nonce },
         };
-        object sig = this.buildTransferSig(payload);
+        object sig = this.buildUsdSendSig(payload);
         object request = new Dictionary<string, object>() {
             { "action", new Dictionary<string, object>() {
                 { "hyperliquidChain", getValue(payload, "hyperliquidChain") },

@@ -89,6 +89,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
+                'fetchDepositId': True,
+                'fetchDepositIds': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -2182,7 +2184,8 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :param dict [params.type]: "spot"(default) or "swap" or "future"
+        :param str [params.type]: "spot"(default) or "swap" or "future"
+        :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -2199,7 +2202,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = 250
             response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
-            request['limit'] = 100
+            request['limit'] = 250
             response = await self.v2PrivateGetAccounts(self.extend(request, params))
         #
         # v2PrivateGetAccounts
@@ -2311,28 +2314,8 @@ class coinbase(Exchange, ImplicitAPI):
         pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
         if (cursor is not None) and (cursor != ''):
-            lastFee = self.safe_dict(last, 'fee')
-            last['next_starting_after'] = cursor
-            ledger[lastIndex] = {
-                'info': self.safe_dict(last, 'info'),
-                'id': self.safe_string(last, 'id'),
-                'timestamp': self.safe_integer(last, 'timestamp'),
-                'datetime': self.safe_string(last, 'datetime'),
-                'direction': self.safe_string(last, 'direction'),
-                'account': self.safe_string(last, 'account'),
-                'referenceId': None,
-                'referenceAccount': None,
-                'type': self.safe_string(last, 'type'),
-                'currency': self.safe_string(last, 'currency'),
-                'amount': self.safe_number(last, 'amount'),
-                'before': None,
-                'after': None,
-                'status': self.safe_string(last, 'status'),
-                'fee': {
-                    'cost': self.safe_number(lastFee, 'cost'),
-                    'currency': self.safe_string(lastFee, 'currency'),
-                },
-            }
+            last['info']['next_starting_after'] = cursor
+            ledger[lastIndex] = last
         return ledger
 
     def parse_ledger_entry_status(self, status):
@@ -4121,6 +4104,90 @@ class coinbase(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
+
+    async def fetch_deposit_ids(self, params={}):
+        """
+        fetch the deposit id for a fiat currency associated with self account
+
+        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an array of `deposit id structures <https://docs.ccxt.com/#/?id=deposit-id-structure>`
+        """
+        await self.load_markets()
+        response = await self.v3PrivateGetBrokeragePaymentMethods(params)
+        #
+        #     {
+        #         "payment_methods": [
+        #             {
+        #                 "id": "21b39a5d-f7b46876fb2e",
+        #                 "type": "COINBASE_FIAT_ACCOUNT",
+        #                 "name": "CAD Wallet",
+        #                 "currency": "CAD",
+        #                 "verified": True,
+        #                 "allow_buy": False,
+        #                 "allow_sell": True,
+        #                 "allow_deposit": False,
+        #                 "allow_withdraw": False,
+        #                 "created_at": "2023-06-29T19:58:46Z",
+        #                 "updated_at": "2023-10-30T20:25:01Z"
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_list(response, 'payment_methods', [])
+        return self.parse_deposit_ids(result)
+
+    async def fetch_deposit_id(self, id: str, params={}):
+        """
+        fetch the deposit id for a fiat currency associated with self account
+
+        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+
+        :param str id: the deposit payment method id
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `deposit id structure <https://docs.ccxt.com/#/?id=deposit-id-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'payment_method_id': id,
+        }
+        response = await self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(self.extend(request, params))
+        #
+        #     {
+        #         "payment_method": {
+        #             "id": "21b39a5d-f7b46876fb2e",
+        #             "type": "COINBASE_FIAT_ACCOUNT",
+        #             "name": "CAD Wallet",
+        #             "currency": "CAD",
+        #             "verified": True,
+        #             "allow_buy": False,
+        #             "allow_sell": True,
+        #             "allow_deposit": False,
+        #             "allow_withdraw": False,
+        #             "created_at": "2023-06-29T19:58:46Z",
+        #             "updated_at": "2023-10-30T20:25:01Z"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'payment_method', {})
+        return self.parse_deposit_id(result)
+
+    def parse_deposit_ids(self, ids, params={}):
+        result = []
+        for i in range(0, len(ids)):
+            id = self.extend(self.parse_deposit_id(ids[i]), params)
+            result.append(id)
+        return result
+
+    def parse_deposit_id(self, depositId):
+        return {
+            'info': depositId,
+            'id': self.safe_string(depositId, 'id'),
+            'currency': self.safe_string(depositId, 'currency'),
+            'verified': self.safe_bool(depositId, 'verified'),
+            'tag': self.safe_string(depositId, 'name'),
+        }
 
     async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """

@@ -91,6 +91,7 @@ export default class Exchange {
         this.last_request_path = undefined;
         this.id = 'Exchange';
         this.markets = undefined;
+        this.features = undefined;
         this.status = undefined;
         this.rateLimit = undefined; // milliseconds
         this.tokenBucket = undefined;
@@ -1943,7 +1944,7 @@ export default class Exchange {
                 const entryFiledEqualValue = entry[field] === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue(entry, key);
-                const entryKeyGESince = (entryKeyValue) && since && (entryKeyValue >= since);
+                const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
@@ -1955,6 +1956,12 @@ export default class Exchange {
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode(enabled) {
         if (enabled) {
             if ('test' in this.urls) {
@@ -2299,6 +2306,99 @@ export default class Exchange {
     }
     afterConstruct() {
         this.createNetworksByIdObject();
+        this.featuresGenerator();
+    }
+    featuresGenerator() {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : {
+        //             'createOrder' : {...},
+        //             'fetchOrders' : {...},
+        //         },
+        //         'swap': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         },
+        //         'future': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot": {
+        //             "createOrder": undefined,
+        //             "fetchBalance": undefined,
+        //             ...
+        //         },
+        //         "swap": {
+        //             ...
+        //         }
+        //     }
+        //
+        if (this.features === undefined) {
+            return;
+        }
+        // reconstruct
+        const initialFeatures = this.features;
+        this.features = {};
+        const unifiedMarketTypes = ['spot', 'swap', 'future', 'option'];
+        const subTypes = ['linear', 'inverse'];
+        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for (let i = 0; i < unifiedMarketTypes.length; i++) {
+            const marketType = unifiedMarketTypes[i];
+            // if marketType is not filled for this exchange, don't add that in `features`
+            if (!(marketType in initialFeatures)) {
+                this.features[marketType] = undefined;
+            }
+            else {
+                if (marketType === 'spot') {
+                    this.features[marketType] = this.featuresMapper(initialFeatures, marketType, undefined);
+                }
+                else {
+                    this.features[marketType] = {};
+                    for (let j = 0; j < subTypes.length; j++) {
+                        const subType = subTypes[j];
+                        this.features[marketType][subType] = this.featuresMapper(initialFeatures, marketType, subType);
+                    }
+                }
+            }
+        }
+    }
+    featuresMapper(initialFeatures, marketType, subType = undefined) {
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        const extendsStr = this.safeString(featuresObj, 'extends');
+        if (extendsStr !== undefined) {
+            featuresObj = this.omit(featuresObj, 'extends');
+            const extendObj = this.featuresMapper(initialFeatures, extendsStr);
+            featuresObj = this.deepExtend(extendObj, featuresObj);
+        }
+        //
+        // corrections
+        //
+        if ('createOrder' in featuresObj) {
+            const value = this.safeDict(featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if (value !== undefined) {
+                featuresObj['createOrder']['stopLoss'] = value;
+                featuresObj['createOrder']['takeProfit'] = value;
+            }
+            // for spot, default 'hedged' to false
+            if (marketType === 'spot') {
+                featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
+            if (gtcValue === undefined) {
+                featuresObj['createOrder']['timeInForce']['gtc'] = true;
+            }
+        }
+        return featuresObj;
     }
     orderbookChecksumMessage(symbol) {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
@@ -3404,6 +3504,16 @@ export default class Exchange {
         }
         return result;
     }
+    currencyIds(codes = undefined) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push(this.currencyId(codes[i]));
+        }
+        return result;
+    }
     marketsForSymbols(symbols = undefined) {
         if (symbols === undefined) {
             return symbols;
@@ -3829,6 +3939,16 @@ export default class Exchange {
     }
     setHeaders(headers) {
         return headers;
+    }
+    currencyId(code) {
+        let currency = this.safeDict(this.currencies, code);
+        if (currency === undefined) {
+            currency = this.safeCurrency(code);
+        }
+        if (currency !== undefined) {
+            return currency['id'];
+        }
+        return code;
     }
     marketId(symbol) {
         const market = this.market(symbol);
