@@ -1372,17 +1372,15 @@ export default class hyperliquid extends Exchange {
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
-            let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            if (triggerPrice !== undefined) {
-                throw new InvalidOrder (this.id + ' triggerPrice is not supported, you can use stopLossPrice or takeProfitPrice');
-            }
+            const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
+            const isTrigger = (triggerPrice !== undefined);
             const stopLossPrice = this.safeString (orderParams, 'stopLossPrice');
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
             const isProtective = (stopLossPrice || takeProfitPrice);
             let px = undefined;
             if (isMarket) {
                 if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
+                    throw new ArgumentsRequired (this.id + ' market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
                 px = this.priceToPrecision (symbol, px); // round after adding slippage
@@ -1394,16 +1392,28 @@ export default class hyperliquid extends Exchange {
             const orderType: Dict = {};
             if (isProtective) {
                 let isTp = false;
+                let tpslTriggerPrice = undefined;
                 if (takeProfitPrice !== undefined) {
-                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    tpslTriggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     isTp = true;
                 } else {
-                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    tpslTriggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
                 orderType['trigger'] = {
                     'isMarket': isMarket,
-                    'triggerPx': triggerPrice,
+                    'triggerPx': tpslTriggerPrice,
                     'tpsl': (isTp) ? 'tp' : 'sl',
+                };
+            } else if (isTrigger) {
+                let triggerDirection = undefined;
+                [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
+                if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
+                    throw new ArgumentsRequired (this.id + ' createOrders() trigger orders require params["triggerDirection"] to be either "up" or "down"');
+                }
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': this.priceToPrecision (symbol, triggerPrice),
+                    'triggerDirection': triggerDirection,
                 };
             } else {
                 orderType['limit'] = {
