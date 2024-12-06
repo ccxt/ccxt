@@ -508,7 +508,7 @@ export default class hyperliquid extends Exchange {
             const pricePrecision = this.calculatePricePrecision (price, amountPrecision, 8);
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString (i + 10000);
+            const baseId = this.numberToString (meta[i].index + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': marketName,
                 'symbol': symbol,
