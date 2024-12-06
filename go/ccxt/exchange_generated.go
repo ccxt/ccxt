@@ -3876,8 +3876,11 @@ func  (this *Exchange) Fetch2(path interface{}, optionalArgs ...interface{}) <- 
             _ = config
             if IsTrue(this.EnableRateLimit) {
                 var cost interface{} = this.CalculateRateLimiterCost(api, method, path, params, config)
-        
+                before := this.Milliseconds()
+                Print("before throttle: " + ToString(path))
                 retRes934980 := (<-this.Throttle(cost))
+                after := this.Milliseconds()
+                Print(" delay: " +  ToString(Subtract(after, before)) +  " ms")
                 PanicOnError(retRes934980)
             }
             this.LastRestRequestTimestamp = this.Milliseconds()

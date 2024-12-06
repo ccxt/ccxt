@@ -160,7 +160,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// this.Id = this.id
 	//this.itf = itf
 	this.initializeProperties(extendedProperties)
-
+	this.InitRestRateLimiter()
 	this.AfterConstruct()
 
 	if (this.Markets != nil) && (len(this.Markets) > 0) {
@@ -239,7 +239,9 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
-		task := this.Throttler.Throttle(cost)
+		before := this.Milliseconds()
+		task := <-this.Throttler.Throttle(cost)
+		after := this.Milliseconds()
 		ch <- task
 	}()
 	return ch

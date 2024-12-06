@@ -1,6 +1,10 @@
 package ccxt
 
-import "time"
+import (
+	"time"
+
+	u "github.com/google/uuid"
+)
 
 type Throttler struct {
 	Queue   Queue
@@ -9,10 +13,19 @@ type Throttler struct {
 }
 
 func NewThrottler(config map[string]interface{}) Throttler {
+	defaultConfig := map[string]interface{}{
+		"refillRate":  1.0,
+		"delay":       0.001,
+		"capacity":    1.0,
+		"maxCapacity": 2000,
+		"tokens":      0,
+		"cost":        1.0,
+	}
+
 	return Throttler{
 		Queue:   NewQueue(),
 		Running: false,
-		Config:  config,
+		Config:  ExtendMap(defaultConfig, config),
 	}
 }
 
@@ -29,13 +42,14 @@ func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
 	queueElement := QueueElement{
 		Cost: cost,
 		Task: task,
+		Id:   u.New().String(),
 	}
 
 	t.Queue.Enqueue(queueElement)
 
 	if !t.Running {
 		t.Running = true
-		t.Loop()
+		go t.Loop()
 	}
 
 	return task
@@ -44,12 +58,12 @@ func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
 func (t *Throttler) Loop() {
 
 	lastTimestamp := Milliseconds()
-	for true {
+	for t.Running {
 		if t.Queue.IsEmpty() {
 			t.Running = false
 			continue
 		}
-		first, _ := t.Queue.Dequeue()
+		first, _ := t.Queue.Peek()
 		task := first.Task
 		cost := first.Cost
 
@@ -62,19 +76,19 @@ func (t *Throttler) Loop() {
 				task <- true
 				close(task)
 			}
-
 			t.Queue.Dequeue()
 
 			if t.Queue.IsEmpty() {
 				t.Running = false
 			}
 		} else {
-			sleepTime := (t.Config["delay"].(int)) * 1000
+			sleepTime := ToFloat64(t.Config["delay"]) * 1000
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 			current := Milliseconds()
 			elapsed := current - lastTimestamp
 			lastTimestamp = current
-			tokens := ToFloat64(t.Config["tokens"]) + (ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed))
+			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
+			tokens := ToFloat64(t.Config["tokens"]) + sumTokens
 			t.Config["tokens"] = MathMin(tokens, ToFloat64(t.Config["capacity"]))
 		}
 	}

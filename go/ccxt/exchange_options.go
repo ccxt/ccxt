@@ -374,7 +374,7 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 	if len(propCurrencies) > 0 {
 		this.Currencies = propCurrencies
 	}
-
+	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
 	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
 	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))

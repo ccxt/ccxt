@@ -8,6 +8,7 @@ import (
 type QueueElement struct {
 	Cost float64
 	Task chan bool
+	Id   string
 }
 
 type Queue struct {
