@@ -239,9 +239,7 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
-		before := this.Milliseconds()
 		task := <-this.Throttler.Throttle(cost)
-		after := this.Milliseconds()
 		ch <- task
 	}()
 	return ch
