@@ -1614,7 +1614,6 @@ export default class binance extends Exchange {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // not supported
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -1681,7 +1680,6 @@ export default class binance extends Exchange {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // not supported
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,

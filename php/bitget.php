@@ -1449,8 +1449,8 @@ class bitget extends Exchange {
                             'index' => false, // not on spot
                         ),
                         'triggerDirection' => false,
-                        'stopLossPrice' => true, // but not yet implemented in spot
-                        'takeProfitPrice' => true, // but not yet implemented in spot
+                        'stopLossPrice' => true, // todo =>  not yet implemented in spot
+                        'takeProfitPrice' => true, // todo => not yet implemented in spot
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => array(
                                 'last' => false,
@@ -1460,7 +1460,6 @@ class bitget extends Exchange {
                             'limitPrice' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -1531,7 +1530,6 @@ class bitget extends Exchange {
                             'limitPrice' => false,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,

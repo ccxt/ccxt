@@ -34,7 +34,10 @@ function test_features($exchange, $skipped_properties) {
                         $sub_key = $sub_keys[$j];
                         assert_in_array($exchange, $skipped_properties, 'features', $sub_keys, $j, $sub_types);
                         $sub_value = $value[$sub_key];
-                        test_features_inner($exchange, $skipped_properties, $sub_value);
+                        // sometimes it might not be available for exchange, eg. future>inverse)
+                        if ($sub_value !== null) {
+                            test_features_inner($exchange, $skipped_properties, $sub_value);
+                        }
                     }
                 }
             }
@@ -65,7 +68,6 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                 'limitPrice' => false,
             ),
             'timeInForce' => array(
-                'GTC' => false,
                 'IOC' => false,
                 'FOK' => false,
                 'PO' => false,
