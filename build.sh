@@ -58,7 +58,7 @@ function run_tests {
 }
 
 build_and_test_all () {
-  npm run force-build
+  travis_wait 20 npm run force-build
   if [ "$IS_TRAVIS" = "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
     echo "DEBUG: $merged_pull_request" # for debugging
