@@ -211,6 +211,96 @@ class hyperliquid extends Exchange {
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 1000,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forPerps' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null, // todo, in two orders
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -499,7 +589,7 @@ class hyperliquid extends Exchange {
             $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
             $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
-            $baseId = $this->number_to_string($i + 10000);
+            $baseId = $this->number_to_string($index + 10000);
             $markets[] = $this->safe_market_structure(array(
                 'id' => $marketName,
                 'symbol' => $symbol,

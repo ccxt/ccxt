@@ -81,8 +81,8 @@ export default class coinbase extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
-                'fetchDepositId': true,
-                'fetchDepositIds': true,
+                'fetchDepositMethodId': true,
+                'fetchDepositMethodIds': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -4289,13 +4289,13 @@ export default class coinbase extends Exchange {
     }
     /**
      * @method
-     * @name coinbase#fetchDepositIds
+     * @name coinbase#fetchDepositMethodIds
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    async fetchDepositIds(params = {}) {
+    async fetchDepositMethodIds(params = {}) {
         await this.loadMarkets();
         const response = await this.v3PrivateGetBrokeragePaymentMethods(params);
         //
@@ -4318,18 +4318,18 @@ export default class coinbase extends Exchange {
         //     }
         //
         const result = this.safeList(response, 'payment_methods', []);
-        return this.parseDepositIds(result);
+        return this.parseDepositMethodIds(result);
     }
     /**
      * @method
-     * @name coinbase#fetchDepositId
+     * @name coinbase#fetchDepositMethodId
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
      * @param {string} id the deposit payment method id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    async fetchDepositId(id, params = {}) {
+    async fetchDepositMethodId(id, params = {}) {
         await this.loadMarkets();
         const request = {
             'payment_method_id': id,
@@ -4353,17 +4353,17 @@ export default class coinbase extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'payment_method', {});
-        return this.parseDepositId(result);
+        return this.parseDepositMethodId(result);
     }
-    parseDepositIds(ids, params = {}) {
+    parseDepositMethodIds(ids, params = {}) {
         const result = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = this.extend(this.parseDepositId(ids[i]), params);
+            const id = this.extend(this.parseDepositMethodId(ids[i]), params);
             result.push(id);
         }
         return result;
     }
-    parseDepositId(depositId) {
+    parseDepositMethodId(depositId) {
         return {
             'info': depositId,
             'id': this.safeString(depositId, 'id'),
