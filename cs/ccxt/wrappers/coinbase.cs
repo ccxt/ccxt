@@ -1187,9 +1187,9 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchDepositIds(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchDepositMethodIds(Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchDepositIds(parameters);
+        var res = await this.fetchDepositMethodIds(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
@@ -1207,9 +1207,9 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositId(string id, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchDepositMethodId(string id, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchDepositId(id, parameters);
+        var res = await this.fetchDepositMethodId(id, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>

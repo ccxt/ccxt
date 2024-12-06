@@ -484,31 +484,31 @@ export default class coinbase extends Exchange {
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
-     * @name coinbase#fetchDepositIds
+     * @name coinbase#fetchDepositMethodIds
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    fetchDepositIds(params?: {}): Promise<any[]>;
+    fetchDepositMethodIds(params?: {}): Promise<any[]>;
     /**
      * @method
-     * @name coinbase#fetchDepositId
+     * @name coinbase#fetchDepositMethodId
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
      * @param {string} id the deposit payment method id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    fetchDepositId(id: string, params?: {}): Promise<{
+    fetchDepositMethodId(id: string, params?: {}): Promise<{
         info: any;
         id: string;
         currency: string;
         verified: boolean;
         tag: string;
     }>;
-    parseDepositIds(ids: any, params?: {}): any[];
-    parseDepositId(depositId: any): {
+    parseDepositMethodIds(ids: any, params?: {}): any[];
+    parseDepositMethodId(depositId: any): {
         info: any;
         id: string;
         currency: string;
