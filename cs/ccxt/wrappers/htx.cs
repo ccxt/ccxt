@@ -877,6 +877,8 @@ public partial class htx
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order"/>  <br/>
     /// <list type="table">
@@ -962,6 +964,12 @@ public partial class htx
     /// <term>params.trailingTriggerPrice</term>
     /// <description>
     /// float : *contract only* the price to trigger a trailing order, default uses the price argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *contract only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// </list>

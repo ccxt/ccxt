@@ -136,6 +136,7 @@ public partial class bitopro : Exchange
                         { "wallet/withdraw/{currency}/id/{id}", 1 },
                         { "wallet/depositHistory/{currency}", 1 },
                         { "wallet/withdrawHistory/{currency}", 1 },
+                        { "orders/open", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders/{pair}", divide(1, 2) },
@@ -1343,13 +1344,31 @@ public partial class bitopro : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitopro#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
-            { "statusKind", "OPEN" },
-        };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+        }
+        object response = await this.privateGetOrdersOpen(this.extend(request, parameters));
+        object orders = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**

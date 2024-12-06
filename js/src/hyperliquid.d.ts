@@ -157,7 +157,12 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    buildTransferSig(message: any): {
+    buildUsdSendSig(message: any): {
+        r: string;
+        s: string;
+        v: any;
+    };
+    buildUsdClassSendSig(message: any): {
         r: string;
         s: string;
         v: any;

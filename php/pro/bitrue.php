@@ -35,15 +35,17 @@ class bitrue extends \ccxt\async\bitrue {
             ),
             'api' => array(
                 'open' => array(
-                    'private' => array(
-                        'post' => array(
-                            'poseidon/api/v1/listenKey' => 1,
-                        ),
-                        'put' => array(
-                            'poseidon/api/v1/listenKey/{listenKey}' => 1,
-                        ),
-                        'delete' => array(
-                            'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                    'v1' => array(
+                        'private' => array(
+                            'post' => array(
+                                'poseidon/api/v1/listenKey' => 1,
+                            ),
+                            'put' => array(
+                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                            ),
+                            'delete' => array(
+                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                            ),
                         ),
                     ),
                 ),
@@ -437,7 +439,7 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($params) {
             $listenKey = $this->safe_value($this->options, 'listenKey');
             if ($listenKey === null) {
-                $response = Async\await($this->openPrivatePostPoseidonApiV1ListenKey ($params));
+                $response = Async\await($this->openV1PrivatePostPoseidonApiV1ListenKey ($params));
                 //
                 //     {
                 //         "msg" => "succ",
@@ -465,7 +467,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->openPrivatePutPoseidonApiV1ListenKeyListenKey ($this->extend($request, $params)));
+                Async\await($this->openV1PrivatePutPoseidonApiV1ListenKeyListenKey ($this->extend($request, $params)));
                 //
                 // ಠ_ಠ
                 //     {

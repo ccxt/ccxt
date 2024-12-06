@@ -306,6 +306,7 @@ public partial class okx : Exchange
                         { "asset/convert/currency-pair", divide(5, 3) },
                         { "asset/convert/history", divide(5, 3) },
                         { "asset/monthly-statement", 2 },
+                        { "account/instruments", 1 },
                         { "account/balance", 2 },
                         { "account/positions", 2 },
                         { "account/positions-history", 100 },

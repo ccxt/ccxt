@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.34'
+__version__ = '4.4.36'
 
 # -----------------------------------------------------------------------------
 
@@ -2804,9 +2804,13 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # False 'hedged' for spot
+            # for spot, default 'hedged' to False
             if marketType == 'spot':
                 featuresObj['createOrder']['hedged'] = False
+            # default 'GTC' to True
+            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
+            if gtcValue is None:
+                featuresObj['createOrder']['timeInForce']['gtc'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):

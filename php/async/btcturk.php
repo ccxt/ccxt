@@ -203,8 +203,8 @@ class btcturk extends Exchange {
             //        ),
             //    }
             //
-            $data = $this->safe_value($response, 'data');
-            $markets = $this->safe_value($data, 'symbols', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $markets = $this->safe_list($data, 'symbols', array());
             return $this->parse_markets($markets);
         }) ();
     }
@@ -215,7 +215,7 @@ class btcturk extends Exchange {
         $quoteId = $this->safe_string($entry, 'denominator');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $filters = $this->safe_value($entry, 'filters', array());
+        $filters = $this->safe_list($entry, 'filters', array());
         $minPrice = null;
         $maxPrice = null;
         $minAmount = null;
@@ -285,7 +285,7 @@ class btcturk extends Exchange {
     }
 
     public function parse_balance($response): array {
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -365,7 +365,7 @@ class btcturk extends Exchange {
             //         )
             //       }
             //     }
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
         }) ();
@@ -669,20 +669,20 @@ class btcturk extends Exchange {
 
     public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, Bool $tail = false) {
         $results = array();
-        $timestamp = $this->safe_value($ohlcvs, 't');
-        $high = $this->safe_value($ohlcvs, 'h');
-        $open = $this->safe_value($ohlcvs, 'o');
-        $low = $this->safe_value($ohlcvs, 'l');
-        $close = $this->safe_value($ohlcvs, 'c');
-        $volume = $this->safe_value($ohlcvs, 'v');
+        $timestamp = $this->safe_list($ohlcvs, 't', array());
+        $high = $this->safe_list($ohlcvs, 'h', array());
+        $open = $this->safe_list($ohlcvs, 'o', array());
+        $low = $this->safe_list($ohlcvs, 'l', array());
+        $close = $this->safe_list($ohlcvs, 'c', array());
+        $volume = $this->safe_list($ohlcvs, 'v', array());
         for ($i = 0; $i < count($timestamp); $i++) {
             $ohlcv = array(
-                'timestamp' => $this->safe_value($timestamp, $i),
-                'high' => $this->safe_value($high, $i),
-                'open' => $this->safe_value($open, $i),
-                'low' => $this->safe_value($low, $i),
-                'close' => $this->safe_value($close, $i),
-                'volume' => $this->safe_value($volume, $i),
+                'timestamp' => $this->safe_integer($timestamp, $i),
+                'high' => $this->safe_number($high, $i),
+                'open' => $this->safe_number($open, $i),
+                'low' => $this->safe_number($low, $i),
+                'close' => $this->safe_number($close, $i),
+                'volume' => $this->safe_number($volume, $i),
             );
             $results[] = $this->parse_ohlcv($ohlcv, $market);
         }
@@ -777,8 +777,8 @@ class btcturk extends Exchange {
                 $request['pairSymbol'] = $market['id'];
             }
             $response = Async\await($this->privateGetOpenOrders ($this->extend($request, $params)));
-            $data = $this->safe_value($response, 'data');
-            $bids = $this->safe_value($data, 'bids', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $bids = $this->safe_list($data, 'bids', array());
             $asks = $this->safe_list($data, 'asks', array());
             return $this->parse_orders($this->array_concat($bids, $asks), $market, $since, $limit);
         }) ();

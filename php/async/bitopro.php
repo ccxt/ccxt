@@ -148,6 +148,7 @@ class bitopro extends Exchange {
                         'wallet/withdraw/{currency}/id/{id}' => 1,
                         'wallet/depositHistory/{currency}' => 1,
                         'wallet/withdrawHistory/{currency}' => 1,
+                        'orders/open' => 1,
                     ),
                     'post' => array(
                         'orders/{pair}' => 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
@@ -1333,10 +1334,27 @@ class bitopro extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            $request = array(
-                'statusKind' => 'OPEN',
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+            /**
+             * fetch all unfilled currently open $orders
+             *
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privateGetOrdersOpen ($this->extend($request, $params)));
+            $orders = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 

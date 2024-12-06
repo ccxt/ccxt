@@ -3134,7 +3134,7 @@ class bitrue extends Exchange {
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
         $url = null;
-        if ($type === 'api' && $version === 'kline') {
+        if (($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false)) {
             $url = $this->urls['api'][$type];
         } else {
             $url = $this->urls['api'][$type] . '/' . $version;
@@ -3144,7 +3144,7 @@ class bitrue extends Exchange {
         if ($access === 'private') {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
-            if ($type === 'spot') {
+            if ($type === 'spot' || $type === 'open') {
                 $query = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,

@@ -65,6 +65,8 @@ public partial class coinbase : Exchange
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
+                { "fetchDepositId", true },
+                { "fetchDepositIds", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -4600,6 +4602,103 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositIds
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    public async virtual Task<object> fetchDepositIds(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v3PrivateGetBrokeragePaymentMethods(parameters);
+        //
+        //     {
+        //         "payment_methods": [
+        //             {
+        //                 "id": "21b39a5d-f7b46876fb2e",
+        //                 "type": "COINBASE_FIAT_ACCOUNT",
+        //                 "name": "CAD Wallet",
+        //                 "currency": "CAD",
+        //                 "verified": true,
+        //                 "allow_buy": false,
+        //                 "allow_sell": true,
+        //                 "allow_deposit": false,
+        //                 "allow_withdraw": false,
+        //                 "created_at": "2023-06-29T19:58:46Z",
+        //                 "updated_at": "2023-10-30T20:25:01Z"
+        //             }
+        //         ]
+        //     }
+        //
+        object result = this.safeList(response, "payment_methods", new List<object>() {});
+        return this.parseDepositIds(result);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositId
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+     * @param {string} id the deposit payment method id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    public async virtual Task<object> fetchDepositId(object id, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "payment_method_id", id },
+        };
+        object response = await this.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(this.extend(request, parameters));
+        //
+        //     {
+        //         "payment_method": {
+        //             "id": "21b39a5d-f7b46876fb2e",
+        //             "type": "COINBASE_FIAT_ACCOUNT",
+        //             "name": "CAD Wallet",
+        //             "currency": "CAD",
+        //             "verified": true,
+        //             "allow_buy": false,
+        //             "allow_sell": true,
+        //             "allow_deposit": false,
+        //             "allow_withdraw": false,
+        //             "created_at": "2023-06-29T19:58:46Z",
+        //             "updated_at": "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "payment_method", new Dictionary<string, object>() {});
+        return this.parseDepositId(result);
+    }
+
+    public virtual object parseDepositIds(object ids, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object id = this.extend(this.parseDepositId(getValue(ids, i)), parameters);
+            ((IList<object>)result).Add(id);
+        }
+        return result;
+    }
+
+    public virtual object parseDepositId(object depositId)
+    {
+        return new Dictionary<string, object>() {
+            { "info", depositId },
+            { "id", this.safeString(depositId, "id") },
+            { "currency", this.safeString(depositId, "currency") },
+            { "verified", this.safeBool(depositId, "verified") },
+            { "tag", this.safeString(depositId, "name") },
+        };
     }
 
     /**
