@@ -465,7 +465,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const result = [];
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
