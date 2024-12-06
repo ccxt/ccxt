@@ -994,11 +994,11 @@ export default class paradex extends Exchange {
     }
 
     async retrieveAccount () {
-        this.checkRequiredCredentials ();
         const cachedAccount: Dict = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }
+        this.checkRequiredCredentials ();
         const systemConfig = await this.getSystemConfig ();
         const domain = await this.prepareParadexDomain (true);
         const messageTypes = {
@@ -2052,7 +2052,6 @@ export default class paradex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            this.checkRequiredCredentials ();
             headers = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),
