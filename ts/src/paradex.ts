@@ -13,6 +13,8 @@ import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 /**
  * @class paradex
+ * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
+ * or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
  * @augments Exchange
  */
 export default class paradex extends Exchange {
@@ -272,6 +274,7 @@ export default class paradex extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
             },
         });
@@ -994,11 +997,11 @@ export default class paradex extends Exchange {
     }
 
     async retrieveAccount () {
-        this.checkRequiredCredentials ();
         const cachedAccount: Dict = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }
+        this.checkRequiredCredentials ();
         const systemConfig = await this.getSystemConfig ();
         const domain = await this.prepareParadexDomain (true);
         const messageTypes = {
@@ -2052,7 +2055,6 @@ export default class paradex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            this.checkRequiredCredentials ();
             headers = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),
