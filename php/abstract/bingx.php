@@ -97,6 +97,12 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_public_get_market_historicaltrades($params = array()) {
         return $this->request('market/historicalTrades', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swap_v1_public_get_market_markpriceklines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v1_public_get_trade_multiassetsrules($params = array()) {
+        return $this->request('trade/multiAssetsRules', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swap_v1_private_get_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
@@ -109,14 +115,53 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_private_get_trade_fullorder($params = array()) {
         return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function swap_v1_private_get_maintmarginratio($params = array()) {
+        return $this->request('maintMarginRatio', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swap_v1_private_get_trade_positionhistory($params = array()) {
+        return $this->request('trade/positionHistory', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swap_v1_private_get_positionmargin_history($params = array()) {
+        return $this->request('positionMargin/history', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swap_v1_private_get_twap_openorders($params = array()) {
+        return $this->request('twap/openOrders', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_get_twap_historyorders($params = array()) {
+        return $this->request('twap/historyOrders', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_get_twap_orderdetail($params = array()) {
+        return $this->request('twap/orderDetail', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_get_trade_assetmode($params = array()) {
+        return $this->request('trade/assetMode', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_get_user_marginassets($params = array()) {
+        return $this->request('user/marginAssets', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function swap_v1_private_post_trade_cancelreplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function swap_v1_private_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
+    public function swap_v1_private_post_trade_batchcancelreplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
     public function swap_v1_private_post_trade_closeposition($params = array()) {
         return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function swap_v1_private_post_trade_getvst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_post_twap_order($params = array()) {
+        return $this->request('twap/order', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_post_twap_cancelorder($params = array()) {
+        return $this->request('twap/cancelOrder', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swap_v1_private_post_trade_assetmode($params = array()) {
+        return $this->request('trade/assetMode', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
     public function swap_v2_public_get_server_time($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -183,6 +228,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swap_v2_private_get_trade_allfillorders($params = array()) {
         return $this->request('trade/allFillOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swap_v2_private_get_trade_fillhistory($params = array()) {
+        return $this->request('trade/fillHistory', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function swap_v2_private_get_user_income_export($params = array()) {
         return $this->request('user/income/export', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
@@ -283,6 +331,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function cswap_v1_private_post_trade_leverage($params = array()) {
         return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function cswap_v1_private_post_trade_allopenorders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function cswap_v1_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -345,6 +396,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function subaccount_v1_private_get_assets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function subaccount_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function subaccount_v1_private_post_create($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
@@ -493,6 +547,12 @@ abstract class bingx extends \ccxt\Exchange {
     public function swapV1PublicGetMarketHistoricalTrades($params = array()) {
         return $this->request('market/historicalTrades', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function swapV1PublicGetMarketMarkPriceKlines($params = array()) {
+        return $this->request('market/markPriceKlines', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV1PublicGetTradeMultiAssetsRules($params = array()) {
+        return $this->request('trade/multiAssetsRules', array('swap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function swapV1PrivateGetPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
@@ -505,14 +565,53 @@ abstract class bingx extends \ccxt\Exchange {
     public function swapV1PrivateGetTradeFullOrder($params = array()) {
         return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function swapV1PrivateGetMaintMarginRatio($params = array()) {
+        return $this->request('maintMarginRatio', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swapV1PrivateGetTradePositionHistory($params = array()) {
+        return $this->request('trade/positionHistory', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swapV1PrivateGetPositionMarginHistory($params = array()) {
+        return $this->request('positionMargin/history', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swapV1PrivateGetTwapOpenOrders($params = array()) {
+        return $this->request('twap/openOrders', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivateGetTwapHistoryOrders($params = array()) {
+        return $this->request('twap/historyOrders', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivateGetTwapOrderDetail($params = array()) {
+        return $this->request('twap/orderDetail', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivateGetTradeAssetMode($params = array()) {
+        return $this->request('trade/assetMode', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivateGetUserMarginAssets($params = array()) {
+        return $this->request('user/marginAssets', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function swapV1PrivatePostTradeCancelReplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function swapV1PrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
+    public function swapV1PrivatePostTradeBatchCancelReplace($params = array()) {
+        return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
     public function swapV1PrivatePostTradeClosePosition($params = array()) {
         return $this->request('trade/closePosition', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function swapV1PrivatePostTradeGetVst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivatePostTwapOrder($params = array()) {
+        return $this->request('twap/order', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivatePostTwapCancelOrder($params = array()) {
+        return $this->request('twap/cancelOrder', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function swapV1PrivatePostTradeAssetMode($params = array()) {
+        return $this->request('trade/assetMode', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
     public function swapV2PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('swap', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -579,6 +678,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivateGetTradeAllFillOrders($params = array()) {
         return $this->request('trade/allFillOrders', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swapV2PrivateGetTradeFillHistory($params = array()) {
+        return $this->request('trade/fillHistory', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function swapV2PrivateGetUserIncomeExport($params = array()) {
         return $this->request('user/income/export', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 2));
@@ -679,6 +781,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function cswapV1PrivatePostTradeLeverage($params = array()) {
         return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function cswapV1PrivatePostTradeAllOpenOrders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function cswapV1PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -741,6 +846,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function subAccountV1PrivateGetAssets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function subAccountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function subAccountV1PrivatePostCreate($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));

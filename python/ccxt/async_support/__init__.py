@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.93'
+__version__ = '4.4.37'
 
 # -----------------------------------------------------------------------------
 
@@ -75,11 +75,10 @@ from ccxt.async_support.binanceusdm import binanceusdm                          
 from ccxt.async_support.bingx import bingx                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
-from ccxt.async_support.bitbay import bitbay                                    # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
-from ccxt.async_support.bitfinex2 import bitfinex2                              # noqa: F401
+from ccxt.async_support.bitfinex1 import bitfinex1                              # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
@@ -105,6 +104,7 @@ from ccxt.async_support.coinbase import coinbase                                
 from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
+from ccxt.async_support.coincatch import coincatch                              # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
@@ -115,9 +115,11 @@ from ccxt.async_support.coinsph import coinsph                                  
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
+from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
+from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
@@ -125,7 +127,6 @@ from ccxt.async_support.gateio import gateio                                    
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
 from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
-from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
@@ -187,11 +188,10 @@ exchanges = [
     'bingx',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
-    'bitfinex2',
+    'bitfinex1',
     'bitflyer',
     'bitget',
     'bithumb',
@@ -217,6 +217,7 @@ exchanges = [
     'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
+    'coincatch',
     'coincheck',
     'coinex',
     'coinlist',
@@ -227,9 +228,11 @@ exchanges = [
     'coinspot',
     'cryptocom',
     'currencycom',
+    'defx',
     'delta',
     'deribit',
     'digifinex',
+    'ellipx',
     'exmo',
     'fmfwio',
     'gate',
@@ -237,7 +240,6 @@ exchanges = [
     'gemini',
     'hashkey',
     'hitbtc',
-    'hitbtc3',
     'hollaex',
     'htx',
     'huobi',

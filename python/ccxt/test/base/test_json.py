@@ -24,7 +24,7 @@ def test_json():
         'k': 'v',
     }
     obj_json = exchange.json(obj)
-    assert obj_json == '{\"k\":\"v\"}'
+    assert obj_json == '{"k":"v"}'
     # Test: list
     list = [1, 2]
     list_json = exchange.json(list)
@@ -33,8 +33,8 @@ def test_json():
         raise BadRequest('some error')
     except Exception as e:
         err_string = exchange.json(e)
-        assert err_string == '{\"name\":\"BadRequest\"}'
+        assert err_string == '{"name":"BadRequest"}'
     # Test: json a string
     str = 'ccxt, rocks!'
     serialized_string = exchange.json(str)
-    assert serialized_string == '\"ccxt, rocks!\"'
+    assert serialized_string == '"ccxt, rocks!"'

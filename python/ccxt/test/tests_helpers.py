@@ -40,7 +40,6 @@ class Argv(object):
     ws_tests = False
     request_tests = False
     response_tests = False
-    token_bucket = False
     sandbox = False
     privateOnly = False
     private = False
@@ -58,7 +57,6 @@ class Argv(object):
 
 argv = Argv()
 parser = argparse.ArgumentParser()
-parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
@@ -69,7 +67,9 @@ parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
-parser.add_argument('--requestTests', action='store_true', help='run response tests')
+parser.add_argument('--response', action='store_true', help='run response tests')
+parser.add_argument('--requestTests', action='store_true', help='run request tests')
+parser.add_argument('--request', action='store_true', help='run request tests')
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
@@ -105,14 +105,15 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
-is_synchronous = argv.sync  # 'async' not in os.path.basename(__file__)
-
-rootDir = DIR_NAME + '/../../../'
-rootDirForSkips = DIR_NAME + '/../../../'
-envVars = os.environ
+EXT = 'py'
+LANG = 'PY'
+IS_SYNCHRONOUS = argv.sync  # 'async' not in os.path.basename(__file__)
+PROXY_TEST_FILE_NAME = 'proxies'
+ROOT_DIR = DIR_NAME + '/../../../'
+ENV_VARS = os.environ
+NEW_LINE = '\n'
 LOG_CHARS_LENGTH = 10000
-ext = 'py'
-proxyTestFileName = 'proxies'
+
 
 
 def get_cli_arg_value(arg):
@@ -124,30 +125,6 @@ def get_cli_arg_value(arg):
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
 isWsTests = get_cli_arg_value('--ws')
-
-
-class baseMainTestClass():
-    lang = 'PY'
-    is_synchronous = is_synchronous
-    request_tests_failed = False
-    response_tests_failed = False
-    response_tests = False
-    ws_tests = False
-    load_keys = False
-    skipped_settings_for_exchange = {}
-    skipped_methods = {}
-    check_public_tests = {}
-    test_files = {}
-    public_tests = {}
-    new_line = '\n'
-    root_dir = rootDir
-    env_vars = envVars
-    ext = ext
-    root_dir_for_skips = rootDirForSkips
-    only_specific_tests = []
-    proxy_test_file_name = proxyTestFileName
-    pass
-
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
@@ -240,7 +217,7 @@ def set_exchange_prop(exchange, prop, value):
 
 
 def init_exchange(exchangeId, args, is_ws=False):
-    if is_synchronous:
+    if IS_SYNCHRONOUS:
         return getattr(ccxt_sync, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
@@ -249,17 +226,17 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False):
     tests = {}
-    finalPropList = properties + [proxyTestFileName]
+    finalPropList = properties + [PROXY_TEST_FILE_NAME, 'features']
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)
-        prefix = 'async' if not is_synchronous else 'sync'
+        prefix = 'async' if not IS_SYNCHRONOUS else 'sync'
         dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/exchange/'
+            module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
@@ -270,14 +247,14 @@ async def get_test_files(properties, ws=False):
     return get_test_files_sync(properties, ws)
 
 async def close(exchange):
-    if (not is_synchronous and hasattr(exchange, 'close')):
+    if (not IS_SYNCHRONOUS and hasattr(exchange, 'close')):
         await exchange.close()
 
 def is_null_value(value):
     return value is None
 
 def set_fetch_response(exchange: ccxt.Exchange, data):
-    if (is_synchronous):
+    if (IS_SYNCHRONOUS):
         def fetch(url, method='GET', headers=None, body=None):
             return data
         exchange.fetch = fetch
@@ -287,6 +264,20 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     exchange.fetch = fetch
     return exchange
 
+def get_lang():
+    return LANG
+
+def get_ext():
+    return EXT
+
+def get_root_dir():
+    return ROOT_DIR
+
+def get_env_vars():
+    return ENV_VARS
+
+def is_sync():
+    return IS_SYNCHRONOUS
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

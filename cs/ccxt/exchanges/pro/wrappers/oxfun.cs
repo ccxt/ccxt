@@ -239,6 +239,26 @@ public partial class oxfun
         return new Tickers(res);
     }
     /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.ox.fun/?json#best-bid-ask"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
@@ -402,6 +422,12 @@ public partial class oxfun
     /// See <see href="https://docs.ox.fun/?json#modify-order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.timestamp</term>
     /// <description>
     /// int : in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -411,12 +437,6 @@ public partial class oxfun
     /// <term>params.recvWindow</term>
     /// <description>
     /// int : in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

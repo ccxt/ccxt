@@ -21,6 +21,7 @@ export default class blofin extends blofinRest {
                 'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
@@ -65,33 +66,33 @@ export default class blofin extends blofinRest {
         //
         client.lastPong = this.milliseconds();
     }
+    /**
+     * @method
+     * @name blofin#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.blofin.com/index.html#ws-trades-channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name blofin#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchTradesForSymbols
-         * @description get the list of most recent trades for a list of symbols
-         * @see https://docs.blofin.com/index.html#ws-trades-channel
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const trades = await this.watchMultipleWrapper(true, 'trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
@@ -138,32 +139,32 @@ export default class blofin extends blofinRest {
     parseWsTrade(trade, market = undefined) {
         return this.parseTrade(trade, market);
     }
+    /**
+     * @method
+     * @name blofin#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.blofin.com/index.html#ws-order-book-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.blofin.com/index.html#ws-order-book-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    /**
+     * @method
+     * @name blofin#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.blofin.com/index.html#ws-order-book-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.blofin.com/index.html#ws-order-book-channel
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         let callerMethodName = undefined;
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', 'watchOrderBookForSymbols');
@@ -222,32 +223,32 @@ export default class blofin extends blofinRest {
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
+    /**
+     * @method
+     * @name blofin#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.blofin.com/index.html#ws-tickers-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.blofin.com/index.html#ws-tickers-channel
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         params['callerMethodName'] = 'watchTicker';
         const market = this.market(symbol);
         symbol = market['symbol'];
         const result = await this.watchTickers([symbol], params);
         return result[symbol];
     }
+    /**
+     * @method
+     * @name blofin#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.blofin.com/index.html#ws-tickers-channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://docs.blofin.com/index.html#ws-tickers-channel
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         if (symbols === undefined) {
             throw new NotSupported(this.id + ' watchTickers() requires a list of symbols');
         }
@@ -273,6 +274,7 @@ export default class blofin extends blofinRest {
         //         ],
         //     }
         //
+        this.handleBidAsk(client, message);
         const arg = this.safeDict(message, 'arg');
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
@@ -287,34 +289,96 @@ export default class blofin extends blofinRest {
     parseWsTicker(ticker, market = undefined) {
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name blofin#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.blofin.com/index.html#ws-tickers-channel
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const firstMarket = this.market(symbols[0]);
+        const channel = 'tickers';
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
+        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('bidask:' + market['symbol']);
+            args.push({
+                'channel': channel,
+                'instId': market['id'],
+            });
+        }
+        const request = this.getSubscriptionRequest(args);
+        const ticker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const data = this.safeList(message, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseWsBidAsk(data[i]);
+            const symbol = ticker['symbol'];
+            const messageHash = 'bidask:' + symbol;
+            this.bidsasks[symbol] = ticker;
+            client.resolve(ticker, messageHash);
+        }
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'instId');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'ts');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'askPrice'),
+            'askVolume': this.safeString(ticker, 'askSize'),
+            'bid': this.safeString(ticker, 'bidPrice'),
+            'bidVolume': this.safeString(ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
+    }
+    /**
+     * @method
+     * @name blofin#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
         return result[symbol][timeframe];
     }
+    /**
+     * @method
+     * @name blofin#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
@@ -365,15 +429,15 @@ export default class blofin extends blofinRest {
         const messageHash = 'candle' + interval + ':' + symbol;
         client.resolve(resolveData, messageHash);
     }
+    /**
+     * @method
+     * @name blofin#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.blofin.com/index.html#ws-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name blofin#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.blofin.com/index.html#ws-account-channel
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         await this.authenticate();
         let marketType = undefined;
@@ -409,33 +473,33 @@ export default class blofin extends blofinRest {
     parseWsBalance(message) {
         return this.parseBalance(message);
     }
+    /**
+     * @method
+     * @name alpaca#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name alpaca#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-         */
         params['callerMethodName'] = 'watchOrders';
         const symbolsArray = (symbol !== undefined) ? [symbol] : [];
         return await this.watchOrdersForSymbols(symbolsArray, since, limit, params);
     }
+    /**
+     * @method
+     * @name blofin#watchOrdersForSymbols
+     * @description watches information on multiple orders made by the user across multiple symbols
+     * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @param {string[]} symbols
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+     */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchOrdersForSymbols
-         * @description watches information on multiple orders made by the user across multiple symbols
-         * @see https://docs.blofin.com/index.html#ws-order-channel
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
-         */
         await this.authenticate();
         await this.loadMarkets();
         const orders = await this.watchMultipleWrapper(false, 'orders', 'watchOrdersForSymbols', symbols, params);
@@ -476,16 +540,18 @@ export default class blofin extends blofinRest {
     parseWsOrder(order, market = undefined) {
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name blofin#watchPositions
+     * @see https://docs.blofin.com/index.html#ws-positions-channel
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#watchPositions
-         * @see https://docs.blofin.com/index.html#ws-positions-channel
-         * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.authenticate();
         await this.loadMarkets();
         const newPositions = await this.watchMultipleWrapper(false, 'positions', 'watchPositions', symbols, params);
@@ -624,7 +690,8 @@ export default class blofin extends blofinRest {
                 return;
             }
             else if (event === 'login') {
-                client.resolve(message, 'authenticate_hash');
+                const future = this.safeValue(client.futures, 'authenticate_hash');
+                future.resolve(true);
                 return;
             }
             else if (event === 'error') {

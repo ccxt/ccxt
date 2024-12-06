@@ -3,7 +3,7 @@ import { Str } from '../../../base/types';
 declare function logTemplate(exchange: Exchange, method: string, entry: object): string;
 declare function isTemporaryFailure(e: any): boolean;
 declare function assertType(exchange: Exchange, skippedProperties: object, entry: object, key: string | number, format: object): boolean;
-declare function assertStructure(exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor?: any[]): void;
+declare function assertStructure(exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor?: any[], deep?: boolean): void;
 declare function assertTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: string | number): void;
 declare function assertTimestampAndDatetime(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: any): void;
 declare function assertCurrencyCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, actualCode: Str, expectedCode?: Str): void;
@@ -25,7 +25,11 @@ declare function removeProxyOptions(exchange: Exchange, skippedProperties: objec
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string): void;
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
+declare function deepEqual(a: any, b: any): boolean;
+declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare const _default: {
+    deepEqual: typeof deepEqual;
+    assertDeepEqual: typeof assertDeepEqual;
     logTemplate: typeof logTemplate;
     isTemporaryFailure: typeof isTemporaryFailure;
     assertTimestamp: typeof assertTimestamp;

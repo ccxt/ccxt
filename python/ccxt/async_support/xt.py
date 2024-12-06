@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Currencies, Currency, Int, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -73,11 +73,15 @@ class xt(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -153,16 +157,16 @@ class xt(Exchange, ImplicitAPI):
                     'spot': {
                         'get': {
                             'currencies': 1,
-                            'depth': 0.05,
-                            'kline': 0.1,
-                            'symbol': 1,  # 0.1 for a single symbol
-                            'ticker': 1,  # 0.1 for a single symbol
-                            'ticker/book': 1,  # 0.1 for a single symbol
-                            'ticker/price': 1,  # 0.1 for a single symbol
-                            'ticker/24h': 1,  # 0.1 for a single symbol
+                            'depth': 10,
+                            'kline': 1,
+                            'symbol': 1,  # 1 for a single symbol
+                            'ticker': 1,  # 1 for a single symbol
+                            'ticker/book': 1,  # 1 for a single symbol
+                            'ticker/price': 1,  # 1 for a single symbol
+                            'ticker/24h': 1,  # 1 for a single symbol
                             'time': 1,
-                            'trade/history': 0.1,
-                            'trade/recent': 0.1,
+                            'trade/history': 1,
+                            'trade/recent': 1,
                             'wallet/support/currency': 1,
                         },
                     },
@@ -232,7 +236,7 @@ class xt(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'order': 0.2,
-                            'withdraw': 1,
+                            'withdraw': 10,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
                             'ws-token': 1,
@@ -692,7 +696,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the xt server
-        :see: https://doc.xt.com/#market1serverInfo
+
+        https://doc.xt.com/#market1serverInfo
+
         :param dict params: extra parameters specific to the xt api endpoint
         :returns int: the current integer timestamp in milliseconds from the xt server
         """
@@ -713,7 +719,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+
+        https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -860,8 +868,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for xt
-        :see: https://doc.xt.com/#market2symbol
-        :see: https://doc.xt.com/#futures_quotesgetSymbols
+
+        https://doc.xt.com/#market2symbol
+        https://doc.xt.com/#futures_quotesgetSymbols
+
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1138,17 +1148,21 @@ class xt(Exchange, ImplicitAPI):
         maxCost = None
         minPrice = None
         maxPrice = None
+        amountPrecision = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
             if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
                 maxAmount = self.safe_number(entry, 'max')
+                amountPrecision = self.safe_number(entry, 'tickSize')
             if filter == 'QUOTE_QTY':
                 minCost = self.safe_number(entry, 'min')
             if filter == 'PRICE':
                 minPrice = self.safe_number(entry, 'min')
                 maxPrice = self.safe_number(entry, 'max')
+        if amountPrecision is None:
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1223,7 +1237,7 @@ class xt(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseCoinPrecision'))),
                 'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteCoinPrecision'))),
             },
@@ -1251,8 +1265,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://doc.xt.com/#market4kline
-        :see: https://doc.xt.com/#futures_quotesgetKLine
+
+        https://doc.xt.com/#market4kline
+        https://doc.xt.com/#futures_quotesgetKLine
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1356,13 +1372,15 @@ class xt(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
             self.safe_number(ohlcv, 'c'),
-            self.safe_number_2(ohlcv, volumeIndex, 'v'),
+            self.safe_number_2(ohlcv, 'q', volumeIndex),
         ]
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
-        :see: https://doc.xt.com/#market3depth
-        :see: https://doc.xt.com/#futures_quotesgetDepth
+
+        https://doc.xt.com/#market3depth
+        https://doc.xt.com/#futures_quotesgetDepth
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified market symbol to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1447,8 +1465,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://doc.xt.com/#market10ticker24h
-        :see: https://doc.xt.com/#futures_quotesgetAggTicker
+
+        https://doc.xt.com/#market10ticker24h
+        https://doc.xt.com/#futures_quotesgetAggTicker
+
         :param str symbol: unified market symbol to fetch the ticker for
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -1519,8 +1539,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :see: https://doc.xt.com/#market10ticker24h
-        :see: https://doc.xt.com/#futures_quotesgetAggTickers
+
+        https://doc.xt.com/#market10ticker24h
+        https://doc.xt.com/#futures_quotesgetAggTickers
+
         :param str [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -1601,7 +1623,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
-        :see: https://doc.xt.com/#market9tickerBook
+
+        https://doc.xt.com/#market9tickerBook
+
         :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -1691,6 +1715,9 @@ class xt(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_', marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 't')
+        percentage = self.safe_string_2(ticker, 'cr', 'r')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1707,7 +1734,7 @@ class xt(Exchange, ImplicitAPI):
             'last': self.safe_string(ticker, 'c'),
             'previousClose': None,
             'change': self.safe_number(ticker, 'cv'),
-            'percentage': self.safe_number_2(ticker, 'cr', 'r'),
+            'percentage': self.parse_number(percentage),
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
@@ -1717,8 +1744,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        :see: https://doc.xt.com/#market5tradeRecent
-        :see: https://doc.xt.com/#futures_quotesgetDeal
+
+        https://doc.xt.com/#market5tradeRecent
+        https://doc.xt.com/#futures_quotesgetDeal
+
         :param str symbol: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1784,8 +1813,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://doc.xt.com/#tradetradeGet
-        :see: https://doc.xt.com/#futures_ordergetTrades
+
+        https://doc.xt.com/#tradetradeGet
+        https://doc.xt.com/#futures_ordergetTrades
+
         :param str [symbol]: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1895,6 +1926,17 @@ class xt(Exchange, ImplicitAPI):
         #         "b": True
         #     }
         #
+        # spot: watchTrades
+        #
+        #    {
+        #        s: 'btc_usdt',
+        #        i: '228825383103928709',
+        #        t: 1684258222702,
+        #        p: '27003.65',
+        #        q: '0.000796',
+        #        b: True
+        #    }
+        #
         # spot: watchMyTrades
         #
         #    {
@@ -1905,17 +1947,6 @@ class xt(Exchange, ImplicitAPI):
         #        "p": "30000",                   # trade price
         #        "q": "3",                       # qty quantity
         #        "v": "90000"                    # volume trade amount
-        #    }
-        #
-        # spot: watchTrades
-        #
-        #    {
-        #        s: 'btc_usdt',
-        #        i: '228825383103928709',
-        #        t: 1684258222702,
-        #        p: '27003.65',
-        #        q: '0.000796',
-        #        b: True
         #    }
         #
         # swap and future: fetchTrades
@@ -1996,19 +2027,27 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
-        bidOrAsk = self.safe_string(trade, 'm')
-        side = self.safe_string_lower(trade, 'orderSide')
-        if bidOrAsk is not None:
-            side = 'buy' if (bidOrAsk == 'BID') else 'sell'
-        buyerMaker = self.safe_value(trade, 'b')
-        if buyerMaker is not None:
-            side = 'buy'
-        takerOrMaker = self.safe_string_lower(trade, 'takerMaker')
-        if buyerMaker is not None:
-            takerOrMaker = 'maker' if buyerMaker else 'taker'
-        isMaker = self.safe_bool(trade, 'isMaker')
-        if isMaker is not None:
-            takerOrMaker = 'maker' if isMaker else 'taker'
+        side = None
+        takerOrMaker = None
+        isBuyerMaker = self.safe_bool(trade, 'b')
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # public trades always taker
+        else:
+            takerMaker = self.safe_string_lower(trade, 'takerMaker')
+            if takerMaker is not None:
+                takerOrMaker = takerMaker
+            else:
+                isMaker = self.safe_bool(trade, 'isMaker')
+                if isMaker is not None:
+                    takerOrMaker = 'maker' if isMaker else 'taker'
+            orderSide = self.safe_string_lower(trade, 'orderSide')
+            if orderSide is not None:
+                side = orderSide
+            else:
+                bidOrAsk = self.safe_string(trade, 'm')
+                if bidOrAsk is not None:
+                    side = 'buy' if (bidOrAsk == 'BID') else 'sell'
         timestamp = self.safe_integer_n(trade, ['t', 'time', 'timestamp'])
         quantity = self.safe_string_2(trade, 'q', 'quantity')
         amount = None
@@ -2041,8 +2080,10 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://doc.xt.com/#balancebalancesGet
-        :see: https://doc.xt.com/#futures_usergetBalances
+
+        https://doc.xt.com/#balancebalancesGet
+        https://doc.xt.com/#futures_usergetBalances
+
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
@@ -2158,7 +2199,9 @@ class xt(Exchange, ImplicitAPI):
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
-        :see: https://doc.xt.com/#orderorderPost
+
+        https://doc.xt.com/#orderorderPost
+
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -2174,10 +2217,12 @@ class xt(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://doc.xt.com/#orderorderPost
-        :see: https://doc.xt.com/#futures_ordercreate
-        :see: https://doc.xt.com/#futures_entrustcreatePlan
-        :see: https://doc.xt.com/#futures_entrustcreateProfit
+
+        https://doc.xt.com/#orderorderPost
+        https://doc.xt.com/#futures_ordercreate
+        https://doc.xt.com/#futures_entrustcreatePlan
+        https://doc.xt.com/#futures_entrustcreateProfit
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2323,10 +2368,12 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://doc.xt.com/#orderorderGet
-        :see: https://doc.xt.com/#futures_ordergetById
-        :see: https://doc.xt.com/#futures_entrustgetPlanById
-        :see: https://doc.xt.com/#futures_entrustgetProfitById
+
+        https://doc.xt.com/#orderorderGet
+        https://doc.xt.com/#futures_ordergetById
+        https://doc.xt.com/#futures_entrustgetPlanById
+        https://doc.xt.com/#futures_entrustgetProfitById
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
@@ -2493,9 +2540,11 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple orders made by the user
-        :see: https://doc.xt.com/#orderhistoryOrderGet
-        :see: https://doc.xt.com/#futures_ordergetHistory
-        :see: https://doc.xt.com/#futures_entrustgetPlanHistory
+
+        https://doc.xt.com/#orderhistoryOrderGet
+        https://doc.xt.com/#futures_ordergetHistory
+        https://doc.xt.com/#futures_entrustgetPlanHistory
+
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2901,10 +2950,12 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all unfilled currently open orders
-        :see: https://doc.xt.com/#orderopenOrderGet
-        :see: https://doc.xt.com/#futures_ordergetOrders
-        :see: https://doc.xt.com/#futures_entrustgetPlan
-        :see: https://doc.xt.com/#futures_entrustgetProfit
+
+        https://doc.xt.com/#orderopenOrderGet
+        https://doc.xt.com/#futures_ordergetOrders
+        https://doc.xt.com/#futures_entrustgetPlan
+        https://doc.xt.com/#futures_entrustgetProfit
+
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -2918,10 +2969,12 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :see: https://doc.xt.com/#orderhistoryOrderGet
-        :see: https://doc.xt.com/#futures_ordergetOrders
-        :see: https://doc.xt.com/#futures_entrustgetPlan
-        :see: https://doc.xt.com/#futures_entrustgetProfit
+
+        https://doc.xt.com/#orderhistoryOrderGet
+        https://doc.xt.com/#futures_ordergetOrders
+        https://doc.xt.com/#futures_entrustgetPlan
+        https://doc.xt.com/#futures_entrustgetProfit
+
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2935,10 +2988,12 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://doc.xt.com/#orderhistoryOrderGet
-        :see: https://doc.xt.com/#futures_ordergetOrders
-        :see: https://doc.xt.com/#futures_entrustgetPlan
-        :see: https://doc.xt.com/#futures_entrustgetProfit
+
+        https://doc.xt.com/#orderhistoryOrderGet
+        https://doc.xt.com/#futures_ordergetOrders
+        https://doc.xt.com/#futures_entrustgetPlan
+        https://doc.xt.com/#futures_entrustgetProfit
+
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2952,10 +3007,12 @@ class xt(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: str = None, params={}):
         """
         cancels an open order
-        :see: https://doc.xt.com/#orderorderDel
-        :see: https://doc.xt.com/#futures_ordercancel
-        :see: https://doc.xt.com/#futures_entrustcancelPlan
-        :see: https://doc.xt.com/#futures_entrustcancelProfit
+
+        https://doc.xt.com/#orderorderDel
+        https://doc.xt.com/#futures_ordercancel
+        https://doc.xt.com/#futures_entrustcancelPlan
+        https://doc.xt.com/#futures_entrustcancelProfit
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
@@ -3027,10 +3084,12 @@ class xt(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://doc.xt.com/#orderopenOrderDel
-        :see: https://doc.xt.com/#futures_ordercancelBatch
-        :see: https://doc.xt.com/#futures_entrustcancelPlanBatch
-        :see: https://doc.xt.com/#futures_entrustcancelProfitBatch
+
+        https://doc.xt.com/#orderopenOrderDel
+        https://doc.xt.com/#futures_ordercancelBatch
+        https://doc.xt.com/#futures_entrustcancelPlanBatch
+        https://doc.xt.com/#futures_entrustcancelProfitBatch
+
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the xt api endpoint
         :param bool [params.stop]: if the order is a stop trigger order or not
@@ -3098,7 +3157,9 @@ class xt(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
-        :see: https://doc.xt.com/#orderbatchOrderDel
+
+        https://doc.xt.com/#orderbatchOrderDel
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the xt api endpoint
@@ -3307,10 +3368,12 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://doc.xt.com/#futures_usergetBalanceBill
+
+        https://doc.xt.com/#futures_usergetBalanceBill
+
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
@@ -3364,7 +3427,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_value(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency=None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3380,8 +3443,10 @@ class xt(Exchange, ImplicitAPI):
         side = self.safe_string(item, 'side')
         direction = 'in' if (side == 'ADD') else 'out'
         currencyId = self.safe_string(item, 'coin')
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'createdTime')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'id'),
             'direction': direction,
             'account': None,
@@ -3399,8 +3464,7 @@ class xt(Exchange, ImplicitAPI):
                 'currency': None,
                 'cost': None,
             },
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType = {
@@ -3415,10 +3479,12 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+
+        https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+
         :param str code: unified currency code
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['network']: required network id
@@ -3449,7 +3515,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3459,17 +3525,19 @@ class xt(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': None,
-            'info': depositAddress,
         }
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all deposits made to an account
-        :see: https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+
+        https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of transaction structures to retrieve
@@ -3520,7 +3588,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all withdrawals made from an account
-        :see: https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+
+        https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of transaction structures to retrieve
@@ -3568,10 +3638,12 @@ class xt(Exchange, ImplicitAPI):
         withdrawals = self.safe_value(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://doc.xt.com/#deposit_withdrawalwithdraw
+
+        https://doc.xt.com/#deposit_withdrawalwithdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -3699,7 +3771,9 @@ class xt(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://doc.xt.com/#futures_useradjustLeverage
+
+        https://doc.xt.com/#futures_useradjustLeverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
@@ -3741,7 +3815,9 @@ class xt(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}):
         """
         add margin to a position
-        :see: https://doc.xt.com/#futures_useradjustMargin
+
+        https://doc.xt.com/#futures_useradjustMargin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the xt api endpoint
@@ -3753,7 +3829,9 @@ class xt(Exchange, ImplicitAPI):
     async def reduce_margin(self, symbol: str, amount: float, params={}):
         """
         remove margin from a position
-        :see: https://doc.xt.com/#futures_useradjustMargin
+
+        https://doc.xt.com/#futures_useradjustMargin
+
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the xt api endpoint
@@ -3804,10 +3882,12 @@ class xt(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}) -> LeverageTiers:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBrackets
         retrieve information on the maximum leverage for different trade sizes
+
+        https://doc.xt.com/#futures_quotesgetLeverageBrackets
+
         :param str [symbols]: a list of unified market symbols
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3848,7 +3928,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3881,8 +3961,10 @@ class xt(Exchange, ImplicitAPI):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBracket
         retrieve information on the maximum leverage for different trade sizes of a single market
+
+        https://doc.xt.com/#futures_quotesgetLeverageBracket
+
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3924,7 +4006,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3950,6 +4032,7 @@ class xt(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market, '_', 'contract')
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
+                'symbol': self.safe_symbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': self.safe_number(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': self.safe_number(tier, 'maxNominalValue'),
@@ -3962,7 +4045,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rates
-        :see: https://doc.xt.com/#futures_quotesgetFundingRateRecord
+
+        https://doc.xt.com/#futures_quotesgetFundingRateRecord
+
         :param str [symbol]: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
@@ -4025,10 +4110,24 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+
+        https://doc.xt.com/#futures_quotesgetFundingRate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return await self.fetch_funding_rate(symbol, params)
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://doc.xt.com/#futures_quotesgetFundingRate
+
+        https://doc.xt.com/#futures_quotesgetFundingRate
+
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -4063,7 +4162,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market=None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4075,6 +4174,7 @@ class xt(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
+        interval = self.safe_string(contract, 'collectionInternal')
         return {
             'info': contract,
             'symbol': symbol,
@@ -4093,12 +4193,15 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': interval + 'h',
         }
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the funding history
-        :see: https://doc.xt.com/#futures_usergetFunding
+
+        https://doc.xt.com/#futures_usergetFunding
+
         :param str symbol: unified market symbol
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
@@ -4182,7 +4285,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://doc.xt.com/#futures_usergetPosition
+
+        https://doc.xt.com/#futures_usergetPosition
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -4237,7 +4342,9 @@ class xt(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
-        :see: https://doc.xt.com/#futures_usergetPosition
+
+        https://doc.xt.com/#futures_usergetPosition
+
         :param str [symbols]: list of unified market symbols, not supported with xt
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -4338,7 +4445,9 @@ class xt(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://doc.xt.com/#transfersubTransferPost
+
+        https://doc.xt.com/#transfersubTransferPost
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from -  spot, swap, leverage, finance

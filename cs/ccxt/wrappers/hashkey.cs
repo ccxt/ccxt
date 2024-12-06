@@ -370,10 +370,10 @@ public partial class hashkey
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -468,6 +468,12 @@ public partial class hashkey
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -483,12 +489,6 @@ public partial class hashkey
     /// <term>params.platform</term>
     /// <description>
     /// string : the platform to withdraw to (hashkey, HashKey HK)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -552,11 +552,17 @@ public partial class hashkey
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined (not used)
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -566,7 +572,7 @@ public partial class hashkey
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -596,12 +602,12 @@ public partial class hashkey
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// create a trade order
@@ -1021,6 +1027,12 @@ public partial class hashkey
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.type</term>
     /// <description>
     /// string : 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
@@ -1387,10 +1399,10 @@ public partial class hashkey
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding rate for multiple markets
@@ -1406,11 +1418,11 @@ public partial class hashkey
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices

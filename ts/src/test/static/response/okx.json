@@ -110,7 +110,172 @@
                 ]
             }
         ],
-        "fetchOpenOrders": [
+    "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders trigger with since = 0",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    0,
+                    null,
+                    {
+                        "trigger": true,
+                        "ordType": "conditional"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "activePx": "",
+                            "actualPx": "",
+                            "actualSide": "",
+                            "actualSz": "0",
+                            "algoClOrdId": "e847386590ce4dBC510e616e0438b78a",
+                            "algoId": "2017146754403004416",
+                            "amendPxOnTriggerType": "0",
+                            "attachAlgoOrds": [],
+                            "cTime": "1732618057878",
+                            "callbackRatio": "",
+                            "callbackSpread": "",
+                            "ccy": "",
+                            "chaseType": "",
+                            "chaseVal": "",
+                            "clOrdId": "e847386590ce4dBC510e616e0438b78a",
+                            "closeFraction": "",
+                            "failCode": "0",
+                            "instId": "LTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "isTradeBorrowMode": "",
+                            "last": "90.2",
+                            "lever": "3",
+                            "linkedOrd": {
+                                "ordId": ""
+                            },
+                            "maxChaseType": "",
+                            "maxChaseVal": "",
+                            "moveTriggerPx": "",
+                            "ordId": "",
+                            "ordIdList": [],
+                            "ordPx": "",
+                            "ordType": "conditional",
+                            "posSide": "net",
+                            "pxLimit": "",
+                            "pxSpread": "",
+                            "pxVar": "",
+                            "quickMgnType": "",
+                            "reduceOnly": "false",
+                            "side": "buy",
+                            "slOrdPx": "-1",
+                            "slTriggerPx": "100",
+                            "slTriggerPxType": "last",
+                            "state": "live",
+                            "sz": "1",
+                            "szLimit": "",
+                            "tag": "e847386590ce4dBC",
+                            "tdMode": "cross",
+                            "tgtCcy": "",
+                            "timeInterval": "",
+                            "tpOrdPx": "",
+                            "tpTriggerPx": "",
+                            "tpTriggerPxType": "",
+                            "triggerPx": "",
+                            "triggerPxType": "",
+                            "triggerTime": "",
+                            "uTime": "1732618057878"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "activePx": "",
+                            "actualPx": "",
+                            "actualSide": "",
+                            "actualSz": "0",
+                            "algoClOrdId": "e847386590ce4dBC510e616e0438b78a",
+                            "algoId": "2017146754403004416",
+                            "amendPxOnTriggerType": "0",
+                            "attachAlgoOrds": [],
+                            "cTime": "1732618057878",
+                            "callbackRatio": "",
+                            "callbackSpread": "",
+                            "ccy": "",
+                            "chaseType": "",
+                            "chaseVal": "",
+                            "clOrdId": "e847386590ce4dBC510e616e0438b78a",
+                            "closeFraction": "",
+                            "failCode": "0",
+                            "instId": "LTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "isTradeBorrowMode": "",
+                            "last": "90.2",
+                            "lever": "3",
+                            "linkedOrd": {
+                                "ordId": ""
+                            },
+                            "maxChaseType": "",
+                            "maxChaseVal": "",
+                            "moveTriggerPx": "",
+                            "ordId": "",
+                            "ordIdList": [],
+                            "ordPx": "",
+                            "ordType": "conditional",
+                            "posSide": "net",
+                            "pxLimit": "",
+                            "pxSpread": "",
+                            "pxVar": "",
+                            "quickMgnType": "",
+                            "reduceOnly": "false",
+                            "side": "buy",
+                            "slOrdPx": "-1",
+                            "slTriggerPx": "100",
+                            "slTriggerPxType": "last",
+                            "state": "live",
+                            "sz": "1",
+                            "szLimit": "",
+                            "tag": "e847386590ce4dBC",
+                            "tdMode": "cross",
+                            "tgtCcy": "",
+                            "timeInterval": "",
+                            "tpOrdPx": "",
+                            "tpTriggerPx": "",
+                            "tpTriggerPxType": "",
+                            "triggerPx": "",
+                            "triggerPxType": "",
+                            "triggerTime": "",
+                            "uTime": "1732618057878"
+                        },
+                        "id": "2017146754403004416",
+                        "clientOrderId": "e847386590ce4dBC510e616e0438b78a",
+                        "timestamp": 1732618057878,
+                        "datetime": "2024-11-26T10:47:37.878Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1732618057878,
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "conditional",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": null,
+                        "stopLossPrice": 100,
+                        "takeProfitPrice": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 1,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": false,
+                        "fees": []
+                    }
+                ]
+            },
             {
                 "description": "fetch swap limit open order with take profit and stop loss",
                 "method": "fetchOpenOrders",
@@ -1289,6 +1454,724 @@
                 }
             }
         ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch trc20 usdt address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBB",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCSSCSSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBDDBBBCCCSSCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TON",
+                      "addrEx": {
+                        "comment": "11563797"
+                      },
+                      "ctAddr": "Id_sDs",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBDDSSSSBBBCCCSSCSSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "USDT",
+                  "address": "AAAAAAAABBBBBBBBB",
+                  "tag": null,
+                  "network": "TRC20",
+                  "info": {
+                    "chain": "USDT-TRC20",
+                    "ctAddr": "gjLj6t",
+                    "ccy": "USDT",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAAAAAABBBBBBBBB",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch POL matic address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "POL",
+                  {
+                    "network": "MATIC"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "POL-ERC20",
+                      "ctAddr": "ffc3f6",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "POL-ERC20",
+                      "ctAddr": "ffc3f6",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "POL-Polygon",
+                      "ctAddr": "",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "POL-Polygon",
+                      "ctAddr": "",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDD",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "POL",
+                  "address": "AAAABBBCCC",
+                  "tag": null,
+                  "network": "MATIC",
+                  "info": {
+                    "chain": "POL-Polygon",
+                    "ctAddr": "",
+                    "ccy": "POL",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCC",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch eth eth address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ETH"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "ETH-ERC20",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-ERC20",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Arbitrum One",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Arbitrum One",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Base",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Base",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Linea",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Linea",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETHK-OKTC",
+                      "ctAddr": "72315c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETHK-OKTC",
+                      "ctAddr": "72315c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Optimism",
+                      "ctAddr": " ",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Optimism",
+                      "ctAddr": " ",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Starknet",
+                      "ctAddr": "004dc7",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-X Layer",
+                      "ctAddr": "6bc71c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-X Layer",
+                      "ctAddr": "6bc71c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-zkSync Era",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-zkSync Era",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "ETH",
+                  "address": "AAAABBBCCCDDDDA",
+                  "tag": null,
+                  "network": "ETH",
+                  "info": {
+                    "chain": "ETH-ERC20",
+                    "ctAddr": "",
+                    "ccy": "ETH",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCCDDDDA",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch btc address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "BTC",
+                  {
+                    "network": "BTC"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "BTC-Bitcoin",
+                      "ctAddr": "",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "BTCK-OKTC",
+                      "ctAddr": "99a7ff",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "BTCK-OKTC",
+                      "ctAddr": "99a7ff",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "BTC",
+                  "address": "AAAABBBCCCDDDDADDSS",
+                  "tag": null,
+                  "network": "BTC",
+                  "info": {
+                    "chain": "BTC-Bitcoin",
+                    "ctAddr": "",
+                    "ccy": "BTC",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCCDDDDADDSS",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch deposit address without network",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAADAADDSSAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDDADDSSAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TON",
+                      "addrEx": {
+                        "comment": "11563797"
+                      },
+                      "ctAddr": "Id_sDs",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAADADDSSAA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "USDT",
+                  "address": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                  "tag": null,
+                  "network": "TRC20",
+                  "info": {
+                    "chain": "USDT-TRC20",
+                    "ctAddr": "gjLj6t",
+                    "ccy": "USDT",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                    "selected": true
+                  }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -1390,6 +2273,8 @@
                     "average": 72775.8,
                     "baseVolume": 21266.19145051,
                     "quoteVolume": 1519926359.5972667,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "instType": "SPOT",
                         "instId": "BTC-USDT",
@@ -1625,55 +2510,55 @@
                 "parsedResponse": [
                     {
                         "id": "696837060589600769",
-                        "info": {
-                        "bal": "67533.7456994514348308",
-                        "balChg": "-10.1580000000000000",
-                        "billId": "696837060589600769",
-                        "ccy": "USDT",
-                        "clOrdId": "e847386590ce4dBC6f7ae74854f6a617",
-                        "execType": "T",
-                        "fee": "0",
-                        "fillFwdPx": "",
-                        "fillIdxPx": "",
-                        "fillMarkPx": "",
-                        "fillMarkVol": "",
-                        "fillPxUsd": "",
-                        "fillPxVol": "",
-                        "fillTime": "1712410901850",
-                        "from": "",
-                        "instId": "LTC-USDT",
-                        "instType": "SPOT",
-                        "interest": "0",
-                        "mgnMode": "cash",
-                        "notes": "",
-                        "ordId": "1339107111507525632",
-                        "pnl": "0",
-                        "posBal": "0",
-                        "posBalChg": "0",
-                        "px": "101.58",
-                        "subType": "2",
-                        "sz": "10.158",
-                        "tag": "e847386590ce4dBC",
-                        "to": "",
-                        "tradeId": "58148845",
-                        "ts": "1712410901851",
-                        "type": "2"
-                    },
                         "timestamp": 1712410901851,
                         "datetime": "2024-04-06T13:41:41.851Z",
+                        "direction": "out",
                         "account": null,
                         "referenceId": "1339107111507525632",
                         "referenceAccount": null,
                         "type": "trade",
                         "currency": "USDT",
-                        "symbol": "LTC/USDT",
                         "amount": -10.158,
-                        "before": null,
+                        "before": 67543.90369945145,
                         "after": 67533.74569945144,
                         "status": "ok",
                         "fee": {
                             "cost": 0,
                             "currency": "USDT"
+                        },
+                        "info": {
+                            "bal": "67533.7456994514348308",
+                            "balChg": "-10.1580000000000000",
+                            "billId": "696837060589600769",
+                            "ccy": "USDT",
+                            "clOrdId": "e847386590ce4dBC6f7ae74854f6a617",
+                            "execType": "T",
+                            "fee": "0",
+                            "fillFwdPx": "",
+                            "fillIdxPx": "",
+                            "fillMarkPx": "",
+                            "fillMarkVol": "",
+                            "fillPxUsd": "",
+                            "fillPxVol": "",
+                            "fillTime": "1712410901850",
+                            "from": "",
+                            "instId": "LTC-USDT",
+                            "instType": "SPOT",
+                            "interest": "0",
+                            "mgnMode": "cash",
+                            "notes": "",
+                            "ordId": "1339107111507525632",
+                            "pnl": "0",
+                            "posBal": "0",
+                            "posBalChg": "0",
+                            "px": "101.58",
+                            "subType": "2",
+                            "sz": "10.158",
+                            "tag": "e847386590ce4dBC",
+                            "to": "",
+                            "tradeId": "58148845",
+                            "ts": "1712410901851",
+                            "type": "2"
                         }
                     }
                 ]
@@ -2069,6 +2954,46 @@
                         "ccy": "USDC",
                         "interestRate": "0.00004453"
                     }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear oi",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "instId": "BTC-USDT-SWAP",
+                      "instType": "SWAP",
+                      "oi": "2663107.29999999861",
+                      "oiCcy": "26631.0729999999861",
+                      "oiUsd": "1676426045.349999124995",
+                      "ts": "1728728314766"
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "baseVolume": 26631.072999999986,
+                  "quoteVolume": null,
+                  "openInterestAmount": 2663107.2999999984,
+                  "openInterestValue": 1676426045.3499992,
+                  "timestamp": 1728728314766,
+                  "datetime": "2024-10-12T10:18:34.766Z",
+                  "info": {
+                    "instId": "BTC-USDT-SWAP",
+                    "instType": "SWAP",
+                    "oi": "2663107.29999999861",
+                    "oiCcy": "26631.0729999999861",
+                    "oiUsd": "1676426045.349999124995",
+                    "ts": "1728728314766"
+                  }
                 }
             }
         ]

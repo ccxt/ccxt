@@ -6,7 +6,7 @@
         "tonce",
         "client_id"
     ],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "fetchMyTrades": [
             {
@@ -728,6 +728,18 @@
         ],
         "cancelOrders": [
             {
+                "description": "cancelOrders spot",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
+                "input": [
+                    [
+                        "133207122417"
+                    ],
+                    "LTC/USDT"
+                ],
+                "output": "{\"market\":\"LTCUSDT\",\"order_ids\":[133207122417]}"
+            },
+            {
                 "description": "Cancel multiple spot orders at once",
                 "method": "cancelOrders",
                 "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
@@ -1288,6 +1300,16 @@
             ]
         }
      ],
+    "fetchFundingInterval": [
+      {
+        "description": "linear swap fetch the funding interval",
+        "method": "fetchFundingInterval",
+        "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
+     ],
      "withdraw": [
         {
           "description": "Withdraw USDT on the TRC20 chain",
@@ -1299,10 +1321,25 @@
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
             null,
             {
-              "network": "TRX"
+              "network": "TRC20"
             }
           ],
           "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"
+        }
+      ],
+      "closePosition": [
+        {
+          "description": "swap close a position",
+          "method": "closePosition",
+          "url": "https://api.coinex.com/v2/futures/close-position",
+          "input": [
+            "BTC/USDT:USDT",
+            null,
+            {
+              "type": "market"
+            }
+          ],
+          "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"type\":\"market\"}"
         }
       ]
     },

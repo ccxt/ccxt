@@ -50,10 +50,6 @@ const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
 
 
-// non-transpiled part, but shared names among langs
-const fileParts = import.meta.url.split ('.');
-const ext = fileParts[fileParts.length - 1];
-
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
@@ -92,7 +88,15 @@ class baseMainTestClass {
     ext = ext;
 }
 
+// non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split ('.');
+const EXT = fileParts[fileParts.length - 1];
+const LANG = 'JS';
+const ROOT_DIR = DIR_NAME + '/../../../';
+const ENV_VARS = process.env;
+const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
+const PROXY_TEST_FILE_NAME = "proxies";
 
 function dump (...args) {
     console.log (...args);
@@ -196,11 +200,11 @@ async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat ([ proxyTestFileName, rateLimitTestFileName ]);
+    const finalPropList = properties.concat ([ proxyTestFileName, 'features', rateLimitTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
+        if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);
         }
@@ -210,7 +214,7 @@ async function getTestFiles (properties, ws = false) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
+        if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);
         }
@@ -231,6 +235,26 @@ async function close (exchange: Exchange) {
     await exchange.close ();
 }
 
+function isSync () {
+    return false;
+}
+
+function getRootDir () {
+    return ROOT_DIR;
+}
+
+function getEnvVars () {
+    return ENV_VARS;
+}
+
+function getLang () {
+    return LANG;
+}
+
+function getExt () {
+    return EXT;
+}
+
 
 export {
     // errors
@@ -244,7 +268,6 @@ export {
     // shared
     getCliArgValue,
     //
-    baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
@@ -268,9 +291,18 @@ export {
     setFetchResponse,
     isNullValue,
     close,
+    getRootDir,
     argvExchange,
     argvSymbol,
     argvMethod,
+    isSync,
+    LANG,
+    ENV_VARS,
+    NEW_LINE,
+    EXT,
+    getEnvVars,
+    getLang,
+    getExt
 };
 
 export default {};
