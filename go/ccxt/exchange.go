@@ -6,6 +6,7 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -36,6 +37,8 @@ type Exchange struct {
 	UserAgents          map[string]interface{}
 	Timeout             int64
 	RateLimit           float64
+	TokenBucket         map[string]interface{}
+	Throttler           Throttler
 	NewUpdates          bool
 	Alias               bool
 	Verbose             bool
@@ -179,6 +182,26 @@ func NewExchange() IExchange {
 	return exchange
 }
 
+func (this *Exchange) InitRestRateLimiter() {
+	if this.RateLimit == -1 {
+		panic("this.RateLimit is not set")
+	}
+
+	refillRate := math.MaxFloat64
+	if this.RateLimit > 0 {
+		refillRate = 1 / this.RateLimit
+	}
+	this.TokenBucket = map[string]interface{}{
+		"delay":       0.001,
+		"capacity":    1,
+		"cost":        1,
+		"maxCapacity": 1000,
+		"refillRate":  refillRate,
+	}
+
+	this.Throttler = NewThrottler(this.TokenBucket)
+}
+
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	// to do
 	ch := make(chan interface{})
@@ -214,9 +237,10 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	// to do
 	ch := make(chan interface{})
-	go func() interface{} {
+	go func() {
 		defer close(ch)
-		return nil
+		task := this.Throttler.Throttle(cost)
+		ch <- task
 	}()
 	return ch
 }
