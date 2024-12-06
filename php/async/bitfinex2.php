@@ -420,12 +420,10 @@ class bitfinex2 extends Exchange {
                     'temporarily_unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array(
-                    'address' => '\\ccxt\\InvalidAddress',
                     'available balance is only' => '\\ccxt\\InsufficientFunds',
                     'not enough exchange balance' => '\\ccxt\\InsufficientFunds',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'symbol => invalid' => '\\ccxt\\BadSymbol',
-                    'Invalid order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'commonCurrencies' => array(
@@ -789,7 +787,11 @@ class bitfinex2 extends Exchange {
                 $name = $this->safe_string($label, 1);
                 $pool = $this->safe_value($indexed['pool'], $id, array());
                 $rawType = $this->safe_string($pool, 1);
-                $type = ($rawType === null) ? 'other' : 'crypto';
+                $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
+                $type = null;
+                if ($isCryptoCoin) {
+                    $type = 'crypto';
+                }
                 $feeValues = $this->safe_value($indexed['fees'], $id, array());
                 $fees = $this->safe_value($feeValues, 1, array());
                 $fee = $this->safe_number($fees, 1);
@@ -1768,7 +1770,8 @@ class bitfinex2 extends Exchange {
             }
             $orders = $this->safe_list($response, 4, array());
             $order = $this->safe_list($orders, 0);
-            return $this->parse_order($this->extend(array( 'result' => $order )), $market);
+            $newOrder = array( 'result' => $order );
+            return $this->parse_order($newOrder, $market);
         }) ();
     }
 
@@ -1876,6 +1879,10 @@ class bitfinex2 extends Exchange {
             Async\await($this->load_markets());
             $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client $order $id
             $request = null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             if ($cid !== null) {
                 $cidDate = $this->safe_value($params, 'cidDate'); // client $order $id date
                 if ($cidDate === null) {
@@ -1893,8 +1900,8 @@ class bitfinex2 extends Exchange {
             }
             $response = Async\await($this->privatePostAuthWOrderCancel ($this->extend($request, $params)));
             $order = $this->safe_value($response, 4);
-            $orderObject = array( 'result' => $order );
-            return $this->parse_order($orderObject);
+            $newOrder = array( 'result' => $order );
+            return $this->parse_order($newOrder, $market);
         }) ();
     }
 
@@ -2447,6 +2454,8 @@ class bitfinex2 extends Exchange {
             }
             $tag = $this->safe_string($data, 3);
             $type = 'withdrawal';
+            $networkId = $this->safe_string($data, 2);
+            $network = $this->network_id_to_code(strtoupper($networkId)); // withdraw returns in lowercase
         } elseif ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
@@ -2691,7 +2700,7 @@ class bitfinex2 extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
             Async\await($this->load_markets());
@@ -2765,10 +2774,7 @@ class bitfinex2 extends Exchange {
             if ($text !== 'success') {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
             }
-            $transaction = $this->parse_transaction($response, $currency);
-            return $this->extend($transaction, array(
-                'address' => $address,
-            ));
+            return $this->parse_transaction($response, $currency);
         }) ();
     }
 
@@ -3745,7 +3751,8 @@ class bitfinex2 extends Exchange {
             //     )
             //
             $order = $this->safe_list($response, 0);
-            return $this->parse_order($order, $market);
+            $newOrder = array( 'result' => $order );
+            return $this->parse_order($newOrder, $market);
         }) ();
     }
 
@@ -3873,7 +3880,8 @@ class bitfinex2 extends Exchange {
                 throw new ExchangeError($this->id . ' ' . $response[6] . ' => ' . $errorText . ' (#' . $errorCode . ')');
             }
             $order = $this->safe_list($response, 4, array());
-            return $this->parse_order($order, $market);
+            $newOrder = array( 'result' => $order );
+            return $this->parse_order($newOrder, $market);
         }) ();
     }
 }

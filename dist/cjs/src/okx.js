@@ -1198,7 +1198,6 @@ class okx extends okx$1 {
                             'limitPrice': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,

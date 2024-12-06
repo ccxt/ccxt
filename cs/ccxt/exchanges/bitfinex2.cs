@@ -360,12 +360,10 @@ public partial class bitfinex2 : Exchange
                     { "temporarily_unavailable", typeof(ExchangeNotAvailable) },
                 } },
                 { "broad", new Dictionary<string, object>() {
-                    { "address", typeof(InvalidAddress) },
                     { "available balance is only", typeof(InsufficientFunds) },
                     { "not enough exchange balance", typeof(InsufficientFunds) },
                     { "Order not found", typeof(OrderNotFound) },
                     { "symbol: invalid", typeof(BadSymbol) },
-                    { "Invalid order", typeof(InvalidOrder) },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -739,7 +737,12 @@ public partial class bitfinex2 : Exchange
             object name = this.safeString(label, 1);
             object pool = this.safeValue(getValue(indexed, "pool"), id, new List<object>() {});
             object rawType = this.safeString(pool, 1);
-            object type = ((bool) isTrue((isEqual(rawType, null)))) ? "other" : "crypto";
+            object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
+            object type = null;
+            if (isTrue(isCryptoCoin))
+            {
+                type = "crypto";
+            }
             object feeValues = this.safeValue(getValue(indexed, "fees"), id, new List<object>() {});
             object fees = this.safeValue(feeValues, 1, new List<object>() {});
             object fee = this.safeNumber(fees, 1);
@@ -1795,9 +1798,10 @@ public partial class bitfinex2 : Exchange
         }
         object orders = this.safeList(response, 4, new List<object>() {});
         object order = this.safeList(orders, 0);
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {
+        object newOrder = new Dictionary<string, object>() {
             { "result", order },
-        }), market);
+        };
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -1912,6 +1916,11 @@ public partial class bitfinex2 : Exchange
         await this.loadMarkets();
         object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
         object request = null;
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
         if (isTrue(!isEqual(cid, null)))
         {
             object cidDate = this.safeValue(parameters, "cidDate"); // client order id date
@@ -1932,10 +1941,10 @@ public partial class bitfinex2 : Exchange
         }
         object response = await this.privatePostAuthWOrderCancel(this.extend(request, parameters));
         object order = this.safeValue(response, 4);
-        object orderObject = new Dictionary<string, object>() {
+        object newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return this.parseOrder(orderObject);
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -2529,6 +2538,8 @@ public partial class bitfinex2 : Exchange
             }
             tag = this.safeString(data, 3);
             type = "withdrawal";
+            object networkId = this.safeString(data, 2);
+            network = this.networkIdToCode(((string)networkId).ToUpper()); // withdraw returns in lowercase
         } else if (isTrue(isEqual(transactionLength, 22)))
         {
             id = this.safeString(transaction, 0);
@@ -2866,10 +2877,7 @@ public partial class bitfinex2 : Exchange
         {
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, text);
         }
-        object transaction = this.parseTransaction(response, currency);
-        return this.extend(transaction, new Dictionary<string, object>() {
-            { "address", address },
-        });
+        return this.parseTransaction(response, currency);
     }
 
     /**
@@ -3927,7 +3935,10 @@ public partial class bitfinex2 : Exchange
         //     ]
         //
         object order = this.safeList(response, 0);
-        return this.parseOrder(order, market);
+        object newOrder = new Dictionary<string, object>() {
+            { "result", order },
+        };
+        return this.parseOrder(newOrder, market);
     }
 
     /**
@@ -4066,6 +4077,9 @@ public partial class bitfinex2 : Exchange
             throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), getValue(response, 6)), ": "), errorText), " (#"), errorCode), ")")) ;
         }
         object order = this.safeList(response, 4, new List<object>() {});
-        return this.parseOrder(order, market);
+        object newOrder = new Dictionary<string, object>() {
+            { "result", order },
+        };
+        return this.parseOrder(newOrder, market);
     }
 }

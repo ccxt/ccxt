@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.35'
+__version__ = '4.4.37'
 
 # -----------------------------------------------------------------------------
 
@@ -2791,6 +2791,9 @@ class Exchange(object):
 
     def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
         featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        # if exchange does not have that market-type(eg. future>inverse)
+        if featuresObj is None:
+            return None
         extendsStr: Str = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
@@ -2804,9 +2807,13 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # False 'hedged' for spot
+            # for spot, default 'hedged' to False
             if marketType == 'spot':
                 featuresObj['createOrder']['hedged'] = False
+            # default 'GTC' to True
+            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
+            if gtcValue is None:
+                featuresObj['createOrder']['timeInForce']['gtc'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):

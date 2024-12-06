@@ -217,6 +217,96 @@ export default class hyperliquid extends Exchange {
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': {
+                        'max': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+            },
         });
     }
     setSandboxMode(enabled) {
@@ -500,7 +590,7 @@ export default class hyperliquid extends Exchange {
             const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString(i + 10000);
+            const baseId = this.numberToString(index + 10000);
             markets.push(this.safeMarketStructure({
                 'id': marketName,
                 'symbol': symbol,
@@ -1204,13 +1294,24 @@ export default class hyperliquid extends Exchange {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildTransferSig(message) {
+    buildUsdSendSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    buildUsdClassSendSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
@@ -2687,26 +2788,36 @@ export default class hyperliquid extends Exchange {
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
                 throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
             }
+            let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
             params = this.omit(params, 'vaultAddress');
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action(action, nonce, vaultAddress);
-            const innerRequest = {
-                'action': action,
+            const transferPayload = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig(transferPayload);
+            const transferRequest = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange(innerRequest);
+            const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2723,7 +2834,7 @@ export default class hyperliquid extends Exchange {
             'amount': this.numberToString(amount),
             'time': nonce,
         };
-        const sig = this.buildTransferSig(payload);
+        const sig = this.buildUsdSendSig(payload);
         const request = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],

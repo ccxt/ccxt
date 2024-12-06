@@ -538,7 +538,6 @@ class bingx extends bingx$1 {
                             'limitPrice': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,

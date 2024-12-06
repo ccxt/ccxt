@@ -260,6 +260,7 @@ public partial class paradex : Exchange
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
+                { "paradexAccount", null },
                 { "broker", "CCXT" },
             } },
         });
@@ -1031,12 +1032,12 @@ public partial class paradex : Exchange
 
     public async virtual Task<object> retrieveAccount()
     {
-        this.checkRequiredCredentials();
         object cachedAccount = this.safeDict(this.options, "paradexAccount");
         if (isTrue(!isEqual(cachedAccount, null)))
         {
             return cachedAccount;
         }
+        this.checkRequiredCredentials();
         object systemConfig = await this.getSystemConfig();
         object domain = await this.prepareParadexDomain(true);
         object messageTypes = new Dictionary<string, object>() {
@@ -2216,7 +2217,6 @@ public partial class paradex : Exchange
             }
         } else if (isTrue(isEqual(api, "private")))
         {
-            this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "PARADEX-PARTNER", this.safeString(this.options, "broker", "CCXT") },

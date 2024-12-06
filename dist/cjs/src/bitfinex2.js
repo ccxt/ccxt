@@ -413,12 +413,10 @@ class bitfinex2 extends bitfinex2$1 {
                     'temporarily_unavailable': errors.ExchangeNotAvailable,
                 },
                 'broad': {
-                    'address': errors.InvalidAddress,
                     'available balance is only': errors.InsufficientFunds,
                     'not enough exchange balance': errors.InsufficientFunds,
                     'Order not found': errors.OrderNotFound,
                     'symbol: invalid': errors.BadSymbol,
-                    'Invalid order': errors.InvalidOrder,
                 },
             },
             'commonCurrencies': {
@@ -770,7 +768,11 @@ class bitfinex2 extends bitfinex2$1 {
             const name = this.safeString(label, 1);
             const pool = this.safeValue(indexed['pool'], id, []);
             const rawType = this.safeString(pool, 1);
-            const type = (rawType === undefined) ? 'other' : 'crypto';
+            const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+            let type = undefined;
+            if (isCryptoCoin) {
+                type = 'crypto';
+            }
             const feeValues = this.safeValue(indexed['fees'], id, []);
             const fees = this.safeValue(feeValues, 1, []);
             const fee = this.safeNumber(fees, 1);
@@ -1724,7 +1726,8 @@ class bitfinex2 extends bitfinex2$1 {
         }
         const orders = this.safeList(response, 4, []);
         const order = this.safeList(orders, 0);
-        return this.parseOrder(this.extend({ 'result': order }), market);
+        const newOrder = { 'result': order };
+        return this.parseOrder(newOrder, market);
     }
     /**
      * @method
@@ -1823,6 +1826,10 @@ class bitfinex2 extends bitfinex2$1 {
         await this.loadMarkets();
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         if (cid !== undefined) {
             const cidDate = this.safeValue(params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
@@ -1841,8 +1848,8 @@ class bitfinex2 extends bitfinex2$1 {
         }
         const response = await this.privatePostAuthWOrderCancel(this.extend(request, params));
         const order = this.safeValue(response, 4);
-        const orderObject = { 'result': order };
-        return this.parseOrder(orderObject);
+        const newOrder = { 'result': order };
+        return this.parseOrder(newOrder, market);
     }
     /**
      * @method
@@ -2368,6 +2375,8 @@ class bitfinex2 extends bitfinex2$1 {
             }
             tag = this.safeString(data, 3);
             type = 'withdrawal';
+            const networkId = this.safeString(data, 2);
+            network = this.networkIdToCode(networkId.toUpperCase()); // withdraw returns in lowercase
         }
         else if (transactionLength === 22) {
             id = this.safeString(transaction, 0);
@@ -2683,10 +2692,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (text !== 'success') {
             this.throwBroadlyMatchedException(this.exceptions['broad'], text, text);
         }
-        const transaction = this.parseTransaction(response, currency);
-        return this.extend(transaction, {
-            'address': address,
-        });
+        return this.parseTransaction(response, currency);
     }
     /**
      * @method
@@ -3636,7 +3642,8 @@ class bitfinex2 extends bitfinex2$1 {
         //     ]
         //
         const order = this.safeList(response, 0);
-        return this.parseOrder(order, market);
+        const newOrder = { 'result': order };
+        return this.parseOrder(newOrder, market);
     }
     /**
      * @method
@@ -3762,7 +3769,8 @@ class bitfinex2 extends bitfinex2$1 {
             throw new errors.ExchangeError(this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList(response, 4, []);
-        return this.parseOrder(order, market);
+        const newOrder = { 'result': order };
+        return this.parseOrder(newOrder, market);
     }
 }
 

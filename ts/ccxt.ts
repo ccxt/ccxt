@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.35';
+const version = '4.4.37';
 
 (Exchange as any).ccxtVersion = version
 
@@ -61,7 +61,7 @@ import bitbank from  './src/bitbank.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
-import bitfinex2 from  './src/bitfinex2.js'
+import bitfinex1 from  './src/bitfinex1.js'
 import bitflyer from  './src/bitflyer.js'
 import bitget from  './src/bitget.js'
 import bithumb from  './src/bithumb.js'
@@ -170,7 +170,7 @@ import binanceusdmPro from  './src/pro/binanceusdm.js'
 import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
-import bitfinex2Pro from  './src/pro/bitfinex2.js'
+import bitfinex1Pro from  './src/pro/bitfinex1.js'
 import bitgetPro from  './src/pro/bitget.js'
 import bithumbPro from  './src/pro/bithumb.js'
 import bitmartPro from  './src/pro/bitmart.js'
@@ -251,7 +251,7 @@ const exchanges = {
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
-    'bitfinex2':              bitfinex2,
+    'bitfinex1':              bitfinex1,
     'bitflyer':               bitflyer,
     'bitget':                 bitget,
     'bithumb':                bithumb,
@@ -360,7 +360,7 @@ const pro = {
     'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
-    'bitfinex2':              bitfinex2Pro,
+    'bitfinex1':              bitfinex1Pro,
     'bitget':                 bitgetPro,
     'bithumb':                bithumbPro,
     'bitmart':                bitmartPro,
@@ -580,7 +580,7 @@ export {
     bitbns,
     bitcoincom,
     bitfinex,
-    bitfinex2,
+    bitfinex1,
     bitflyer,
     bitget,
     bithumb,

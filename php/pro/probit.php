@@ -172,6 +172,7 @@ class probit extends \ccxt\async\probit {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $channel = 'recent_trades';
+            $symbol = $this->safe_symbol($symbol);
             $trades = Async\await($this->subscribe_public('watchTrades', $symbol, 'trades', $channel, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
