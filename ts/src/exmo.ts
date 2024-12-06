@@ -366,7 +366,7 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs', []);
+        const pairs = this.safeList (response, 'pairs', []);
         const result: Dict = {};
         for (let i = 0; i < pairs.length; i++) {
             const pair = pairs[i];
@@ -790,7 +790,7 @@ export default class exmo extends Exchange {
             //        ]
             //    }
             //
-            const pairs = this.safeValue (marginPairs, 'pairs');
+            const pairs = this.safeList (marginPairs, 'pairs');
             marginPairsDict = this.indexBy (pairs, 'name');
         }
         const keys = Object.keys (response);
@@ -1236,7 +1236,7 @@ export default class exmo extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const isMaker = this.safeValue (trade, 'is_maker');
+        const isMaker = this.safeBool (trade, 'is_maker');
         let takerOrMakerDefault = undefined;
         if (isMaker !== undefined) {
             takerOrMakerDefault = isMaker ? 'maker' : 'taker';
@@ -1406,7 +1406,7 @@ export default class exmo extends Exchange {
             //        }
             //    }
             //
-            response = this.safeValue (responseFromExchange, 'trades');
+            response = this.safeDict (responseFromExchange, 'trades', {});
         }
         let result = [];
         const marketIdsInner = Object.keys (response);
@@ -1545,7 +1545,7 @@ export default class exmo extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        const stop = this.safeValue2 (params, 'trigger', 'stop');
+        const stop = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
@@ -1757,7 +1757,7 @@ export default class exmo extends Exchange {
             params = this.extend (params, {
                 'status': 'open',
             });
-            const responseOrders = this.safeValue (response, 'orders');
+            const responseOrders = this.safeList (response, 'orders', []);
             orders = this.parseOrders (responseOrders, market, since, limit, params);
         } else {
             response = await this.privatePostUserOpenOrders (params);
@@ -1929,7 +1929,7 @@ export default class exmo extends Exchange {
         }
         const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'amount');
-        const transactions = this.safeValue (order, 'trades', []);
+        const transactions = this.safeList (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
         let triggerPrice = this.safeString (order, 'stop_price');
         if (triggerPrice === '0') {
@@ -2049,7 +2049,7 @@ export default class exmo extends Exchange {
             //        ]
             //    }
             //
-            const items = this.safeValue (responseSwap, 'items');
+            const items = this.safeList (responseSwap, 'items', []);
             const orders = this.parseOrders (items, market, since, limit, params);
             const result = [];
             for (let i = 0; i < orders.length; i++) {
@@ -2263,7 +2263,7 @@ export default class exmo extends Exchange {
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
-            const extra = this.safeValue (transaction, 'extra', {});
+            const extra = this.safeDict (transaction, 'extra', {});
             const extraTxid = this.safeString (extra, 'txid');
             if (extraTxid !== '') {
                 txid = extraTxid;
@@ -2498,7 +2498,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -2551,7 +2551,7 @@ export default class exmo extends Exchange {
         //         "count": 23
         //     }
         //
-        const items = this.safeValue (response, 'items', []);
+        const items = this.safeList (response, 'items', []);
         const first = this.safeDict (items, 0, {});
         return this.parseTransaction (first, currency);
     }
