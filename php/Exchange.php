@@ -3439,6 +3439,10 @@ class Exchange {
 
     public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
+        }
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');

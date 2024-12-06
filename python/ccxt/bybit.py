@@ -1115,7 +1115,6 @@ class bybit(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -1177,7 +1176,6 @@ class bybit(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,

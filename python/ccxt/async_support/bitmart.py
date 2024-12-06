@@ -704,6 +704,151 @@ class bitmart(Exchange, ImplicitAPI):
                 'createMarketBuyOrderRequiresPrice': True,
                 'brokerId': 'CCXTxBitmart000',
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        # exchange-supported features
+                        # 'leverage': True,
+                        # 'selfTradePrevention': False,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 200,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 200,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # variable timespans for recent endpoint, 200 for historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': True,  # todo: implementation broken
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                                'index': False,
+                            },
+                            'limitPrice': False,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        # exchange-supported features
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 200,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     async def fetch_time(self, params={}):
@@ -1906,10 +2051,11 @@ class bitmart(Exchange, ImplicitAPI):
             if marginMode == 'isolated':
                 request['orderMode'] = 'iso_margin'
             options = self.safe_dict(self.options, 'fetchMyTrades', {})
-            defaultLimit = self.safe_integer(options, 'limit', 200)
+            maxLimit = 200
+            defaultLimit = self.safe_integer(options, 'limit', maxLimit)
             if limit is None:
                 limit = defaultLimit
-            request['limit'] = limit
+            request['limit'] = min(limit, maxLimit)
             if since is not None:
                 request['startTime'] = since
             if until is not None:
@@ -2549,8 +2695,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
  @ignore
         create a trade order
-        https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         :param str symbol: unified symbol of the market to create an order in
@@ -2996,12 +3141,12 @@ class bitmart(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if limit is not None:
-            request['limit'] = limit
         type = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if type == 'spot':
+            if limit is not None:
+                request['limit'] = min(limit, 200)
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             if marginMode == 'isolated':
@@ -3014,9 +3159,11 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
-            isStop = self.safe_bool_2(params, 'stop', 'trigger')
+            if limit is not None:
+                request['limit'] = min(limit, 100)
+            isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
             params = self.omit(params, ['stop', 'trigger'])
-            if isStop:
+            if isTrigger:
                 response = await self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
                 trailing = self.safe_bool(params, 'trailing', False)
@@ -3113,12 +3260,8 @@ class bitmart(Exchange, ImplicitAPI):
         if type != 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
-        if marginMode == 'isolated':
-            request['orderMode'] = 'iso_margin'
-        startTimeKey = 'startTime' if (type == 'spot') else 'start_time'
         if since is not None:
+            startTimeKey = 'startTime' if (type == 'spot') else 'start_time'
             request[startTimeKey] = since
         endTimeKey = 'endTime' if (type == 'spot') else 'end_time'
         until = self.safe_integer_2(params, 'until', endTimeKey)
@@ -3127,6 +3270,10 @@ class bitmart(Exchange, ImplicitAPI):
             request[endTimeKey] = until
         response = None
         if type == 'spot':
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
+            if marginMode == 'isolated':
+                request['orderMode'] = 'iso_margin'
             response = await self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
         else:
             response = await self.privateGetContractPrivateOrderHistory(self.extend(request, params))

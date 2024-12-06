@@ -1094,7 +1094,6 @@ class bybit extends Exchange {
                             'limitPrice' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -1156,7 +1155,6 @@ class bybit extends Exchange {
                             'limitPrice' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
