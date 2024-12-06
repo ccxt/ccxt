@@ -130,6 +130,7 @@ interface Exchange {
     privateGetAssetConvertCurrencyPair (params?: {}): Promise<implicitReturnType>;
     privateGetAssetConvertHistory (params?: {}): Promise<implicitReturnType>;
     privateGetAssetMonthlyStatement (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountInstruments (params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositionsHistory (params?: {}): Promise<implicitReturnType>;

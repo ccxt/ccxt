@@ -558,6 +558,12 @@ public partial class oxfun
     /// See <see href="https://docs.ox.fun/?json#post-v3-withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -567,12 +573,6 @@ public partial class oxfun
     /// <term>params.externalFee</term>
     /// <description>
     /// bool : if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -610,7 +610,7 @@ public partial class oxfun
     /// <item>
     /// <term>params.subAcc</term>
     /// <description>
-    /// boolean :          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+    /// boolean :      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
     /// </description>
     /// </item>
     /// </list>

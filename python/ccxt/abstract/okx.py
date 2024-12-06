@@ -123,6 +123,7 @@ class ImplicitAPI:
     private_get_asset_convert_currency_pair = privateGetAssetConvertCurrencyPair = Entry('asset/convert/currency-pair', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_convert_history = privateGetAssetConvertHistory = Entry('asset/convert/history', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_monthly_statement = privateGetAssetMonthlyStatement = Entry('asset/monthly-statement', 'private', 'GET', {'cost': 2})
+    private_get_account_instruments = privateGetAccountInstruments = Entry('account/instruments', 'private', 'GET', {'cost': 1})
     private_get_account_balance = privateGetAccountBalance = Entry('account/balance', 'private', 'GET', {'cost': 2})
     private_get_account_positions = privateGetAccountPositions = Entry('account/positions', 'private', 'GET', {'cost': 2})
     private_get_account_positions_history = privateGetAccountPositionsHistory = Entry('account/positions-history', 'private', 'GET', {'cost': 100})

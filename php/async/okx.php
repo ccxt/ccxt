@@ -332,6 +332,7 @@ class okx extends Exchange {
                         'asset/convert/history' => 5 / 3,
                         'asset/monthly-statement' => 2,
                         // account
+                        'account/instruments' => 1,
                         'account/balance' => 2,
                         'account/positions' => 2,
                         'account/positions-history' => 100,
@@ -1181,6 +1182,97 @@ class okx extends Exchange {
                 ),
                 'brokerId' => 'e847386590ce4dBC',
             ),
+            'features' => array(
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'limitPrice' => true,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention' => true,
+                        'trailing' => true,
+                        'twap' => true,
+                        'iceberg' => true,
+                        'oco' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'daysBack' => 90,
+                        'limit' => 100,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOrders' => null, // not supported
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBackClosed' => 90, // 3 months
+                        'daysBackCanceled' => 1 / 12, // 2 hour
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
@@ -1280,7 +1372,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             *
              * @see https://www.okx.com/docs-v5/en/#status-get-status
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
@@ -1337,7 +1431,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-system-time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -1361,7 +1457,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
              */
@@ -1407,7 +1505,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for okx
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -1636,7 +1736,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -1737,7 +1839,7 @@ class okx extends Exchange {
                             'active' => $active,
                             'deposit' => $canDeposit,
                             'withdraw' => $canWithdraw,
-                            'fee' => $this->safe_number($chain, 'minFee'),
+                            'fee' => $this->safe_number($chain, 'fee'),
                             'precision' => $this->parse_number($precision),
                             'limits' => array(
                                 'withdraw' => array(
@@ -1777,7 +1879,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1911,7 +2015,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1958,7 +2064,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-$tickers
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2016,7 +2124,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches mark price for the $market
+             *
              * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-mark-price
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2050,7 +2160,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2175,8 +2287,10 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-option-trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -2279,12 +2393,14 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks-history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -2382,7 +2498,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
+             *
              * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-funding-$rate-history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~ to fetch
@@ -2532,7 +2650,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -2581,8 +2701,10 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] wallet type, ['funding' or 'trading'] default is 'trading'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -2707,7 +2829,9 @@ class okx extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+             *
              * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
@@ -2728,7 +2852,9 @@ class okx extends Exchange {
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+             *
              * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
@@ -3011,9 +3137,11 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-$order
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-multiple-orders
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-place-algo-$order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -3074,8 +3202,11 @@ class okx extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3210,7 +3341,7 @@ class okx extends Exchange {
                 $request['newPx'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         return $this->extend($request, $params);
     }
 
@@ -3218,8 +3349,10 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-amend-$order
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-amend-algo-$order
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
@@ -3286,8 +3419,10 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-$order
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3343,8 +3478,10 @@ class okx extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3444,8 +3581,10 @@ class okx extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * cancel multiple $orders for multiple symbols
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
+             *
              * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
@@ -3525,7 +3664,9 @@ class okx extends Exchange {
         return Async\async(function () use ($timeout, $params) {
             /**
              * dead man's switch, cancel all orders after the given $timeout
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-all-after
+             *
              * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
@@ -3774,8 +3915,10 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an $order by the $id
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-get-$order-details
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-get-algo-$order-details
+             *
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra and exchange specific parameters
@@ -3925,8 +4068,10 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -4088,8 +4233,10 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] max number of orders to return, default is null
@@ -4273,9 +4420,11 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-3-months
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -4459,7 +4608,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -4532,7 +4683,9 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -4555,9 +4708,11 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
@@ -4863,7 +5018,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+             *
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
@@ -4906,7 +5063,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+             *
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] the $network name for the deposit address
@@ -4936,11 +5095,13 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -5004,7 +5165,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -5086,7 +5249,9 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency $deposit via the $deposit $id
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
+             *
              * @param {string} $id $deposit $id
              * @param {string} $code filter by $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5112,7 +5277,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -5186,7 +5353,9 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency $withdrawal via the $withdrawal $id
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$withdrawal-history
+             *
              * @param {string} $id $withdrawal $id
              * @param {string} $code unified $currency $code of the $currency withdrawn, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5375,7 +5544,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
@@ -5447,7 +5618,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade $position
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+             *
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] MARGIN, SWAP, FUTURES, OPTION
@@ -5523,8 +5696,10 @@ class okx extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$positions
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-$positions-history history
+             *
              * fetch all open $positions
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5615,7 +5790,9 @@ class okx extends Exchange {
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+             *
              * fetch all open positions for specific $symbol
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5799,7 +5976,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -5979,7 +6158,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of $transfers structures to retrieve
@@ -6177,7 +6358,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate interval
+             *
              * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+             *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -6190,7 +6373,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-funding-rate
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -6230,7 +6415,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -6389,12 +6576,14 @@ class okx extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
-             * @param {string} [$params->posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+             * @param {string} [$params->posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -6420,14 +6609,12 @@ class okx extends Exchange {
                 'mgnMode' => $marginMode,
                 'instId' => $market['id'],
             );
-            $posSide = $this->safe_string($params, 'posSide');
+            $posSide = $this->safe_string($params, 'posSide', 'net');
             if ($marginMode === 'isolated') {
-                if ($posSide === null) {
-                    throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
-                }
                 if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
                     throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
                 }
+                $request['posSide'] = $posSide;
             }
             $response = Async\await($this->privatePostAccountSetLeverage ($this->extend($request, $params)));
             //
@@ -6451,11 +6638,13 @@ class okx extends Exchange {
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
+             *
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [param.accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
+             * @param {string} [$params->accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
              * @return {array} an object detailing whether the market is in hedged or one-way mode
              */
             $accounts = Async\await($this->fetch_accounts());
@@ -6487,7 +6676,9 @@ class okx extends Exchange {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a market
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
+             *
              * @param {bool} $hedged set to true to use long_short_mode, false for net_mode
              * @param {string} $symbol not used by okx setPositionMode
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6522,7 +6713,9 @@ class okx extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
+             *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6573,7 +6766,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest $rates of all currencies
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
              */
@@ -6604,7 +6799,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-$rate
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-$rate-structure borrow $rate structure~
@@ -6691,7 +6888,9 @@ class okx extends Exchange {
         return Async\async(function () use ($codes, $since, $limit, $params) {
             /**
              * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+             *
              * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+             *
              * @param {string[]|null} $codes list of unified currency $codes, default is null
              * @param {int} [$since] timestamp in ms of the earliest borrowRate, default is null
              * @param {int} [$limit] max number of borrow rate prices to return, default is null
@@ -6735,7 +6934,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * retrieves a history of a currencies borrow interest rate at specific time slots
+             *
              * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] timestamp for the earliest borrow rate
              * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
@@ -6891,7 +7092,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6905,7 +7108,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6919,7 +7124,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
@@ -7001,8 +7208,10 @@ class okx extends Exchange {
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $info[$i];
+            $marketId = $this->safe_string($tier, 'instId');
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number($tier, 'minSz'),
                 'maxNotional' => $this->safe_number($tier, 'maxSz'),
@@ -7014,11 +7223,13 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
+             *
              * @param {string} $code the unified $currency $code for the $currency of the $interest
              * @param {string} $symbol the $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
              * @param {int} [$since] timestamp in ms of the earliest time to receive $interest records for
@@ -7078,22 +7289,22 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
         }
         $timestamp = $this->safe_integer($info, 'ts');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
             'amountBorrowed' => $this->safe_number($info, 'liab'),
+            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 
@@ -7101,7 +7312,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a $loan to borrow margin (need to be VIP 5 and above)
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+             *
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -7140,7 +7353,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
+             *
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -7210,7 +7425,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open interest of a currency
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
+             *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
@@ -7252,8 +7469,10 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Retrieves the open interest history of a $currency
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-trading-$data-get-contracts-open-interest-and-volume
              * @see https://www.okx.com/docs-v5/en/#rest-api-trading-$data-get-$options-open-interest-and-volume
+             *
              * @param {string} $symbol Unified CCXT $currency code or unified $symbol
              * @param {string} $timeframe "5m", "1h", or "1d" for option only "1d" or "8h"
              * @param {int} [$since] The time in ms of the earliest record to retrieve unix timestamp
@@ -7387,13 +7606,20 @@ class okx extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+             *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAssetCurrencies ($params));
+            $request = array();
+            if ($codes !== null) {
+                $ids = $this->currency_ids($codes);
+                $request['ccy'] = implode(',', $ids);
+            }
+            $response = Async\await($this->privateGetAssetCurrencies ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "0",
@@ -7482,7 +7708,7 @@ class okx extends Exchange {
                 }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
-                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawFee = $this->safe_number($feeInfo, 'fee');
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,
@@ -7511,7 +7737,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
+             *
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-delivery-exercise-history
+             *
              * @param {string} $symbol unified $market $symbol to fetch the settlement history for
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
@@ -7615,7 +7843,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the market ids of underlying assets for a specific contract market type
+             *
              * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+             *
              * @param {array} [$params] exchange specific $params
              * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=underlying-assets-structure underlying assets~
@@ -7654,7 +7884,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
              * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch greeks for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
@@ -7764,7 +7996,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes open positions for a $market
+             *
              * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-close-positions
+             *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] 'buy' or 'sell', leave in net mode
              * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -7831,7 +8065,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option $chain
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-ticker
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
@@ -7878,8 +8114,10 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetches data for an underlying asset that is commonly found in an option chain
+             *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-             * @param {string} $currency base $currency to fetch an option chain for
+             *
+             * @param {string} $code base $currency to fetch an option chain for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
@@ -7971,7 +8209,9 @@ class okx extends Exchange {
         return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
             /**
              * fetch a quote for converting from one currency to another
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
+             *
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
              * @param {float} [$amount] how much you want to trade in units of the from currency
@@ -8024,7 +8264,9 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
             /**
              * convert from one currency to another
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
+             *
              * @param {string} $id the $id of the trade that you want to make
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
@@ -8078,7 +8320,9 @@ class okx extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch the $data for a conversion trade
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+             *
              * @param {string} $id the $id of the trade that you want to fetch
              * @param {string} [$code] the unified currency $code of the conversion trade
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -8130,7 +8374,9 @@ class okx extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the users history of conversion trades
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
+             *
              * @param {string} [$code] the unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch conversions for
              * @param {int} [$limit] the maximum number of conversion structures to retrieve
@@ -8250,7 +8496,9 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies that can be converted
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-currencies
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -8353,10 +8601,14 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
             /**
              * fetches the history of margin added or reduced from contract isolated positions
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+             *
              * @param {string} [$symbol] not used by okx fetchMarginAdjustmentHistory
              * @param {string} [$type] "add" or "reduce"
+             * @param {int} [$since] the earliest time in ms to fetch margin adjustment history for
+             * @param {int} [$limit] the maximum number of entries to retrieve
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @param {boolean} [$params->auto] true if fetching $auto margin increases
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~
@@ -8453,7 +8705,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * fetches historical $positions
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-$positions-history
+             *
              * @param {string} [$symbols] unified $market $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch
              * @param {int} [$limit] the maximum amount of records to fetch, default=100, max=100
@@ -8535,7 +8789,9 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches the long short ratio history for a unified $market $symbol
+             *
              * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
              * @param {string} [$timeframe] the period for the ratio
              * @param {int} [$since] the earliest time in ms to fetch ratios for

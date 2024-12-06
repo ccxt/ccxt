@@ -296,6 +296,11 @@ public partial class deribit : Exchange
         return await this.callAsync ("privateGetGetAccountSummary",parameters);
     }
 
+    public async Task<object> privateGetGetAccountSummaries (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGetAccountSummaries",parameters);
+    }
+
     public async Task<object> privateGetGetAffiliateProgramInfo (object parameters = null)
     {
         return await this.callAsync ("privateGetGetAffiliateProgramInfo",parameters);
