@@ -42,7 +42,8 @@ before_install:
 
 script:
 # - travis_wait ./build.sh 2>&1
-- travis_wait bash -c "./build.sh 2>&1"
+# - travis_wait bash -c "./build.sh 2>&1"
+- travis_wait ./build.sh > build.log 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     export SHOULD_DEPLOY=false;
