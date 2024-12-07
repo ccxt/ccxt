@@ -34,7 +34,7 @@
     "transpileCS": " \"Will transpile C#\" && tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "\"Will build C#\" && dotnet build cs/ccxt.sln",
-    "buildGO": "go build ./go/ccxt",
+    "buildGO": "go build -x ./go/ccxt",
     "transpileGO": "tsx build/goTranspiler.ts",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
