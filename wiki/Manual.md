@@ -5362,7 +5362,7 @@ The ledger entry type can be associated with a regular trade or a funding transa
 
 In order to deposit cryptocurrency funds to an exchange you must get an address from the exchange for the currency you want to deposit using `fetchDepositAddress`. You can then call the `withdraw` method with the specified currency and address.
 
-To deposit fiat currency on an exchange you can use the `deposit` method with data retrieved from the `fetchDepositId` method.
+To deposit fiat currency on an exchange you can use the `deposit` method with data retrieved from the `fetchDepositMethodId` method.
 *this deposit feature is currently supported on coinbase only, feel free to report any issues you find*
 
 - `deposit ()`
@@ -5381,10 +5381,10 @@ Returns
 
 - A [transaction structure](#transaction-structure)
 
-- `fetchDepositId ()`
+- `fetchDepositMethodId ()`
 
 ```javascript
-fetchDepositId (id, params = {})
+fetchDepositMethodId (id, params = {})
 ```
 
 Parameters
@@ -5396,10 +5396,10 @@ Returns
 
 - A [deposit id structure](#deposit-id-structure)
 
-- `fetchDepositIds ()`
+- `fetchDepositMethodIds ()`
 
 ```javascript
-fetchDepositIds (params = {})
+fetchDepositMethodIds (params = {})
 ```
 
 Parameters
@@ -5412,7 +5412,7 @@ Returns
 
 ### Deposit Id Structure
 
-The deposit id structure returned from `fetchDepositId`, `fetchDepositIds` look like this:
+The deposit id structure returned from `fetchDepositMethodId`, `fetchDepositMethodIds` look like this:
 
 ```javascript
 {

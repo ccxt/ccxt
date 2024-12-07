@@ -688,6 +688,151 @@ export default class bitmart extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'brokerId': 'CCXTxBitmart000',
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        // exchange-supported features
+                        // 'leverage': true,
+                        // 'selfTradePrevention': false,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': false,
+                            },
+                            'limitPrice': false,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 99999,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 200,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     /**
@@ -1954,11 +2099,12 @@ export default class bitmart extends Exchange {
                 request['orderMode'] = 'iso_margin';
             }
             const options = this.safeDict(this.options, 'fetchMyTrades', {});
-            const defaultLimit = this.safeInteger(options, 'limit', 200);
+            const maxLimit = 200;
+            const defaultLimit = this.safeInteger(options, 'limit', maxLimit);
             if (limit === undefined) {
                 limit = defaultLimit;
             }
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, maxLimit);
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -2642,8 +2788,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#createSwapOrderRequest
          * @ignore
          * @description create a trade order
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
@@ -3162,13 +3307,13 @@ export default class bitmart extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let type = undefined;
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (type === 'spot') {
+            if (limit !== undefined) {
+                request['limit'] = Math.min(limit, 200);
+            }
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
             if (marginMode === 'isolated') {
@@ -3185,9 +3330,12 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
-            const isStop = this.safeBool2(params, 'stop', 'trigger');
+            if (limit !== undefined) {
+                request['limit'] = Math.min(limit, 100);
+            }
+            const isTrigger = this.safeBool2(params, 'stop', 'trigger');
             params = this.omit(params, ['stop', 'trigger']);
-            if (isStop) {
+            if (isTrigger) {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
             else {
@@ -3293,13 +3441,8 @@ export default class bitmart extends Exchange {
                 throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
             }
         }
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchClosedOrders', params);
-        if (marginMode === 'isolated') {
-            request['orderMode'] = 'iso_margin';
-        }
-        const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
         if (since !== undefined) {
+            const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
             request[startTimeKey] = since;
         }
         const endTimeKey = (type === 'spot') ? 'endTime' : 'end_time';
@@ -3310,6 +3453,11 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (type === 'spot') {
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('fetchClosedOrders', params);
+            if (marginMode === 'isolated') {
+                request['orderMode'] = 'iso_margin';
+            }
             response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
         }
         else {

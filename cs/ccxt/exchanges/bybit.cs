@@ -1034,7 +1034,6 @@ public partial class bybit : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1095,7 +1094,6 @@ public partial class bybit : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },

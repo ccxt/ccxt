@@ -1746,6 +1746,18 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "linear swap fetch position history with a limit argument",
+                "method": "fetchPositionHistory",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/trade/positionHistory?pageSize=1&symbol=LTC-USDT&timestamp=1733560485047&signature=67ac344ca78b626723c3ce2cc9cd8351915cff034880edf8539f42d5461ddc8e",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ]
+            }
         ]
     }
 }

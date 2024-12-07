@@ -2531,6 +2531,92 @@
                   "marginMode": "cross"
                 }
             }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "linear swap fetch position history with a limit argument",
+                "method": "fetchPositionHistory",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "positionHistory": [
+                      {
+                        "positionId": "1861675561156571136",
+                        "symbol": "LTC-USDT",
+                        "isolated": false,
+                        "positionSide": "LONG",
+                        "openTime": "1732693017000",
+                        "updateTime": "1733310292000",
+                        "avgPrice": "95.18",
+                        "avgClosePrice": "129.48",
+                        "realisedProfit": "102.89",
+                        "netProfit": "99.63",
+                        "positionAmt": "30.0",
+                        "closePositionAmt": "30.0",
+                        "leverage": "6",
+                        "closeAllPositions": true,
+                        "positionCommission": "-0.33699650000000003",
+                        "totalFunding": "-2.921461693902908"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "positionId": "1861675561156571136",
+                      "symbol": "LTC-USDT",
+                      "isolated": false,
+                      "positionSide": "LONG",
+                      "openTime": "1732693017000",
+                      "updateTime": "1733310292000",
+                      "avgPrice": "95.18",
+                      "avgClosePrice": "129.48",
+                      "realisedProfit": "102.89",
+                      "netProfit": "99.63",
+                      "positionAmt": "30.0",
+                      "closePositionAmt": "30.0",
+                      "leverage": "6",
+                      "closeAllPositions": true,
+                      "positionCommission": "-0.33699650000000003",
+                      "totalFunding": "-2.921461693902908"
+                    },
+                    "id": "1861675561156571136",
+                    "symbol": "LTC/USDT:USDT",
+                    "notional": null,
+                    "marginMode": "cross",
+                    "liquidationPrice": null,
+                    "entryPrice": 95.18,
+                    "unrealizedPnl": null,
+                    "realizedPnl": 102.89,
+                    "percentage": null,
+                    "contracts": 30,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": 1732693017000,
+                    "datetime": "2024-11-27T07:36:57.000Z",
+                    "lastUpdateTimestamp": 1733310292000,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": 6,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            }
         ]
     }
 }

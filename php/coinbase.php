@@ -74,8 +74,8 @@ class coinbase extends Exchange {
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
-                'fetchDepositId' => true,
-                'fetchDepositIds' => true,
+                'fetchDepositMethodId' => true,
+                'fetchDepositMethodIds' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -4303,7 +4303,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit_ids($params = array ()) {
+    public function fetch_deposit_method_ids($params = array ()) {
         /**
          * fetch the deposit id for a fiat currency associated with this account
          *
@@ -4334,10 +4334,10 @@ class coinbase extends Exchange {
         //     }
         //
         $result = $this->safe_list($response, 'payment_methods', array());
-        return $this->parse_deposit_ids($result);
+        return $this->parse_deposit_method_ids($result);
     }
 
-    public function fetch_deposit_id(string $id, $params = array ()) {
+    public function fetch_deposit_method_id(string $id, $params = array ()) {
         /**
          * fetch the deposit $id for a fiat currency associated with this account
          *
@@ -4370,19 +4370,19 @@ class coinbase extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'payment_method', array());
-        return $this->parse_deposit_id($result);
+        return $this->parse_deposit_method_id($result);
     }
 
-    public function parse_deposit_ids($ids, $params = array ()) {
+    public function parse_deposit_method_ids($ids, $params = array ()) {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $this->extend($this->parse_deposit_id($ids[$i]), $params);
+            $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
             $result[] = $id;
         }
         return $result;
     }
 
-    public function parse_deposit_id($depositId) {
+    public function parse_deposit_method_id($depositId) {
         return array(
             'info' => $depositId,
             'id' => $this->safe_string($depositId, 'id'),

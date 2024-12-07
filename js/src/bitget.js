@@ -1465,7 +1465,6 @@ export default class bitget extends Exchange {
                             'limitPrice': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -1536,7 +1535,6 @@ export default class bitget extends Exchange {
                             'limitPrice': false,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
