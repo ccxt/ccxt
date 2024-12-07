@@ -92,10 +92,7 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
     }
     const fileContent = readFileInit (filePath, jsonStringify(defaultStructure));
     // auto-detect 2 or 4 spaces used (just for backward compatibility)
-    let spacesAmount = spacesIndent;
-    if (spacesAmount === undefined) {
-        spacesAmount = fileContent.includes('{\n  "exchange"') ? 2 : 4
-    }
+    const spacesAmount = spacesIndent || (twoSpacedIndent (fileContent) ? 2 : 4);
     // either Parse JSON or use string manipulation
     if (useJsonParsing) {
         const jsonFull = JSON.parse (fileContent);
@@ -144,13 +141,17 @@ function prependWhitespace(content, spacesAmountPerIndent, indentAmount) {
 
 
 const dataContainer = {
-    filePathForMarkets : '',
-    marketsJson : {},
-    indentForMarkets: 4,
-    filePathForCurrencies : '',
-    currenciesJson : {},
-    indentForCurrencies: 4,
-}
+    markets: {
+        path: '',
+        json: {},
+        indent: 4,
+    },
+    currencies: {
+        path: '',
+        json: {},
+        indent: 4,
+    },
+};
 
 function twoSpacedIndent (jsonStr) {
     return jsonStr.startsWith('{\n  "');
@@ -163,15 +164,12 @@ async function update_markets_and_currencies () {
             die ();
         }
 
-        dataContainer.filePathForMarkets = rootDir + `/ts/src/test/static/markets/${exchangeId}.json`;
-        const strMarkets = readFileInit(dataContainer.filePathForMarkets, '{}');
-        dataContainer.marketsJson = JSON.parse(strMarkets);
-        dataContainer.indentForMarkets = twoSpacedIndent(strMarkets) ? 2 : 4;
-
-        dataContainer.filePathForCurrencies = rootDir + `/ts/src/test/static/currencies/${exchangeId}.json`;
-        const strCurrencies = readFileInit(dataContainer.filePathForCurrencies, '{}');
-        dataContainer.currenciesJson = JSON.parse(strCurrencies);
-        dataContainer.indentForCurrencies = twoSpacedIndent(strCurrencies) ? 2 : 4;
+        for (const dataType of ['markets', 'currencies']) {
+            dataContainer[dataType].path = rootDir + `/ts/src/test/static/${dataType}/${exchangeId}.json`;
+            const strMarkets = readFileInit(dataContainer[dataType].path, '{}');
+            dataContainer[dataType].json = JSON.parse(strMarkets);
+            dataContainer[dataType].indent = twoSpacedIndent(strMarkets) ? 2 : 4;
+        }
         //
         if (!ccxt.exchanges.includes(exchangeId)) {
             console.log('Exchange id ' + exchangeId + ' not found in exchanges.json');
@@ -227,20 +225,19 @@ function updateMarketsOrCurrencies (exchange, type, source) {
     if (!source) { // if undefined, e.g. from fetchCurrencies
         return;
     }
-    let destination = type === 'markets' ? dataContainer.marketsJson : dataContainer.currenciesJson;
+    let targetJson = dataContainer[type].json;
     // get existing keys which needs update
-    const keys = Object.keys (destination);
+    const keys = Object.keys (targetJson);
     // update all existing keys
     for (const key of keys) {
         if (key in source) {
-            destination[key] = source[key];
+            targetJson[key] = source[key];
         } else {
             // if symbol or currency is removed from exchange
             console.log ('[info] can not update data for key, it is no longer found in latest fetched ' + exchange.id + ' > ' + type + ' > ' + key);
         }
     }
-    const filePath = type === 'markets' ? dataContainer.filePathForMarkets : dataContainer.filePathForCurrencies;
-    writeJson(filePath, destination, 2);
+    writeJson(dataContainer[type].path, targetJson, dataContainer[type].indent);
 }
 
 // update signle market or currency
@@ -257,20 +254,20 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
     if (isMarketOrCurrency) {
         // if it's market, then writeJson market object and currencies too
         // market object
-        dataContainer.marketsJson[symbolOrCurrency] = targetObject;
-        writeJson (dataContainer.filePathForMarkets, dataContainer.marketsJson, dataContainer.indentForMarkets);
+        dataContainer.markets.json[symbolOrCurrency] = targetObject;
+        writeJson (dataContainer.markets.path, dataContainer.markets.json, dataContainer.markets.indent);
         // base & quote currency objects
         const base = targetObject.base;
         const quote = targetObject.quote;
         const baseCurrency = exchange.currencies[base];
         const quoteCurrency = exchange.currencies[quote];
-        dataContainer.currenciesJson[base] = baseCurrency;
-        dataContainer.currenciesJson[quote] = quoteCurrency;
-        writeJson (dataContainer.filePathForCurrencies, dataContainer.currenciesJson, dataContainer.indentForCurrencies);
+        dataContainer.currencies.json[base] = baseCurrency;
+        dataContainer.currencies.json[quote] = quoteCurrency;
+        writeJson (dataContainer.currencies.path, dataContainer.currencies.json, dataContainer.currencies.indent);
     } else {
         // if currency, then only writeJson currency object
-        dataContainer.currenciesJson[symbolOrCurrency] = targetObject;
-        writeJson(dataContainer.filePathForCurrencies, dataContainer.currenciesJson, dataContainer.indentForCurrencies);
+        dataContainer.currencies.json[symbolOrCurrency] = targetObject;
+        writeJson(dataContainer.currencies.path, dataContainer.currencies.json, dataContainer.currencies.indent);
     }
 }
 
