@@ -986,7 +986,6 @@ export default class kucoin extends Exchange {
                 },
             },
             'features': {
-                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot': {
                     'sandbox': false,
                     'createOrder': {
