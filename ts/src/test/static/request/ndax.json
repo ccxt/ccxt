@@ -42,6 +42,24 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch Balance",
+                "method": "fetchBalance",
+                "url": "https://api.ndax.io:8443/AP/GetAccountPositions?omsId=1&AccountId=187639",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchDepositAddress",
+                "url": "https://api.ndax.io:8443/AP/GetDepositInfo?omsId=1&AccountId=187639&ProductId=34&GenerateNewKey=false",
+                "input": [
+                  "SOL"
+                ]
+            }
         ]
     }
 }
