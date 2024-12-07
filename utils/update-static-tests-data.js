@@ -186,7 +186,14 @@ async function update_markets_and_currencies () {
         }
 
         const settings = getExchangeSettings (exchangeId);
-        const exchange = new ccxt[exchangeId]({ ...settings });
+        let ccxtRef = undefined;
+        try {
+            // if this script is running from tsx, import untranspiled ccxt
+            ccxtRef = await import ('../ts/ccxt.ts');
+        } catch (e) {
+            ccxtRef = ccxt;
+        }
+        const exchange = new ccxtRef[exchangeId]({ ...settings });
         let currencies = undefined;
         if (exchange.has['fetchCurrencies']) {
             currencies = await exchange.fetchCurrencies();
