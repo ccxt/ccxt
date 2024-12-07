@@ -11,7 +11,7 @@ print_message() {
 }
 
 # Command to run
-your_command="go build ./go/ccxt"
+your_command="go build -x ./go/ccxt"
 
 # Capture the start time
 start_time=$SECONDS
