@@ -153,7 +153,7 @@ const dataContainer = {
 }
 
 function twoSpacedIndent (jsonStr) {
-    return jsonStr.includes('\n  "BTC') || jsonStr.includes('\n  "USDT');
+    return jsonStr.startsWith('{\n  "');
 }
 
 async function update_markets_and_currencies () {
