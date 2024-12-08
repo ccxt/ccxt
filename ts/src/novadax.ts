@@ -263,7 +263,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseMarkets (data);
     }
 
@@ -445,7 +445,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
@@ -494,7 +494,7 @@ export default class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks');
     }
@@ -684,7 +684,7 @@ export default class novadax extends Exchange {
         //         "vol": 516784.2504067500
         //     }
         //
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'amount'); // or vol
         return [
             this.safeTimestamp (ohlcv, 'score'),
@@ -697,7 +697,7 @@ export default class novadax extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1035,7 +1035,7 @@ export default class novadax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         //
         //      {
         //          "code": "A10000",
@@ -1184,7 +1184,7 @@ export default class novadax extends Exchange {
         //    }
         //
         const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const transferOptions = this.safeict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
@@ -1284,7 +1284,7 @@ export default class novadax extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
