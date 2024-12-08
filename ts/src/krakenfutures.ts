@@ -912,7 +912,7 @@ export default class krakenfutures extends Exchange {
         let side = this.safeString (trade, 'side');
         let type = undefined;
         const priorEdit = this.safeValue (trade, 'orderPriorEdit');
-        const priorExecution = this.safeDict (trade, 'orderPriorExecution', {});
+        const priorExecution = this.safeValue (trade, 'orderPriorExecution', {});
         if (priorExecution !== undefined) {
             order = this.safeString (priorExecution, 'orderId');
             marketId = this.safeString (priorExecution, 'symbol');
