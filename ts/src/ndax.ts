@@ -407,7 +407,7 @@ export default class ndax extends Exchange {
                 type = 'other';
             }
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const isDisabled = this.safeValue (currency, 'IsDisabled');
+            const isDisabled = this.safeBool (currency, 'IsDisabled');
             const active = !isDisabled;
             result[code] = {
                 'id': id,
@@ -507,7 +507,7 @@ export default class ndax extends Exchange {
         const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
         const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
         const sessionStatus = this.safeString (market, 'SessionStatus');
-        const isDisable = this.safeValue (market, 'IsDisable');
+        const isDisable = this.safeBool (market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
         return {
             'id': id,
@@ -2252,7 +2252,7 @@ export default class ndax extends Exchange {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = this.safeValue (statusesByType, type, {});
+        const statuses = this.safeDict (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
@@ -2402,7 +2402,7 @@ export default class ndax extends Exchange {
         //         ]
         //     }
         //
-        const templateTypes = this.safeValue (withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const templateTypes = this.safeList (withdrawTemplateTypesResponse, 'TemplateTypes', []);
         const firstTemplateType = this.safeValue (templateTypes, 0);
         if (firstTemplateType === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
