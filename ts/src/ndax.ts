@@ -1100,8 +1100,11 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
-        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
+        let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        if (accountId === undefined) {
+            accountId = parseInt (this.accounts[0]['id']);
+        }
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
             'omsId': omsId,
