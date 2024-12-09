@@ -275,8 +275,8 @@ export default class probit extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const closed = this.safeBool (market, 'closed', false);
-        const show_in_ui = this.safeBool (market, 'show_in_ui', true);
-        const active = !closed && show_in_ui;
+        const showInUI = this.safeBool (market, 'show_in_ui', true);
+        const active = !closed && showInUI;
         const takerFeeRate = this.safeString (market, 'taker_fee_rate');
         const taker = Precise.stringDiv (takerFeeRate, '100');
         const makerFeeRate = this.safeString (market, 'maker_fee_rate');
