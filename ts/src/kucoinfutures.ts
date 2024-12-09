@@ -359,6 +359,91 @@ export default class kucoinfutures extends kucoin {
                 //    'code': 'BTC',
                 // },
             },
+            'features': {
+                'spot': undefined,
+                'forDerivs': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPrice': undefined,
+                            'triggerPriceType': undefined,
+                            'limitPrice': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        // exchange-supported features
+                        // 'iceberg': true,
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 7,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+            },
         });
     }
 
@@ -1760,10 +1845,10 @@ export default class kucoinfutures extends kucoin {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.futuresPrivateDeleteStopOrders (this.extend (request, params));
         } else {
             response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
@@ -1949,7 +2034,7 @@ export default class kucoinfutures extends kucoin {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'stop', 'until', 'trigger' ]);
         if (status === 'closed') {
@@ -1958,7 +2043,7 @@ export default class kucoinfutures extends kucoin {
             status = 'active';
         }
         const request: Dict = {};
-        if (!stop) {
+        if (!trigger) {
             request['status'] = status;
         } else if (status !== 'active') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
@@ -1975,7 +2060,7 @@ export default class kucoinfutures extends kucoin {
             request['endAt'] = until;
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.futuresPrivateGetStopOrders (this.extend (request, params));
         } else {
             response = await this.futuresPrivateGetOrders (this.extend (request, params));
@@ -2609,6 +2694,9 @@ export default class kucoinfutures extends kucoin {
         }
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = Math.min (1000, limit);
         }
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
