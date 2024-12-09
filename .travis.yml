@@ -4,6 +4,9 @@ python:
 - 3.8.3
 git:
   depth: 2
+addons:
+  artifacts:
+    debug: true
 cache:
   directories:
   - ".cache"
