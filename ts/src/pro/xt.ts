@@ -154,7 +154,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market = undefined, symbols: string[] = undefined, params = {}) {
         const privateAccess = access === 'private';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
