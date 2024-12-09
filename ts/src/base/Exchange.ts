@@ -56,7 +56,6 @@ const {
     , safeStringLower
     , parse8601
     , yyyymmdd
-    , sleep
     , safeStringUpper
     , safeTimestamp
     , binaryConcatArray
@@ -109,6 +108,7 @@ const {
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
+    , sleep
 } = functions
 
 import {
@@ -331,6 +331,7 @@ export default class Exchange {
     tokenBucket = undefined
     throttler = undefined
     enableRateLimit: boolean = undefined;
+    enableWsRateLimit: boolean = undefined;
 
     httpExceptions = undefined
 
@@ -1248,7 +1249,7 @@ export default class Exchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let connected = undefined;
-        if (this.enableRateLimit && !client.startedConnecting) {
+        if (this.enableWsRateLimit && !client.startedConnecting) {
             // const connectionCost = this.safeValue (this.options, 'ws', {}).connectionCost;
             connected = client.connectionsThrottler.throttle ().then (() => client.connect ());
         } else {
@@ -1262,7 +1263,7 @@ export default class Exchange {
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
-                    if (this.enableRateLimit) {
+                    if (this.enableWsRateLimit) {
                         client.messagesThrottler.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
@@ -1337,8 +1338,7 @@ export default class Exchange {
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
         let connected = undefined;
-        const options = this.safeValue (this.options, 'ws');
-        if (this.enableRateLimit && !client.startedConnecting) {
+        if (this.enableWsRateLimit && !client.startedConnecting) {
             const cost = this.getWsRateLimitCost (url, 'connections');
             connected = client.connectionsThrottler.throttle (cost).then (() => client.connect ());
         } else {
@@ -1350,7 +1350,7 @@ export default class Exchange {
         if (!clientSubscription) {
             connected.then (() => {
                 if (message) {
-                    if (this.enableRateLimit && client.messagesThrottler) {
+                    if (this.enableWsRateLimit && client.messagesThrottler) {
                         if (!messageCost) {
                             messageCost = this.getWsRateLimitCost (url, 'messages');
                         }
@@ -1623,6 +1623,7 @@ export default class Exchange {
             'name': undefined,
             'countries': undefined,
             'enableRateLimit': true,
+            'enableWsRateLimit': false,
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'timeout': this.timeout, // milliseconds = seconds * 1000
             'certified': false, // if certified by the CCXT dev team

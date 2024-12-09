@@ -299,6 +299,7 @@ class Exchange {
     public $restRequestQueue = null;
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
+    public $enableWsRateLimit = false;
     public $enableLastJsonResponse = true;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
@@ -2267,6 +2268,7 @@ class Exchange {
             'name' => null,
             'countries' => null,
             'enableRateLimit' => true,
+            'enableWsRateLimit' => false,
             'rateLimit' => 2000, // milliseconds = seconds * 1000
             'timeout' => $this->timeout, // milliseconds = seconds * 1000
             'certified' => false, // if certified by the CCXT dev team

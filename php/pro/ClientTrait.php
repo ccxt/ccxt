@@ -112,7 +112,7 @@ trait ClientTrait {
             }
         }
         $connected = null;
-        if ($this->enableRateLimit) {
+        if ($this->enableWsRateLimit) {
             $cost = $this->get_ws_rate_limit_cost($url, 'connections');
             $throttler = $client->connections_throttler;
             Async\await($throttler($cost));
@@ -124,7 +124,7 @@ trait ClientTrait {
                 function($result) use ($client, $message, $message_hashes, $subscribe_hashes, $future, $message_cost) {
                     // todo: decouple signing from subscriptions
                     if ($message) {
-                        if ($this->enableRateLimit) {
+                        if ($this->enableWsRateLimit) {
                             if($message_cost == null) {
                                 $message_cost = $this->get_ws_rate_limit_cost($client->url, 'messages');
                             }
@@ -161,7 +161,7 @@ trait ClientTrait {
             $client->subscriptions[$subscribe_hash] = $subscription ?? true;
         }
         $connected = null;
-        if ($this->enableRateLimit) {
+        if ($this->enableWsRateLimit) {
             $cost = $this->get_ws_rate_limit_cost($url, 'connections');
             $throttler = $client->connections_throttler;
             Async\await($throttler($cost));
@@ -172,7 +172,7 @@ trait ClientTrait {
                 function($result) use ($client, $message, $message_cost, $url) {
                     // todo: decouple signing from subscriptions
                     if ($message) {
-                        if ($this->enableRateLimit) {
+                        if ($this->enableWsRateLimit) {
                             if($message_cost == null) {
                                 $message_cost = $this->get_ws_rate_limit_cost($url, 'messages');
                             }

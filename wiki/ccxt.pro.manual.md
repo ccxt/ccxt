@@ -606,13 +606,15 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ### Rate Limiting
 
+To enable set `enableWsRateLimit = True`
+
 Rate limiting is a technique for controlling the rate of requests sent to the exchange. In CCXT Pro, two rate limiters are initiated:
 
 1. **Connection Rate Limiter**: This rate limiter is used to throttle the creation of new connections to the exchange. It ensures that the number of new connections per unit of time does not exceed the limit set by the exchange.
 
 2. **Message Rate Limiter**: This rate limiter is used to throttle the number of messages or new subscriptions sent to the exchange. It ensures that the number of messages sent per unit of time does not exceed the limit set by the exchange.
 
-The `exchange.enableRateLimit` property is used to turn both rate limiters on or off. When `exchange.enableRateLimit` is set to `true`, both rate limiters are enabled, and when it's set to `false`, both rate limiters are disabled. It's recommended to enable rate limiting to prevent the exchange from blocking your requests due to too many requests in a short period of time.
+The `exchange.enableWsRateLimit` property is used to turn both rate limiters on or off. When `exchange.enableWsRateLimit` is set to `true`, the rate limiter is enabled, and when it's set to `false`, the rate limiter is disabled. It's recommended to enable rate limiting to prevent the exchange from blocking your requests due to too many requests in a short period of time.
 
 #### Configuring Rate Limits
 
