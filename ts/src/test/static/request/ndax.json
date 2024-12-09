@@ -1,6 +1,9 @@
 {
     "exchange": "ndax",
     "skipKeys": ["AccountId"],
+    "options": {
+        "AccountId": 187639
+    },
     "outputType": "json",
     "methods": {
         "fetchTrades": [
