@@ -1405,22 +1405,27 @@ export default class hyperliquid extends Exchange {
                     'tpsl': (isTp) ? 'tp' : 'sl',
                 };
             } else if (isTrigger) {
-                let triggerDirection = undefined;
-                [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
+                const triggerDirection = this.safeString (orderParams, 'triggerDirection');
                 if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
                     throw new ArgumentsRequired (this.id + ' createOrders() trigger orders require params["triggerDirection"] to be either "up" or "down"');
+                }
+                let flagTp = undefined;
+                if (isBuy) {
+                    flagTp = (triggerDirection === 'up') ? 'sl' : 'tp';
+                } else {
+                    flagTp = (triggerDirection === 'up') ? 'tp' : 'sl';
                 }
                 orderType['trigger'] = {
                     'isMarket': isMarket,
                     'triggerPx': this.priceToPrecision (symbol, triggerPrice),
-                    'triggerDirection': triggerDirection,
+                    'tpsl': flagTp,
                 };
             } else {
                 orderType['limit'] = {
                     'tif': timeInForce,
                 };
             }
-            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'triggerDirection', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj: Dict = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
