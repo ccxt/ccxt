@@ -143,6 +143,22 @@
                 ],
                 "output": "{\"omsId\":1,\"ClOrderId\":27}"
               }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch Deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch Deposits with a currency argument",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": [
+                  "USDC"
+                ]
+            }
         ]
     }
 }
