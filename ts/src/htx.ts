@@ -1234,6 +1234,116 @@ export default class htx extends Exchange {
                 'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
                 'FUD': 'FTX Users Debt',
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        // exchange-specific features
+                        'iceberg': false,
+                        'selfTradePrevention': true,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 120,
+                        'untilDays': 2,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'limit': 500,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'limit': 500,
+                        'untilDays': 2,
+                        'daysBack': 180,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'untilDays': 2,
+                        'limit': 500,
+                        'daysBackClosed': 180,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // 2000 for non-historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'untilDays': undefined,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'untilDays': undefined,
+                        'limit': 1000,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1999,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
         });
     }
 
