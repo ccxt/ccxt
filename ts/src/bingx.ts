@@ -6462,7 +6462,7 @@ export default class bingx extends Exchange {
                 body = this.json (parsedParams);
             } else {
                 const query = this.urlencode (parsedParams);
-                url += '?' + query + '&signature=' + signature;
+                url += '?' + query + '&' + 'signature=' + signature;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
