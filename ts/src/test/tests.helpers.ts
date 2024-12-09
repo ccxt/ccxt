@@ -57,36 +57,6 @@ function getCliArgValue (arg) {
 const proxyTestFileName = 'proxies';
 const rateLimitTestFileName = 'rateLimit';
 
-class baseMainTestClass {
-    lang = 'JS';
-    isSynchronous = false;
-    idTests = false;
-    requestTestsFailed = false;
-    responseTestsFailed = false;
-    requestTests = false;
-    wsTests = false;
-    responseTests = false;
-    staticTests = false;
-    info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    loadKeys = false;
-    sandbox = false;
-    skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
-    testFiles = {};
-    publicTests = {};
-    newLine = '\n';
-    rootDir = DIR_NAME + '/../../../';
-    rootDirForSkips = DIR_NAME + '/../../../';
-    onlySpecificTests = [];
-    envVars = process.env;
-    proxyTestFileName = proxyTestFileName;
-    ext = ext;
-}
 
 // non-transpiled part, but shared names among langs
 const fileParts = import.meta.url.split ('.');
