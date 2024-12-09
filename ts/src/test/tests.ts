@@ -1256,6 +1256,10 @@ class testMainClass {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
+        const accounts = exchange.safeList (exchangeData, 'accounts');
+        if (accounts) {
+            exchange.accounts = accounts;
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
