@@ -243,7 +243,8 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 - ...
 
 
-## Subscribe functions
+## Subscribe functions (Beta)
+Note: this feature is in beta and will apreciate any feedback.
 Subscribe functions allow you to listen for updates from a specific stream and use callbacks on every update. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
 
 ### Callback Functions
