@@ -360,7 +360,8 @@ export default class kucoinfutures extends kucoin {
                 // },
             },
             'features': {
-                'forPerps': {
+                'spot': undefined,
+                'forDerivs': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -375,6 +376,7 @@ export default class kucoinfutures extends kucoin {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPrice': undefined,
+                            'triggerPriceType': undefined,
                             'limit': true,
                         },
                         'timeInForce': {
@@ -427,18 +429,18 @@ export default class kucoinfutures extends kucoin {
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'forPerps',
+                        'extends': 'forDerivs',
                     },
                     'inverse': {
-                        'extends': 'forPerps',
+                        'extends': 'forDerivs',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'forPerps',
+                        'extends': 'forDerivs',
                     },
                     'inverse': {
-                        'extends': 'forPerps',
+                        'extends': 'forDerivs',
                     },
                 },
             },
