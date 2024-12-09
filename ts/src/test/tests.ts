@@ -1420,7 +1420,7 @@ class testMainClass {
             } else {
                 this.responseTestsFailed = true;
             }
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + e.toString ();
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         if (this.requestTestsFailed || this.responseTestsFailed) {
