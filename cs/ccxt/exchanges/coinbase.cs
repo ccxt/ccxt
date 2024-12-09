@@ -65,8 +65,8 @@ public partial class coinbase : Exchange
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
-                { "fetchDepositId", true },
-                { "fetchDepositIds", true },
+                { "fetchDepositMethodId", true },
+                { "fetchDepositMethodIds", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -4606,13 +4606,13 @@ public partial class coinbase : Exchange
 
     /**
      * @method
-     * @name coinbase#fetchDepositIds
+     * @name coinbase#fetchDepositMethodIds
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    public async virtual Task<object> fetchDepositIds(object parameters = null)
+    public async virtual Task<object> fetchDepositMethodIds(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4637,19 +4637,19 @@ public partial class coinbase : Exchange
         //     }
         //
         object result = this.safeList(response, "payment_methods", new List<object>() {});
-        return this.parseDepositIds(result);
+        return this.parseDepositMethodIds(result);
     }
 
     /**
      * @method
-     * @name coinbase#fetchDepositId
+     * @name coinbase#fetchDepositMethodId
      * @description fetch the deposit id for a fiat currency associated with this account
      * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
      * @param {string} id the deposit payment method id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
      */
-    public async virtual Task<object> fetchDepositId(object id, object parameters = null)
+    public async virtual Task<object> fetchDepositMethodId(object id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4675,22 +4675,22 @@ public partial class coinbase : Exchange
         //     }
         //
         object result = this.safeDict(response, "payment_method", new Dictionary<string, object>() {});
-        return this.parseDepositId(result);
+        return this.parseDepositMethodId(result);
     }
 
-    public virtual object parseDepositIds(object ids, object parameters = null)
+    public virtual object parseDepositMethodIds(object ids, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = this.extend(this.parseDepositId(getValue(ids, i)), parameters);
+            object id = this.extend(this.parseDepositMethodId(getValue(ids, i)), parameters);
             ((IList<object>)result).Add(id);
         }
         return result;
     }
 
-    public virtual object parseDepositId(object depositId)
+    public virtual object parseDepositMethodId(object depositId)
     {
         return new Dictionary<string, object>() {
             { "info", depositId },

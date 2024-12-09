@@ -89,8 +89,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
-                'fetchDepositId': True,
-                'fetchDepositIds': True,
+                'fetchDepositMethodId': True,
+                'fetchDepositMethodIds': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -4105,7 +4105,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
 
-    async def fetch_deposit_ids(self, params={}):
+    async def fetch_deposit_method_ids(self, params={}):
         """
         fetch the deposit id for a fiat currency associated with self account
 
@@ -4136,9 +4136,9 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'payment_methods', [])
-        return self.parse_deposit_ids(result)
+        return self.parse_deposit_method_ids(result)
 
-    async def fetch_deposit_id(self, id: str, params={}):
+    async def fetch_deposit_method_id(self, id: str, params={}):
         """
         fetch the deposit id for a fiat currency associated with self account
 
@@ -4171,16 +4171,16 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'payment_method', {})
-        return self.parse_deposit_id(result)
+        return self.parse_deposit_method_id(result)
 
-    def parse_deposit_ids(self, ids, params={}):
+    def parse_deposit_method_ids(self, ids, params={}):
         result = []
         for i in range(0, len(ids)):
-            id = self.extend(self.parse_deposit_id(ids[i]), params)
+            id = self.extend(self.parse_deposit_method_id(ids[i]), params)
             result.append(id)
         return result
 
-    def parse_deposit_id(self, depositId):
+    def parse_deposit_method_id(self, depositId):
         return {
             'info': depositId,
             'id': self.safe_string(depositId, 'id'),

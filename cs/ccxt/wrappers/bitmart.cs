@@ -548,8 +548,7 @@ public partial class bitmart
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed"/>  <br/>
     /// <list type="table">

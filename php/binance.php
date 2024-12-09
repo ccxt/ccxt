@@ -1562,7 +1562,6 @@ class binance extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -1629,7 +1628,6 @@ class binance extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,

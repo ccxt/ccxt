@@ -1462,7 +1462,6 @@ class bitget extends bitget$1 {
                             'limitPrice': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -1533,7 +1532,6 @@ class bitget extends bitget$1 {
                             'limitPrice': false,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
