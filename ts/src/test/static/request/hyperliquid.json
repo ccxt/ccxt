@@ -11,7 +11,7 @@
     ],
     "outputType": "json",
     "methods": {
-    "fetchTickers": [
+        "fetchTickers": [
             {
                 "description": "fetch spot tickers only",
                 "method": "fetchTickers",
@@ -36,8 +36,44 @@
                 ],
                 "output": "{\"type\":\"metaAndAssetCtxs\"}"
             }
-    ],
+        ],
         "createOrder": [
+            {
+                "description": "triggerPrice & triggerDirection",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.001,
+                    97000,
+                    {
+                        "triggerPrice": 98888,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":false,\"p\":\"97000\",\"s\":\"0.001\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"98888\",\"tpsl\":\"tp\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1733767600623,\"signature\":{\"r\":\"0xc2dd38081afff3f65908a846b2fda553184053c98410abb7e6c6068204f4a4d1\",\"s\":\"0x3f7b115355815a5099f3e05f73de128b8aeff865f87d923b37fe6cf20717a16b\",\"v\":27}}"
+            },
+            {
+                "description": "triggerPrice & triggerDirection",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    97000,
+                    {
+                        "triggerPrice": 98888,
+                        "triggerDirection": "down",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"97000\",\"s\":\"0.001\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"98888\",\"tpsl\":\"tp\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1733767672705,\"signature\":{\"r\":\"0xebeeabb97bcace8f684d7f77976daa2551f508b810fccb2a50eb41617edf2db8\",\"s\":\"0x67c4b84476d89086dbd166b40e1da5f5d10ea3504284ed5d4701e6aa052378d2\",\"v\":27}}"
+            },
             {
                 "description": "limit order with more than 5 sig digs",
                 "method": "createOrder",
