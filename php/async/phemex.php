@@ -2652,6 +2652,26 @@ class phemex extends Exchange {
                 if ($triggerPrice !== null) {
                     $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
                     $request['triggerType'] = $triggerType;
+                    // set direction & exchange specific order $type
+                    $triggerDirection = null;
+                    list($triggerDirection, $params) = $this->handle_param_string($params, 'triggerDirection');
+                    if ($triggerDirection === null) {
+                        throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                    }
+                    // the flow defined per https://phemex-docs.github.io/#more-order-$type-examples
+                    if ($triggerDirection === 'up') {
+                        if ($side === 'sell') {
+                            $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                        } elseif ($side === 'buy') {
+                            $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
+                        }
+                    } elseif ($triggerDirection === 'down') {
+                        if ($side === 'sell') {
+                            $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
+                        } elseif ($side === 'buy') {
+                            $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                        }
+                    }
                 }
                 if ($stopLossDefined || $takeProfitDefined) {
                     if ($stopLossDefined) {

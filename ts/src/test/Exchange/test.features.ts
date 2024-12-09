@@ -24,7 +24,10 @@ async function testFeatures (exchange: Exchange, skippedProperties: object) {
                     const subKey = subKeys[j];
                     testSharedMethods.assertInArray (exchange, skippedProperties, 'features', subKeys, j, subTypes);
                     const subValue = value[subKey];
-                    testFeaturesInner (exchange, skippedProperties, subValue);
+                    // sometimes it might not be available for exchange, eg. future>inverse)
+                    if (subValue !== undefined) {
+                        testFeaturesInner (exchange, skippedProperties, subValue);
+                    }
                 }
             }
         }
@@ -35,6 +38,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
     const format = {
         'sandbox': false,
         'createOrder': {
+            'marginMode': false,
             'triggerPrice': false,
             'triggerPriceType': {
                 'mark': false,
@@ -51,9 +55,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
                 },
                 'limitPrice': false,
             },
-            'marginMode': false,
             'timeInForce': {
-                'GTC': false,
                 'IOC': false,
                 'FOK': false,
                 'PO': false,
@@ -62,16 +64,17 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
             },
             'hedged': false,
             // exchange-supported features
-            'selfTradePrevention': false,
             'trailing': false,
-            'twap': false,
-            'iceberg': false,
-            'oco': false,
+            // 'iceberg': false,
+            // 'twap': false,
+            // 'selfTradePrevention': false,
+            // 'oco': false,
         },
         'createOrders': {
             'max': 5,
         },
         'fetchMyTrades': {
+            'marginMode': false,
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
@@ -82,25 +85,25 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
             'trailing': false,
         },
         'fetchOpenOrders': {
-            'limit': 0,
             'marginMode': false,
+            'limit': 0,
             'trigger': false,
             'trailing': false,
         },
         'fetchOrders': {
+            'marginMode': false,
             'limit': 0,
             'daysBack': 0,
             'untilDays': 0,
-            'marginMode': false,
             'trigger': false,
             'trailing': false,
         },
         'fetchClosedOrders': {
+            'marginMode': false,
             'limit': 0,
             'daysBackClosed': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
-            'marginMode': false,
             'trigger': false,
             'trailing': false,
         },

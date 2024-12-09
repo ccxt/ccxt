@@ -1944,7 +1944,7 @@ export default class Exchange {
                 const entryFiledEqualValue = entry[field] === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue(entry, key);
-                const entryKeyGESince = (entryKeyValue) && since && (entryKeyValue >= since);
+                const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
@@ -1956,6 +1956,12 @@ export default class Exchange {
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode(enabled) {
         if (enabled) {
             if ('test' in this.urls) {
@@ -2344,7 +2350,7 @@ export default class Exchange {
         this.features = {};
         const unifiedMarketTypes = ['spot', 'swap', 'future', 'option'];
         const subTypes = ['linear', 'inverse'];
-        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (let i = 0; i < unifiedMarketTypes.length; i++) {
             const marketType = unifiedMarketTypes[i];
             // if marketType is not filled for this exchange, don't add that in `features`
@@ -2367,11 +2373,15 @@ export default class Exchange {
     }
     featuresMapper(initialFeatures, marketType, subType = undefined) {
         let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if (featuresObj === undefined) {
+            return undefined;
+        }
         const extendsStr = this.safeString(featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit(featuresObj, 'extends');
-            const extendObj = initialFeatures[extendsStr];
-            featuresObj = this.extend(extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            const extendObj = this.featuresMapper(initialFeatures, extendsStr);
+            featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
         // corrections
@@ -2382,9 +2392,14 @@ export default class Exchange {
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
-            // omit 'hedged' from spot
+            // for spot, default 'hedged' to false
             if (marketType === 'spot') {
-                featuresObj['createOrder']['hedged'] = undefined;
+                featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
+            if (gtcValue === undefined) {
+                featuresObj['createOrder']['timeInForce']['gtc'] = true;
             }
         }
         return featuresObj;
@@ -3493,6 +3508,16 @@ export default class Exchange {
         }
         return result;
     }
+    currencyIds(codes = undefined) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push(this.currencyId(codes[i]));
+        }
+        return result;
+    }
     marketsForSymbols(symbols = undefined) {
         if (symbols === undefined) {
             return symbols;
@@ -3918,6 +3943,16 @@ export default class Exchange {
     }
     setHeaders(headers) {
         return headers;
+    }
+    currencyId(code) {
+        let currency = this.safeDict(this.currencies, code);
+        if (currency === undefined) {
+            currency = this.safeCurrency(code);
+        }
+        if (currency !== undefined) {
+            return currency['id'];
+        }
+        return code;
     }
     marketId(symbol) {
         const market = this.market(symbol);

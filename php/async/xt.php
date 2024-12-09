@@ -149,16 +149,16 @@ class xt extends Exchange {
                     'spot' => array(
                         'get' => array(
                             'currencies' => 1,
-                            'depth' => 0.05,
-                            'kline' => 0.1,
-                            'symbol' => 1, // 0.1 for a single symbol
-                            'ticker' => 1, // 0.1 for a single symbol
-                            'ticker/book' => 1, // 0.1 for a single symbol
-                            'ticker/price' => 1, // 0.1 for a single symbol
-                            'ticker/24h' => 1, // 0.1 for a single symbol
+                            'depth' => 10,
+                            'kline' => 1,
+                            'symbol' => 1, // 1 for a single symbol
+                            'ticker' => 1, // 1 for a single symbol
+                            'ticker/book' => 1, // 1 for a single symbol
+                            'ticker/price' => 1, // 1 for a single symbol
+                            'ticker/24h' => 1, // 1 for a single symbol
                             'time' => 1,
-                            'trade/history' => 0.1,
-                            'trade/recent' => 0.1,
+                            'trade/history' => 1,
+                            'trade/recent' => 1,
                             'wallet/support/currency' => 1,
                         ),
                     ),
@@ -228,7 +228,7 @@ class xt extends Exchange {
                         ),
                         'post' => array(
                             'order' => 0.2,
-                            'withdraw' => 1,
+                            'withdraw' => 10,
                             'balance/transfer' => 1,
                             'balance/account/transfer' => 1,
                             'ws-token' => 1,

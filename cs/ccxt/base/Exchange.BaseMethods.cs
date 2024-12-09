@@ -789,7 +789,7 @@ public partial class Exchange
                 object entryFiledEqualValue = isEqual(getValue(entry, field), value);
                 object firstCondition = ((bool) isTrue(valueIsDefined)) ? entryFiledEqualValue : true;
                 object entryKeyValue = this.safeValue(entry, key);
-                object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue(since)) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
+                object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue((!isEqual(since, null)))) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
                 object secondCondition = ((bool) isTrue(sinceIsDefined)) ? entryKeyGESince : true;
                 if (isTrue(isTrue(firstCondition) && isTrue(secondCondition)))
                 {
@@ -804,6 +804,12 @@ public partial class Exchange
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
 
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     public virtual void setSandboxMode(object enabled)
     {
         if (isTrue(enabled))
@@ -1420,7 +1426,7 @@ public partial class Exchange
         this.features = new Dictionary<string, object>() {};
         object unifiedMarketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
-        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (object i = 0; isLessThan(i, getArrayLength(unifiedMarketTypes)); postFixIncrement(ref i))
         {
             object marketType = getValue(unifiedMarketTypes, i);
@@ -1449,12 +1455,17 @@ public partial class Exchange
     public virtual object featuresMapper(object initialFeatures, object marketType, object subType = null)
     {
         object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, marketType), subType) : getValue(initialFeatures, marketType);
+        // if exchange does not have that market-type (eg. future>inverse)
+        if (isTrue(isEqual(featuresObj, null)))
+        {
+            return null;
+        }
         object extendsStr = this.safeString(featuresObj, "extends");
         if (isTrue(!isEqual(extendsStr, null)))
         {
             featuresObj = this.omit(featuresObj, "extends");
-            object extendObj = getValue(initialFeatures, extendsStr);
-            featuresObj = this.extend(extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            object extendObj = this.featuresMapper(initialFeatures, extendsStr);
+            featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
         // corrections
@@ -1467,10 +1478,16 @@ public partial class Exchange
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             }
-            // omit 'hedged' from spot
+            // for spot, default 'hedged' to false
             if (isTrue(isEqual(marketType, "spot")))
             {
-                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = null;
+                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
+            }
+            // default 'GTC' to true
+            object gtcValue = this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "gtc");
+            if (isTrue(isEqual(gtcValue, null)))
+            {
+                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["gtc"] = true;
             }
         }
         return featuresObj;
@@ -2817,6 +2834,20 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object currencyIds(object codes = null)
+    {
+        if (isTrue(isEqual(codes, null)))
+        {
+            return codes;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.currencyId(getValue(codes, i)));
+        }
+        return result;
+    }
+
     public virtual object marketsForSymbols(object symbols = null)
     {
         if (isTrue(isEqual(symbols, null)))
@@ -3373,6 +3404,20 @@ public partial class Exchange
     public virtual object setHeaders(object headers)
     {
         return headers;
+    }
+
+    public virtual object currencyId(object code)
+    {
+        object currency = this.safeDict(this.currencies, code);
+        if (isTrue(isEqual(currency, null)))
+        {
+            currency = this.safeCurrency(code);
+        }
+        if (isTrue(!isEqual(currency, null)))
+        {
+            return getValue(currency, "id");
+        }
+        return code;
     }
 
     public virtual object marketId(object symbol)

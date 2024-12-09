@@ -537,6 +537,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -683,6 +684,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -787,11 +789,18 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap order
     /// </description>
     /// </item>
     /// </list>
@@ -806,7 +815,8 @@ public partial class bingx
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -855,6 +865,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -872,6 +883,12 @@ public partial class bingx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap open orders
     /// </description>
     /// </item>
     /// </list>
@@ -990,6 +1007,7 @@ public partial class bingx
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1025,6 +1043,12 @@ public partial class bingx
     /// <term>params.standard</term>
     /// <description>
     /// boolean : whether to fetch standard contract orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : if fetching twap orders
     /// </description>
     /// </item>
     /// </list>
@@ -1318,6 +1342,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail"/>  <br/>
     /// <list type="table">
     /// <item>

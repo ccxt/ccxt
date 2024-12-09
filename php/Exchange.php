@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.32';
+$version = '4.4.37';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.32';
+    const VERSION = '4.4.37';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -351,7 +351,7 @@ class Exchange {
         'bitbns',
         'bitcoincom',
         'bitfinex',
-        'bitfinex2',
+        'bitfinex1',
         'bitflyer',
         'bitget',
         'bithumb',
@@ -388,9 +388,11 @@ class Exchange {
         'coinspot',
         'cryptocom',
         'currencycom',
+        'defx',
         'delta',
         'deribit',
         'digifinex',
+        'ellipx',
         'exmo',
         'fmfwio',
         'gate',
@@ -2169,6 +2171,11 @@ class Exchange {
     }
 
     function array_slice($array, $first, $second = null){
+        if (is_string($array)) {
+            // this is needed because we convert
+            // base64ToBinary to base64_decode in php
+            return substr($array, $first, $second);
+        }
         if ($second === null) {
             return array_slice($array, $first);
         } else {
@@ -2932,7 +2939,7 @@ class Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -2946,6 +2953,10 @@ class Exchange {
     }
 
     public function set_sandbox_mode(bool $enabled) {
+        /**
+         * set the sandbox mode for the exchange
+         * @param {boolean} $enabled true to enable sandbox mode, false to disable it
+         */
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -3406,7 +3417,7 @@ class Exchange {
         $this->features = array();
         $unifiedMarketTypes = array( 'spot', 'swap', 'future', 'option' );
         $subTypes = array( 'linear', 'inverse' );
-        // atm only support basic methods to avoid to be able to maintain, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
             $marketType = $unifiedMarketTypes[$i];
             // if $marketType is not filled for this exchange, don't add that in `features`
@@ -3428,11 +3439,15 @@ class Exchange {
 
     public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
+        }
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');
-            $extendObj = $initialFeatures[$extendsStr];
-            $featuresObj = $this->extend($extendObj, $featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            $extendObj = $this->features_mapper($initialFeatures, $extendsStr);
+            $featuresObj = $this->deep_extend($extendObj, $featuresObj);
         }
         //
         // corrections
@@ -3443,9 +3458,14 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // omit 'hedged' from spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
-                $featuresObj['createOrder']['hedged'] = null;
+                $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
             }
         }
         return $featuresObj;
@@ -4560,6 +4580,17 @@ class Exchange {
         return $result;
     }
 
+    public function currency_ids(?array $codes = null) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->currency_id($codes[$i]);
+        }
+        return $result;
+    }
+
     public function markets_for_symbols(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
@@ -4999,6 +5030,17 @@ class Exchange {
 
     public function set_headers($headers) {
         return $headers;
+    }
+
+    public function currency_id(string $code) {
+        $currency = $this->safe_dict($this->currencies, $code);
+        if ($currency === null) {
+            $currency = $this->safe_currency($code);
+        }
+        if ($currency !== null) {
+            return $currency['id'];
+        }
+        return $code;
     }
 
     public function market_id(string $symbol) {

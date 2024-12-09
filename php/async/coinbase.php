@@ -83,6 +83,8 @@ class coinbase extends Exchange {
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchDepositMethodId' => true,
+                'fetchDepositMethodIds' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -2310,7 +2312,8 @@ class coinbase extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
-             * @param {array} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {string} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {int} [$params->limit] default 250, maximum number of accounts to return
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2327,7 +2330,7 @@ class coinbase extends Exchange {
                 $request['limit'] = 250;
                 $response = Async\await($this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params)));
             } else {
-                $request['limit'] = 100;
+                $request['limit'] = 250;
                 $response = Async\await($this->v2PrivateGetAccounts ($this->extend($request, $params)));
             }
             //
@@ -4401,6 +4404,99 @@ class coinbase extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data);
         }) ();
+    }
+
+    public function fetch_deposit_method_ids($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the deposit id for a fiat currency associated with this account
+             *
+             * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=deposit-id-structure deposit id structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->v3PrivateGetBrokeragePaymentMethods ($params));
+            //
+            //     {
+            //         "payment_methods" => array(
+            //             {
+            //                 "id" => "21b39a5d-f7b46876fb2e",
+            //                 "type" => "COINBASE_FIAT_ACCOUNT",
+            //                 "name" => "CAD Wallet",
+            //                 "currency" => "CAD",
+            //                 "verified" => true,
+            //                 "allow_buy" => false,
+            //                 "allow_sell" => true,
+            //                 "allow_deposit" => false,
+            //                 "allow_withdraw" => false,
+            //                 "created_at" => "2023-06-29T19:58:46Z",
+            //                 "updated_at" => "2023-10-30T20:25:01Z"
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_list($response, 'payment_methods', array());
+            return $this->parse_deposit_method_ids($result);
+        }) ();
+    }
+
+    public function fetch_deposit_method_id(string $id, $params = array ()) {
+        return Async\async(function () use ($id, $params) {
+            /**
+             * fetch the deposit $id for a fiat currency associated with this account
+             *
+             * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+             *
+             * @param {string} $id the deposit payment method $id
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=deposit-$id-structure deposit $id structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'payment_method_id' => $id,
+            );
+            $response = Async\await($this->v3PrivateGetBrokeragePaymentMethodsPaymentMethodId ($this->extend($request, $params)));
+            //
+            //     {
+            //         "payment_method" => {
+            //             "id" => "21b39a5d-f7b46876fb2e",
+            //             "type" => "COINBASE_FIAT_ACCOUNT",
+            //             "name" => "CAD Wallet",
+            //             "currency" => "CAD",
+            //             "verified" => true,
+            //             "allow_buy" => false,
+            //             "allow_sell" => true,
+            //             "allow_deposit" => false,
+            //             "allow_withdraw" => false,
+            //             "created_at" => "2023-06-29T19:58:46Z",
+            //             "updated_at" => "2023-10-30T20:25:01Z"
+            //         }
+            //     }
+            //
+            $result = $this->safe_dict($response, 'payment_method', array());
+            return $this->parse_deposit_method_id($result);
+        }) ();
+    }
+
+    public function parse_deposit_method_ids($ids, $params = array ()) {
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
+            $result[] = $id;
+        }
+        return $result;
+    }
+
+    public function parse_deposit_method_id($depositId) {
+        return array(
+            'info' => $depositId,
+            'id' => $this->safe_string($depositId, 'id'),
+            'currency' => $this->safe_string($depositId, 'currency'),
+            'verified' => $this->safe_bool($depositId, 'verified'),
+            'tag' => $this->safe_string($depositId, 'name'),
+        );
     }
 
     public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {

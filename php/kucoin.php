@@ -1184,7 +1184,7 @@ class kucoin extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => $isMarginable,
-                'marginMode' => array(
+                'marginModes' => array(
                     'cross' => $hasCrossMargin,
                     'isolated' => $hasIsolatedMargin,
                 ),

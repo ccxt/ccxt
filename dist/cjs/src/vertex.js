@@ -48,6 +48,8 @@ class vertex extends vertex$1 {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,

@@ -195,7 +195,8 @@ export default class coinbase extends Exchange {
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @param {object} [params.type] "spot" (default) or "swap" or "future"
+     * @param {string} [params.type] "spot" (default) or "swap" or "future"
+     * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -481,6 +482,39 @@ export default class coinbase extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodIds
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    fetchDepositMethodIds(params?: {}): Promise<any[]>;
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodId
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+     * @param {string} id the deposit payment method id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    fetchDepositMethodId(id: string, params?: {}): Promise<{
+        info: any;
+        id: string;
+        currency: string;
+        verified: boolean;
+        tag: string;
+    }>;
+    parseDepositMethodIds(ids: any, params?: {}): any[];
+    parseDepositMethodId(depositId: any): {
+        info: any;
+        id: string;
+        currency: string;
+        verified: boolean;
+        tag: string;
+    };
     /**
      * @method
      * @name coinbase#fetchConvertQuote

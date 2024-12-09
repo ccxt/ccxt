@@ -734,6 +734,12 @@ export default class Exchange {
     filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode(enabled: boolean): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<Account[]>;
@@ -888,6 +894,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols?: Strings): any[];
+    currencyIds(codes?: Strings): any[];
     marketsForSymbols(symbols?: Strings): any[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any[];
     marketCodes(codes?: Strings): any[];
@@ -916,6 +923,7 @@ export default class Exchange {
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
+    currencyId(code: string): string;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
     handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];

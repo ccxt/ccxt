@@ -34,7 +34,10 @@ function test_features($exchange, $skipped_properties) {
                         $sub_key = $sub_keys[$j];
                         assert_in_array($exchange, $skipped_properties, 'features', $sub_keys, $j, $sub_types);
                         $sub_value = $value[$sub_key];
-                        test_features_inner($exchange, $skipped_properties, $sub_value);
+                        // sometimes it might not be available for exchange, eg. future>inverse)
+                        if ($sub_value !== null) {
+                            test_features_inner($exchange, $skipped_properties, $sub_value);
+                        }
                     }
                 }
             }
@@ -47,6 +50,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
     $format = array(
         'sandbox' => false,
         'createOrder' => array(
+            'marginMode' => false,
             'triggerPrice' => false,
             'triggerPriceType' => array(
                 'mark' => false,
@@ -63,25 +67,20 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                 ),
                 'limitPrice' => false,
             ),
-            'marginMode' => false,
             'timeInForce' => array(
-                'GTC' => false,
                 'IOC' => false,
                 'FOK' => false,
                 'PO' => false,
                 'GTD' => false,
             ),
             'hedged' => false,
-            'selfTradePrevention' => false,
             'trailing' => false,
-            'twap' => false,
-            'iceberg' => false,
-            'oco' => false,
         ),
         'createOrders' => array(
             'max' => 5,
         ),
         'fetchMyTrades' => array(
+            'marginMode' => false,
             'daysBack' => 0,
             'limit' => 0,
             'untilDays' => 0,
@@ -92,25 +91,25 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'trailing' => false,
         ),
         'fetchOpenOrders' => array(
-            'limit' => 0,
             'marginMode' => false,
+            'limit' => 0,
             'trigger' => false,
             'trailing' => false,
         ),
         'fetchOrders' => array(
+            'marginMode' => false,
             'limit' => 0,
             'daysBack' => 0,
             'untilDays' => 0,
-            'marginMode' => false,
             'trigger' => false,
             'trailing' => false,
         ),
         'fetchClosedOrders' => array(
+            'marginMode' => false,
             'limit' => 0,
             'daysBackClosed' => 0,
             'daysBackCanceled' => 0,
             'untilDays' => 0,
-            'marginMode' => false,
             'trigger' => false,
             'trailing' => false,
         ),

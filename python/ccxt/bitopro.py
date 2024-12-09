@@ -42,6 +42,8 @@ class bitopro(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRateHistories': False,
@@ -151,6 +153,7 @@ class bitopro(Exchange, ImplicitAPI):
                         'wallet/withdraw/{currency}/id/{id}': 1,
                         'wallet/depositHistory/{currency}': 1,
                         'wallet/withdrawHistory/{currency}': 1,
+                        'orders/open': 1,
                     },
                     'post': {
                         'orders/{pair}': 1 / 2,  # 1200/m => 20/s => 10/20 = 1/2
@@ -986,6 +989,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1245,10 +1249,26 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        request: dict = {
-            'statusKind': 'OPEN',
-        }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        """
+        fetch all unfilled currently open orders
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = self.privateGetOrdersOpen(self.extend(request, params))
+        orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

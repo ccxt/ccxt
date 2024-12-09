@@ -184,6 +184,7 @@ public partial class deribit : Exchange
                         { "enable_api_key", 1 },
                         { "get_access_log", 1 },
                         { "get_account_summary", 1 },
+                        { "get_account_summaries", 1 },
                         { "get_affiliate_program_info", 1 },
                         { "get_email_language", 1 },
                         { "get_new_announcements", 1 },
@@ -955,13 +956,25 @@ public partial class deribit : Exchange
         object result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        object currencyId = this.safeString(balance, "currency");
-        object currencyCode = this.safeCurrencyCode(currencyId);
-        object account = this.account();
-        ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_funds");
-        ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "maintenance_margin");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "equity");
-        ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+        object summaries = new List<object>() {};
+        if (isTrue(inOp(balance, "summaries")))
+        {
+            summaries = this.safeList(balance, "summaries");
+        } else
+        {
+            summaries = new List<object>() {balance};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(summaries)); postFixIncrement(ref i))
+        {
+            object data = getValue(summaries, i);
+            object currencyId = this.safeString(data, "currency");
+            object currencyCode = this.safeCurrencyCode(currencyId);
+            object account = this.account();
+            ((IDictionary<string,object>)account)["free"] = this.safeString(data, "available_funds");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(data, "maintenance_margin");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(data, "equity");
+            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+        }
         return this.safeBalance(result);
     }
 
@@ -970,19 +983,30 @@ public partial class deribit : Exchange
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/#private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object code = this.codeFromOptions("fetchBalance", parameters);
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object response = await this.privateGetGetAccountSummary(this.extend(request, parameters));
+        object code = this.safeString(parameters, "code");
+        parameters = this.omit(parameters, "code");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)request)["currency"] = this.currencyId(code);
+        }
+        object response = null;
+        if (isTrue(isEqual(code, null)))
+        {
+            response = await this.privateGetGetAccountSummaries(parameters);
+        } else
+        {
+            response = await this.privateGetGetAccountSummary(this.extend(request, parameters));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1025,7 +1049,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseBalance(result);
     }
 

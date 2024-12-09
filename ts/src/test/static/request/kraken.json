@@ -575,35 +575,69 @@
         ],
         "editOrder": [
             {
-                "description": "editOrder",
+                "description": "edit a limit orders amount and price",
                 "method": "editOrder",
-                "url": "https://api.kraken.com/0/private/EditOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
                 "input": [
-                    "OS7ILF-3M6IY-IYVV65",
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    2,
-                    20
+                  "OP3KR4-WARBU-MOLAZO",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  68000
                 ],
-                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&price=20"
+                "output": "nonce=1732915315155&txid=OP3KR4-WARBU-MOLAZO&order_qty=0.0001&limit_price=68000"
             },
             {
-                "description": "editOrder with clientOid",
+                "description": "edit an orders post only parameter",
                 "method": "editOrder",
-                "url": "https://api.kraken.com/0/private/EditOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
                 "input": [
-                    "OS7ILF-3M6IY-IYVV65",
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    2,
-                    20,
-                    {
-                        "clientOrderId": 1234
-                    }
+                  "OC2Z3W-HREW5-IN6YFD",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  71000,
+                  {
+                    "postOnly": true
+                  }
                 ],
-                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&userref=1234&price=20"
+                "output": "nonce=1732918147648&txid=OC2Z3W-HREW5-IN6YFD&post_only=true&order_qty=0.0001&limit_price=71000"
+            },
+            {
+                "description": "edit an order using the clientOrderId parameter",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
+                "input": [
+                  "05AMIQ-75QVP-DIFYBG",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  71000,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1732919391972&cl_ord_id=1234&order_qty=0.0001&limit_price=71000"
+            },
+            {
+                "description": "edit a stopLossPrice order",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
+                "input": [
+                  "OV4PNR-TU2HK-YRMVWR",
+                  "BTC/USD",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "stopLossPrice": "74000"
+                  }
+                ],
+                "output": "nonce=1732937292347&txid=OV4PNR-TU2HK-YRMVWR&order_qty=0.0001&trigger_price=74000"
             }
         ]
     }

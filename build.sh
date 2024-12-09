@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# note, don't run commands inline, as shown https://github.com/ccxt/ccxt/pull/24460
 set -e
 
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
@@ -211,16 +213,20 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
-  npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
-  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
+  npm run request-py-sync -- $exchange
+  npm run request-py-async -- $exchange
+  npm run request-php-sync -- $exchange
+  npm run request-php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
-  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
+  npm run response-py-sync -- $exchange
+  npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange
+  npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 

@@ -2135,6 +2135,7 @@ class okx(ccxt.async_support.okx):
         #
         #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
         #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
+        #     {"event":"error","msg":"Illegal request: {\\"id\\":\\"17321173472466905\\",\\"op\\":\\"amend-order\\",\\"args\\":[{\\"instId\\":\\"ETH-USDC\\",\\"ordId\\":\\"2000345622407479296\\",\\"newSz\\":\\"0.050857\\",\\"newPx\\":\\"2949.4\\",\\"postOnly\\":true}],\\"postOnly\\":true}","code":"60012","connId":"0808af6c"}
         #
         errorCode = self.safe_string(message, 'code')
         try:
@@ -2160,6 +2161,13 @@ class okx(ccxt.async_support.okx):
             # if the message contains an id, it means it is a response to a request
             # so we only reject that promise, instead of deleting all futures, destroying the authentication future
             id = self.safe_string(message, 'id')
+            if id is None:
+                # try to parse it from the stringified json inside msg
+                msg = self.safe_string(message, 'msg')
+                if msg is not None and msg.startswith('Illegal request: {'):
+                    stringifiedJson = msg.replace('Illegal request: ', '')
+                    parsedJson = self.parse_json(stringifiedJson)
+                    id = self.safe_string(parsedJson, 'id')
             if id is not None:
                 client.reject(e, id)
                 return False

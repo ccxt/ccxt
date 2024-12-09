@@ -270,7 +270,7 @@ class coinspot(Exchange, ImplicitAPI):
         response = await self.publicGetLatest(params)
         id = market['id']
         id = id.lower()
-        prices = self.safe_value(response, 'prices')
+        prices = self.safe_dict(response, 'prices', {})
         #
         #     {
         #         "status":"ok",
@@ -301,22 +301,22 @@ class coinspot(Exchange, ImplicitAPI):
         #
         #    {
         #        "status": "ok",
-        #        "prices": {
-        #        "btc": {
-        #        "bid": "25050",
-        #        "ask": "25370",
-        #        "last": "25234"
-        #        },
-        #        "ltc": {
-        #        "bid": "79.39192993",
-        #        "ask": "87.98",
-        #        "last": "87.95"
+        #        "prices":   {
+        #            "btc":   {
+        #                "bid": "25050",
+        #                "ask": "25370",
+        #                "last": "25234"
+        #            },
+        #            "ltc":   {
+        #                "bid": "79.39192993",
+        #                "ask": "87.98",
+        #                "last": "87.95"
+        #            }
         #        }
-        #      }
         #    }
         #
         result: dict = {}
-        prices = self.safe_value(response, 'prices')
+        prices = self.safe_dict(response, 'prices', {})
         ids = list(prices.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -377,35 +377,35 @@ class coinspot(Exchange, ImplicitAPI):
             request['startdate'] = self.yyyymmdd(since)
         response = await self.privatePostRoMyTransactions(self.extend(request, params))
         #  {
-        #   "status": "ok",
-        #   "buyorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "ALGO/AUD",
-        #       "amount": 386.95197925,
-        #       "created": "2022-10-20T09:56:44.502Z",
-        #       "audfeeExGst": 1.80018002,
-        #       "audGst": 0.180018,
-        #       "audtotal": 200
-        #     },
-        #   ],
-        #   "sellorders": [
-        #     {
-        #       "otc": False,
-        #       "market": "SOLO/ALGO",
-        #       "amount": 154.52345614,
-        #       "total": 115.78858204658796,
-        #       "created": "2022-04-16T09:36:43.698Z",
-        #       "audfeeExGst": 1.08995731,
-        #       "audGst": 0.10899573,
-        #       "audtotal": 118.7
-        #     },
-        #   ]
+        #      "status": "ok",
+        #      "buyorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "ALGO/AUD",
+        #              "amount": 386.95197925,
+        #              "created": "2022-10-20T09:56:44.502Z",
+        #              "audfeeExGst": 1.80018002,
+        #              "audGst": 0.180018,
+        #              "audtotal": 200
+        #          },
+        #      ],
+        #      "sellorders": [
+        #          {
+        #              "otc": False,
+        #              "market": "SOLO/ALGO",
+        #              "amount": 154.52345614,
+        #              "total": 115.78858204658796,
+        #              "created": "2022-04-16T09:36:43.698Z",
+        #              "audfeeExGst": 1.08995731,
+        #              "audGst": 0.10899573,
+        #              "audtotal": 118.7
+        #          },
+        #      ]
         # }
-        buyTrades = self.safe_value(response, 'buyorders', [])
+        buyTrades = self.safe_list(response, 'buyorders', [])
         for i in range(0, len(buyTrades)):
             buyTrades[i]['side'] = 'buy'
-        sellTrades = self.safe_value(response, 'sellorders', [])
+        sellTrades = self.safe_list(response, 'sellorders', [])
         for i in range(0, len(sellTrades)):
             sellTrades[i]['side'] = 'sell'
         trades = self.array_concat(buyTrades, sellTrades)

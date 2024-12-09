@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.32'
+__version__ = '4.4.37'
 
 # -----------------------------------------------------------------------------
 
@@ -382,6 +382,7 @@ class Exchange(object):
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = dict() if self.liquidations is None else self.liquidations
+        self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -2398,7 +2399,7 @@ class Exchange(object):
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
                 entryKeyValue = self.safe_value(entry, key)
-                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
+                entryKeyGESince = (entryKeyValue) and (since is not None) and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
@@ -2407,6 +2408,10 @@ class Exchange(object):
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
     def set_sandbox_mode(self, enabled: bool):
+        """
+        set the sandbox mode for the exchange
+        :param boolean enabled: True to enable sandbox mode, False to disable it
+        """
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):
@@ -2769,7 +2774,7 @@ class Exchange(object):
         self.features = {}
         unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
         subTypes = ['linear', 'inverse']
-        # atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for i in range(0, len(unifiedMarketTypes)):
             marketType = unifiedMarketTypes[i]
             # if marketType is not filled for self exchange, don't add that in `features`
@@ -2786,11 +2791,14 @@ class Exchange(object):
 
     def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
         featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        # if exchange does not have that market-type(eg. future>inverse)
+        if featuresObj is None:
+            return None
         extendsStr: Str = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
-            extendObj = initialFeatures[extendsStr]
-            featuresObj = self.extend(extendObj, featuresObj)  # Warning, do not use deepExtend here, because we override only one level
+            extendObj = self.features_mapper(initialFeatures, extendsStr)
+            featuresObj = self.deep_extend(extendObj, featuresObj)
         #
         # corrections
         #
@@ -2799,9 +2807,13 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # omit 'hedged' from spot
+            # for spot, default 'hedged' to False
             if marketType == 'spot':
-                featuresObj['createOrder']['hedged'] = None
+                featuresObj['createOrder']['hedged'] = False
+            # default 'GTC' to True
+            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
+            if gtcValue is None:
+                featuresObj['createOrder']['timeInForce']['gtc'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
@@ -3744,6 +3756,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def currency_ids(self, codes: Strings = None):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.currency_id(codes[i]))
+        return result
+
     def markets_for_symbols(self, symbols: Strings = None):
         if symbols is None:
             return symbols
@@ -4096,6 +4116,14 @@ class Exchange(object):
 
     def set_headers(self, headers):
         return headers
+
+    def currency_id(self, code: str):
+        currency = self.safe_dict(self.currencies, code)
+        if currency is None:
+            currency = self.safe_currency(code)
+        if currency is not None:
+            return currency['id']
+        return code
 
     def market_id(self, symbol: str):
         market = self.market(symbol)

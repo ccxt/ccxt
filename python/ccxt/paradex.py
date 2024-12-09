@@ -53,6 +53,8 @@ class paradex(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': False,
                 'createReduceOnlyOrder': False,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -274,6 +276,7 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
+                'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
                 'broker': 'CCXT',
             },
         })
@@ -962,10 +965,10 @@ class paradex(Exchange, ImplicitAPI):
         }
 
     def retrieve_account(self):
-        self.check_required_credentials()
         cachedAccount: dict = self.safe_dict(self.options, 'paradexAccount')
         if cachedAccount is not None:
             return cachedAccount
+        self.check_required_credentials()
         systemConfig = self.get_system_config()
         domain = self.prepare_paradex_domain(True)
         messageTypes = {
@@ -1954,7 +1957,6 @@ class paradex(Exchange, ImplicitAPI):
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
-            self.check_required_credentials()
             headers = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),

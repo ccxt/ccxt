@@ -1734,6 +1734,7 @@ class bitso extends bitso$1 {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
+            endpoint = '/api' + endpoint;
             let request = [nonce, method, endpoint].join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length) {
@@ -1745,7 +1746,7 @@ class bitso extends bitso$1 {
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

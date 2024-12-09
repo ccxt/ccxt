@@ -1683,6 +1683,7 @@ class bitso(Exchange, ImplicitAPI):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
+            endpoint = '/api' + endpoint
             request = ''.join([nonce, method, endpoint])
             if method != 'GET' and method != 'DELETE':
                 if query:
@@ -1692,7 +1693,7 @@ class bitso(Exchange, ImplicitAPI):
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                # 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

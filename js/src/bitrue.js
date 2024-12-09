@@ -514,6 +514,7 @@ export default class bitrue extends Exchange {
                     '-4051': InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': InsufficientFunds,
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -3090,7 +3091,7 @@ export default class bitrue extends Exchange {
         const version = this.safeString(api, 1);
         const access = this.safeString(api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0)) {
             url = this.urls['api'][type];
         }
         else {
@@ -3101,7 +3102,7 @@ export default class bitrue extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,

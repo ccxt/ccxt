@@ -547,7 +547,7 @@ export default class coinsph extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue(response, 'symbols');
+        const markets = this.safeList(response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -556,7 +556,7 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
+            const limits = this.indexBy(this.safeList(market, 'filters', []), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue(limits, 'NOTIONAL', {});
@@ -639,7 +639,7 @@ export default class coinsph extends Exchange {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTickers', {});
+        const options = this.safeDict(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let tickers = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -671,7 +671,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTicker', {});
+        const options = this.safeDict(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let ticker = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -1017,7 +1017,7 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeValue2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
@@ -1082,7 +1082,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1529,7 +1529,7 @@ export default class coinsph extends Exchange {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue(response, 0, {});
+        const tradingFee = this.safeDict(response, 0, {});
         return this.parseTradingFee(tradingFee, market);
     }
     /**

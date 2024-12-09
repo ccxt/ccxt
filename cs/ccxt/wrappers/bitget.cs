@@ -820,7 +820,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for canceling trigger orders
     /// </description>
@@ -868,7 +868,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -904,7 +904,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -980,7 +980,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
     /// </description>

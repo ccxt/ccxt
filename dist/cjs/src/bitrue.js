@@ -511,6 +511,7 @@ class bitrue extends bitrue$1 {
                     '-4051': errors.InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': errors.InsufficientFunds,
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -3087,7 +3088,7 @@ class bitrue extends bitrue$1 {
         const version = this.safeString(api, 1);
         const access = this.safeString(api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0)) {
             url = this.urls['api'][type];
         }
         else {
@@ -3098,7 +3099,7 @@ class bitrue extends bitrue$1 {
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,

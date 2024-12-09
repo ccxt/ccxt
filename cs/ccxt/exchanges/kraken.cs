@@ -388,31 +388,43 @@ public partial class kraken : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "EQuery:Invalid asset pair", typeof(BadSymbol) },
-                { "EAPI:Invalid key", typeof(AuthenticationError) },
-                { "EFunding:Unknown withdraw key", typeof(InvalidAddress) },
-                { "EFunding:Invalid amount", typeof(InsufficientFunds) },
-                { "EService:Unavailable", typeof(ExchangeNotAvailable) },
-                { "EDatabase:Internal error", typeof(ExchangeNotAvailable) },
-                { "EService:Busy", typeof(ExchangeNotAvailable) },
-                { "EQuery:Unknown asset", typeof(BadSymbol) },
-                { "EAPI:Rate limit exceeded", typeof(DDoSProtection) },
-                { "EOrder:Rate limit exceeded", typeof(DDoSProtection) },
-                { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
-                { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
-                { "EGeneral:Permission denied", typeof(PermissionDenied) },
-                { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
-                { "EOrder:Unknown order", typeof(InvalidOrder) },
-                { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
-                { "EOrder:Order minimum not met", typeof(InvalidOrder) },
-                { "EGeneral:Invalid arguments", typeof(BadRequest) },
-                { "ESession:Invalid session", typeof(AuthenticationError) },
-                { "EAPI:Invalid nonce", typeof(InvalidNonce) },
-                { "EFunding:No funding method", typeof(BadRequest) },
-                { "EFunding:Unknown asset", typeof(BadSymbol) },
-                { "EService:Market in post_only mode", typeof(OnMaintenance) },
-                { "EGeneral:Too many requests", typeof(DDoSProtection) },
-                { "ETrade:User Locked", typeof(AccountSuspended) },
+                { "exact", new Dictionary<string, object>() {
+                    { "EQuery:Invalid asset pair", typeof(BadSymbol) },
+                    { "EAPI:Invalid key", typeof(AuthenticationError) },
+                    { "EFunding:Unknown withdraw key", typeof(InvalidAddress) },
+                    { "EFunding:Invalid amount", typeof(InsufficientFunds) },
+                    { "EService:Unavailable", typeof(ExchangeNotAvailable) },
+                    { "EDatabase:Internal error", typeof(ExchangeNotAvailable) },
+                    { "EService:Busy", typeof(ExchangeNotAvailable) },
+                    { "EQuery:Unknown asset", typeof(BadSymbol) },
+                    { "EAPI:Rate limit exceeded", typeof(DDoSProtection) },
+                    { "EOrder:Rate limit exceeded", typeof(DDoSProtection) },
+                    { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
+                    { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
+                    { "EGeneral:Permission denied", typeof(PermissionDenied) },
+                    { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
+                    { "EOrder:Unknown order", typeof(InvalidOrder) },
+                    { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
+                    { "EOrder:Order minimum not met", typeof(InvalidOrder) },
+                    { "EOrder:Insufficient funds", typeof(InsufficientFunds) },
+                    { "EGeneral:Invalid arguments", typeof(BadRequest) },
+                    { "ESession:Invalid session", typeof(AuthenticationError) },
+                    { "EAPI:Invalid nonce", typeof(InvalidNonce) },
+                    { "EFunding:No funding method", typeof(BadRequest) },
+                    { "EFunding:Unknown asset", typeof(BadSymbol) },
+                    { "EService:Market in post_only mode", typeof(OnMaintenance) },
+                    { "EGeneral:Too many requests", typeof(DDoSProtection) },
+                    { "ETrade:User Locked", typeof(AccountSuspended) },
+                } },
+                { "broad", new Dictionary<string, object>() {
+                    { ":Invalid order", typeof(InvalidOrder) },
+                    { ":Invalid arguments:volume", typeof(InvalidOrder) },
+                    { ":Invalid arguments:viqc", typeof(InvalidOrder) },
+                    { ":Invalid nonce", typeof(InvalidNonce) },
+                    { ":IInsufficient funds", typeof(InsufficientFunds) },
+                    { ":Cancel pending", typeof(CancelPending) },
+                    { ":Rate limit exceeded", typeof(RateLimitExceeded) },
+                } },
             } },
         });
     }
@@ -1674,18 +1686,9 @@ public partial class kraken : Exchange
         // editOrder
         //
         //     {
-        //         "status": "ok",
-        //         "txid": "OAW2BO-7RWEK-PZY5UO",
-        //         "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        //         "newuserref": 1234,
-        //         "olduserref": 123,
-        //         "volume": "0.00075000",
-        //         "price": "13500.0",
-        //         "orders_cancelled": 1,
-        //         "descr": {
-        //             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //         }
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //     }
+        //
         //  ws - createOrder
         //    {
         //        "descr": 'sell 0.00010000 XBTUSDT @ market',
@@ -1835,13 +1838,13 @@ public partial class kraken : Exchange
             }
         }
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object id = this.safeString2(order, "id", "txid");
+        object id = this.safeStringN(order, new List<object>() {"id", "txid", "amend_id"});
         if (isTrue(isTrue((isEqual(id, null))) || isTrue((((string)id).StartsWith(((string)"["))))))
         {
             object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
-        object clientOrderId = this.safeString2(order, "userref", "newuserref");
+        object clientOrderId = this.safeString(order, "userref");
         object rawTrades = this.safeValue(order, "trades", new List<object>() {});
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
@@ -1866,20 +1869,23 @@ public partial class kraken : Exchange
         object takeProfitPrice = null;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
-        if (isTrue(((string)rawType).StartsWith(((string)"take-profit"))))
+        if (isTrue(!isEqual(rawType, null)))
         {
-            takeProfitPrice = this.safeString(description, "price");
-            price = this.omitZero(this.safeString(description, "price2"));
-        } else if (isTrue(((string)rawType).StartsWith(((string)"stop-loss"))))
-        {
-            stopLossPrice = this.safeString(description, "price");
-            price = this.omitZero(this.safeString(description, "price2"));
-        } else if (isTrue(isEqual(rawType, "take profit")))
-        {
-            takeProfitPrice = triggerPrice;
-        } else if (isTrue(isEqual(rawType, "stop loss")))
-        {
-            stopLossPrice = triggerPrice;
+            if (isTrue(((string)rawType).StartsWith(((string)"take-profit"))))
+            {
+                takeProfitPrice = this.safeString(description, "price");
+                price = this.omitZero(this.safeString(description, "price2"));
+            } else if (isTrue(((string)rawType).StartsWith(((string)"stop-loss"))))
+            {
+                stopLossPrice = this.safeString(description, "price");
+                price = this.omitZero(this.safeString(description, "price2"));
+            } else if (isTrue(isEqual(rawType, "take profit")))
+            {
+                takeProfitPrice = triggerPrice;
+            } else if (isTrue(isEqual(rawType, "stop loss")))
+            {
+                stopLossPrice = triggerPrice;
+            }
         }
         object finalType = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
@@ -1888,6 +1894,11 @@ public partial class kraken : Exchange
         if (isTrue(this.inArray(finalType, new List<object>() {"stop loss", "take profit"})))
         {
             finalType = ((bool) isTrue((isEqual(price, null)))) ? "market" : "limit";
+        }
+        object amendId = this.safeString(order, "amend_id");
+        if (isTrue(!isEqual(amendId, null)))
+        {
+            isPostOnly = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1921,11 +1932,11 @@ public partial class kraken : Exchange
     public virtual object orderRequest(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object clientOrderId = this.safeString2(parameters, "userref", "clientOrderId");
-        parameters = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
-            ((IDictionary<string,object>)request)["userref"] = clientOrderId;
+            ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
         }
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2077,20 +2088,23 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#editOrder
      * @description edit a trade order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/amend-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-     * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
-     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
-     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] the percent away from the trailingAmount
+     * @param {string} [params.offset] '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+     * @param {boolean} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -2104,32 +2118,56 @@ public partial class kraken : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "txid", id },
-            { "pair", getValue(market, "id") },
         };
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
+            parameters = this.omit(parameters, "clientOrderId");
+            request = this.omit(request, "txid");
+        }
+        object isMarket = (isEqual(type, "market"));
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(postOnly))
+        {
+            ((IDictionary<string,object>)request)["post_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+        }
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request)["order_qty"] = this.amountToPrecision(symbol, amount);
         }
-        object orderRequest = this.orderRequest("editOrder", symbol, type, request, amount, price, parameters);
-        object response = await this.privatePostEditOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
+        }
+        object allTriggerPrices = this.safeStringN(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"});
+        if (isTrue(!isEqual(allTriggerPrices, null)))
+        {
+            object offset = this.safeString(parameters, "offset");
+            parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"});
+            if (isTrue(!isEqual(offset, null)))
+            {
+                allTriggerPrices = add(offset, allTriggerPrices);
+                ((IDictionary<string,object>)request)["trigger_price"] = allTriggerPrices;
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, allTriggerPrices);
+            }
+        }
+        object response = await this.privatePostAmendOrder(this.extend(request, parameters));
         //
         //     {
         //         "error": [],
         //         "result": {
-        //             "status": "ok",
-        //             "txid": "OAW2BO-7RWEK-PZY5UO",
-        //             "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        //             "volume": "0.00075000",
-        //             "price": "13500.0",
-        //             "orders_cancelled": 1,
-        //             "descr": {
-        //                 "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //             }
+        //             "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //         }
         //     }
         //
-        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOrder(result, market);
     }
 
     /**
@@ -3484,35 +3522,6 @@ public partial class kraken : Exchange
         {
             throw new ExchangeNotAvailable ((string)add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason)) ;
         }
-        // todo: rewrite this for "broad" exceptions matching
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid order"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid nonce"), 0)))
-        {
-            throw new InvalidNonce ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Insufficient funds"), 0)))
-        {
-            throw new InsufficientFunds ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Cancel pending"), 0)))
-        {
-            throw new CancelPending ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid arguments:volume"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Invalid arguments:viqc"), 0)))
-        {
-            throw new InvalidOrder ((string)add(add(this.id, " "), body)) ;
-        }
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(body, "Rate limit exceeded"), 0)))
-        {
-            throw new RateLimitExceeded ((string)add(add(this.id, " "), body)) ;
-        }
         if (isTrue(isEqual(response, null)))
         {
             return null;
@@ -3530,7 +3539,8 @@ public partial class kraken : Exchange
                         for (object i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
                         {
                             object error = getValue(getValue(response, "error"), i);
-                            this.throwExactlyMatchedException(this.exceptions, error, message);
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "broad"), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
                     }

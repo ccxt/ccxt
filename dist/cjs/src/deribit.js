@@ -207,6 +207,7 @@ class deribit extends deribit$1 {
                         'enable_api_key': 1,
                         'get_access_log': 1,
                         'get_account_summary': 1,
+                        'get_account_summaries': 1,
                         'get_affiliate_program_info': 1,
                         'get_email_language': 1,
                         'get_new_announcements': 1,
@@ -939,13 +940,23 @@ class deribit extends deribit$1 {
         const result = {
             'info': balance,
         };
-        const currencyId = this.safeString(balance, 'currency');
-        const currencyCode = this.safeCurrencyCode(currencyId);
-        const account = this.account();
-        account['free'] = this.safeString(balance, 'available_funds');
-        account['used'] = this.safeString(balance, 'maintenance_margin');
-        account['total'] = this.safeString(balance, 'equity');
-        result[currencyCode] = account;
+        let summaries = [];
+        if ('summaries' in balance) {
+            summaries = this.safeList(balance, 'summaries');
+        }
+        else {
+            summaries = [balance];
+        }
+        for (let i = 0; i < summaries.length; i++) {
+            const data = summaries[i];
+            const currencyId = this.safeString(data, 'currency');
+            const currencyCode = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString(data, 'available_funds');
+            account['used'] = this.safeString(data, 'maintenance_margin');
+            account['total'] = this.safeString(data, 'equity');
+            result[currencyCode] = account;
+        }
         return this.safeBalance(result);
     }
     /**
@@ -953,17 +964,26 @@ class deribit extends deribit$1 {
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/#private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const code = this.codeFromOptions('fetchBalance', params);
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privateGetGetAccountSummary(this.extend(request, params));
+        const code = this.safeString(params, 'code');
+        params = this.omit(params, 'code');
+        const request = {};
+        if (code !== undefined) {
+            request['currency'] = this.currencyId(code);
+        }
+        let response = undefined;
+        if (code === undefined) {
+            response = await this.privateGetGetAccountSummaries(params);
+        }
+        else {
+            response = await this.privateGetGetAccountSummary(this.extend(request, params));
+        }
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1006,7 +1026,7 @@ class deribit extends deribit$1 {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         return this.parseBalance(result);
     }
     /**

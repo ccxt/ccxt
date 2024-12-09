@@ -10,7 +10,7 @@ public partial class woo
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-system-maintenance-status-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class woo
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-system-maintenance-status-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class woo
     /// retrieves data on all markets for woo
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#exchange-information"/>  <br/>
+    /// See <see href="https://docs.woox.io/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class woo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#market-trades-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#market-trades-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -104,7 +104,7 @@ public partial class woo
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-account-information-new"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-account-information-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -124,7 +124,7 @@ public partial class woo
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -144,7 +144,7 @@ public partial class woo
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -164,7 +164,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -191,7 +191,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -218,8 +218,8 @@ public partial class woo
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -306,10 +306,10 @@ public partial class woo
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#edit-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-algo-order-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -373,9 +373,9 @@ public partial class woo
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#cancel-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-order-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -401,9 +401,9 @@ public partial class woo
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#cancel-all-pending-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-all-pending-algo-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-all-pending-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-all-pending-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -429,7 +429,7 @@ public partial class woo
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#cancel-all-after"/>  <br/>
+    /// See <see href="https://docs.woox.io/#cancel-all-after"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -449,8 +449,8 @@ public partial class woo
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -476,8 +476,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -541,8 +541,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -606,8 +606,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-orders"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-algo-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -671,7 +671,7 @@ public partial class woo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#orderbook-snapshot-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#orderbook-snapshot-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -698,8 +698,8 @@ public partial class woo
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#kline-public"/>  <br/>
-    /// See <see href="https://docs.woo.org/#kline-historical-data-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#kline-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#kline-historical-data-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -733,7 +733,7 @@ public partial class woo
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -767,7 +767,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -807,7 +807,7 @@ public partial class woo
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-assets-of-subaccounts"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-assets-of-subaccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -827,7 +827,7 @@ public partial class woo
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-current-holding-get-balance-new"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-current-holding-get-balance-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -847,7 +847,7 @@ public partial class woo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-token-deposit-address"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-token-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -867,7 +867,7 @@ public partial class woo
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -907,7 +907,7 @@ public partial class woo
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -941,7 +941,7 @@ public partial class woo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -975,7 +975,7 @@ public partial class woo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-asset-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-asset-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1015,7 +1015,7 @@ public partial class woo
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-transfer-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1035,7 +1035,7 @@ public partial class woo
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-transfer-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1075,7 +1075,7 @@ public partial class woo
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#token-withdraw"/>  <br/>
+    /// See <see href="https://docs.woox.io/#token-withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1095,7 +1095,7 @@ public partial class woo
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-funding-fee-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-funding-fee-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1201,7 +1201,7 @@ public partial class woo
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-funding-rate-history-for-one-market-public"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-funding-rate-history-for-one-market-public"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1247,7 +1247,7 @@ public partial class woo
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#update-position-mode"/>  <br/>
+    /// See <see href="https://docs.woox.io/#update-position-mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1267,7 +1267,7 @@ public partial class woo
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-account-information-new"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-account-information-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1299,8 +1299,8 @@ public partial class woo
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#update-leverage-setting"/>  <br/>
-    /// See <see href="https://docs.woo.org/#update-futures-leverage-setting"/>  <br/>
+    /// See <see href="https://docs.woox.io/#update-leverage-setting"/>  <br/>
+    /// See <see href="https://docs.woox.io/#update-futures-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1348,7 +1348,7 @@ public partial class woo
     /// fetch a quote for converting from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-rfq"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-rfq"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1375,7 +1375,7 @@ public partial class woo
     /// convert from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-quote-rft"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-quote-rft"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1402,7 +1402,7 @@ public partial class woo
     /// fetch the data for a conversion trade
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-trade"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1428,7 +1428,7 @@ public partial class woo
     /// fetch the users history of conversion trades
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-trades"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1474,7 +1474,7 @@ public partial class woo
     /// fetches all available currencies that can be converted
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-asset-info"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-asset-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

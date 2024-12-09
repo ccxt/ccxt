@@ -51,6 +51,8 @@ export default class alpaca extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,

@@ -2537,6 +2537,22 @@ class phemex(Exchange, ImplicitAPI):
             if triggerPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
+                # set direction & exchange specific order type
+                triggerDirection = None
+                triggerDirection, params = self.handle_param_string(params, 'triggerDirection')
+                if triggerDirection is None:
+                    raise ArgumentsRequired(self.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")
+                # the flow defined per https://phemex-docs.github.io/#more-order-type-examples
+                if triggerDirection == 'up':
+                    if side == 'sell':
+                        request['ordType'] = 'MarketIfTouched' if (type == 'Market') else 'LimitIfTouched'
+                    elif side == 'buy':
+                        request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
+                elif triggerDirection == 'down':
+                    if side == 'sell':
+                        request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
+                    elif side == 'buy':
+                        request['ordType'] = 'MarketIfTouched' if (type == 'Market') else 'LimitIfTouched'
             if stopLossDefined or takeProfitDefined:
                 if stopLossDefined:
                     stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')

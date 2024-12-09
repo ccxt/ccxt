@@ -8,14 +8,14 @@ export default class bybit extends Exchange {
     describe(): any;
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
-    addPaginationCursorToResult(response: any): any;
+    addPaginationCursorToResult(response: any): any[];
     /**
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @method
      * @name bybit#isUnifiedEnabled
      * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
      * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
     isUnifiedEnabled(params?: {}): Promise<any[]>;
@@ -83,6 +83,7 @@ export default class bybit extends Exchange {
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
