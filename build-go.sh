@@ -14,7 +14,7 @@ print_message() {
 echo "Will download modules"
 go mod download
 echo "Will build the project"
-your_command="GOMAXPROCS=1 go build -x ./go/ccxt"
+your_command="go build -x ./go/ccxt"
 
 # Capture the start time
 start_time=$SECONDS
@@ -33,6 +33,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Run the main command and capture its exit code
+export GOMAXPROCS=1
 $your_command
 command_exit_code=$?
 
