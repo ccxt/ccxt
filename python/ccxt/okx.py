@@ -1028,6 +1028,7 @@ class okx(Exchange):
         precisionPrice = self.parse_number(tickSize)
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
+        state = self.safe_string(market, 'state', '')
         return self.extend(fees, {
             'id': _id,
             'symbol': symbol,
@@ -1043,7 +1044,7 @@ class okx(Exchange):
             'swap': swap,
             'future': future,
             'option': option,
-            'active': True,
+            'active': state != 'preopen',
             'contract': contract,
             'linear': is_linear,
             'inverse': is_inverse,
