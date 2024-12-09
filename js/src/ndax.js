@@ -1092,8 +1092,11 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', parseInt(this.accounts[0]['id']));
-        const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId');
+        let accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
+        if (accountId === undefined) {
+            accountId = parseInt(this.accounts[0]['id']);
+        }
         params = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
@@ -1376,6 +1379,7 @@ export default class ndax extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1618,6 +1622,7 @@ export default class ndax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {

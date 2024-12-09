@@ -2399,7 +2399,7 @@ export default class Exchange {
             // default 'GTC' to true
             const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
             if (gtcValue === undefined) {
-                featuresObj['createOrder']['timeInForce']['gtc'] = true;
+                featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return featuresObj;

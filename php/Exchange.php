@@ -3465,7 +3465,7 @@ class Exchange {
             // default 'GTC' to true
             $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
             if ($gtcValue === null) {
-                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return $featuresObj;

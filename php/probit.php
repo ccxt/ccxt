@@ -271,6 +271,8 @@ class probit extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $closed = $this->safe_bool($market, 'closed', false);
+        $showInUI = $this->safe_bool($market, 'show_in_ui', true);
+        $active = !$closed && $showInUI;
         $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
@@ -290,7 +292,7 @@ class probit extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => !$closed,
+            'active' => $active,
             'contract' => false,
             'linear' => null,
             'inverse' => null,
