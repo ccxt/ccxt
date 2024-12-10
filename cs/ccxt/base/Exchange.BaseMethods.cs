@@ -1487,7 +1487,7 @@ public partial class Exchange
             object gtcValue = this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "gtc");
             if (isTrue(isEqual(gtcValue, null)))
             {
-                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["gtc"] = true;
+                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["GTC"] = true;
             }
         }
         return featuresObj;

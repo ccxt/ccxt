@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.37'
+__version__ = '4.4.38'
 
 # -----------------------------------------------------------------------------
 
@@ -2813,7 +2813,7 @@ class Exchange(object):
             # default 'GTC' to True
             gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
             if gtcValue is None:
-                featuresObj['createOrder']['timeInForce']['gtc'] = True
+                featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):

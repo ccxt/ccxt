@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.37';
+$version = '4.4.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.37';
+    const VERSION = '4.4.38';
 
     public $browser;
     public $marketsLoading = null;
@@ -1565,7 +1565,7 @@ class Exchange extends \ccxt\Exchange {
             // default 'GTC' to true
             $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
             if ($gtcValue === null) {
-                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return $featuresObj;

@@ -206,7 +206,6 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'positionSide/dual': 5,
-                                'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
                                 'maintMarginRatio': 2,
@@ -1023,7 +1022,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
      * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1067,7 +1066,7 @@ export default class bingx extends Exchange {
                 const price = this.safeString (params, 'price');
                 params = this.omit (params, 'price');
                 if (price === 'mark') {
-                    response = await this.swapV1PrivateGetMarketMarkPriceKlines (this.extend (request, params));
+                    response = await this.swapV1PublicGetMarketMarkPriceKlines (this.extend (request, params));
                 } else {
                     response = await this.swapV3PublicGetQuoteKlines (this.extend (request, params));
                 }
@@ -6462,7 +6461,7 @@ export default class bingx extends Exchange {
                 body = this.json (parsedParams);
             } else {
                 const query = this.urlencode (parsedParams);
-                url += '?' + query + '&signature=' + signature;
+                url += '?' + query + '&' + 'signature=' + signature;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
