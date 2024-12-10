@@ -7,6 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import { p } from './static_dependencies/noble-curves/pasta.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3970,7 +3971,11 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let response = undefined;
-        if (method === 'spot_private_get_v1_order_orders') {
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleParamBool (params, 'trigger');
+        if (isTrigger) {
+            response = await this.spotPrivateGetV2AlgoOrdersOpening (this.extend (request, params));
+        } else if (method === 'spot_private_get_v1_order_orders') {
             response = await this.spotPrivateGetV1OrderOrders (this.extend (request, params));
         } else {
             response = await this.spotPrivateGetV1OrderHistory (this.extend (request, params));
@@ -4381,7 +4386,13 @@ export default class htx extends Exchange {
                 request['size'] = limit;
             }
             params = this.omit (params, 'account-id');
-            response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleParamBool (params, 'trigger');
+            if (isTrigger) {
+                response = await this.spotPrivateGetV2AlgoOrdersOpening (this.extend (request, params));
+            } else {
+                response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
+            }
         } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -5016,6 +5027,9 @@ export default class htx extends Exchange {
         //         }
         //     ]
         //
+        if ('orderExecuteTime' in order) {
+            return this.parseSpotTriggerOrder (order, market);
+        }
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         if (rejectedCreateOrders !== undefined) {
@@ -5091,6 +5105,63 @@ export default class htx extends Exchange {
             'reduceOnly': reduceOnly,
             'fee': fee,
             'trades': trades,
+        }, market);
+    }
+
+    parseSpotTriggerOrder (order, market = undefined) {
+        //
+        // spot: fetchOrders (trigger:true)
+        //
+        //    {
+        //        "orderFinishSize": "0",
+        //        "orderFinishAmount": "0",
+        //        "orderExecuteTime": "278110",
+        //        "orderOrigTime": "1733777488130",
+        //        "lastActTime": "1733777488286",
+        //        "symbol": "ethusdt",
+        //        "source": "web",
+        //        "clientOrderId": "algo_xr96q173377748812400001",
+        //        "orderSide": "buy",
+        //        "orderType": "limit",
+        //        "orderPrice": "3222",
+        //        "orderSize": "0.0032",
+        //        "timeInForce": "gtc",
+        //        "orderPriceType": "0",
+        //        "interval": "0",
+        //        "singleOrderType": "0",
+        //        "stopPrice": "3333",
+        //        "iceAmount": "0",
+        //        "accountId": "21752789",
+        //        "orderStatus": "created",
+        //        "isIce": false
+        //    }
+        //
+        const timestamp = this.safeInteger (order, 'orderOrigTime');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeOrder ({
+            'info': order,
+            'id': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': this.safeString (order, 'orderType'),
+            'timeInForce': this.safeStringUpper (order, 'timeInForce'),
+            'postOnly': undefined,
+            'side': this.safeString (order, 'orderSide'),
+            'price': this.safeNumber (order, 'orderPrice'),
+            'triggerPrice': this.safeNumber (order, 'stopPrice'),
+            'average': undefined,
+            'cost': undefined,
+            'amount': this.safeNumber (order, 'orderSize'),
+            'filled': undefined,
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'orderStatus')),
+            'reduceOnly': undefined,
+            'fee': undefined,
+            'trades': undefined,
         }, market);
     }
 
@@ -5185,9 +5256,13 @@ export default class htx extends Exchange {
             }
         } else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
-            const stopOperator = this.safeString (params, 'operator', defaultOperator);
+            let triggerDirection = undefined;
+            [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
+            if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
+                throw new ArgumentsRequired (this.id + ' createOrder() : trigger order requires a "triggerDirection" parameter to be either "up" or "down"');
+            }
+            request['operator'] = (triggerDirection === 'up') ? 'gte' : 'lte';
             request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
-            request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
