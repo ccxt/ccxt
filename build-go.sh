@@ -13,7 +13,7 @@ print_message() {
 
 timeout_kill() {
   local pid=$1
-  local timeout=$((10 * 60)) # 10 minutes in seconds
+  local timeout=$((20 * 60)) # 10 minutes in seconds
   local elapsed=0
 
   echo "Monitoring process $pid for timeout..."
