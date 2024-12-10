@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/com/ccxt/ccxt)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-111-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
-A JavaScript / Python / PHP / C# library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A JavaScript / Python / PHP / C# / Go library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
 
@@ -183,12 +183,15 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 3.7.0+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
+- [ccxt in **GO**](https://go.dev/ref/mod) (TODO)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
 - [js/](https://github.com/ccxt/ccxt/blob/master/js/) in JavaScript
-- [python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
-- [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from JS)
+- [python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from TS)
+- [php/](https://github.com/ccxt/ccxt/blob/master/php/) in PHP (generated from TS)
+- [cs/](https://github.com/ccxt/ccxt/blob/master/cs/)  in C# (generated from TS)
+- [go/](https://github.com/ccxt/ccxt/blob/master/go/)  in Go (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -290,6 +293,13 @@ The library supports concurrent asynchronous mode using tools from [RecoilPHP](h
 ```c#
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
+```
+
+### Go
+
+```Go
+import "ccxt"
+fmt.Println(ccxt.Exchanges)
 ```
 
 ### Docker
@@ -522,6 +532,33 @@ class Project {
         var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 50);
         Console.WriteLine("Placed Order, order id: " + order.id);
     }
+}
+```
+
+### Go
+
+```Go
+package main
+import (
+	"ccxt"
+	"fmt"
+)
+
+func main() {
+	exchange := ccxt.NewBinance(map[string]interface{}{
+		"apiKey": "MY KEY",
+		"secret": "MY SECRET",
+	})
+	orderParams := map[string]interface{}{
+		"clientOrderId": "myOrderId68768678",
+	}
+
+	order, error := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, WithPrice(6000), WithParams(orderParams))
+	if error != nil {
+		fmt.Println(error)
+	} else {
+		fmt.Println(order.Id)
+	}
 }
 ```
 
