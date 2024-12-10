@@ -739,6 +739,18 @@
                     "swap"
                 ],
                 "output": "{\"type\":1,\"currency\":\"USDT\",\"transfer_amount\":\"5\"}"
+            },
+            {
+                "description": "transfer 10 USDT from spot to swap account",
+                "method": "transfer",
+                "url": "https://openapi.digifinex.com/swap/v2/account/transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "swap",
+                    "spot"
+                ],
+                "output": "{\"type\":2,\"currency\":\"USDT\",\"transfer_amount\":\"10\"}"
             }
         ]
     }
