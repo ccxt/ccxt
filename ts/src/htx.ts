@@ -3970,11 +3970,7 @@ export default class htx extends Exchange {
             request['size'] = limit;
         }
         let response = undefined;
-        let isTrigger = false;
-        [ isTrigger, params ] = this.handleParamBool (params, 'trigger');
-        if (isTrigger) {
-            response = await this.spotPrivateGetV2AlgoOrdersOpening (this.extend (request, params));
-        } else if (method === 'spot_private_get_v1_order_orders') {
+        if (method === 'spot_private_get_v1_order_orders') {
             response = await this.spotPrivateGetV1OrderOrders (this.extend (request, params));
         } else {
             response = await this.spotPrivateGetV1OrderHistory (this.extend (request, params));
