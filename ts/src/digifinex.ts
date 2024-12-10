@@ -2988,7 +2988,7 @@ export default class digifinex extends Exchange {
         const amountString = this.currencyToPrecision (code, amount);
         if (fromSwap || toSwap) {
             if ((fromId !== '1') && (toId !== '1')) {
-                throw new ExchangeError (this.id + ' transfer() supports transferring from and to swap account between spot and swap only');
+                throw new ExchangeError (this.id + ' transfer() supports transferring between spot and swap, spot and margin, spot and OTC only');
             }
             request['type'] = toSwap ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
             request['currency'] = currencyId;
