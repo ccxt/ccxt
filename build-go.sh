@@ -37,7 +37,7 @@ timeout_kill() {
 
 # Command to run
 echo "Will download modules"
-go mod download
+# go mod download
 echo "Will build the project"
 go build -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
 pid_go_build=$!
