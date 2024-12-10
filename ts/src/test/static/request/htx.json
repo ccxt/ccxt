@@ -69,7 +69,8 @@
                   0.2,
                   50,
                   {
-                    "stopPrice": 100
+                    "triggerPrice": 100,
+                    "triggerDirection": "up"
                   }
                 ],
                 "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"stop-price\":\"100\",\"operator\":\"gte\",\"type\":\"buy-stop-limit\",\"client-order-id\":\"AA03022abc06339387-791f-4bfc-a5b5-e3641702cf7d\",\"amount\":\"0.2\",\"price\":\"50\"}"
