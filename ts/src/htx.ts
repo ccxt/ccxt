@@ -1242,7 +1242,7 @@ export default class htx extends Exchange {
                         'triggerPrice': true,
                         'triggerDirection': true,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
+                        'stopLossPrice': false, // todo: add support by triggerprice
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
@@ -1301,30 +1301,42 @@ export default class htx extends Exchange {
                 'forDerivatives': {
                     'extends': 'spot',
                     'createOrder': {
-                        'marginMode': false,
-                        'triggerPriceType': {
-                            'last': true,
-                            'mark': true,
-                            'index': true,
-                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'trailing': true,
+                        'hedged': true,
+                        // 'leverage': true, // todo
                     },
                     'createOrders': {
-                        'max': 10,
+                        'max': 25,
                     },
-                    'fetchMyTrades': {
-                        'marginMode': false,
-                        'untilDays': undefined,
+                    'fetchOrder': {
+                        'marginMode': true,
                     },
                     'fetchOpenOrders': {
-                        'marginMode': false,
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'limit': 50,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'limit': 50,
+                        'daysBack': 90,
                     },
                     'fetchClosedOrders': {
-                        'marginMode': false,
-                        'untilDays': undefined,
-                        'limit': 1000,
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'untilDays': 2,
+                        'limit': 50,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
-                        'limit': 1999,
+                        'limit': 2000,
                     },
                 },
                 'swap': {
