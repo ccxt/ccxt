@@ -1124,7 +1124,6 @@ ${caseStatements.join('\n')}
     safeOptionsStructFile() {
         const EXCHANGE_OPTIONS_FILE = './go/ccxt/exchange_wrapper_structs.go';
 
-        console.log('safeOptionsStructFile with ', Object.keys(goTypeOptions).length, 'options');
         const file = [
             'package ccxt',
             this.createGeneratedHeader().join('\n'),
@@ -1189,8 +1188,9 @@ ${caseStatements.join('\n')}
             }
         }
         exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
-
-        this.safeOptionsStructFile();
+        if (exchanges.length > 1) {
+            this.safeOptionsStructFile();
+        }
         const classes = {}
 
         return classes

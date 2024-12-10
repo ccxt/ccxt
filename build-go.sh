@@ -13,7 +13,7 @@ print_message() {
 
 timeout_kill() {
   local pid=$1
-  local timeout=$((20 * 60)) # 10 minutes in seconds
+  local timeout=$((60 * 15)) # 10 minutes in seconds
   local elapsed=0
 
   echo "Monitoring process $pid for timeout..."
@@ -58,7 +58,7 @@ export GOMAXPROCS=1
 echo "Will download modules"
 # go mod download
 echo "Will build the project"
-go build -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
+go build -p=1 -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
 pid_go_build=$!
 
 if [[ -z "$pid_go_build" ]]; then
