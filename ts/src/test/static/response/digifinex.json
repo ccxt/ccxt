@@ -208,6 +208,42 @@
                     "toAccount": "swap",
                     "status": "ok"
                 }
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "swap",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": {
+                        "type": "2",
+                        "currency": "USDT",
+                        "transfer_amount": "10"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": {
+                            "type": "2",
+                            "currency": "USDT",
+                            "transfer_amount": "10"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "swap",
+                    "toAccount": "spot",
+                    "status": "ok"
+                }
             }
         ]
     }
