@@ -1229,6 +1229,128 @@ class htx extends Exchange {
                 'BIFI' => 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
                 'FUD' => 'FTX Users Debt',
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo => add support by triggerprice
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        // exchange-specific features
+                        'iceberg' => false,
+                        'selfTradePrevention' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 120,
+                        'untilDays' => 2,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'limit' => 500,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'limit' => 500,
+                        'untilDays' => 2,
+                        'daysBack' => 180,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'untilDays' => 2,
+                        'limit' => 500,
+                        'daysBackClosed' => 180,
+                        'daysBackCanceled' => 1 / 12,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // 2000 for non-historical
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'spot',
+                    'createOrder' => array(
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'trailing' => true,
+                        'hedged' => true,
+                        // 'leverage' => true, // todo
+                    ),
+                    'createOrders' => array(
+                        'max' => 25,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'limit' => 50,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'limit' => 50,
+                        'daysBack' => 90,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'untilDays' => 2,
+                        'limit' => 50,
+                        'daysBackClosed' => 90,
+                        'daysBackCanceled' => 1 / 12,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+            ),
         ));
     }
 

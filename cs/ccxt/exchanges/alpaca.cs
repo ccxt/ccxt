@@ -25,7 +25,7 @@ public partial class alpaca : Exchange
                 { "test", new Dictionary<string, object>() {
                     { "broker", "https://broker-api.sandbox.{hostname}" },
                     { "trader", "https://paper-api.{hostname}" },
-                    { "market", "https://data.sandbox.{hostname}" },
+                    { "market", "https://data.{hostname}" },
                 } },
                 { "doc", "https://alpaca.markets/docs/" },
                 { "fees", "https://docs.alpaca.markets/docs/crypto-fees" },

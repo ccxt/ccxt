@@ -1251,6 +1251,128 @@ class htx(Exchange, ImplicitAPI):
                 'BIFI': 'BITCOINFILE',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
                 'FUD': 'FTX Users Debt',
             },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': True,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo: add support by triggerprice
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-specific features
+                        'iceberg': False,
+                        'selfTradePrevention': True,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 120,
+                        'untilDays': 2,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 500,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 500,
+                        'untilDays': 2,
+                        'daysBack': 180,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'untilDays': 2,
+                        'limit': 500,
+                        'daysBackClosed': 180,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # 2000 for non-historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'trailing': True,
+                        'hedged': True,
+                        # 'leverage': True,  # todo
+                    },
+                    'createOrders': {
+                        'max': 25,
+                    },
+                    'fetchOrder': {
+                        'marginMode': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'limit': 50,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'limit': 50,
+                        'daysBack': 90,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'untilDays': 2,
+                        'limit': 50,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
         })
 
     async def fetch_status(self, params={}):
