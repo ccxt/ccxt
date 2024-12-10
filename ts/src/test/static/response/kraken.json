@@ -686,6 +686,328 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "fetch spot open orders by client order id",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  null,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "open": {
+                      "O45M52-BFD5S-YXKQOU": {
+                        "refid": null,
+                        "userref": null,
+                        "cl_ord_id": "1234",
+                        "status": "open",
+                        "opentm": "1733815269.370054",
+                        "starttm": "0",
+                        "expiretm": "0",
+                        "descr": {
+                          "pair": "XBTUSD",
+                          "type": "buy",
+                          "ordertype": "limit",
+                          "price": "70000.0",
+                          "price2": "0",
+                          "leverage": "none",
+                          "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+                          "close": ""
+                        },
+                        "vol": "0.00010000",
+                        "vol_exec": "0.00000000",
+                        "cost": "0.00000",
+                        "fee": "0.00000",
+                        "price": "0.00000",
+                        "stopprice": "0.00000",
+                        "limitprice": "0.00000",
+                        "misc": "",
+                        "oflags": "fciq"
+                      }
+                    }
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "id": "O45M52-BFD5S-YXKQOU",
+                    "clientOrderId": "1234",
+                    "info": {
+                      "id": "O45M52-BFD5S-YXKQOU",
+                      "refid": null,
+                      "userref": null,
+                      "cl_ord_id": "1234",
+                      "status": "open",
+                      "opentm": "1733815269.370054",
+                      "starttm": "0",
+                      "expiretm": "0",
+                      "descr": {
+                        "pair": "XBTUSD",
+                        "type": "buy",
+                        "ordertype": "limit",
+                        "price": "70000.0",
+                        "price2": "0",
+                        "leverage": "none",
+                        "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+                        "close": ""
+                      },
+                      "vol": "0.00010000",
+                      "vol_exec": "0.00000000",
+                      "cost": "0.00000",
+                      "fee": "0.00000",
+                      "price": "0.00000",
+                      "stopprice": "0.00000",
+                      "limitprice": "0.00000",
+                      "misc": "",
+                      "oflags": "fciq"
+                    },
+                    "timestamp": 1733815269370,
+                    "datetime": "2024-12-10T07:21:09.370Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "average": null,
+                    "remaining": 0.0001,
+                    "reduceOnly": null,
+                    "fee": {
+                      "cost": "0.00000",
+                      "rate": null,
+                      "currency": "USD"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0,
+                        "rate": null,
+                        "currency": "USD"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch spot closed orders with a limit argument and client order id param",
+                "method": "fetchClosedOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  1,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "closed": {
+                      "O45M52-BFD5S-YXKQOU": {
+                        "refid": null,
+                        "userref": null,
+                        "cl_ord_id": "1234",
+                        "status": "canceled",
+                        "opentm": "1733815269.370054",
+                        "starttm": "0",
+                        "expiretm": "0",
+                        "descr": {
+                          "pair": "XBTUSD",
+                          "type": "buy",
+                          "ordertype": "limit",
+                          "price": "70000.0",
+                          "price2": "0",
+                          "leverage": "none",
+                          "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+                          "close": ""
+                        },
+                        "vol": "0.00010000",
+                        "vol_exec": "0.00000000",
+                        "cost": "0.00000",
+                        "fee": "0.00000",
+                        "price": "0.00000",
+                        "stopprice": "0.00000",
+                        "limitprice": "0.00000",
+                        "misc": "",
+                        "oflags": "fciq",
+                        "reason": "User requested",
+                        "closetm": "1733816320.956649"
+                      },
+                      "O5AMIQ-75QVP-DIFYBG": {
+                        "refid": null,
+                        "userref": null,
+                        "cl_ord_id": "1234",
+                        "status": "canceled",
+                        "opentm": "1732919302.938903",
+                        "starttm": "0",
+                        "expiretm": "0",
+                        "descr": {
+                          "pair": "XBTUSD",
+                          "type": "buy",
+                          "ordertype": "limit",
+                          "price": "71000.0",
+                          "price2": "0",
+                          "leverage": "none",
+                          "order": "buy 0.00010000 XBTUSD @ limit 71000.0",
+                          "close": ""
+                        },
+                        "vol": "0.00010000",
+                        "vol_exec": "0.00000000",
+                        "cost": "0.00000",
+                        "fee": "0.00000",
+                        "price": "0.00000",
+                        "stopprice": "0.00000",
+                        "limitprice": "0.00000",
+                        "misc": "amended",
+                        "oflags": "fciq",
+                        "reason": "User requested",
+                        "closetm": "1732919457.981331"
+                      }
+                    },
+                    "count": "2"
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "id": "O45M52-BFD5S-YXKQOU",
+                    "clientOrderId": "1234",
+                    "info": {
+                      "id": "O45M52-BFD5S-YXKQOU",
+                      "refid": null,
+                      "userref": null,
+                      "cl_ord_id": "1234",
+                      "status": "canceled",
+                      "opentm": "1733815269.370054",
+                      "starttm": "0",
+                      "expiretm": "0",
+                      "descr": {
+                        "pair": "XBTUSD",
+                        "type": "buy",
+                        "ordertype": "limit",
+                        "price": "70000.0",
+                        "price2": "0",
+                        "leverage": "none",
+                        "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+                        "close": ""
+                      },
+                      "vol": "0.00010000",
+                      "vol_exec": "0.00000000",
+                      "cost": "0.00000",
+                      "fee": "0.00000",
+                      "price": "0.00000",
+                      "stopprice": "0.00000",
+                      "limitprice": "0.00000",
+                      "misc": "",
+                      "oflags": "fciq",
+                      "reason": "User requested",
+                      "closetm": "1733816320.956649"
+                    },
+                    "timestamp": 1733815269370,
+                    "datetime": "2024-12-10T07:21:09.370Z",
+                    "lastTradeTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 0,
+                    "amount": 0.0001,
+                    "filled": 0,
+                    "average": null,
+                    "remaining": 0.0001,
+                    "reduceOnly": null,
+                    "fee": {
+                      "cost": "0.00000",
+                      "rate": null,
+                      "currency": "USD"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0,
+                        "rate": null,
+                        "currency": "USD"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null
+                  }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "spot cancel order by client order id",
+                "method": "cancelOrder",
+                "input": [
+                  "O45M52-BFD55-YXKQOU",
+                  "BTC/USD",
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "count": "1"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "error": [],
+                    "result": {
+                      "count": "1"
+                    }
+                  },
+                  "fees": [],
+                  "id": null,
+                  "clientOrderId": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "symbol": null,
+                  "type": null,
+                  "side": null,
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "price": null,
+                  "amount": null,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "trades": [],
+                  "reduceOnly": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "status": null,
+                  "fee": null
+                }
             }
         ],
         "fetchOHLCV": [
