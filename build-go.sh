@@ -10,11 +10,46 @@ print_message() {
   done
 }
 
+
+timeout_kill() {
+  local pid=$1
+  local timeout=$((10 * 60)) # 10 minutes in seconds
+  local elapsed=0
+
+  echo "Monitoring process $pid for timeout..."
+
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( elapsed >= timeout )); then
+      cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}')  # CPU usage as a percentage
+      mem_usage=$(free -m | awk '/Mem:/ { printf "%.2f%%", $3/$2 * 100 }')  # Memory usage as a percentage
+      echo "Stats before killing | CPU Usage: ${cpu_usage}% | RAM Usage: ${mem_usage}"
+      echo "Timeout reached: Killing the go build process (PID: $pid)"
+      kill -6 "$pid"
+      return
+    fi
+    sleep 1
+    ((elapsed++))
+  done
+
+  echo "Process $pid has completed within the timeout."
+}
+
+
 # Command to run
 echo "Will download modules"
 go mod download
 echo "Will build the project"
-your_command="time go build -x -o ccxt ./go/ccxt"
+go build -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
+pid_go_build=$!
+
+if [[ -z "$pid_go_build" ]]; then
+  echo "Error: Failed to capture PID for go build."
+  exit 1
+fi
+
+# Start the timeout monitoring in the background
+timeout_kill "$pid_go_build" &
+wait $pid_go_build
 
 # Capture the start time
 start_time=$SECONDS
