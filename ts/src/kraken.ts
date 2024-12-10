@@ -2519,7 +2519,14 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeDict (result, 'open', {});
+        const open = this.safeDict (result, 'open', {});
+        const orders = [];
+        const orderIds = Object.keys (open);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = open[id];
+            orders.push (this.extend ({ 'id': id }, item));
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2599,7 +2606,14 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeDict (result, 'closed', {});
+        const closed = this.safeDict (result, 'closed', {});
+        const orders = [];
+        const orderIds = Object.keys (closed);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = closed[id];
+            orders.push (this.extend ({ 'id': id }, item));
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
