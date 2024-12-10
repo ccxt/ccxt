@@ -14,7 +14,7 @@ print_message() {
 echo "Will download modules"
 go mod download
 echo "Will build the project"
-your_command="go build -x ./go/ccxt"
+your_command="go build -x ./go/tests/main.go"
 
 # Capture the start time
 start_time=$SECONDS
