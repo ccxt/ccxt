@@ -35,22 +35,6 @@ timeout_kill() {
 }
 
 
-# Command to run
-echo "Will download modules"
-# go mod download
-echo "Will build the project"
-go build -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
-pid_go_build=$!
-
-if [[ -z "$pid_go_build" ]]; then
-  echo "Error: Failed to capture PID for go build."
-  exit 1
-fi
-
-# Start the timeout monitoring in the background
-timeout_kill "$pid_go_build" &
-wait $pid_go_build
-
 # Capture the start time
 start_time=$SECONDS
 
@@ -69,7 +53,22 @@ trap cleanup SIGINT SIGTERM
 
 # Run the main command and capture its exit code
 export GOMAXPROCS=1
-$your_command
+
+# Command to run
+echo "Will download modules"
+# go mod download
+echo "Will build the project"
+go build -x -trimpath -ldflags="-s -w" -o ccxt ./go/ccxt &
+pid_go_build=$!
+
+if [[ -z "$pid_go_build" ]]; then
+  echo "Error: Failed to capture PID for go build."
+  exit 1
+fi
+
+# Start the timeout monitoring in the background
+timeout_kill "$pid_go_build" &
+wait $pid_go_build
 command_exit_code=$?
 
 # Kill the background message-printing process
