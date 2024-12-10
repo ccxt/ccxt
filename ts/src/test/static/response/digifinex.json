@@ -145,6 +145,70 @@
                     ]
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer 5 USDT from spot to margin account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "margin"
+                ],
+                "httpResponse": {
+                    "code": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0"
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "transfer 5 USDT from spot to swap account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    5,
+                    "spot",
+                    "swap"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": {
+                        "type": "1",
+                        "currency": "USDT",
+                        "transfer_amount": "5"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "data": {
+                            "type": "1",
+                            "currency": "USDT",
+                            "transfer_amount": "5"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 5,
+                    "fromAccount": "spot",
+                    "toAccount": "swap",
+                    "status": "ok"
+                }
+            }
         ]
     }
 }
