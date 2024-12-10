@@ -210,7 +210,7 @@
                 }
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "transfer 10 USDT from swap to spot account",
                 "method": "transfer",
                 "input": [
                     "USDT",
