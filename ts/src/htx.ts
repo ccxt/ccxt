@@ -5253,7 +5253,7 @@ export default class htx extends Exchange {
         } else {
             let triggerDirection = undefined;
             [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
-            if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
+            if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) && !('operator' in params)) {
                 throw new ArgumentsRequired (this.id + ' createOrder() : trigger order requires a "triggerDirection" parameter to be either "up" or "down"');
             }
             request['operator'] = (triggerDirection === 'up') ? 'gte' : 'lte';
