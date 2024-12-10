@@ -5024,7 +5024,7 @@ export default class htx extends Exchange {
         //     ]
         //
         if ('orderExecuteTime' in order) {
-            return this.parseSpotTriggerOrder (order, market);
+            return this.parseSpotAlgoTriggerOrder (order, market);
         }
         const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
         let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
@@ -5104,7 +5104,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    parseSpotTriggerOrder (order, market = undefined) {
+    parseSpotAlgoTriggerOrder (order, market = undefined) {
         //
         // spot: fetchOrders (trigger:true)
         //
