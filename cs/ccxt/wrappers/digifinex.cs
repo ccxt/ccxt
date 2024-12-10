@@ -663,6 +663,8 @@ public partial class digifinex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts"/>  <br/>
+    /// See <see href="https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
