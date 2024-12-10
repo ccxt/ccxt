@@ -4386,9 +4386,9 @@ export default class htx extends Exchange {
                 request['size'] = limit;
             }
             params = this.omit (params, 'account-id');
-            let isTrigger = false;
-            [ isTrigger, params ] = this.handleParamBool (params, 'trigger');
-            if (isTrigger) {
+            let isAlgoOrder = false;
+            [ isAlgoOrder, params ] = this.handleParamBool (params, 'algo');
+            if (isAlgoOrder) {
                 response = await this.spotPrivateGetV2AlgoOrdersOpening (this.extend (request, params));
             } else {
                 response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
@@ -5255,7 +5255,6 @@ export default class htx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a stop order');
             }
         } else {
-            const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             let triggerDirection = undefined;
             [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
             if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
