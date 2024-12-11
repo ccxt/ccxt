@@ -15,8 +15,6 @@ jobs:
           go-version: "1.21.x"
       - name: Setup Node.js
         uses: actions/setup-node@v3
-      - name: tsc
-        uses: icrawl/action-tsc@v1
       - name: Transpile CCXT typescript
         run: tsc
       - name: Generate implicit API
