@@ -1420,7 +1420,6 @@ public partial class bitget : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1486,7 +1485,6 @@ public partial class bitget : Exchange
                             { "limitPrice", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },

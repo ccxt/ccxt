@@ -126,8 +126,8 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
                 'fetchTransactionFee' => 'emulated',
                 'fetchTransactionFees' => true,
@@ -200,6 +200,7 @@ class mexc extends Exchange {
                             'allOrders' => 10,
                             'account' => 10,
                             'myTrades' => 10,
+                            'tradeFee' => 10,
                             'sub-account/list' => 1,
                             'sub-account/apiKey' => 1,
                             'capital/config/getall' => 10,
@@ -3657,36 +3658,46 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
-        return Async\async(function () use ($params) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the trading fees for multiple markets
+             * fetch the trading fees for a $market
              *
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
              *
+             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->fetch_account_helper('spot', $params));
-            $makerFee = $this->safe_string($response, 'makerCommission');
-            $takerFee = $this->safe_string($response, 'takerCommission');
-            $makerFee = Precise::string_div($makerFee, '1000');
-            $takerFee = Precise::string_div($takerFee, '1000');
-            $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $result[$symbol] = array(
-                    'symbol' => $symbol,
-                    'maker' => $this->parse_number($makerFee),
-                    'taker' => $this->parse_number($takerFee),
-                    'percentage' => true,
-                    'tierBased' => false,
-                    'info' => $response,
-                );
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new BadRequest($this->id . ' fetchTradingFee() supports spot markets only');
             }
-            return $result;
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->spotPrivateGetTradeFee ($this->extend($request, $params)));
+            //
+            //  {
+            //      "data":array(
+            //        "makerCommission":0.003000000000000000,
+            //        "takerCommission":0.003000000000000000
+            //      ),
+            //      "code":0,
+            //      "msg":"success",
+            //      "timestamp":1669109672717
+            //  }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return array(
+                'info' => $data,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($data, 'makerCommission'),
+                'taker' => $this->safe_number($data, 'takerCommission'),
+                'percentage' => null,
+                'tierBased' => null,
+            );
         }) ();
     }
 

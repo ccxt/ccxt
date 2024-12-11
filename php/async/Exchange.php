@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.35';
+$version = '4.4.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.35';
+    const VERSION = '4.4.38';
 
     public $browser;
     public $marketsLoading = null;
@@ -1539,6 +1539,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
+        }
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');
@@ -1554,9 +1558,14 @@ class Exchange extends \ccxt\Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // false 'hedged' for spot
+            // for spot, default 'hedged' to false
             if ($marketType === 'spot') {
                 $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return $featuresObj;
@@ -6263,38 +6272,55 @@ class Exchange extends \ccxt\Exchange {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
+                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                        unset($this->ohlcvs[$symbol][$timeframe]);
+                    }
                 }
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trades') {
-                    unset($this->trades[$symbol]);
+                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                        unset($this->trades[$symbol]);
+                    }
                 } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
+                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                        unset($this->orderbooks[$symbol]);
+                    }
                 } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
+                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                        unset($this->tickers[$symbol]);
+                    }
                 }
             }
         } else {
             if ($topic === 'myTrades') {
                 // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
+                // because in c# we need to use a different object (thread-safe dict)
                 $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
                 for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
+                    $key = $keys[$i];
+                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
+                        unset($this->myTrades[$key]);
+                    }
                 }
             } elseif ($topic === 'orders') {
                 $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
                 for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
+                    $orderSymbol = $orderSymbols[$i];
+                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
+                        unset($this->orders[$orderSymbol]);
+                    }
                 }
             } elseif ($topic === 'ticker') {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
-                    unset($this->tickers[$tickerSymbols[$i]]);
+                    $tickerSymbol = $tickerSymbols[$i];
+                    if (is_array($this->tickers) && array_key_exists($tickerSymbol, $this->tickers)) {
+                        unset($this->tickers[$tickerSymbol]);
+                    }
                 }
             }
         }

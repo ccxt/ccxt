@@ -22,7 +22,7 @@ class gate extends gate$1 {
             'certified': true,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                'logo': 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
                 'doc': 'https://www.gate.io/docs/developers/apiv4/en/',
                 'www': 'https://gate.io/',
                 'api': {
@@ -221,6 +221,7 @@ class gate extends gate$1 {
                             '{settle}/contract_stats': 1,
                             '{settle}/index_constituents/{index}': 1,
                             '{settle}/liq_orders': 1,
+                            '{settle}/risk_limit_tiers': 1,
                         },
                     },
                     'delivery': {
@@ -261,7 +262,8 @@ class gate extends gate$1 {
                     // private endpoints default is 150r/10s per endpoint
                     'withdrawals': {
                         'post': {
-                            'withdrawals': 20, // 1r/s cost = 20 / 1 = 20
+                            'withdrawals': 20,
+                            'push': 1,
                         },
                         'delete': {
                             'withdrawals/{withdrawal_id}': 1,
@@ -273,6 +275,7 @@ class gate extends gate$1 {
                             'withdrawals': 1,
                             'deposits': 1,
                             'sub_account_transfers': 1,
+                            'order_status': 1,
                             'withdraw_status': 1,
                             'sub_account_balances': 2.5,
                             'sub_account_margin_balances': 2.5,
@@ -283,6 +286,7 @@ class gate extends gate$1 {
                             'total_balance': 2.5,
                             'small_balance': 1,
                             'small_balance_history': 1,
+                            'push': 1,
                         },
                         'post': {
                             'transfers': 2.5,
@@ -325,11 +329,14 @@ class gate extends gate$1 {
                             'risk_units': 20 / 15,
                             'unified_mode': 20 / 15,
                             'loan_margin_tiers': 20 / 15,
+                            'leverage/user_currency_config': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15,
                             'portfolio_calculator': 20 / 15,
+                            'leverage/user_currency_setting': 20 / 15,
                         },
                         'put': {
                             'unified_mode': 20 / 15,
@@ -509,9 +516,13 @@ class gate extends gate$1 {
                             'orders': 20 / 15,
                             'orders/{order_id}': 20 / 15,
                             'my_trades': 20 / 15,
+                            'mmp': 20 / 15,
                         },
                         'post': {
                             'orders': 20 / 15,
+                            'countdown_cancel_all': 20 / 15,
+                            'mmp': 20 / 15,
+                            'mmp/reset': 20 / 15,
                         },
                         'delete': {
                             'orders': 20 / 15,
@@ -555,6 +566,7 @@ class gate extends gate$1 {
                             'multi_collateral/currencies': 20 / 15,
                             'multi_collateral/ltv': 20 / 15,
                             'multi_collateral/fixed_rate': 20 / 15,
+                            'multi_collateral/current_rate': 20 / 15,
                         },
                         'post': {
                             'collateral/orders': 20 / 15,
@@ -568,8 +580,10 @@ class gate extends gate$1 {
                     'account': {
                         'get': {
                             'detail': 20 / 15,
+                            'rate_limit': 20 / 15,
                             'stp_groups': 20 / 15,
                             'stp_groups/{stp_id}/users': 20 / 15,
+                            'stp_groups/debit_fee': 20 / 15,
                         },
                         'post': {
                             'stp_groups': 20 / 15,

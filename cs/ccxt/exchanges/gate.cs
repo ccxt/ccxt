@@ -16,7 +16,7 @@ public partial class gate : Exchange
             { "certified", true },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85" },
                 { "doc", "https://www.gate.io/docs/developers/apiv4/en/" },
                 { "www", "https://gate.io/" },
                 { "api", new Dictionary<string, object>() {
@@ -214,6 +214,7 @@ public partial class gate : Exchange
                             { "{settle}/contract_stats", 1 },
                             { "{settle}/index_constituents/{index}", 1 },
                             { "{settle}/liq_orders", 1 },
+                            { "{settle}/risk_limit_tiers", 1 },
                         } },
                     } },
                     { "delivery", new Dictionary<string, object>() {
@@ -254,6 +255,7 @@ public partial class gate : Exchange
                     { "withdrawals", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
                             { "withdrawals", 20 },
+                            { "push", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "withdrawals/{withdrawal_id}", 1 },
@@ -265,6 +267,7 @@ public partial class gate : Exchange
                             { "withdrawals", 1 },
                             { "deposits", 1 },
                             { "sub_account_transfers", 1 },
+                            { "order_status", 1 },
                             { "withdraw_status", 1 },
                             { "sub_account_balances", 2.5 },
                             { "sub_account_margin_balances", 2.5 },
@@ -275,6 +278,7 @@ public partial class gate : Exchange
                             { "total_balance", 2.5 },
                             { "small_balance", 1 },
                             { "small_balance_history", 1 },
+                            { "push", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "transfers", 2.5 },
@@ -317,11 +321,14 @@ public partial class gate : Exchange
                             { "risk_units", divide(20, 15) },
                             { "unified_mode", divide(20, 15) },
                             { "loan_margin_tiers", divide(20, 15) },
+                            { "leverage/user_currency_config", divide(20, 15) },
+                            { "leverage/user_currency_setting", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
                             { "portfolio_calculator", divide(20, 15) },
+                            { "leverage/user_currency_setting", divide(20, 15) },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "unified_mode", divide(20, 15) },
@@ -500,9 +507,13 @@ public partial class gate : Exchange
                             { "orders", divide(20, 15) },
                             { "orders/{order_id}", divide(20, 15) },
                             { "my_trades", divide(20, 15) },
+                            { "mmp", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "orders", divide(20, 15) },
+                            { "countdown_cancel_all", divide(20, 15) },
+                            { "mmp", divide(20, 15) },
+                            { "mmp/reset", divide(20, 15) },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", divide(20, 15) },
@@ -546,6 +557,7 @@ public partial class gate : Exchange
                             { "multi_collateral/currencies", divide(20, 15) },
                             { "multi_collateral/ltv", divide(20, 15) },
                             { "multi_collateral/fixed_rate", divide(20, 15) },
+                            { "multi_collateral/current_rate", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "collateral/orders", divide(20, 15) },
@@ -559,8 +571,10 @@ public partial class gate : Exchange
                     { "account", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "detail", divide(20, 15) },
+                            { "rate_limit", divide(20, 15) },
                             { "stp_groups", divide(20, 15) },
                             { "stp_groups/{stp_id}/users", divide(20, 15) },
+                            { "stp_groups/debit_fee", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "stp_groups", divide(20, 15) },

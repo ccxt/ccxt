@@ -176,7 +176,7 @@
     "bitcoincom": {
         "skipWs": true
     },
-    "bitfinex": {
+    "bitfinex1": {
         "skipMethods": {
             "loadMarkets": "linear and inverse values are same",
             "ticker": {
@@ -189,7 +189,7 @@
             }
         }
     },
-    "bitfinex2": {
+    "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"

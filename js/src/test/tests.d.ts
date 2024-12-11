@@ -92,5 +92,6 @@ declare class testMainClass {
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
     testCoincatch(): Promise<boolean>;
+    testDefx(): Promise<boolean>;
 }
 export default testMainClass;

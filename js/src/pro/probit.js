@@ -157,6 +157,7 @@ export default class probit extends probitRest {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const channel = 'recent_trades';
+        symbol = this.safeSymbol(symbol);
         const trades = await this.subscribePublic('watchTrades', symbol, 'trades', channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);

@@ -160,6 +160,7 @@ class probit(ccxt.async_support.probit):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         channel = 'recent_trades'
+        symbol = self.safe_symbol(symbol)
         trades = await self.subscribe_public('watchTrades', symbol, 'trades', channel, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)

@@ -1473,8 +1473,8 @@ class bitget(Exchange, ImplicitAPI):
                             'index': False,  # not on spot
                         },
                         'triggerDirection': False,
-                        'stopLossPrice': True,  # but not yet implemented in spot
-                        'takeProfitPrice': True,  # but not yet implemented in spot
+                        'stopLossPrice': True,  # todo:  not yet implemented in spot
+                        'takeProfitPrice': True,  # todo: not yet implemented in spot
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': False,
@@ -1484,7 +1484,6 @@ class bitget(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -1555,7 +1554,6 @@ class bitget(Exchange, ImplicitAPI):
                             'limitPrice': False,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,

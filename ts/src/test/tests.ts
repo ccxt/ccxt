@@ -1225,7 +1225,7 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1255,6 +1255,10 @@ class testMainClass {
         if (walletAddress) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
+        }
+        const accounts = exchange.safeList (exchangeData, 'accounts');
+        if (accounts) {
+            exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
@@ -1420,7 +1424,7 @@ class testMainClass {
             } else {
                 this.responseTestsFailed = true;
             }
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + e.toString ();
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         if (this.requestTestsFailed || this.responseTestsFailed) {
@@ -1468,7 +1472,8 @@ class testMainClass {
             this.testVertex (),
             this.testParadex (),
             this.testHashkey (),
-            this.testCoincatch ()
+            this.testCoincatch (),
+            this.testDefx ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1994,6 +1999,24 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+
+    async testDefx () {
+        const exchange = this.initOfflineExchange ('defx');
+        let reqHeaders = undefined;
+        try {
+            await exchange.createOrder ('DOGE/USDC:USDC', 'limit', 'buy', 100, 1);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        const id = 'ccxt';
+        assert (reqHeaders['X-DEFX-SOURCE'] === id, 'defx - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }

@@ -1590,7 +1590,6 @@ public partial class binance : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1656,7 +1655,6 @@ public partial class binance : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
