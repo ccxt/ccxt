@@ -557,6 +557,7 @@ class kucoin extends kucoin$1 {
                     '400008': errors.NotSupported,
                     '400100': errors.InsufficientFunds,
                     '400200': errors.InvalidOrder,
+                    '400330': errors.InvalidOrder,
                     '400350': errors.InvalidOrder,
                     '400370': errors.InvalidOrder,
                     '400400': errors.BadRequest,

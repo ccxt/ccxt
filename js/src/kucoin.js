@@ -560,6 +560,7 @@ export default class kucoin extends Exchange {
                     '400008': NotSupported,
                     '400100': InsufficientFunds,
                     '400200': InvalidOrder,
+                    '400330': InvalidOrder,
                     '400350': InvalidOrder,
                     '400370': InvalidOrder,
                     '400400': BadRequest,
