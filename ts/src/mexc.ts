@@ -688,7 +688,7 @@ export default class mexc extends Exchange {
                             'mark': false,
                             'index': false,
                         },
-                        'stopLossPrice': false,
+                        'stopLossPrice': false, // todo
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
@@ -757,8 +757,8 @@ export default class mexc extends Exchange {
                             'index': true,
                         },
                         'triggerDirection': true,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false,
                         'hedged': true,
                     },
                     'createOrders': {
