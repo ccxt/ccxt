@@ -39,7 +39,11 @@ class Precise {
             $exponent = gmp_pow(static::$base, -$distance);
             $numerator = gmp_div($this->integer, $exponent);
         } else {
-            $exponent = gmp_pow(static::$base, $distance);
+            try {
+                $exponent = gmp_pow(static::$base, $distance);
+            } catch (\Throwable $_) {
+                $exponent = bcpow(gmp_strval(static::$base), $distance);
+            }
             $numerator = gmp_mul($this->integer, $exponent);
         }
         $result = gmp_div($numerator, $other->integer);
