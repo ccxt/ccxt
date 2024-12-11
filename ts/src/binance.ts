@@ -6173,7 +6173,7 @@ export default class binance extends Exchange {
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
-        const request: Dict = {
+        let request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
@@ -6445,6 +6445,7 @@ export default class binance extends Exchange {
         if (!market['spot'] && !market['option'] && hedged) {
             if (reduceOnly) {
                 params = this.omit (params, 'reduceOnly');
+                request = this.omit (request, 'reduceOnly');
                 side = (side === 'buy') ? 'sell' : 'buy';
             }
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
