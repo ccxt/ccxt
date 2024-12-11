@@ -600,9 +600,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -711,9 +711,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -1017,9 +1017,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *contract only* if the order is a stop trigger order or not
+    /// boolean : *contract only* if the order is a trigger trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -1054,9 +1054,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -1085,9 +1085,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *contract only* if the orders are stop trigger orders or not
+    /// boolean : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>

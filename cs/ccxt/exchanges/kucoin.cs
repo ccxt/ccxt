@@ -517,6 +517,7 @@ public partial class kucoin : Exchange
                     { "400008", typeof(NotSupported) },
                     { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
+                    { "400330", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
@@ -818,11 +819,75 @@ public partial class kucoin : Exchange
                     { "TRUE", "true" },
                     { "CS", "cs" },
                     { "ORAI", "orai" },
+                    { "BASE", "base" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
                     { "isolated", "MARGIN_ISOLATED_TRADE" },
                     { "spot", "TRADE" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -2643,7 +2708,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object lowercaseStatus = ((string)status).ToLower();
         object until = this.safeInteger(parameters, "until");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2686,7 +2751,7 @@ public partial class kucoin : Exchange
         }
         ((IDictionary<string,object>)request)["tradeType"] = this.safeString(getValue(this.options, "marginModes"), marginMode, "TRADE");
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrder(this.extend(request, query));
         } else if (isTrue(hf))
@@ -3186,6 +3251,12 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(hf))
         {
+            // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (isTrue(!isEqual(since, null)))
+            {
+                // only returns trades up to one week after the since param
+                ((IDictionary<string,object>)request)["startAt"] = since;
+            }
             response = await this.privateGetHfFills(this.extend(request, parameters));
         } else if (isTrue(isEqual(method, "private_get_fills")))
         {

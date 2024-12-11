@@ -758,11 +758,10 @@ public partial class mexc
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
-    /// fetch the trading fees for multiple markets
+    /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -772,11 +771,11 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders

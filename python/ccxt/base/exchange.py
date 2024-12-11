@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.37'
+__version__ = '4.4.39'
 
 # -----------------------------------------------------------------------------
 
@@ -2813,7 +2813,7 @@ class Exchange(object):
             # default 'GTC' to True
             gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
             if gtcValue is None:
-                featuresObj['createOrder']['timeInForce']['gtc'] = True
+                featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
@@ -6537,29 +6537,39 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if timeframe in self.ohlcvs[symbol]:
-                    del self.ohlcvs[symbol][timeframe]
+                if symbol in self.ohlcvs:
+                    if timeframe in self.ohlcvs[symbol]:
+                        del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 if topic == 'trades':
-                    del self.trades[symbol]
+                    if symbol in self.trades:
+                        del self.trades[symbol]
                 elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
+                    if symbol in self.orderbooks:
+                        del self.orderbooks[symbol]
                 elif topic == 'ticker':
-                    del self.tickers[symbol]
+                    if symbol in self.tickers:
+                        del self.tickers[symbol]
         else:
             if topic == 'myTrades':
                 # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
+                # because in c# we need to use a different object(thread-safe dict)
                 keys = list(self.myTrades.keys())
                 for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
+                    key = keys[i]
+                    if key in self.myTrades:
+                        del self.myTrades[key]
             elif topic == 'orders':
                 orderSymbols = list(self.orders.keys())
                 for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
+                    orderSymbol = orderSymbols[i]
+                    if orderSymbol in self.orders:
+                        del self.orders[orderSymbol]
             elif topic == 'ticker':
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
+                    tickerSymbol = tickerSymbols[i]
+                    if tickerSymbol in self.tickers:
+                        del self.tickers[tickerSymbol]

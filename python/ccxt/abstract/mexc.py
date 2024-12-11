@@ -20,6 +20,7 @@ class ImplicitAPI:
     spot_private_get_allorders = spotPrivateGetAllOrders = Entry('allOrders', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_account = spotPrivateGetAccount = Entry('account', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_mytrades = spotPrivateGetMyTrades = Entry('myTrades', ['spot', 'private'], 'GET', {'cost': 10})
+    spot_private_get_tradefee = spotPrivateGetTradeFee = Entry('tradeFee', ['spot', 'private'], 'GET', {'cost': 10})
     spot_private_get_sub_account_list = spotPrivateGetSubAccountList = Entry('sub-account/list', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_sub_account_apikey = spotPrivateGetSubAccountApiKey = Entry('sub-account/apiKey', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_capital_config_getall = spotPrivateGetCapitalConfigGetall = Entry('capital/config/getall', ['spot', 'private'], 'GET', {'cost': 10})

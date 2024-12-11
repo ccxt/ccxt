@@ -146,7 +146,7 @@ public partial class woo : Exchange
                     { "pub", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "hist/kline", 10 },
-                            { "hist/trades", 1 },
+                            { "hist/trades", 10 },
                         } },
                     } },
                     { "public", new Dictionary<string, object>() {
@@ -196,7 +196,7 @@ public partial class woo : Exchange
                             { "client/futures_leverage", 60 },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "order", 5 },
+                            { "order", 1 },
                             { "order/cancel_all_after", 1 },
                             { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },

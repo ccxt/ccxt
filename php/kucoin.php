@@ -554,6 +554,7 @@ class kucoin extends Exchange {
                     '400008' => '\\ccxt\\NotSupported',
                     '400100' => '\\ccxt\\InsufficientFunds', // array("msg":"account.available.amount","code":"400100") or array("msg":"Withdrawal amount is below the minimum requirement.","code":"400100")
                     '400200' => '\\ccxt\\InvalidOrder', // array("code":"400200","msg":"Forbidden to place an order")
+                    '400330' => '\\ccxt\\InvalidOrder', // array("msg":"Order price can't deviate from NAV by 50%","code":"400330")
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400370' => '\\ccxt\\InvalidOrder', // array("code":"400370","msg":"Max. price => 0.02500000000000000000")
                     '400400' => '\\ccxt\\BadRequest', // Parameter error
@@ -905,6 +906,7 @@ class kucoin extends Exchange {
                     'TRUE' => 'true',
                     'CS' => 'cs',
                     'ORAI' => 'orai',
+                    'BASE' => 'base',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON' => 'bcd',
                     // 'BITCOINGOLD' => 'btg',
@@ -978,6 +980,74 @@ class kucoin extends Exchange {
                     'cross' => 'MARGIN_TRADE',
                     'isolated' => 'MARGIN_ISOLATED_TRADE',
                     'spot' => 'TRADE',
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null, // not supported
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        // exchange-supported features
+                        // 'iceberg' => true,
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 5,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 7, // per  implementation comments
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 500,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 7,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -2669,11 +2739,11 @@ class kucoin extends Exchange {
          * fetch a list of $orders
          *
          * @see https://docs.kucoin.com/spot#list-$orders
-         * @see https://docs.kucoin.com/spot#list-$stop-$orders
+         * @see https://docs.kucoin.com/spot#list-stop-$orders
          * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-$hf-$orders
          * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-$hf-$orders
          *
-         * @param {string} $status *not used for $stop $orders* 'open' or 'closed'
+         * @param {string} $status *not used for stop $orders* 'open' or 'closed'
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] max number of $orders to return
@@ -2682,16 +2752,16 @@ class kucoin extends Exchange {
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, $market, limit_stop or market_stop
          * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @param {int} [$params->currentPage] *$stop $orders only* current page
-         * @param {string} [$params->orderIds] *$stop $orders only* comma seperated order ID list
-         * @param {bool} [$params->stop] True if fetching a $stop order
+         * @param {int} [$params->currentPage] *stop $orders only* current page
+         * @param {string} [$params->orderIds] *stop $orders only* comma seperated order ID list
+         * @param {bool} [$params->stop] True if fetching a stop order
          * @param {bool} [$params->hf] false, // true for $hf order
          * @return An ~@link https://docs.ccxt.com/#/?id=order-structure array of order structures~
          */
         $this->load_markets();
         $lowercaseStatus = strtolower($status);
         $until = $this->safe_integer($params, 'until');
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         if ($hf && ($symbol === null)) {
@@ -2723,7 +2793,7 @@ class kucoin extends Exchange {
         }
         $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->privateGetStopOrder ($this->extend($request, $query));
         } elseif ($hf) {
             if ($lowercaseStatus === 'active') {
@@ -2757,9 +2827,9 @@ class kucoin extends Exchange {
         //                     "fee" => "0",            // fee
         //                     "feeCurrency" => "USDT", // charge fee currency
         //                     "stp" => "",             // self trade prevention,include CN,CO,DC,CB
-        //                     "stop" => "",            // $stop type
-        //                     "stopTriggered" => false,  // $stop order is triggered
-        //                     "stopPrice" => "0",      // $stop price
+        //                     "stop" => "",            // stop type
+        //                     "stopTriggered" => false,  // stop order is triggered
+        //                     "stopPrice" => "0",      // stop price
         //                     "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
         //                     "postOnly" => false,     // postOnly
         //                     "hidden" => false,       // hidden order
@@ -3165,6 +3235,11 @@ class kucoin extends Exchange {
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);
         if ($hf) {
+            // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($since !== null) {
+                // only returns $trades up to one week after the $since param
+                $request['startAt'] = $since;
+            }
             $response = $this->privateGetHfFills ($this->extend($request, $params));
         } elseif ($method === 'private_get_fills') {
             // does not return $trades earlier than 2019-02-18T00:00:00Z

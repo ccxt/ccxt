@@ -1,6 +1,7 @@
 {
     "exchange": "ndax",
     "skipKeys": ["AccountId"],
+    "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
         "fetchTrades": [
@@ -135,7 +136,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.ndax.io:8443/AP/CancelOrder",
                 "input": [
-                  null,
+                  "",
                   null,
                   {
                     "clientOrderId": "27"

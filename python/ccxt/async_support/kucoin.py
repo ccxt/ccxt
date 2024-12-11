@@ -577,6 +577,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400008': NotSupported,
                     '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
+                    '400330': InvalidOrder,  # {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
@@ -928,6 +929,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TRUE': 'true',
                     'CS': 'cs',
                     'ORAI': 'orai',
+                    'BASE': 'base',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -1001,6 +1003,74 @@ class kucoin(Exchange, ImplicitAPI):
                     'cross': 'MARGIN_TRADE',
                     'isolated': 'MARGIN_ISOLATED_TRADE',
                     'spot': 'TRADE',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,  # not supported
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'iceberg': True,
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 7,  # per  implementation comments
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 500,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 7,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })
@@ -2616,7 +2686,7 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer(params, 'until')
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         if hf and (symbol is None):
@@ -2642,7 +2712,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['endAt'] = until
         request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetStopOrder(self.extend(request, query))
         elif hf:
             if lowercaseStatus == 'active':
@@ -3054,6 +3124,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = None
         request, params = self.handle_until_option('endAt', request, params)
         if hf:
+            # does not return trades earlier than 2019-02-18T00:00:00Z
+            if since is not None:
+                # only returns trades up to one week after the since param
+                request['startAt'] = since
             response = await self.privateGetHfFills(self.extend(request, params))
         elif method == 'private_get_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z

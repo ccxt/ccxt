@@ -176,11 +176,6 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PrivateGetPositionSideDual",parameters);
     }
 
-    public async Task<object> swapV1PrivateGetMarketMarkPriceKlines (object parameters = null)
-    {
-        return await this.callAsync ("swapV1PrivateGetMarketMarkPriceKlines",parameters);
-    }
-
     public async Task<object> swapV1PrivateGetTradeBatchCancelReplace (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivateGetTradeBatchCancelReplace",parameters);

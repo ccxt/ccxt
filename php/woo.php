@@ -31,7 +31,7 @@ class woo extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
-                'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createConvertTrade' => true,
@@ -110,7 +110,7 @@ class woo extends Exchange {
                 'setMargin' => false,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://docx.woo.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -154,7 +154,7 @@ class woo extends Exchange {
                     'pub' => array(
                         'get' => array(
                             'hist/kline' => 10,
-                            'hist/trades' => 1,
+                            'hist/trades' => 10,
                         ),
                     ),
                     'public' => array(
@@ -204,11 +204,11 @@ class woo extends Exchange {
                             'client/futures_leverage' => 60,
                         ),
                         'post' => array(
-                            'order' => 5, // 2 requests per 1 second per symbol
+                            'order' => 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after' => 1,
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
-                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw' => 30,
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
@@ -221,7 +221,7 @@ class woo extends Exchange {
                             'order' => 1,
                             'client/order' => 1,
                             'orders' => 1,
-                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         ),
                     ),
                 ),
