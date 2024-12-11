@@ -4855,6 +4855,8 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 <!-- tabs:end -->
 
+For exchanges, where it is not possible to use attached SL &TP, after submitting an entry order, you can immediatelly submit another order (even though position might not be open yet) with `triggerPrice` and `reduceOnly: true` params, so it can still act as a stoploss order for your upcoming position (note, this approach might not work for some exchanges).
+
 #### Trailing Orders
 
 **Trailing** Orders trail behind an open position. Implemented by supplying float parameters for `trailingPercent` or `trailingAmount`.
