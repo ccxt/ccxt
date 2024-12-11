@@ -12,7 +12,17 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21.x'
+          go-version: "1.21.x"
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+      - name: tsc
+        uses: icrawl/action-tsc@v1
+      - name: Transpile CCXT typescript
+        run: tsc
+      - name: Generate implicit API
+        run: node build/generateImplicitApi.js
+      - name: Transpile go/ccxt
+        run: tsx build/goTranspiler.ts
       - name: Install dependencies
         run: go get ./go/ccxt
       - name: Build
