@@ -10,8 +10,6 @@ addons:
 cache:
   directories:
   - ".cache"
-vm:
-  size: medium
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"
