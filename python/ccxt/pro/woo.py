@@ -848,7 +848,7 @@ class woo(ccxt.async_support.woo):
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
-            'average': avgPrice,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -861,38 +861,31 @@ class woo(ccxt.async_support.woo):
         #     {
         #         "topic": "executionreport",
         #         "ts": 1657515556799,
-        #         {
-        #             "msgType": 0,  // execution report
-        #             "symbol": "SPOT_BTC_USDT",
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
         #             "clientOrderId": 0,
-        #             "orderId": 54774393,
-        #             "type": "MARKET",
-        #             "side": "BUY",
-        #             "quantity": 0.0,
-        #             "price": 0.0,
-        #             "tradeId": 56201985,
-        #             "executedPrice": 23534.06,
-        #             "executedQuantity": 0.00040791,
-        #             "fee": 2.1E-7,
-        #             "feeAsset": "BTC",
-        #             "totalExecutedQuantity": 0.00040791,
-        #             "avgPrice": 23534.06,
-        #             "status": "FILLED",
-        #             "reason": "",
+        #             "orderId": 52952826,
+        #             "type": "LIMIT",
+        #             "side": "SELL",
+        #             "quantity": 0.01,
+        #             "price": 22000,
+        #             "tradeId": 0,
+        #             "executedPrice": 0,
+        #             "executedQuantity": 0,
+        #             "fee": 0,
+        #             "feeAsset": "USDT",
+        #             "totalExecutedQuantity": 0,
+        #             "status": "NEW",
+        #             "reason": '',
         #             "orderTag": "default",
-        #             "totalFee": 2.1E-7,
-        #             "feeCurrency": "BTC",
-        #             "totalRebate": 0,
-        #             "rebateCurrency": "USDT",
-        #             "visible": 0.0,
-        #             "timestamp": 1675406261689,
-        #             "reduceOnly": false,
-        #             "maker": false,
-        #             "leverage": 10,
-        #             "marginMode": "CROSS",
+        #             "totalFee": 0,
+        #             "visible": 0.01,
+        #             "timestamp": 1657515556799,
+        #             "reduceOnly": False,
+        #             "maker": False
         #         }
         #     }
-        
+        #
         topic = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         if isinstance(data, list):
