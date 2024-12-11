@@ -9,7 +9,7 @@ import (
 
 func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
 	var desc bool
-	var defaultValue interface{} = ""
+	var defaultValue interface{} = "a"
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
 	}

@@ -608,6 +608,14 @@ type TransferOutOptionsStruct struct {
 
 type TransferOutOptions func(opts *TransferOutOptionsStruct)
 
+type FetchPositionHistoryOptionsStruct struct {
+    Since *int64
+    Limit *int64
+    Params *map[string]interface{}
+}
+
+type FetchPositionHistoryOptions func(opts *FetchPositionHistoryOptionsStruct)
+
 type CancelAllOrdersAfterOptionsStruct struct {
     Params *map[string]interface{}
 }
@@ -632,18 +640,18 @@ type FetchLeverageOptionsStruct struct {
 
 type FetchLeverageOptions func(opts *FetchLeverageOptionsStruct)
 
-type CreateDepositAddressOptionsStruct struct {
-    Params *map[string]interface{}
-}
-
-type CreateDepositAddressOptions func(opts *CreateDepositAddressOptionsStruct)
-
 type FetchClosedOrderOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}
 }
 
 type FetchClosedOrderOptions func(opts *FetchClosedOrderOptionsStruct)
+
+type CreateDepositAddressOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateDepositAddressOptions func(opts *CreateDepositAddressOptionsStruct)
 
 type FetchLiquidationsOptionsStruct struct {
     Since *int64
@@ -883,6 +891,12 @@ type FetchTickerV3OptionsStruct struct {
 
 type FetchTickerV3Options func(opts *FetchTickerV3OptionsStruct)
 
+type FetchDepositMethodIdOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type FetchDepositMethodIdOptions func(opts *FetchDepositMethodIdOptionsStruct)
+
 type CreateOrderWithTakeProfitAndStopLossOptionsStruct struct {
     Price *float64
     TakeProfit *float64
@@ -933,14 +947,6 @@ type FetchPositionsForSymbolOptionsStruct struct {
 }
 
 type FetchPositionsForSymbolOptions func(opts *FetchPositionsForSymbolOptionsStruct)
-
-type FetchPositionHistoryOptionsStruct struct {
-    Since *int64
-    Limit *int64
-    Params *map[string]interface{}
-}
-
-type FetchPositionHistoryOptions func(opts *FetchPositionHistoryOptionsStruct)
 
 type FetchDepositAddressesOptionsStruct struct {
     Codes *[]string
