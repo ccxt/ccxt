@@ -39,6 +39,24 @@
     ],
         "createOrder": [
             {
+                "description": "triggerPrice & triggerDirection",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    97000,
+                    {
+                        "triggerPrice": 98888,
+                        "triggerDirection": "down",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"97000\",\"s\":\"0.001\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"98888\",\"tpsl\":\"tp\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1733936766648,\"signature\":{\"r\":\"0x3ed44f22ea80dd34f212c7c8d9a3401bd4e9fae4d659051c7b62d48181b3081c\",\"s\":\"0x55ffcf41955f8f24592f7154018a1482da1e3d7da5c11c802a0a932d5d0a07b9\",\"v\":27}}"
+            },
+            {
                 "description": "limit order with more than 5 sig digs",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -76,38 +94,6 @@
                     110
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"115.5\",\"s\":\"1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709144079538,\"signature\":{\"r\":\"0xc51efbead65cfc7fa4b9484faf796e711296709ab361e76632901dc13d6eb9e4\",\"s\":\"0x11b1526c06b7b301ec2129b4aca7fa8570ad435302a9d6245d1613c0abae5176\",\"v\":27}}"
-            },
-            {
-                "description": "trigger limit order",
-                "method": "createOrder",
-                "url": "https://api.hyperliquid-testnet.xyz/exchange",
-                "input": [
-                    "SOL/USDC:USDC",
-                    "limit",
-                    "buy",
-                    0.5,
-                    50,
-                    {
-                        "triggerPrice": 55
-                    }
-                ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"50\",\"s\":\"0.5\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"55\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709642462922,\"signature\":{\"r\":\"0x5103646526d5556c306be0250f0acc63eba58639e47bc44f3c4ddc3cec33c568\",\"s\":\"0x667fc5139457aff57e323025355bae03f5f136ed8e4c0379595a858651efc9e9\",\"v\":28}}"
-            },
-            {
-                "description": "trigger market order",
-                "method": "createOrder",
-                "url": "https://api.hyperliquid-testnet.xyz/exchange",
-                "input": [
-                    "SOL/USDC:USDC",
-                    "market",
-                    "buy",
-                    0.5,
-                    55,
-                    {
-                        "triggerPrice": 55
-                    }
-                ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"57.75\",\"s\":\"0.5\",\"r\":false,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"55\",\"tpsl\":\"sl\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1709642530122,\"signature\":{\"r\":\"0x86f34e7f2c71b6a1ec0a67e6c44676c3be94c2146d395c8f51ab33478158bef9\",\"s\":\"0x48a694df72c8cf57e29ec59aaffbaee2674c041151cb14d5e4167efcfb1f42b5\",\"v\":28}}"
             },
             {
                 "description": "order with clientOrderId",
