@@ -1406,7 +1406,7 @@ export default class hyperliquid extends Exchange {
                 };
             } else if (isTrigger) {
                 const triggerDirection = this.safeString (orderParams, 'triggerDirection');
-                if (triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) {
+                if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) && !('tpsl' in orderParams)) {
                     throw new ArgumentsRequired (this.id + ' createOrders() trigger orders require params["triggerDirection"] to be either "up" or "down"');
                 }
                 let flagTp = undefined;
