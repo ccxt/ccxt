@@ -113,7 +113,7 @@ class woo extends woo$1 {
                 'setMargin': false,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -157,7 +157,7 @@ class woo extends woo$1 {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -207,7 +207,7 @@ class woo extends woo$1 {
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,
+                            'order': 1,
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,
                             'asset/ltv': 30,
@@ -224,7 +224,7 @@ class woo extends woo$1 {
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
