@@ -805,7 +805,7 @@ export default class mexc extends Exchange {
                         'extends': 'forDerivs',
                     },
                     'inverse': {
-                        'extends': 'default',
+                        'extends': 'forDerivs',
                     },
                 },
                 'future': {
