@@ -11,7 +11,7 @@ cache:
   directories:
   - ".cache"
 vm:
-  size: large
+  size: medium
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"
