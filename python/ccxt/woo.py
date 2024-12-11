@@ -168,7 +168,7 @@ class woo(Exchange, ImplicitAPI):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -218,11 +218,11 @@ class woo(Exchange, ImplicitAPI):
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,  # 2 requests per 1 second per symbol
+                            'order': 1,  # 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # 20 requests per 60 seconds, disabled on the exchange side https://docs.woox.io/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -235,7 +235,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/#cancel-withdraw-request
                         },
                     },
                 },
