@@ -50,13 +50,13 @@ func SafeBoolTyped(m interface{}, key interface{}) bool {
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
-	UppercaseID    string
-	LowercaseID    string
+	UppercaseId    string
+	LowercaseId    string
 	Symbol         string
 	BaseCurrency   string
 	QuoteCurrency  string
-	BaseID         string
-	QuoteID        string
+	BaseId         string
+	QuoteId        string
 	Active         bool
 	Type           string
 	Spot           bool
@@ -66,7 +66,7 @@ type MarketInterface struct {
 	Option         bool
 	Contract       bool
 	Settle         string
-	SettleID       string
+	SettleId       string
 	ContractSize   float64
 	Linear         bool
 	Inverse        bool
@@ -240,12 +240,12 @@ func NewLimits(data interface{}) Limits {
 
 // Market struct
 type Market struct {
-	ID            string
+	Id            string
 	Symbol        string
 	BaseCurrency  string
 	QuoteCurrency string
-	BaseID        string
-	QuoteID       string
+	BaseId        string
+	QuoteId       string
 	Active        bool
 	Type          string
 	Precision     *Precision
@@ -281,12 +281,12 @@ func NewMarket(data interface{}) Market {
 	}
 
 	return Market{
-		ID:            SafeStringTyped(m, "id"),
+		Id:            SafeStringTyped(m, "id"),
 		Symbol:        SafeStringTyped(m, "symbol"),
 		BaseCurrency:  SafeStringTyped(m, "base"),
 		QuoteCurrency: SafeStringTyped(m, "quote"),
-		BaseID:        SafeStringTyped(m, "baseId"),
-		QuoteID:       SafeStringTyped(m, "quoteId"),
+		BaseId:        SafeStringTyped(m, "baseId"),
+		QuoteId:       SafeStringTyped(m, "quoteId"),
 		Active:        SafeBoolTyped(m, "active"),
 		Type:          SafeStringTyped(m, "type"),
 		Precision:     precision,
@@ -302,7 +302,7 @@ type Trade struct {
 	Amount       float64
 	Price        float64
 	Cost         float64
-	ID           string
+	Id           string
 	Order        string
 	Info         map[string]interface{}
 	Timestamp    int64
@@ -321,7 +321,7 @@ func NewTrade(data interface{}) Trade {
 		Amount:       SafeFloatTyped(m, "amount"),
 		Price:        SafeFloatTyped(m, "price"),
 		Cost:         SafeFloatTyped(m, "cost"),
-		ID:           SafeStringTyped(m, "id"),
+		Id:           SafeStringTyped(m, "id"),
 		Order:        SafeStringTyped(m, "order"),
 		Timestamp:    SafeInt64Typed(m, "timestamp"),
 		Datetime:     SafeStringTyped(m, "datetime"),
@@ -336,8 +336,8 @@ func NewTrade(data interface{}) Trade {
 
 // Order struct
 type Order struct {
-	ID                 string
-	ClientOrderID      string
+	Id                 string
+	ClientOrderId      string
 	Timestamp          int64
 	Datetime           string
 	LastTradeTimestamp string
@@ -373,8 +373,8 @@ func NewOrder(data interface{}) Order {
 	}
 
 	return Order{
-		ID:                 SafeStringTyped(m, "id"),
-		ClientOrderID:      SafeStringTyped(m, "clientOrderId"),
+		Id:                 SafeStringTyped(m, "id"),
+		ClientOrderId:      SafeStringTyped(m, "clientOrderId"),
 		Timestamp:          SafeInt64Typed(m, "timestamp"),
 		Datetime:           SafeStringTyped(m, "datetime"),
 		LastTradeTimestamp: SafeStringTyped(m, "lastTradeTimestamp"),
@@ -474,8 +474,8 @@ func NewOHLCV(data interface{}) OHLCV {
 // transaction
 
 type Transaction struct {
-	ID        string
-	TxID      string
+	Id        string
+	TxId      string
 	Address   string
 	Tag       string
 	Type      string
@@ -491,8 +491,8 @@ type Transaction struct {
 func NewTransaction(transaction2 interface{}) Transaction {
 	transaction := transaction2.(map[string]interface{})
 	return Transaction{
-		ID:        SafeStringTyped(transaction, "id"),
-		TxID:      SafeStringTyped(transaction, "txid"),
+		Id:        SafeStringTyped(transaction, "id"),
+		TxId:      SafeStringTyped(transaction, "txid"),
 		Address:   SafeStringTyped(transaction, "address"),
 		Tag:       SafeStringTyped(transaction, "tag"),
 		Type:      SafeStringTyped(transaction, "type"),
@@ -773,7 +773,7 @@ func NewFundingRates(fundingRatesData2 interface{}) FundingRates {
 
 type TransferEntry struct {
 	Info        map[string]interface{}
-	ID          string
+	Id          string
 	Timestamp   int64
 	Datetime    string
 	Currency    string
@@ -788,7 +788,7 @@ func NewTransferEntry(transferData2 interface{}) TransferEntry {
 	transferData := transferData2.(map[string]interface{})
 	return TransferEntry{
 		Info:        GetInfo(transferData), // Assuming GetInfo is implemented
-		ID:          SafeStringTyped(transferData, "id"),
+		Id:          SafeStringTyped(transferData, "id"),
 		Timestamp:   SafeInt64Typed(transferData, "timestamp"),
 		Datetime:    SafeStringTyped(transferData, "datetime"),
 		Currency:    SafeStringTyped(transferData, "currency"),
@@ -887,7 +887,7 @@ func (lp *LastPrices) SetLastPrice(key string, lastPrice LastPrice) {
 
 type WithdrawlResponse struct {
 	Info map[string]interface{}
-	ID   string
+	Id   string
 }
 
 // NewWithdrawlResponse initializes a WithdrawlResponse struct from a map.
@@ -895,7 +895,7 @@ func NewWithdrawlResponse(withdrawlResponseData map[string]interface{}) Withdraw
 	info, _ := withdrawlResponseData["info"].(map[string]interface{}) // Assuming "info" is always a map
 	return WithdrawlResponse{
 		Info: info,
-		ID:   SafeStringTyped(withdrawlResponseData, "id"),
+		Id:   SafeStringTyped(withdrawlResponseData, "id"),
 	}
 }
 
@@ -1084,7 +1084,7 @@ func NewCurrencyLimits(data interface{}) CurrencyLimits {
 
 type Network struct {
 	Info      map[string]interface{}
-	ID        string
+	Id        string
 	Fee       float64
 	Active    bool
 	Deposit   bool
@@ -1096,7 +1096,7 @@ type Network struct {
 func NewNetwork(data interface{}) Network {
 	return Network{
 		Info:      GetInfo(data),
-		ID:        SafeStringTyped(data, "id"),
+		Id:        SafeStringTyped(data, "id"),
 		Fee:       SafeFloatTyped(data, "fee"),
 		Active:    SafeBoolTyped(data, "active"),
 		Deposit:   SafeBoolTyped(data, "deposit"),
@@ -1108,7 +1108,7 @@ func NewNetwork(data interface{}) Network {
 
 type Currency struct {
 	Info      map[string]interface{}
-	ID        string
+	Id        string
 	Code      string
 	Precision float64
 	Name      string
@@ -1116,7 +1116,7 @@ type Currency struct {
 	Active    bool
 	Deposit   bool
 	Withdraw  bool
-	NumericID int64
+	NumericId int64
 	Type      string
 	Margin    bool
 	Limits    CurrencyLimits
@@ -1133,7 +1133,7 @@ func NewCurrency(data interface{}) Currency {
 
 	return Currency{
 		Info:      GetInfo(data),
-		ID:        SafeStringTyped(data, "id"),
+		Id:        SafeStringTyped(data, "id"),
 		Code:      SafeStringTyped(data, "code"),
 		Precision: SafeFloatTyped(data, "precision"),
 		Name:      SafeStringTyped(data, "name"),
@@ -1141,7 +1141,7 @@ func NewCurrency(data interface{}) Currency {
 		Active:    SafeBoolTyped(data, "active"),
 		Deposit:   SafeBoolTyped(data, "deposit"),
 		Withdraw:  SafeBoolTyped(data, "withdraw"),
-		NumericID: SafeInt64Typed(data, "numericId"),
+		NumericId: SafeInt64Typed(data, "numericId"),
 		Type:      SafeStringTyped(data, "type"),
 		Margin:    SafeBoolTyped(data, "margin"),
 		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]interface{}{}).(map[string]interface{})),
@@ -1263,7 +1263,7 @@ func NewBalanceAccount(data interface{}) BalanceAccount {
 }
 
 type Account struct {
-	ID   string
+	Id   string
 	Type string
 	Code string
 	Info map[string]interface{}
@@ -1272,7 +1272,7 @@ type Account struct {
 func NewAccount(data interface{}) Account {
 	return Account{
 		Info: GetInfo(data),
-		ID:   SafeStringTyped(data, "id"),
+		Id:   SafeStringTyped(data, "id"),
 		Type: SafeStringTyped(data, "type"),
 		Code: SafeStringTyped(data, "code"),
 	}
@@ -1371,7 +1371,7 @@ func NewLongShortRatio(data interface{}) LongShortRatio {
 
 type Position struct {
 	Symbol                      string
-	ID                          string
+	Id                          string
 	Info                        map[string]interface{}
 	Timestamp                   float64
 	Datetime                    string
@@ -1403,7 +1403,7 @@ type Position struct {
 func NewPosition(data interface{}) Position {
 	return Position{
 		Symbol:                      SafeStringTyped(data, "symbol"),
-		ID:                          SafeStringTyped(data, "id"),
+		Id:                          SafeStringTyped(data, "id"),
 		Info:                        GetInfo(data),
 		Timestamp:                   SafeFloatTyped(data, "timestamp"),
 		Datetime:                    SafeStringTyped(data, "datetime"),
@@ -1435,7 +1435,7 @@ func NewPosition(data interface{}) Position {
 
 type FundingHistory struct {
 	Info      map[string]interface{}
-	ID        string
+	Id        string
 	Timestamp int64
 	Code      string
 	Symbol    string
@@ -1447,7 +1447,7 @@ type FundingHistory struct {
 func NewFundingHistory(data interface{}) FundingHistory {
 	return FundingHistory{
 		Info:      GetInfo(data),
-		ID:        SafeStringTyped(data, "id"),
+		Id:        SafeStringTyped(data, "id"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
 		Currency:  SafeStringTyped(data, "currency"),
@@ -1458,13 +1458,13 @@ func NewFundingHistory(data interface{}) FundingHistory {
 }
 
 type LedgerEntry struct {
-	ID               string
+	Id               string
 	Info             map[string]interface{}
 	Timestamp        int64
 	Datetime         string
 	Direction        string
 	Account          string
-	ReferenceID      string
+	ReferenceId      string
 	ReferenceAccount string
 	Type             string
 	Currency         string
@@ -1477,13 +1477,13 @@ type LedgerEntry struct {
 
 func NewLedgerEntry(data interface{}) LedgerEntry {
 	return LedgerEntry{
-		ID:               SafeStringTyped(data, "id"),
+		Id:               SafeStringTyped(data, "id"),
 		Info:             GetInfo(data),
 		Timestamp:        SafeInt64Typed(data, "timestamp"),
 		Datetime:         SafeStringTyped(data, "datetime"),
 		Direction:        SafeStringTyped(data, "direction"),
 		Account:          SafeStringTyped(data, "account"),
-		ReferenceID:      SafeStringTyped(data, "referenceId"),
+		ReferenceId:      SafeStringTyped(data, "referenceId"),
 		ReferenceAccount: SafeStringTyped(data, "referenceAccount"),
 		Type:             SafeStringTyped(data, "type"),
 		Currency:         SafeStringTyped(data, "currency"),
@@ -1663,7 +1663,7 @@ type Conversion struct {
 	Info         map[string]interface{}
 	Timestamp    int64
 	Datetime     string
-	ID           string
+	Id           string
 	FromCurrency string
 	FromAmount   float64
 	ToCurrency   string
@@ -1677,7 +1677,7 @@ func NewConversion(data interface{}) Conversion {
 		Info:         GetInfo(data),
 		Timestamp:    SafeInt64Typed(data, "timestamp"),
 		Datetime:     SafeStringTyped(data, "datetime"),
-		ID:           SafeStringTyped(data, "id"),
+		Id:           SafeStringTyped(data, "id"),
 		FromCurrency: SafeStringTyped(data, "fromCurrency"),
 		FromAmount:   SafeFloatTyped(data, "fromAmount"),
 		ToCurrency:   SafeStringTyped(data, "toCurrency"),
@@ -2015,12 +2015,12 @@ func (o *OrderBooks) Set(key string, value OrderBook) {
 
 type CancellationRequest struct {
 	Symbol string
-	ID     string
+	Id     string
 }
 
 func NewCancellationRequest(request map[string]interface{}) CancellationRequest {
 	return CancellationRequest{
-		ID:     SafeStringTyped(request, "id"),
+		Id:     SafeStringTyped(request, "id"),
 		Symbol: SafeStringTyped(request, "symbol"),
 	}
 }
