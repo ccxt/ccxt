@@ -6182,15 +6182,15 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
-            // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
+        if (reduceOnly) {
             params = this.omit (params, 'reduceOnly');
-            if (market['option']) {
-                request['reduceOnly'] = reduceOnly;
-            } else {
-                if (reduceOnly) {
-                    request['sideEffectType'] = 'AUTO_REPAY';
-                }
+            if (market['swap'] || market['future']) {
+                // for swap and future reduceOnly is a string that cannot be sent in hedge mode or with close position set to true
+                request['reduceOnly'] = 'true';
+            } else if (market['option']) {
+                request['reduceOnly'] = true;
+            } else if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+                request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
