@@ -370,6 +370,91 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 #    'code': 'BTC',
                 # },
             },
+            'features': {
+                'spot': None,
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPrice': None,
+                            'triggerPriceType': None,
+                            'limitPrice': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'iceberg': True,
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 7,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+            },
         })
 
     async def fetch_status(self, params={}):
@@ -1698,10 +1783,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.futuresPrivateDeleteStopOrders(self.extend(request, params))
         else:
             response = await self.futuresPrivateDeleteOrders(self.extend(request, params))
@@ -1882,7 +1967,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['stop', 'until', 'trigger'])
         if status == 'closed':
@@ -1890,7 +1975,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         elif status == 'open':
             status = 'active'
         request: dict = {}
-        if not stop:
+        if not trigger:
             request['status'] = status
         elif status != 'active':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
@@ -1903,7 +1988,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if until is not None:
             request['endAt'] = until
         response = None
-        if stop:
+        if trigger:
             response = await self.futuresPrivateGetStopOrders(self.extend(request, params))
         else:
             response = await self.futuresPrivateGetOrders(self.extend(request, params))
@@ -2510,6 +2595,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = min(1000, limit)
         request, params = self.handle_until_option('endAt', request, params)
         response = await self.futuresPrivateGetFills(self.extend(request, params))
         #

@@ -235,6 +235,12 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.37'
+__version__ = '4.4.38'
 
 # -----------------------------------------------------------------------------
 
@@ -2925,6 +2925,90 @@ class Exchange(object):
     def after_construct(self):
         self.create_networks_by_id_object()
         self.setup_stream()
+        self.features_generator()
+
+    def features_generator(self):
+        #
+        # the exchange-specific features can be something like self, where we support 'string' aliases too:
+        #
+        #     {
+        #         'myItem' : {
+        #             'createOrder' : {...},
+        #             'fetchOrders' : {...},
+        #         },
+        #         'swap': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         },
+        #         'future': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         }
+        #     }
+        #
+        #
+        #
+        # self method would regenerate the blank features tree, eg:
+        #
+        #     {
+        #         "spot": {
+        #             "createOrder": None,
+        #             "fetchBalance": None,
+        #             ...
+        #         },
+        #         "swap": {
+        #             ...
+        #         }
+        #     }
+        #
+        if self.features is None:
+            return
+        # reconstruct
+        initialFeatures = self.features
+        self.features = {}
+        unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
+        subTypes = ['linear', 'inverse']
+        # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for i in range(0, len(unifiedMarketTypes)):
+            marketType = unifiedMarketTypes[i]
+            # if marketType is not filled for self exchange, don't add that in `features`
+            if not (marketType in initialFeatures):
+                self.features[marketType] = None
+            else:
+                if marketType == 'spot':
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                else:
+                    self.features[marketType] = {}
+                    for j in range(0, len(subTypes)):
+                        subType = subTypes[j]
+                        self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
+
+    def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
+        featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        # if exchange does not have that market-type(eg. future>inverse)
+        if featuresObj is None:
+            return None
+        extendsStr: Str = self.safe_string(featuresObj, 'extends')
+        if extendsStr is not None:
+            featuresObj = self.omit(featuresObj, 'extends')
+            extendObj = self.features_mapper(initialFeatures, extendsStr)
+            featuresObj = self.deep_extend(extendObj, featuresObj)
+        #
+        # corrections
+        #
+        if 'createOrder' in featuresObj:
+            value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
+            if value is not None:
+                featuresObj['createOrder']['stopLoss'] = value
+                featuresObj['createOrder']['takeProfit'] = value
+            # for spot, default 'hedged' to False
+            if marketType == 'spot':
+                featuresObj['createOrder']['hedged'] = False
+            # default 'GTC' to True
+            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
+            if gtcValue is None:
+                featuresObj['createOrder']['timeInForce']['GTC'] = True
+        return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
@@ -6789,29 +6873,39 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if timeframe in self.ohlcvs[symbol]:
-                    del self.ohlcvs[symbol][timeframe]
+                if symbol in self.ohlcvs:
+                    if timeframe in self.ohlcvs[symbol]:
+                        del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 if topic == 'trades':
-                    del self.trades[symbol]
+                    if symbol in self.trades:
+                        del self.trades[symbol]
                 elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
+                    if symbol in self.orderbooks:
+                        del self.orderbooks[symbol]
                 elif topic == 'ticker':
-                    del self.tickers[symbol]
+                    if symbol in self.tickers:
+                        del self.tickers[symbol]
         else:
             if topic == 'myTrades':
                 # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
+                # because in c# we need to use a different object(thread-safe dict)
                 keys = list(self.myTrades.keys())
                 for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
+                    key = keys[i]
+                    if key in self.myTrades:
+                        del self.myTrades[key]
             elif topic == 'orders':
                 orderSymbols = list(self.orders.keys())
                 for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
+                    orderSymbol = orderSymbols[i]
+                    if orderSymbol in self.orders:
+                        del self.orders[orderSymbol]
             elif topic == 'ticker':
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
+                    tickerSymbol = tickerSymbols[i]
+                    if tickerSymbol in self.tickers:
+                        del self.tickers[tickerSymbol]

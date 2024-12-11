@@ -921,6 +921,7 @@ class testMainClass:
             'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
             'uid': 'uid',
             'token': 'token',
+            'login': 'login',
             'accountId': 'accountId',
             'accounts': [{
     'id': 'myAccount',
@@ -957,6 +958,9 @@ class testMainClass:
         wallet_address = exchange.safe_string(exchange_data, 'walletAddress')
         if wallet_address:
             exchange.walletAddress = str(wallet_address)
+        accounts = exchange.safe_list(exchange_data, 'accounts')
+        if accounts:
+            exchange.accounts = accounts
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -1087,7 +1091,7 @@ class testMainClass:
                 self.request_tests_failed = True
             else:
                 self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + str(e)
             dump('[TEST_FAILURE]' + error_message)
         if self.request_tests_failed or self.response_tests_failed:
             exit_script(1)
