@@ -11,6 +11,7 @@ class ImplicitAPI:
     v1_public_get_public_get_valuations = v1PublicGetPublicGetValuations = Entry('public/get-valuations', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_public_get_expired_settlement_price = v1PublicGetPublicGetExpiredSettlementPrice = Entry('public/get-expired-settlement-price', ['v1', 'public'], 'GET', {'cost': 3.3333333333333335})
     v1_public_get_public_get_insurance = v1PublicGetPublicGetInsurance = Entry('public/get-insurance', ['v1', 'public'], 'GET', {'cost': 1})
+    v1_public_get_public_get_risk_parameters = v1PublicGetPublicGetRiskParameters = Entry('public/get-risk-parameters', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_post_public_staking_get_conversion_rate = v1PublicPostPublicStakingGetConversionRate = Entry('public/staking/get-conversion-rate', ['v1', 'public'], 'POST', {'cost': 2})
     v1_private_post_private_set_cancel_on_disconnect = v1PrivatePostPrivateSetCancelOnDisconnect = Entry('private/set-cancel-on-disconnect', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_cancel_on_disconnect = v1PrivatePostPrivateGetCancelOnDisconnect = Entry('private/get-cancel-on-disconnect', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})

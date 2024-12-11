@@ -27,7 +27,7 @@ var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
-var bitfinex2 = require('./src/bitfinex2.js');
+var bitfinex1 = require('./src/bitfinex1.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
@@ -53,6 +53,7 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
+var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinlist = require('./src/coinlist.js');
@@ -63,9 +64,11 @@ var coinsph = require('./src/coinsph.js');
 var coinspot = require('./src/coinspot.js');
 var cryptocom = require('./src/cryptocom.js');
 var currencycom = require('./src/currencycom.js');
+var defx = require('./src/defx.js');
 var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var digifinex = require('./src/digifinex.js');
+var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
@@ -130,7 +133,7 @@ var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
 var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
-var bitfinex2$1 = require('./src/pro/bitfinex2.js');
+var bitfinex1$1 = require('./src/pro/bitfinex1.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
 var bitmart$1 = require('./src/pro/bitmart.js');
@@ -145,13 +148,16 @@ var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
+var coincatch$1 = require('./src/pro/coincatch.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
 var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var currencycom$1 = require('./src/pro/currencycom.js');
+var defx$1 = require('./src/pro/defx.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
@@ -194,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.6';
+const version = '4.4.39';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -212,7 +218,7 @@ const exchanges = {
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
-    'bitfinex2': bitfinex2,
+    'bitfinex1': bitfinex1,
     'bitflyer': bitflyer,
     'bitget': bitget,
     'bithumb': bithumb,
@@ -238,6 +244,7 @@ const exchanges = {
     'coinbaseadvanced': coinbaseadvanced,
     'coinbaseexchange': coinbaseexchange,
     'coinbaseinternational': coinbaseinternational,
+    'coincatch': coincatch,
     'coincheck': coincheck,
     'coinex': coinex,
     'coinlist': coinlist,
@@ -248,9 +255,11 @@ const exchanges = {
     'coinspot': coinspot,
     'cryptocom': cryptocom,
     'currencycom': currencycom,
+    'defx': defx,
     'delta': delta,
     'deribit': deribit,
     'digifinex': digifinex,
+    'ellipx': ellipx,
     'exmo': exmo,
     'fmfwio': fmfwio,
     'gate': gate,
@@ -317,7 +326,7 @@ const pro = {
     'bingx': bingx$1,
     'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
-    'bitfinex2': bitfinex2$1,
+    'bitfinex1': bitfinex1$1,
     'bitget': bitget$1,
     'bithumb': bithumb$1,
     'bitmart': bitmart$1,
@@ -332,13 +341,16 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseadvanced': coinbaseadvanced$1,
     'coinbaseexchange': coinbaseexchange$1,
     'coinbaseinternational': coinbaseinternational$1,
+    'coincatch': coincatch$1,
     'coincheck': coincheck$1,
     'coinex': coinex$1,
     'coinone': coinone$1,
     'cryptocom': cryptocom$1,
     'currencycom': currencycom$1,
+    'defx': defx$1,
     'deribit': deribit$1,
     'exmo': exmo$1,
     'gate': gate$1,
@@ -444,7 +456,7 @@ exports.bitbank = bitbank;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
-exports.bitfinex2 = bitfinex2;
+exports.bitfinex1 = bitfinex1;
 exports.bitflyer = bitflyer;
 exports.bitget = bitget;
 exports.bithumb = bithumb;
@@ -470,6 +482,7 @@ exports.coinbase = coinbase;
 exports.coinbaseadvanced = coinbaseadvanced;
 exports.coinbaseexchange = coinbaseexchange;
 exports.coinbaseinternational = coinbaseinternational;
+exports.coincatch = coincatch;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinlist = coinlist;
@@ -480,9 +493,11 @@ exports.coinsph = coinsph;
 exports.coinspot = coinspot;
 exports.cryptocom = cryptocom;
 exports.currencycom = currencycom;
+exports.defx = defx;
 exports.delta = delta;
 exports.deribit = deribit;
 exports.digifinex = digifinex;
+exports.ellipx = ellipx;
 exports.exmo = exmo;
 exports.fmfwio = fmfwio;
 exports.gate = gate;

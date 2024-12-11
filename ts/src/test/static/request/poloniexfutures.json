@@ -184,6 +184,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://futures-api.poloniex.com/api/v1/funding-rate/BTCUSDTPERP/current",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

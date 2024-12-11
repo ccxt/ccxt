@@ -347,7 +347,7 @@ public partial class bitrue
     /// <item>
     /// <term>params.icebergQty</term>
     /// <description>
-    /// decimal :          * @param {long} [params.recvWindow]
+    /// decimal :      * @param {long} [params.recvWindow]
     /// </description>
     /// </item>
     /// <item>

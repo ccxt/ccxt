@@ -41,19 +41,22 @@ public partial class Exchange
 
     private void initHttpClient()
     {
+        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else
         {
-            this.httpClient = new HttpClient();
+            this.httpClient = new HttpClient(handler);
         }
     }
 
@@ -396,7 +399,16 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
-
+    public int randNumber(int size)
+    {
+        Random random = new Random();
+        string number = "";
+        for (int i = 0; i < size; i++)
+        {
+            number += random.Next(0, 10);
+        }
+        return int.Parse(number);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
@@ -700,6 +712,24 @@ public partial class Exchange
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
+
+        if (array is byte[])
+        {
+            var byteArray = (byte[])array;
+            if (second == null)
+            {
+                if (firstInt < 0)
+                {
+                    var index = byteArray.Length + firstInt;
+                    index = index < 0 ? 0 : index;
+                    return byteArray[index..].ToList();
+                }
+                return byteArray[firstInt..].ToList();
+            }
+            var secondInt2 = Convert.ToInt32(second);
+            return byteArray[firstInt..secondInt2];
+        }
+
         var parsedArray = ((IList<object>)array);
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
@@ -806,7 +836,7 @@ public partial class Exchange
         var privateKeyString = privateKey.ToString().Replace("0x", "");
         var msgHashStr = msgHash.ToString().Replace("0x", "");
         var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
-        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber);;
+        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }

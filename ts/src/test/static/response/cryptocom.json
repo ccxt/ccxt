@@ -1116,9 +1116,9 @@
                         "network": "BTC"
                     },
                     "currency": "BTC",
+                    "network": "BTC",
                     "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-                    "tag": null,
-                    "network": "BTC"
+                    "tag": null
                 }
             }
         ],
@@ -1796,6 +1796,8 @@
                     "average": null,
                     "baseVolume": 6921.5068,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "i": "BTC_USDT",
                         "h": "73632.60",

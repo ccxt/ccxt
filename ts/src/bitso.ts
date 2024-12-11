@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,6 +47,7 @@ export default class bitso extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -97,7 +98,7 @@ export default class bitso extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
+                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
                 'api': {
                     'rest': 'https://bitso.com/api',
                 },
@@ -117,6 +118,12 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -190,17 +197,17 @@ export default class bitso extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name bitso#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        /**
-         * @method
-         * @name bitso#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @param {string} [code] unified currency code, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entries to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -348,15 +355,15 @@ export default class bitso extends Exchange {
         }, currency) as LedgerEntry;
     }
 
+    /**
+     * @method
+     * @name bitso#fetchMarkets
+     * @description retrieves data on all markets for bitso
+     * @see https://docs.bitso.com/bitso-api/docs/list-available-books
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name bitso#fetchMarkets
-         * @description retrieves data on all markets for bitso
-         * @see https://docs.bitso.com/bitso-api/docs/list-available-books
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetAvailableBooks (params);
         //
         //     {
@@ -510,15 +517,15 @@ export default class bitso extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name bitso#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
         //
@@ -549,17 +556,17 @@ export default class bitso extends Exchange {
         return this.parseBalance (response);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.bitso.com/bitso-api/docs/list-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitso#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.bitso.com/bitso-api/docs/list-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -616,16 +623,16 @@ export default class bitso extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.bitso.com/bitso-api/docs/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name bitso#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.bitso.com/bitso-api/docs/ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -653,18 +660,18 @@ export default class bitso extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name bitso#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -837,18 +844,18 @@ export default class bitso extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.bitso.com/bitso-api/docs/list-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitso#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.bitso.com/bitso-api/docs/list-trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -858,15 +865,15 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        /**
-         * @method
-         * @name bitso#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @see https://docs.bitso.com/bitso-api/docs/list-fees
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
@@ -931,18 +938,18 @@ export default class bitso extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name bitso#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.bitso.com/bitso-api/docs/user-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://docs.bitso.com/bitso-api/docs/user-trades
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the don't support fetching trades starting from a date yet
@@ -970,20 +977,20 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitso#createOrder
+     * @description create a trade order
+     * @see https://docs.bitso.com/bitso-api/docs/place-an-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#createOrder
-         * @description create a trade order
-         * @see https://docs.bitso.com/bitso-api/docs/place-an-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1003,17 +1010,17 @@ export default class bitso extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitso#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {string} id order id
+     * @param {string} symbol not used by bitso cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-         * @param {string} id order id
-         * @param {string} symbol not used by bitso cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'oid': id,
@@ -1033,17 +1040,17 @@ export default class bitso extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name bitso#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelOrders
-         * @description cancel multiple orders
-         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (!Array.isArray (ids)) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
@@ -1071,16 +1078,16 @@ export default class bitso extends Exchange {
         return orders;
     }
 
+    /**
+     * @method
+     * @name bitso#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-         * @param {undefined} symbol bitso does not support canceling orders for only a specific market
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
         }
@@ -1158,18 +1165,18 @@ export default class bitso extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitso#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the don't support fetching trades starting from a date yet
@@ -1198,17 +1205,17 @@ export default class bitso extends Exchange {
         return orders;
     }
 
+    /**
+     * @method
+     * @name bitso#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+     * @param {string} id the order id
+     * @param {string} symbol not used by bitso fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
-         * @param {string} id the order id
-         * @param {string} symbol not used by bitso fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetOrdersOid ({
             'oid': id,
@@ -1223,19 +1230,19 @@ export default class bitso extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
+    /**
+     * @method
+     * @name bitso#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.bitso.com/bitso-api/docs/list-user-trades
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @see https://docs.bitso.com/bitso-api/docs/list-user-trades
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1245,17 +1252,17 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+     * @param {string} id deposit id
+     * @param {string} code bitso does not support filtering by currency code and will ignore this argument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDeposit
-         * @description fetch information on a deposit
-         * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
-         * @param {string} id deposit id
-         * @param {string} code bitso does not support filtering by currency code and will ignore this argument
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'fid': id,
@@ -1289,18 +1296,18 @@ export default class bitso extends Exchange {
         return this.parseTransaction (first);
     }
 
+    /**
+     * @method
+     * @name bitso#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        /**
-         * @method
-         * @name bitso#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
@@ -1334,15 +1341,15 @@ export default class bitso extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
+    /**
+     * @method
+     * @name bitso#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -1358,25 +1365,25 @@ export default class bitso extends Exchange {
         }
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
+    /**
+     * @method
+     * @name bitso#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchTransactionFees
-         * @deprecated
-         * @description please use fetchDepositWithdrawFees instead
-         * @see https://docs.bitso.com/bitso-api/docs/list-fees
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
@@ -1461,16 +1468,16 @@ export default class bitso extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name bitso#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://docs.bitso.com/bitso-api/docs/list-fees
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
@@ -1600,18 +1607,18 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#withdraw
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
+    /**
+     * @method
+     * @name bitso#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1656,20 +1663,6 @@ export default class bitso extends Exchange {
         const payload = this.safeValue (response, 'payload', []);
         const first = this.safeDict (payload, 0);
         return this.parseTransaction (first, currency);
-    }
-
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        networkId = networkId.toUpperCase ();
-        const networksById: Dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        };
-        return this.safeString (networksById, networkId, networkId);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1718,12 +1711,14 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
+        const networkCode = this.networkIdToCode (networkId);
+        const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.safeNetwork (networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
@@ -1739,7 +1734,7 @@ export default class bitso extends Exchange {
             'internal': undefined,
             'fee': undefined,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -1768,6 +1763,7 @@ export default class bitso extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
+            endpoint = '/api' + endpoint;
             let request = [ nonce, method, endpoint ].join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length) {
@@ -1779,7 +1775,7 @@ export default class bitso extends Exchange {
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

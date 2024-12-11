@@ -1,8 +1,30 @@
 import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
-import { baseMainTestClass } from './tests.helpers.js';
-declare class testMainClass extends baseMainTestClass {
-    parseCliArgs(): void;
+declare class testMainClass {
+    idTests: boolean;
+    requestTestsFailed: boolean;
+    responseTestsFailed: boolean;
+    requestTests: boolean;
+    wsTests: boolean;
+    responseTests: boolean;
+    staticTests: boolean;
+    info: boolean;
+    verbose: boolean;
+    debug: boolean;
+    privateTest: boolean;
+    privateTestOnly: boolean;
+    loadKeys: boolean;
+    sandbox: boolean;
+    onlySpecificTests: string[];
+    skippedSettingsForExchange: {};
+    skippedMethods: {};
+    checkedPublicTests: {};
+    testFiles: any;
+    publicTests: {};
+    ext: string;
+    lang: string;
+    proxyTestFileName: string;
+    parseCliArgsAndProps(): void;
     init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<void>;
@@ -29,7 +51,9 @@ declare class testMainClass extends baseMainTestClass {
     loadStaticData(folder: string, targetExchange?: Str): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
+    assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: any): boolean;
+    varToString(obj?: any): any;
     assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): any[];
@@ -67,5 +91,7 @@ declare class testMainClass extends baseMainTestClass {
     testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
+    testCoincatch(): Promise<boolean>;
+    testDefx(): Promise<boolean>;
 }
 export default testMainClass;

@@ -278,6 +278,26 @@ public partial class mexc
         return new Order(res);
     }
     /// <summary>
+    /// create a market sell order by providing the symbol and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketSellOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -292,15 +312,15 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>marginMode</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// string : only 'isolated' is supported for spot-margin trading
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.marginMode</term>
+    /// <term>params</term>
     /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -319,6 +339,12 @@ public partial class mexc
     /// <term>params.reduceOnly</term>
     /// <description>
     /// bool : indicates if this order is to reduce the size of a position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// <item>
@@ -372,15 +398,15 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>marginMode</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// string : only 'isolated' is supported for spot-margin trading
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.marginMode</term>
+    /// <term>params</term>
     /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -479,6 +505,12 @@ public partial class mexc
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
     /// </description>
     /// </item>
     /// <item>
@@ -726,11 +758,10 @@ public partial class mexc
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
-    /// fetch the trading fees for multiple markets
+    /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -740,11 +771,11 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchTradingFees(parameters);
-        return new TradingFees(res);
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -797,6 +828,12 @@ public partial class mexc
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
     /// </description>
     /// </item>
     /// </list>
@@ -899,6 +936,26 @@ public partial class mexc
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
     /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
@@ -913,10 +970,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -987,10 +1044,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -1013,10 +1070,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1039,10 +1096,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -1371,6 +1428,24 @@ public partial class mexc
     /// int : the maximum amount of candles to fetch, default=1000
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// int : position type，1: long, 2: short
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.page_num</term>
+    /// <description>
+    /// int : current page number, default is 1
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
@@ -1380,5 +1455,43 @@ public partial class mexc
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : required when there is no position, else provide params["positionId"]
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionId</term>
+    /// <description>
+    /// string : required when a position is set
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.direction</term>
+    /// <description>
+    /// string : "long" or "short" required when there is no position
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Leverage> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return new Leverage(res);
     }
 }
