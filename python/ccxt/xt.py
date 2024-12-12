@@ -2376,7 +2376,7 @@ class xt(Exchange, ImplicitAPI):
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2390,15 +2390,15 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
+        if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
         else:
             request['orderId'] = id
-        if stop:
+        if trigger:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanDetail(self.extend(request, params))
@@ -2548,7 +2548,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -2566,9 +2566,9 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrders', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrders', market, params)
-        stop = self.safe_value(params, 'stop')
-        if stop:
-            params = self.omit(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanListHistory(self.extend(request, params))
             else:
@@ -2709,31 +2709,31 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value(params, 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if status == 'open':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
             elif subType is not None:
                 request['state'] = 'NEW'
         elif status == 'closed':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'TRIGGERED'
             else:
                 request['state'] = 'FILLED'
         elif status == 'canceled':
-            if stop or stopLossTakeProfit:
+            if trigger or stopLossTakeProfit:
                 request['state'] = 'USER_REVOCATION'
             else:
                 request['state'] = 'CANCELED'
         else:
             request['state'] = status
-        if stop or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
+        if trigger or stopLossTakeProfit or (subType is not None) or (type == 'swap') or (type == 'future'):
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['size'] = limit
-        if stop:
+        if trigger:
             params = self.omit(params, 'stop')
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
@@ -2959,7 +2959,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2978,7 +2978,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2997,7 +2997,7 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3015,7 +3015,7 @@ class xt(Exchange, ImplicitAPI):
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3029,16 +3029,16 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelOrder', market, params)
         subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
+        if trigger:
             request['entrustId'] = id
         elif stopLossTakeProfit:
             request['profitId'] = id
         else:
             request['orderId'] = id
-        if stop:
-            params = self.omit(params, 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelPlan(self.extend(request, params))
             else:
@@ -3091,7 +3091,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the xt api endpoint
-        :param bool [params.stop]: if the order is a stop trigger order or not
+        :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3106,10 +3106,10 @@ class xt(Exchange, ImplicitAPI):
         response = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
-        stop = self.safe_value(params, 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-        if stop:
-            params = self.omit(params, 'stop')
+        if trigger:
+            params = self.omit(params, ['trigger', 'stop'])
             if subType == 'inverse':
                 response = self.privateInversePostFutureTradeV1EntrustCancelAllPlan(self.extend(request, params))
             else:

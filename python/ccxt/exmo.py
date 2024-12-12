@@ -1463,7 +1463,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        stop = self.safe_value_2(params, 'trigger', 'stop')
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -1477,7 +1477,7 @@ class exmo(Exchange, ImplicitAPI):
             #    {}
             #
         else:
-            if stop:
+            if trigger:
                 request['parent_order_id'] = id
                 response = self.privatePostStopMarketOrderCancel(self.extend(request, params))
                 #

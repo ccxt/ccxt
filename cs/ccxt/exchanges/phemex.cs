@@ -3116,14 +3116,14 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object stop = this.safeValue2(parameters, "stop", "trigger", false);
-        parameters = this.omit(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger", false);
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            ((IDictionary<string,object>)request)["untriggerred"] = stop;
+            ((IDictionary<string,object>)request)["untriggerred"] = trigger;
         }
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))

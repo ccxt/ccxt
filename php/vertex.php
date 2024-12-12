@@ -2040,13 +2040,13 @@ class vertex extends Exchange {
          * fetch all unfilled currently open $orders
          *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-$orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-$trigger-$orders
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2056,14 +2056,14 @@ class vertex extends Exchange {
         list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
         $request = array();
         $market = null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['product_id'] = $this->parse_to_numeric($market['id']);
         }
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $contracts = $this->query_contracts();
             $chainId = $this->safe_string($contracts, 'chain_id');
             $verifyingContractAddress = $this->safe_string($contracts, 'endpoint_addr');
@@ -2157,21 +2157,21 @@ class vertex extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-$orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-$trigger-$orders
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_credentials();
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$stop) {
-            throw new NotSupported($this->id . ' fetchOrders only support trigger orders');
+        if (!$trigger) {
+            throw new NotSupported($this->id . ' fetchOrders only support $trigger orders');
         }
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
@@ -2250,7 +2250,7 @@ class vertex extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_credentials();
@@ -2282,10 +2282,10 @@ class vertex extends Exchange {
                 'signature' => $this->build_cancel_all_orders_sig($cancels, $chainId, $verifyingContractAddress),
             ),
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->v1TriggerPostExecute ($this->extend($request, $params));
             //
             // {
@@ -2384,10 +2384,10 @@ class vertex extends Exchange {
                 'signature' => $this->build_cancel_orders_sig($cancels, $chainId, $verifyingContractAddress),
             ),
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->v1TriggerPostExecute ($this->extend($request, $params));
             //
             // {

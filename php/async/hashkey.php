@@ -3562,10 +3562,8 @@ class hashkey extends Exchange {
     }
 
     public function handle_trigger_option_and_params(array $params, string $methodName, $defaultValue = null) {
-        $isStop = $defaultValue;
-        list($isStop, $params) = $this->handle_option_and_params($params, $methodName, 'stop', $isStop);
-        $isTrigger = $isStop;
-        list($isTrigger, $params) = $this->handle_option_and_params($params, $methodName, 'trigger', $isTrigger);
+        $isTrigger = $defaultValue;
+        list($isTrigger, $params) = $this->handle_option_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
         return array( $isTrigger, $params );
     }
 

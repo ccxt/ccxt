@@ -2542,18 +2542,18 @@ class coinex(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
         }
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
         requestIds = []
         for i in range(0, len(ids)):
             requestIds.append(int(ids[i]))
-        if stop:
+        if trigger:
             request['stop_ids'] = requestIds
         else:
             request['order_ids'] = requestIds
         if market['spot']:
-            if stop:
+            if trigger:
                 response = self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2622,7 +2622,7 @@ class coinex(Exchange, ImplicitAPI):
                 #
         else:
             request['market_type'] = 'FUTURES'
-            if stop:
+            if trigger:
                 response = self.v2PrivatePostFuturesCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -3270,7 +3270,7 @@ class coinex(Exchange, ImplicitAPI):
             request['market'] = market['id']
         if limit is not None:
             request['limit'] = limit
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
@@ -3280,7 +3280,7 @@ class coinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             request['market_type'] = 'FUTURES'
             if isClosed:
-                if stop:
+                if trigger:
                     response = self.v2PrivateGetFuturesFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3341,7 +3341,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif isOpen:
-                if stop:
+                if trigger:
                     response = self.v2PrivateGetFuturesPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3414,7 +3414,7 @@ class coinex(Exchange, ImplicitAPI):
             else:
                 request['market_type'] = 'SPOT'
             if isClosed:
-                if stop:
+                if trigger:
                     response = self.v2PrivateGetSpotFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3478,7 +3478,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif status == 'pending':
-                if stop:
+                if trigger:
                     response = self.v2PrivateGetSpotPendingStopOrder(self.extend(request, params))
                     #
                     #     {

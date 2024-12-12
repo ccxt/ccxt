@@ -1090,7 +1090,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *contract only* set to True for watching trigger orders
+        :param boolean [params.trigger]: *contract only* set to True for watching trigger orders
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'

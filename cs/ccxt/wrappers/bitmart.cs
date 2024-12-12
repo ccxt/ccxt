@@ -709,9 +709,9 @@ public partial class bitmart
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *swap only* whether the order is a stop order
+    /// boolean : *swap only* whether the order is a trigger order
     /// </description>
     /// </item>
     /// </list>

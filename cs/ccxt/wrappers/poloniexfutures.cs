@@ -386,7 +386,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// object : When true, all the trigger orders will be cancelled
     /// </description>

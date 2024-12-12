@@ -898,14 +898,14 @@ class kucoin(ccxt.async_support.kucoin):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: trigger orders are watched if True
+        :param boolean [params.trigger]: trigger orders are watched if True
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         url = await self.negotiate(True)
-        topic = '/spotMarket/advancedOrders' if stop else '/spotMarket/tradeOrders'
+        topic = '/spotMarket/advancedOrders' if trigger else '/spotMarket/tradeOrders'
         request: dict = {
             'privateChannel': True,
         }

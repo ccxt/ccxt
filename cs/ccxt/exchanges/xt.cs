@@ -2554,7 +2554,7 @@ public partial class xt : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -2577,9 +2577,9 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue(parameters, "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
@@ -2589,7 +2589,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             parameters = this.omit(parameters, "stop");
             if (isTrue(isEqual(subType, "inverse")))
@@ -2751,7 +2751,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2782,10 +2782,10 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, parameters));
@@ -2944,11 +2944,11 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue(parameters, "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         if (isTrue(isEqual(status, "open")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
             } else if (isTrue(!isEqual(subType, null)))
@@ -2957,7 +2957,7 @@ public partial class xt : Exchange
             }
         } else if (isTrue(isEqual(status, "closed")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "TRIGGERED";
             } else
@@ -2966,7 +2966,7 @@ public partial class xt : Exchange
             }
         } else if (isTrue(isEqual(status, "canceled")))
         {
-            if (isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)))
+            if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "USER_REVOCATION";
             } else
@@ -2977,7 +2977,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["state"] = status;
         }
-        if (isTrue(isTrue(isTrue(isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)) || isTrue((!isEqual(subType, null)))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)) || isTrue((!isEqual(subType, null)))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
         {
             if (isTrue(!isEqual(since, null)))
             {
@@ -2988,7 +2988,7 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             parameters = this.omit(parameters, "stop");
             if (isTrue(isEqual(subType, "inverse")))
@@ -3237,7 +3237,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3259,7 +3259,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3281,7 +3281,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3302,7 +3302,7 @@ public partial class xt : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3325,9 +3325,9 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["entrustId"] = id;
         } else if (isTrue(stopLossTakeProfit))
@@ -3337,9 +3337,9 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, parameters));
@@ -3403,7 +3403,7 @@ public partial class xt : Exchange
      * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -3427,11 +3427,11 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object stop = this.safeValue(parameters, "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, parameters));

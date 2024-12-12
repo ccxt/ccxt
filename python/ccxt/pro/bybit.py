@@ -315,7 +315,7 @@ class bybit(ccxt.async_support.bybit):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *spot only* whether the order is a stop order
+        :param boolean [params.trigger]: *spot only* whether the order is a trigger order
         :param str [params.orderFilter]: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
