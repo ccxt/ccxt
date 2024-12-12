@@ -1392,7 +1392,7 @@ export default class bybit extends bybitRest {
             } else {
                 // filter unified trades
                 const execType = this.safeString (rawTrade, 'execType', '');
-                if (filterExecTypes.indexOf (execType) < 0) {
+                if (this.inArray (execType, filterExecTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade (rawTrade);
