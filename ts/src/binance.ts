@@ -6173,7 +6173,7 @@ export default class binance extends Exchange {
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
@@ -6183,13 +6183,8 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         if (reduceOnly) {
-            params = this.omit (params, 'reduceOnly');
-            if (market['swap'] || market['future']) {
-                // for swap and future reduceOnly is a string that cannot be sent in hedge mode or with close position set to true
-                request['reduceOnly'] = 'true';
-            } else if (market['option']) {
-                request['reduceOnly'] = true;
-            } else if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+            if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+                params = this.omit (params, 'reduceOnly');
                 request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
@@ -6445,7 +6440,6 @@ export default class binance extends Exchange {
         if (!market['spot'] && !market['option'] && hedged) {
             if (reduceOnly) {
                 params = this.omit (params, 'reduceOnly');
-                request = this.omit (request, 'reduceOnly');
                 side = (side === 'buy') ? 'sell' : 'buy';
             }
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
