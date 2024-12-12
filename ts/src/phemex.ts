@@ -2945,15 +2945,15 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
-        params = this.omit (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger', false);
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {
             'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        if (stop) {
-            request['untriggerred'] = stop;
+        if (trigger) {
+            request['untriggerred'] = trigger;
         }
         let response = undefined;
         if (market['settle'] === 'USDT') {

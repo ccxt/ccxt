@@ -3032,9 +3032,9 @@ export default class bitmart extends Exchange {
         if (market['spot']) {
             response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         } else {
-            const stop = this.safeBool2 (params, 'stop', 'trigger');
+            const trigger = this.safeBool2 (params, 'stop', 'trigger');
             params = this.omit (params, [ 'stop', 'trigger' ]);
-            if (!stop) {
+            if (!trigger) {
                 response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
             } else {
                 response = await this.privatePostContractPrivateCancelPlanOrder (this.extend (request, params));
