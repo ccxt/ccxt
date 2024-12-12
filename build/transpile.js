@@ -898,7 +898,7 @@ class Transpiler {
             return false // capabilities not found
         }
         let capabilities = found[0].split (lineBreak);
-        const sortingOrder = {
+        let sortingOrder = {    // appear at top of has
             'CORS': 'undefined,',
             'spot': 'true,',
             'margin': 'undefined,',
@@ -906,6 +906,13 @@ class Transpiler {
             'future': 'undefined,',
             'option': 'undefined,',
             // then everything else
+        };
+        const websocketRegex = /\'ws\': true,/;
+        const isWebsocket = websocketRegex.exec (found[0]);
+        if (isWebsocket) {  // if it's a websocket file
+            sortingOrder = {
+                'ws': 'true,',
+            }; 
         }
         const features = {}
         let indentation = '                ' // 16 spaces
