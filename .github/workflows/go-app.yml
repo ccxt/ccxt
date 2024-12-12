@@ -15,8 +15,12 @@ jobs:
           go-version: "1.21.x"
       - name: Setup Node.js
         uses: actions/setup-node@v3
-      - name: Transpile CCXT typescript
-        run: tsc
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Check tsc version
+        run: tsc --version
+      - name: Transpile TS solution
+        run: npm run tsBuild
       - name: Generate implicit API
         run: node build/generateImplicitApi.js
       - name: Transpile go/ccxt
