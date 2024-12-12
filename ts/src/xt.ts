@@ -2816,7 +2816,7 @@ export default class xt extends Exchange {
                 request['state'] = 'NEW';
             }
         } else if (status === 'closed') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'TRIGGERED';
             } else {
                 request['state'] = 'FILLED';
