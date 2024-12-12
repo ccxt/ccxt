@@ -2637,7 +2637,7 @@ export default class coinex extends Exchange {
             request['order_ids'] = requestIds;
         }
         if (market['spot']) {
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder (this.extend (request, params));
                 //
                 //     {
