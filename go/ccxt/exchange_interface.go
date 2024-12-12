@@ -19,6 +19,7 @@ type IExchange interface {
 	SetUid(uid interface{})
 	SetPassword(password interface{})
 	SetApiKey(apiKey interface{})
+	SetAccounts(account interface{})
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}

@@ -102,6 +102,10 @@ func (this *Exchange) SetApiKey(apiKey interface{}) {
 	this.ApiKey = apiKey.(string)
 }
 
+func (this *Exchange) SetAccounts(accounts interface{}) {
+	this.Accounts = accounts.(map[string]interface{})
+}
+
 func (this *Exchange) SetOptions(options interface{}) {
 	this.Options = options.(map[string]interface{})
 }
