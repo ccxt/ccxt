@@ -4420,7 +4420,7 @@ export default class okx extends Exchange {
         }
         if (trailing) {
             request['ordType'] = 'move_order_stop';
-        } else if (stop) {
+        } else if (trigger) {
             if (ordType === undefined) {
                 request['ordType'] = 'trigger';
             }
