@@ -2065,14 +2065,14 @@ export default class vertex extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         const request = {};
         let market: Market = undefined;
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = this.parseToNumeric (market['id']);
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             const contracts = await this.queryContracts ();
             const chainId = this.safeString (contracts, 'chain_id');
             const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
@@ -2177,9 +2177,9 @@ export default class vertex extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!stop) {
+        if (!trigger) {
             throw new NotSupported (this.id + ' fetchOrders only support trigger orders');
         }
         let userAddress = undefined;
@@ -2291,10 +2291,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelAllOrdersSig (cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute (this.extend (request, params));
             //
             // {
@@ -2393,10 +2393,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute (this.extend (request, params));
             //
             // {

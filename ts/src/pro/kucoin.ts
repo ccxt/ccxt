@@ -980,10 +980,10 @@ export default class kucoin extends kucoinRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const url = await this.negotiate (true);
-        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+        const topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request: Dict = {
             'privateChannel': true,
         };

@@ -1226,10 +1226,10 @@ export default class poloniexfutures extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateDeleteStopOrders (this.extend (request, params));
         } else {
             response = await this.privateDeleteOrders (this.extend (request, params));
@@ -1296,14 +1296,14 @@ export default class poloniexfutures extends Exchange {
      */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'trigger', 'stop', 'until' ]);
         if (status === 'closed') {
             status = 'done';
         }
         const request: Dict = {};
-        if (!stop) {
+        if (!trigger) {
             request['status'] = (status === 'open') ? 'active' : 'done';
         } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
@@ -1320,7 +1320,7 @@ export default class poloniexfutures extends Exchange {
             request['endAt'] = until;
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetStopOrders (this.extend (request, params));
         } else {
             response = await this.privateGetOrders (this.extend (request, params));

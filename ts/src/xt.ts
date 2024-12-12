@@ -2476,16 +2476,16 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
-        const stop = this.safeValue (params, 'stop');
+        const trigger = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-        if (stop) {
+        if (trigger) {
             request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
             request['profitId'] = id;
         } else {
             request['orderId'] = id;
         }
-        if (stop) {
+        if (trigger) {
             params = this.omit (params, 'stop');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
@@ -2660,9 +2660,9 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
-        const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            params = this.omit (params, 'stop');
+        const trigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (trigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory (this.extend (request, params));
             } else {
@@ -2807,10 +2807,10 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        const stop = this.safeValue (params, 'stop');
+        const trigger = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (status === 'open') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             } else if (subType !== undefined) {
                 request['state'] = 'NEW';
@@ -2822,7 +2822,7 @@ export default class xt extends Exchange {
                 request['state'] = 'FILLED';
             }
         } else if (status === 'canceled') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'USER_REVOCATION';
             } else {
                 request['state'] = 'CANCELED';
@@ -2830,7 +2830,7 @@ export default class xt extends Exchange {
         } else {
             request['state'] = status;
         }
-        if (stop || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if (trigger || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -2838,7 +2838,7 @@ export default class xt extends Exchange {
                 request['size'] = limit;
             }
         }
-        if (stop) {
+        if (trigger) {
             params = this.omit (params, 'stop');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
@@ -3146,17 +3146,17 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
-        const stop = this.safeValue (params, 'stop');
+        const trigger = this.safeValue2 (params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-        if (stop) {
+        if (trigger) {
             request['entrustId'] = id;
         } else if (stopLossTakeProfit) {
             request['profitId'] = id;
         } else {
             request['orderId'] = id;
         }
-        if (stop) {
-            params = this.omit (params, 'stop');
+        if (trigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelPlan (this.extend (request, params));
             } else {
@@ -3229,10 +3229,10 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        const stop = this.safeValue (params, 'stop');
+        const trigger = this.safeValue2 (params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
-        if (stop) {
-            params = this.omit (params, 'stop');
+        if (trigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan (this.extend (request, params));
             } else {

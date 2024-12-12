@@ -1632,9 +1632,9 @@ export default class okcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const advanced = this.safeValue (params, 'advanced');
-        if (stop || advanced) {
+        if (trigger || advanced) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
             return this.safeValue (orderInner, 0);
         }
@@ -1690,7 +1690,7 @@ export default class okcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const advanced = this.safeValue (params, 'advanced');
         params = this.omit (params, [ 'stop', 'trigger', 'advanced' ]);
         const market = this.market (symbol);
@@ -1708,7 +1708,7 @@ export default class okcoin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop || advanced) {
+                if (trigger || advanced) {
                     request.push ({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1729,7 +1729,7 @@ export default class okcoin extends Exchange {
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privatePostTradeCancelAlgos (request);
         } else if (advanced) {
             response = await this.privatePostTradeCancelAdvanceAlgos (request);
@@ -1987,8 +1987,8 @@ export default class okcoin extends Exchange {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
+        if (trigger) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
             } else {
@@ -2003,7 +2003,7 @@ export default class okcoin extends Exchange {
         }
         const query = this.omit (params, [ 'clientOrderId', 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrder (this.extend (request, query));
@@ -2046,13 +2046,13 @@ export default class okcoin extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, params));
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, params));
@@ -2087,13 +2087,13 @@ export default class okcoin extends Exchange {
             request['instId'] = market['id'];
         }
         const ordType = this.safeString (params, 'ordType');
-        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, params));
         } else {
             let method = undefined;

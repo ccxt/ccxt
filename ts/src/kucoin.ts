@@ -2595,7 +2595,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
@@ -2611,7 +2611,7 @@ export default class kucoin extends Exchange {
         params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
                 //
                 //    {
@@ -2651,7 +2651,7 @@ export default class kucoin extends Exchange {
             return this.parseOrder (response);
         } else {
             request['orderId'] = id;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
                 //
                 //    {
@@ -2710,7 +2710,7 @@ export default class kucoin extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
-        const stop = this.safeBool (params, 'stop', false);
+        const trigger = this.safeBool (params, 'stop', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         params = this.omit (params, 'stop');
@@ -2720,12 +2720,12 @@ export default class kucoin extends Exchange {
         }
         if (marginMode !== undefined) {
             request['tradeType'] = this.options['marginModes'][marginMode];
-            if (marginMode === 'isolated' && stop) {
+            if (marginMode === 'isolated' && trigger) {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
@@ -2947,7 +2947,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         let market = undefined;
@@ -2964,7 +2964,7 @@ export default class kucoin extends Exchange {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (stop) {
+            if (trigger) {
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
@@ -2982,7 +2982,7 @@ export default class kucoin extends Exchange {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
             request['orderId'] = id;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateGetStopOrderOrderId (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
@@ -3124,7 +3124,7 @@ export default class kucoin extends Exchange {
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const cancelExist = this.safeBool (order, 'cancelExist', false);
         const responseStop = this.safeString (order, 'stop');
-        const stop = responseStop !== undefined;
+        const trigger = responseStop !== undefined;
         const stopTriggered = this.safeBool (order, 'stopTriggered', false);
         const isActive = this.safeBool2 (order, 'isActive', 'active');
         const responseStatus = this.safeString (order, 'status');
@@ -3136,7 +3136,7 @@ export default class kucoin extends Exchange {
                 status = 'closed';
             }
         }
-        if (stop) {
+        if (trigger) {
             if (responseStatus === 'NEW') {
                 status = 'open';
             } else if (!isActive && !stopTriggered) {
