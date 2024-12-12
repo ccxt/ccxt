@@ -22,7 +22,7 @@ jobs:
       - name: Transpile TS solution
         run: npm run tsBuild
       - name: Generate implicit API
-        run: node build/generateImplicitApi.js
+        run: npm run emitAPI
       - name: Transpile go/ccxt
         run: tsx build/goTranspiler.ts
       - name: Install dependencies
