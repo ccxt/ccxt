@@ -59,6 +59,7 @@ const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 const goComments = {};
 
 const goTypeOptions = {};
+const goWithMethods = {};
 
 let goTests: string[] = [];
 
@@ -710,7 +711,33 @@ class NewTranspiler {
         res.push('}');
         res.push('');
         res.push(`type ${capName}Options func(opts *${capName}OptionsStruct)`);
-        goTypeOptions[capName] = res.join("\n");
+        const one = this.inden(0);
+        const two = this.inden(1);
+        const three = this.inden(2);
+
+        // here WithX methods with optional parameters, like withPrice, withSince, withParams, etc
+        // example
+        // func WithPrice(price float64) CreateOrderOptions {
+        //     return func(opts *CreateOrderOptionsStruct) {
+        //         opts.Price = &price
+        //     }
+        // }
+        const withMethod = optionalParams.filter(param => param.optional || param.initializer !== undefined).map(param => {
+            const name = this.capitalize(param.name);
+            const type = this.convertJavascriptTypeToGoType(param.name, param.type);
+            const capName = this.capitalize(methodName);
+            const structName = capName + 'OptionsStruct';
+            return [
+                '',
+                `${one}func (this *${structName}) With${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
+                `${two}return func(opts *${structName}) {`,
+                `${three}opts.${name} = &${this.safeGoName(param.name)}`,
+                `${two}}`,
+                `${one}}`,
+                ''
+            ].join('\n');
+        });
+        goTypeOptions[capName] = res.concat(withMethod).join("\n");
     }
 
     createWrapper (exchangeName, methodWrapper, isWs = false) {
@@ -766,6 +793,7 @@ class NewTranspiler {
             // `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
+        // return methodDoc.concat(method).concat(withMethod).filter(e => !!e).join('\n')
         return methodDoc.concat(method).filter(e => !!e).join('\n')
     }
 
@@ -1093,7 +1121,7 @@ ${caseStatements.join('\n')}
         }
 
 
-        // this.transpileTests() // tmp debug remove
+        this.transpileTests()
 
         this.transpileErrorHierarchy ()
 
