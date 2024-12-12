@@ -23,6 +23,8 @@ jobs:
         run: npm install -g tsx
       - name: Transpile TS solution
         run: npm run tsBuild
+      - name: export exchanges
+        run: npm run export-exchanges
       - name: Generate implicit API
         run: npm run emitAPI
       - name: Transpile go/ccxt
