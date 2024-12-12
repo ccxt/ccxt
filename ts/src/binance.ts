@@ -5182,8 +5182,8 @@ export default class binance extends Exchange {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             } else if (uppercaseType === 'LIMIT') {
@@ -5193,7 +5193,7 @@ export default class binance extends Exchange {
         const validOrderTypes = this.safeList (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
@@ -5261,10 +5261,10 @@ export default class binance extends Exchange {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+            if (triggerPrice === undefined) {
+                throw new InvalidOrder (this.id + ' editOrder() requires a triggerPrice extra param for a ' + type + ' order');
             } else {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
@@ -5930,7 +5930,7 @@ export default class binance extends Exchange {
             type = 'limit';
         }
         const stopPriceString = this.safeString (order, 'stopPrice');
-        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
+        const triggerPrice = this.parseNumber (this.omitZero (stopPriceString));
         const feeCost = this.safeNumber (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -5955,7 +5955,7 @@ export default class binance extends Exchange {
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -6208,7 +6208,7 @@ export default class binance extends Exchange {
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const isPriceMatch = priceMatch !== undefined;
         let uppercaseType = type.toUpperCase ();
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         if (isTrailingPercentOrder) {
             if (market['swap']) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
@@ -6231,13 +6231,13 @@ export default class binance extends Exchange {
                     uppercaseType = 'TAKE_PROFIT_LIMIT';
                 }
                 if (trailingTriggerPrice !== undefined) {
-                    stopPrice = this.priceToPrecision (symbol, trailingTriggerPrice);
+                    triggerPrice = this.priceToPrecision (symbol, trailingTriggerPrice);
                 }
                 const trailingPercentConverted = Precise.stringMul (trailingPercent, '100');
                 request['trailingDelta'] = trailingPercentConverted;
             }
         } else if (isStopLoss) {
-            stopPrice = stopLossPrice;
+            triggerPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
@@ -6245,7 +6245,7 @@ export default class binance extends Exchange {
                 uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
             }
         } else if (isTakeProfit) {
-            stopPrice = takeProfitPrice;
+            triggerPrice = takeProfitPrice;
             if (isMarketOrder) {
                 // spot TAKE_PROFIT market orders are not a valid order type
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
@@ -6261,7 +6261,7 @@ export default class binance extends Exchange {
             const validOrderTypes = this.safeList (market['info'], 'orderTypes');
             if (!this.inArray (uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
-                    throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                    throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
                 } else {
                     throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
                 }
@@ -6418,17 +6418,17 @@ export default class binance extends Exchange {
         }
         if (stopPriceIsRequired) {
             if (market['contract']) {
-                if (stopPrice === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+                if (triggerPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
                 }
             } else {
                 // check for delta price as well
-                if (trailingDelta === undefined && stopPrice === undefined && trailingPercent === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order');
+                if (trailingDelta === undefined && triggerPrice === undefined && trailingPercent === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order');
                 }
             }
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            if (triggerPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
