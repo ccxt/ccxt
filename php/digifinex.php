@@ -208,6 +208,7 @@ class digifinex extends Exchange {
                             'trade/order_info',
                         ),
                         'post' => array(
+                            'account/transfer',
                             'account/leverage',
                             'account/position_mode',
                             'account/position_margin',
@@ -2592,7 +2593,7 @@ class digifinex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
          * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $this->load_markets();
         $request = array();
@@ -2885,10 +2886,21 @@ class digifinex extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // $transfer between spot, margin and OTC
         //
         //     {
         //         "code" => 0
+        //     }
+        //
+        // $transfer between spot and swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "type" => 2,
+        //             "currency" => "USDT",
+        //             "transfer_amount" => "5"
+        //         }
         //     }
         //
         // fetchTransfers
@@ -2903,7 +2915,8 @@ class digifinex extends Exchange {
         //
         $fromAccount = null;
         $toAccount = null;
-        $type = $this->safe_integer($transfer, 'type');
+        $data = $this->safe_dict($transfer, 'data', $transfer);
+        $type = $this->safe_integer($data, 'type');
         if ($type === 1) {
             $fromAccount = 'spot';
             $toAccount = 'swap';
@@ -2917,8 +2930,8 @@ class digifinex extends Exchange {
             'id' => $this->safe_string($transfer, 'transfer_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'currency' => $this->safe_currency_code($this->safe_string($transfer, 'currency'), $currency),
-            'amount' => $this->safe_number($transfer, 'amount'),
+            'currency' => $this->safe_currency_code($this->safe_string($data, 'currency'), $currency),
+            'amount' => $this->safe_number_2($data, 'amount', 'transfer_amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
             'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
@@ -2928,30 +2941,58 @@ class digifinex extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
+         * @param {string} $fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+         * @param {string} $toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $currencyId = $currency['id'];
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        $request = array(
-            'currency_mark' => $currency['id'],
-            'num' => $this->currency_to_precision($code, $amount),
-            'from' => $fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
-            'to' => $toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
-        );
-        $response = $this->privateSpotPostTransfer ($this->extend($request, $params));
-        //
-        //     {
-        //         "code" => 0
-        //     }
-        //
+        $request = array();
+        $fromSwap = ($fromAccount === 'swap');
+        $toSwap = ($toAccount === 'swap');
+        $response = null;
+        $amountString = $this->currency_to_precision($code, $amount);
+        if ($fromSwap || $toSwap) {
+            if (($fromId !== '1') && ($toId !== '1')) {
+                throw new ExchangeError($this->id . ' transfer() supports transferring between spot and swap, spot and margin, spot and OTC only');
+            }
+            $request['type'] = $toSwap ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
+            $request['currency'] = $currencyId;
+            $request['transfer_amount'] = $amountString;
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => {
+            //             "type" => 2,
+            //             "currency" => "USDT",
+            //             "transfer_amount" => "5"
+            //         }
+            //     }
+            //
+            $response = $this->privateSwapPostAccountTransfer ($this->extend($request, $params));
+        } else {
+            $request['currency_mark'] = $currencyId;
+            $request['num'] = $amountString;
+            $request['from'] = $fromId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            $request['to'] = $toId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            //
+            //     {
+            //         "code" => 0
+            //     }
+            //
+            $response = $this->privateSpotPostTransfer ($this->extend($request, $params));
+        }
         return $this->parse_transfer($response, $currency);
     }
 

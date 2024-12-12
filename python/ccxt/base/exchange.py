@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.37'
+__version__ = '4.4.39'
 
 # -----------------------------------------------------------------------------
 
@@ -2300,26 +2300,23 @@ class Exchange(object):
         wssProxy = None
         wsSocksProxy = None
         # ws proxy
-        if self.value_is_defined(self.wsProxy):
+        isWsProxyDefined = self.value_is_defined(self.wsProxy)
+        is_ws_proxy_defined = self.value_is_defined(self.ws_proxy)
+        if isWsProxyDefined or is_ws_proxy_defined:
             usedProxies.append('wsProxy')
-            wsProxy = self.wsProxy
-        if self.value_is_defined(self.ws_proxy):
-            usedProxies.append('ws_proxy')
-            wsProxy = self.ws_proxy
+            wsProxy = self.wsProxy if (isWsProxyDefined) else self.ws_proxy
         # wss proxy
-        if self.value_is_defined(self.wssProxy):
+        isWssProxyDefined = self.value_is_defined(self.wssProxy)
+        is_wss_proxy_defined = self.value_is_defined(self.wss_proxy)
+        if isWssProxyDefined or is_wss_proxy_defined:
             usedProxies.append('wssProxy')
-            wssProxy = self.wssProxy
-        if self.value_is_defined(self.wss_proxy):
-            usedProxies.append('wss_proxy')
-            wssProxy = self.wss_proxy
+            wssProxy = self.wssProxy if (isWssProxyDefined) else self.wss_proxy
         # ws socks proxy
-        if self.value_is_defined(self.wsSocksProxy):
+        isWsSocksProxyDefined = self.value_is_defined(self.wsSocksProxy)
+        is_ws_socks_proxy_defined = self.value_is_defined(self.ws_socks_proxy)
+        if isWsSocksProxyDefined or is_ws_socks_proxy_defined:
             usedProxies.append('wsSocksProxy')
-            wsSocksProxy = self.wsSocksProxy
-        if self.value_is_defined(self.ws_socks_proxy):
-            usedProxies.append('ws_socks_proxy')
-            wsSocksProxy = self.ws_socks_proxy
+            wsSocksProxy = self.wsSocksProxy if (isWsSocksProxyDefined) else self.ws_socks_proxy
         # check
         length = len(usedProxies)
         if length > 1:
@@ -2813,7 +2810,7 @@ class Exchange(object):
             # default 'GTC' to True
             gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
             if gtcValue is None:
-                featuresObj['createOrder']['timeInForce']['gtc'] = True
+                featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
@@ -6537,29 +6534,39 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if timeframe in self.ohlcvs[symbol]:
-                    del self.ohlcvs[symbol][timeframe]
+                if symbol in self.ohlcvs:
+                    if timeframe in self.ohlcvs[symbol]:
+                        del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 if topic == 'trades':
-                    del self.trades[symbol]
+                    if symbol in self.trades:
+                        del self.trades[symbol]
                 elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
+                    if symbol in self.orderbooks:
+                        del self.orderbooks[symbol]
                 elif topic == 'ticker':
-                    del self.tickers[symbol]
+                    if symbol in self.tickers:
+                        del self.tickers[symbol]
         else:
             if topic == 'myTrades':
                 # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
+                # because in c# we need to use a different object(thread-safe dict)
                 keys = list(self.myTrades.keys())
                 for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
+                    key = keys[i]
+                    if key in self.myTrades:
+                        del self.myTrades[key]
             elif topic == 'orders':
                 orderSymbols = list(self.orders.keys())
                 for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
+                    orderSymbol = orderSymbols[i]
+                    if orderSymbol in self.orders:
+                        del self.orders[orderSymbol]
             elif topic == 'ticker':
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
+                    tickerSymbol = tickerSymbols[i]
+                    if tickerSymbol in self.tickers:
+                        del self.tickers[tickerSymbol]

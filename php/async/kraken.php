@@ -1173,7 +1173,7 @@ class kraken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
              * @param {int} [$params->end] timestamp in seconds of the latest $ledger entry
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
              */
             // https://www.kraken.com/features/api#get-ledgers-info
             Async\await($this->load_markets());

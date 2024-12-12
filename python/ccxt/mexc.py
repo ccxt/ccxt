@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -132,8 +132,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': True,
@@ -206,6 +206,7 @@ class mexc(Exchange, ImplicitAPI):
                             'allOrders': 10,
                             'account': 10,
                             'myTrades': 10,
+                            'tradeFee': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
                             'capital/config/getall': 10,
@@ -3425,34 +3426,44 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
-        fetch the trading fees for multiple markets
+        fetch the trading fees for a market
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+        https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
 
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.fetch_account_helper('spot', params)
-        makerFee = self.safe_string(response, 'makerCommission')
-        takerFee = self.safe_string(response, 'takerCommission')
-        makerFee = Precise.string_div(makerFee, '1000')
-        takerFee = Precise.string_div(takerFee, '1000')
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
-            result[symbol] = {
-                'symbol': symbol,
-                'maker': self.parse_number(makerFee),
-                'taker': self.parse_number(takerFee),
-                'percentage': True,
-                'tierBased': False,
-                'info': response,
-            }
-        return result
+        market = self.market(symbol)
+        if not market['spot']:
+            raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.spotPrivateGetTradeFee(self.extend(request, params))
+        #
+        #  {
+        #      "data":{
+        #        "makerCommission":0.003000000000000000,
+        #        "takerCommission":0.003000000000000000
+        #      },
+        #      "code":0,
+        #      "msg":"success",
+        #      "timestamp":1669109672717
+        #  }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': self.safe_number(data, 'makerCommission'),
+            'taker': self.safe_number(data, 'takerCommission'),
+            'percentage': None,
+            'tierBased': None,
+        }
 
     def custom_parse_balance(self, response, marketType) -> Balances:
         #

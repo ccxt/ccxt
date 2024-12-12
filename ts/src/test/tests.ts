@@ -1274,6 +1274,10 @@ class testMainClass {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
         }
+        const accounts = exchange.safeList (exchangeData, 'accounts');
+        if (accounts) {
+            exchange.accounts = accounts;
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
@@ -1448,7 +1452,7 @@ class testMainClass {
             } else {
                 this.responseTestsFailed = true;
             }
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + e.toString ();
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         if (this.requestTestsFailed || this.responseTestsFailed) {

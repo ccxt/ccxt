@@ -211,6 +211,7 @@ class digifinex extends digifinex$1 {
                             'trade/order_info',
                         ],
                         'post': [
+                            'account/transfer',
                             'account/leverage',
                             'account/position_mode',
                             'account/position_margin',
@@ -2642,7 +2643,7 @@ class digifinex extends digifinex$1 {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2939,10 +2940,21 @@ class digifinex extends digifinex$1 {
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        // transfer
+        // transfer between spot, margin and OTC
         //
         //     {
         //         "code": 0
+        //     }
+        //
+        // transfer between spot and swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "type": 2,
+        //             "currency": "USDT",
+        //             "transfer_amount": "5"
+        //         }
         //     }
         //
         // fetchTransfers
@@ -2957,7 +2969,8 @@ class digifinex extends digifinex$1 {
         //
         let fromAccount = undefined;
         let toAccount = undefined;
-        const type = this.safeInteger(transfer, 'type');
+        const data = this.safeDict(transfer, 'data', transfer);
+        const type = this.safeInteger(data, 'type');
         if (type === 1) {
             fromAccount = 'spot';
             toAccount = 'swap';
@@ -2972,8 +2985,8 @@ class digifinex extends digifinex$1 {
             'id': this.safeString(transfer, 'transfer_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'currency': this.safeCurrencyCode(this.safeString(transfer, 'currency'), currency),
-            'amount': this.safeNumber(transfer, 'amount'),
+            'currency': this.safeCurrencyCode(this.safeString(data, 'currency'), currency),
+            'amount': this.safeNumber2(data, 'amount', 'transfer_amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': this.parseTransferStatus(this.safeString(transfer, 'code')),
@@ -2983,31 +2996,58 @@ class digifinex extends digifinex$1 {
      * @method
      * @name digifinex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+     * @param {string} toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
+        const currencyId = currency['id'];
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
-        const request = {
-            'currency_mark': currency['id'],
-            'num': this.currencyToPrecision(code, amount),
-            'from': fromId,
-            'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
-        };
-        const response = await this.privateSpotPostTransfer(this.extend(request, params));
-        //
-        //     {
-        //         "code": 0
-        //     }
-        //
+        const request = {};
+        const fromSwap = (fromAccount === 'swap');
+        const toSwap = (toAccount === 'swap');
+        let response = undefined;
+        const amountString = this.currencyToPrecision(code, amount);
+        if (fromSwap || toSwap) {
+            if ((fromId !== '1') && (toId !== '1')) {
+                throw new errors.ExchangeError(this.id + ' transfer() supports transferring between spot and swap, spot and margin, spot and OTC only');
+            }
+            request['type'] = toSwap ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
+            request['currency'] = currencyId;
+            request['transfer_amount'] = amountString;
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "type": 2,
+            //             "currency": "USDT",
+            //             "transfer_amount": "5"
+            //         }
+            //     }
+            //
+            response = await this.privateSwapPostAccountTransfer(this.extend(request, params));
+        }
+        else {
+            request['currency_mark'] = currencyId;
+            request['num'] = amountString;
+            request['from'] = fromId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            request['to'] = toId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            //
+            //     {
+            //         "code": 0
+            //     }
+            //
+            response = await this.privateSpotPostTransfer(this.extend(request, params));
+        }
         return this.parseTransfer(response, currency);
     }
     /**

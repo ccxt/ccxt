@@ -32,7 +32,7 @@ class alpaca extends Exchange {
                 'test' => array(
                     'broker' => 'https://broker-api.sandbox.{hostname}',
                     'trader' => 'https://paper-api.{hostname}',
-                    'market' => 'https://data.sandbox.{hostname}',
+                    'market' => 'https://data.{hostname}',
                 ),
                 'doc' => 'https://alpaca.markets/docs/',
                 'fees' => 'https://docs.alpaca.markets/docs/crypto-fees',
@@ -52,7 +52,7 @@ class alpaca extends Exchange {
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
-                'fetchBalance' => false,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
@@ -1607,6 +1607,79 @@ class alpaca extends Exchange {
             'OUTGOING' => 'withdrawal',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_balance($params = array ()): array {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.alpaca.markets/reference/getaccount-1
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         */
+        $this->load_markets();
+        $response = $this->traderPrivateGetV2Account ($params);
+        //
+        //     {
+        //         "id" => "43a01bde-4eb1-64fssc26adb5",
+        //         "admin_configurations" => array(
+        //             "allow_instant_ach" => true,
+        //             "max_margin_multiplier" => "4"
+        //         ),
+        //         "user_configurations" => array(
+        //             "fractional_trading" => true,
+        //             "max_margin_multiplier" => "4"
+        //         ),
+        //         "account_number" => "744873727",
+        //         "status" => "ACTIVE",
+        //         "crypto_status" => "ACTIVE",
+        //         "currency" => "USD",
+        //         "buying_power" => "5.92",
+        //         "regt_buying_power" => "5.92",
+        //         "daytrading_buying_power" => "0",
+        //         "effective_buying_power" => "5.92",
+        //         "non_marginable_buying_power" => "5.92",
+        //         "bod_dtbp" => "0",
+        //         "cash" => "5.92",
+        //         "accrued_fees" => "0",
+        //         "portfolio_value" => "48.6",
+        //         "pattern_day_trader" => false,
+        //         "trading_blocked" => false,
+        //         "transfers_blocked" => false,
+        //         "account_blocked" => false,
+        //         "created_at" => "2022-06-13T14:59:18.318096Z",
+        //         "trade_suspended_by_user" => false,
+        //         "multiplier" => "1",
+        //         "shorting_enabled" => false,
+        //         "equity" => "48.6",
+        //         "last_equity" => "48.8014266",
+        //         "long_market_value" => "42.68",
+        //         "short_market_value" => "0",
+        //         "position_market_value" => "42.68",
+        //         "initial_margin" => "0",
+        //         "maintenance_margin" => "0",
+        //         "last_maintenance_margin" => "0",
+        //         "sma" => "5.92",
+        //         "daytrade_count" => 0,
+        //         "balance_asof" => "2024-12-10",
+        //         "crypto_tier" => 1,
+        //         "intraday_adjustments" => "0",
+        //         "pending_reg_taf_fees" => "0"
+        //     }
+        //
+        return $this->parse_balance($response);
+    }
+
+    public function parse_balance($response): array {
+        $result = array( 'info' => $response );
+        $account = $this->account();
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $account['free'] = $this->safe_string($response, 'cash');
+        $account['total'] = $this->safe_string($response, 'equity');
+        $result[$code] = $account;
+        return $this->safe_balance($result);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

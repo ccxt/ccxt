@@ -287,6 +287,8 @@ class probit(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         closed = self.safe_bool(market, 'closed', False)
+        showInUI = self.safe_bool(market, 'show_in_ui', True)
+        active = not closed and showInUI
         takerFeeRate = self.safe_string(market, 'taker_fee_rate')
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'maker_fee_rate')
@@ -306,7 +308,7 @@ class probit(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': not closed,
+            'active': active,
             'contract': False,
             'linear': None,
             'inverse': None,

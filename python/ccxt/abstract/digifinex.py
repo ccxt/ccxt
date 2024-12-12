@@ -71,6 +71,7 @@ class ImplicitAPI:
     private_swap_get_trade_history_trades = privateSwapGetTradeHistoryTrades = Entry('trade/history_trades', ['private', 'swap'], 'GET', {})
     private_swap_get_trade_open_orders = privateSwapGetTradeOpenOrders = Entry('trade/open_orders', ['private', 'swap'], 'GET', {})
     private_swap_get_trade_order_info = privateSwapGetTradeOrderInfo = Entry('trade/order_info', ['private', 'swap'], 'GET', {})
+    private_swap_post_account_transfer = privateSwapPostAccountTransfer = Entry('account/transfer', ['private', 'swap'], 'POST', {})
     private_swap_post_account_leverage = privateSwapPostAccountLeverage = Entry('account/leverage', ['private', 'swap'], 'POST', {})
     private_swap_post_account_position_mode = privateSwapPostAccountPositionMode = Entry('account/position_mode', ['private', 'swap'], 'POST', {})
     private_swap_post_account_position_margin = privateSwapPostAccountPositionMargin = Entry('account/position_margin', ['private', 'swap'], 'POST', {})

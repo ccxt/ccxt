@@ -114,6 +114,12 @@ class bybit extends \ccxt\async\bybit {
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
                 ),
+                'watchMyTrades' => array(
+                    // filter execType => https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes' => array(
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ),
+                ),
                 'spot' => array(
                     'timeframes' => array(
                         '1m' => '1m',
@@ -1428,12 +1434,18 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
+        $filterExecTypes = $this->handle_option('watchMyTrades', 'filterExecTypes', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
             if ($spot) {
                 $parsed = $this->parse_ws_trade($rawTrade);
             } else {
+                // filter unified $trades
+                $execType = $this->safe_string($rawTrade, 'execType', '');
+                if (!$this->in_array($execType, $filterExecTypes)) {
+                    continue;
+                }
                 $parsed = $this->parse_trade($rawTrade);
             }
             $symbol = $parsed['symbol'];

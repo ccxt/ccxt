@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -44,7 +44,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'test': {
                     'broker': 'https://broker-api.sandbox.{hostname}',
                     'trader': 'https://paper-api.{hostname}',
-                    'market': 'https://data.sandbox.{hostname}',
+                    'market': 'https://data.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://docs.alpaca.markets/docs/crypto-fees',
@@ -64,7 +64,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,
-                'fetchBalance': False,
+                'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
@@ -1552,6 +1552,77 @@ class alpaca(Exchange, ImplicitAPI):
             'OUTGOING': 'withdrawal',
         }
         return self.safe_string(types, type, type)
+
+    async def fetch_balance(self, params={}) -> Balances:
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.alpaca.markets/reference/getaccount-1
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.traderPrivateGetV2Account(params)
+        #
+        #     {
+        #         "id": "43a01bde-4eb1-64fssc26adb5",
+        #         "admin_configurations": {
+        #             "allow_instant_ach": True,
+        #             "max_margin_multiplier": "4"
+        #         },
+        #         "user_configurations": {
+        #             "fractional_trading": True,
+        #             "max_margin_multiplier": "4"
+        #         },
+        #         "account_number": "744873727",
+        #         "status": "ACTIVE",
+        #         "crypto_status": "ACTIVE",
+        #         "currency": "USD",
+        #         "buying_power": "5.92",
+        #         "regt_buying_power": "5.92",
+        #         "daytrading_buying_power": "0",
+        #         "effective_buying_power": "5.92",
+        #         "non_marginable_buying_power": "5.92",
+        #         "bod_dtbp": "0",
+        #         "cash": "5.92",
+        #         "accrued_fees": "0",
+        #         "portfolio_value": "48.6",
+        #         "pattern_day_trader": False,
+        #         "trading_blocked": False,
+        #         "transfers_blocked": False,
+        #         "account_blocked": False,
+        #         "created_at": "2022-06-13T14:59:18.318096Z",
+        #         "trade_suspended_by_user": False,
+        #         "multiplier": "1",
+        #         "shorting_enabled": False,
+        #         "equity": "48.6",
+        #         "last_equity": "48.8014266",
+        #         "long_market_value": "42.68",
+        #         "short_market_value": "0",
+        #         "position_market_value": "42.68",
+        #         "initial_margin": "0",
+        #         "maintenance_margin": "0",
+        #         "last_maintenance_margin": "0",
+        #         "sma": "5.92",
+        #         "daytrade_count": 0,
+        #         "balance_asof": "2024-12-10",
+        #         "crypto_tier": 1,
+        #         "intraday_adjustments": "0",
+        #         "pending_reg_taf_fees": "0"
+        #     }
+        #
+        return self.parse_balance(response)
+
+    def parse_balance(self, response) -> Balances:
+        result: dict = {'info': response}
+        account = self.account()
+        currencyId = self.safe_string(response, 'currency')
+        code = self.safe_currency_code(currencyId)
+        account['free'] = self.safe_string(response, 'cash')
+        account['total'] = self.safe_string(response, 'equity')
+        result[code] = account
+        return self.safe_balance(result)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)

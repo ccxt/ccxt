@@ -2123,7 +2123,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
         if ($traderId === null) {

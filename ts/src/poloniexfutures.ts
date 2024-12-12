@@ -1217,7 +1217,7 @@ export default class poloniexfutures extends Exchange {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1226,10 +1226,10 @@ export default class poloniexfutures extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateDeleteStopOrders (this.extend (request, params));
         } else {
             response = await this.privateDeleteOrders (this.extend (request, params));
@@ -1296,14 +1296,14 @@ export default class poloniexfutures extends Exchange {
      */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'trigger', 'stop', 'until' ]);
         if (status === 'closed') {
             status = 'done';
         }
         const request: Dict = {};
-        if (!stop) {
+        if (!trigger) {
             request['status'] = (status === 'open') ? 'active' : 'done';
         } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
@@ -1320,7 +1320,7 @@ export default class poloniexfutures extends Exchange {
             request['endAt'] = until;
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetStopOrders (this.extend (request, params));
         } else {
             response = await this.privateGetOrders (this.extend (request, params));

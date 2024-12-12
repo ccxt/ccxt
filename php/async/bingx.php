@@ -87,7 +87,7 @@ class bingx extends Exchange {
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
-                'fetchPositionsHistory' => false,
+                'fetchPositionsHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -211,7 +211,6 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'positionSide/dual' => 5,
-                                'market/markPriceKlines' => 1,
                                 'trade/batchCancelReplace' => 5,
                                 'trade/fullOrder' => 2,
                                 'maintMarginRatio' => 2,
@@ -1041,7 +1040,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
              * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1085,7 +1084,7 @@ class bingx extends Exchange {
                     $price = $this->safe_string($params, 'price');
                     $params = $this->omit($params, 'price');
                     if ($price === 'mark') {
-                        $response = Async\await($this->swapV1PrivateGetMarketMarkPriceKlines ($this->extend($request, $params)));
+                        $response = Async\await($this->swapV1PublicGetMarketMarkPriceKlines ($this->extend($request, $params)));
                     } else {
                         $response = Async\await($this->swapV3PublicGetQuoteKlines ($this->extend($request, $params)));
                     }
@@ -2381,6 +2380,73 @@ class bingx extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             *
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+             *
+             * @param {string} $symbol unified contract $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $positions for
+             * @param {int} [$limit] the maximum amount of $records to fetch
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $positions for
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            if ($since !== null) {
+                $request['startTs'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('endTs', $request, $params);
+            $response = null;
+            if ($market['linear']) {
+                $response = Async\await($this->swapV1PrivateGetTradePositionHistory ($this->extend($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionHistory() is not supported for inverse swap positions');
+            }
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "data" => {
+            //             "positionHistory" => array(
+            //                 array(
+            //                     "positionId" => "1861675561156571136",
+            //                     "symbol" => "LTC-USDT",
+            //                     "isolated" => false,
+            //                     "positionSide" => "LONG",
+            //                     "openTime" => 1732693017000,
+            //                     "updateTime" => 1733310292000,
+            //                     "avgPrice" => "95.18",
+            //                     "avgClosePrice" => "129.48",
+            //                     "realisedProfit" => "102.89",
+            //                     "netProfit" => "99.63",
+            //                     "positionAmt" => "30.0",
+            //                     "closePositionAmt" => "30.0",
+            //                     "leverage" => 6,
+            //                     "closeAllPositions" => true,
+            //                     "positionCommission" => "-0.33699650000000003",
+            //                     "totalFunding" => "-2.921461693902908"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $records = $this->safe_list($data, 'positionHistory', array());
+            $positions = $this->parse_positions($records);
+            return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
+        }) ();
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -2632,6 +2698,27 @@ class bingx extends Exchange {
         //         "positionAmt" => "1.20365912",
         //     }
         //
+        // linear swap fetchPositionHistory
+        //
+        //     {
+        //         "positionId" => "1861675561156571136",
+        //         "symbol" => "LTC-USDT",
+        //         "isolated" => false,
+        //         "positionSide" => "LONG",
+        //         "openTime" => 1732693017000,
+        //         "updateTime" => 1733310292000,
+        //         "avgPrice" => "95.18",
+        //         "avgClosePrice" => "129.48",
+        //         "realisedProfit" => "102.89",
+        //         "netProfit" => "99.63",
+        //         "positionAmt" => "30.0",
+        //         "closePositionAmt" => "30.0",
+        //         "leverage" => 6,
+        //         "closeAllPositions" => true,
+        //         "positionCommission" => "-0.33699650000000003",
+        //         "totalFunding" => "-2.921461693902908"
+        //     }
+        //
         $marketId = $this->safe_string($position, 'symbol', '');
         $marketId = str_replace('/', '-', $marketId); // standard return different format
         $isolated = $this->safe_bool($position, 'isolated');
@@ -2639,6 +2726,7 @@ class bingx extends Exchange {
         if ($isolated !== null) {
             $marginMode = $isolated ? 'isolated' : 'cross';
         }
+        $timestamp = $this->safe_integer($position, 'openTime');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
@@ -2656,8 +2744,8 @@ class bingx extends Exchange {
             'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
             'hedged' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
@@ -6488,7 +6576,7 @@ class bingx extends Exchange {
                 $body = $this->json($parsedParams);
             } else {
                 $query = $this->urlencode($parsedParams);
-                $url .= '?' . $query . '&$signature=' . $signature;
+                $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

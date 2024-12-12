@@ -146,7 +146,7 @@ public partial class woo : Exchange
                     { "pub", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "hist/kline", 10 },
-                            { "hist/trades", 1 },
+                            { "hist/trades", 10 },
                         } },
                     } },
                     { "public", new Dictionary<string, object>() {
@@ -196,7 +196,7 @@ public partial class woo : Exchange
                             { "client/futures_leverage", 60 },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "order", 5 },
+                            { "order", 1 },
                             { "order/cancel_all_after", 1 },
                             { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },
@@ -2265,7 +2265,7 @@ public partial class woo : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

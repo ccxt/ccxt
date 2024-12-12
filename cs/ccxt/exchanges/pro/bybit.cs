@@ -106,6 +106,9 @@ public partial class bybit : ccxt.bybit
                     { "fetchPositionsSnapshot", true },
                     { "awaitPositionsSnapshot", true },
                 } },
+                { "watchMyTrades", new Dictionary<string, object>() {
+                    { "filterExecTypes", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
+                } },
                 { "spot", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
                         { "1m", "1m" },
@@ -1485,6 +1488,7 @@ public partial class bybit : ccxt.bybit
         }
         object trades = this.myTrades;
         object symbols = new Dictionary<string, object>() {};
+        object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(data, i);
@@ -1494,6 +1498,12 @@ public partial class bybit : ccxt.bybit
                 parsed = this.parseWsTrade(rawTrade);
             } else
             {
+                // filter unified trades
+                object execType = this.safeString(rawTrade, "execType", "");
+                if (!isTrue(this.inArray(execType, filterExecTypes)))
+                {
+                    continue;
+                }
                 parsed = this.parseTrade(rawTrade);
             }
             object symbol = getValue(parsed, "symbol");

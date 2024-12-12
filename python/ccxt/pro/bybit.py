@@ -117,6 +117,12 @@ class bybit(ccxt.async_support.bybit):
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
+                'watchMyTrades': {
+                    # filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -1306,12 +1312,17 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols: dict = {}
+        filterExecTypes = self.handle_option('watchMyTrades', 'filterExecTypes', [])
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = None
             if spot:
                 parsed = self.parse_ws_trade(rawTrade)
             else:
+                # filter unified trades
+                execType = self.safe_string(rawTrade, 'execType', '')
+                if not self.in_array(execType, filterExecTypes):
+                    continue
                 parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True
