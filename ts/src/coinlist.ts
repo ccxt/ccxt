@@ -361,7 +361,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'assets', []);
+        const currencies = this.safeList (response, 'assets', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -429,7 +429,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'symbols', []);
+        const markets = this.safeList (response, 'symbols', []);
         return this.parseMarkets (markets);
     }
 
@@ -591,7 +591,7 @@ export default class coinlist extends Exchange {
         //         "lowest_price_24h":"0.55500000"
         //     }
         //
-        const lastTrade = this.safeValue (ticker, 'last_trade', {});
+        const lastTrade = this.safeDict (ticker, 'last_trade', {});
         const timestamp = this.parse8601 (this.safeString (lastTrade, 'logicalTime'));
         const bid = this.safeString (ticker, 'highest_bid');
         const ask = this.safeString (ticker, 'lowest_ask');
@@ -951,15 +951,15 @@ export default class coinlist extends Exchange {
         //         }
         //     }
         //
-        const fees = this.safeValue (response, 'fees_by_symbols', {});
+        const fees = this.safeDict (response, 'fees_by_symbols', {});
         const result: Dict = {};
         const groupsOfSymbols = Object.keys (fees);
         for (let i = 0; i < groupsOfSymbols.length; i++) {
             const group = groupsOfSymbols[i];
-            const feeTiers = this.safeValue (fees, group, {});
+            const feeTiers = this.safeDict (fees, group, {});
             const tiers = this.parseFeeTiers (feeTiers);
-            const firstTier = this.safeValue (feeTiers, 'base', {});
-            const firstTierFees = this.safeValue (firstTier, 'fees', {});
+            const firstTier = this.safeDict (feeTiers, 'base', {});
+            const firstTierFees = this.safeDict (firstTier, 'fees', {});
             const ids = group.split (',');
             for (let j = 0; j < ids.length; j++) {
                 const id = ids[j];
@@ -1039,8 +1039,8 @@ export default class coinlist extends Exchange {
         if (keysLength > 0) {
             for (let i = 0; i < keysLength; i++) {
                 const key = keys[i];
-                const tier = this.safeValue (feeTiers, key, {});
-                const tierFees = this.safeValue (tier, 'fees', {});
+                const tier = this.safeDict (feeTiers, key, {});
+                const tierFees = this.safeDict (tier, 'fees', {});
                 const taker = this.safeString (tierFees, 'taker');
                 const maker = this.safeString (tierFees, 'maker');
                 makerFees.push ([ undefined, this.parseNumber (maker) ]);
@@ -1090,7 +1090,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeValue (response, 'accounts', []);
+        const accounts = this.safeList (response, 'accounts', []);
         return this.parseAccounts (accounts, params);
     }
 
@@ -1142,8 +1142,8 @@ export default class coinlist extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const totalBalances = this.safeValue (response, 'asset_balances', {});
-        const usedBalances = this.safeValue (response, 'asset_holds', {});
+        const totalBalances = this.safeDict (response, 'asset_balances', {});
+        const usedBalances = this.safeDict (response, 'asset_holds', {});
         const currencyIds = Object.keys (totalBalances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -1701,7 +1701,7 @@ export default class coinlist extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
         const feeCost = this.safeString (order, 'fill_fees');
-        const postOnly = this.safeValue (order, 'post_only');
+        const postOnly = this.safeBool (order, 'post_only');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1780,7 +1780,7 @@ export default class coinlist extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromAcc = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAcc = this.safeString (accountsByType, toAccount, toAccount);
         let response = undefined;
@@ -2215,7 +2215,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const ledger = this.safeValue (response, 'transactions', []);
+        const ledger = this.safeList (response, 'transactions', []);
         return this.parseLedger (ledger, currency, since, limit);
     }
 
