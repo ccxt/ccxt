@@ -112,7 +112,7 @@ export default class bybit extends bybitRest {
                 'watchMyTrades': {
                     // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
                     'filterExecTypes': [
-                        'Trade', 'AdlTrade', 'Funding', 'BustTrade', 'Settle',
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
                 'spot': {
@@ -1392,7 +1392,7 @@ export default class bybit extends bybitRest {
             } else {
                 // filter unified trades
                 const execType = this.safeString (rawTrade, 'execType', '');
-                if (this.inArray (execType, filterExecTypes)) {
+                if (!this.inArray (execType, filterExecTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade (rawTrade);
