@@ -33,3 +33,17 @@ jobs:
         run: go get ./go/ccxt
       - name: Build
         run: go build -x ./go/ccxt
+      - name: Build tests
+        run: go build ./go/tests/main.go
+      - name: Run Base Tests
+        run: npm run test-base-rest-go
+      - name: Run Id Tests
+        run: npm run id-tests-go
+      - name: Request tests
+        run: npm run request-go
+      - name: Response Tests
+        run: npm run response-go
+      - name: Live tests
+        run: npm run live-tests -- go
+
+
