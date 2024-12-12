@@ -1565,7 +1565,7 @@ class coinbaseexchange extends Exchange {
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
             if ($code === null) {

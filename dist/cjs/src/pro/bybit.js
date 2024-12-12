@@ -106,6 +106,12 @@ class bybit extends bybit$1 {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'watchMyTrades': {
+                    // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -1350,6 +1356,7 @@ class bybit extends bybit$1 {
         }
         const trades = this.myTrades;
         const symbols = {};
+        const filterExecTypes = this.handleOption('watchMyTrades', 'filterExecTypes', []);
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1357,6 +1364,11 @@ class bybit extends bybit$1 {
                 parsed = this.parseWsTrade(rawTrade);
             }
             else {
+                // filter unified trades
+                const execType = this.safeString(rawTrade, 'execType', '');
+                if (!this.inArray(execType, filterExecTypes)) {
+                    continue;
+                }
                 parsed = this.parseTrade(rawTrade);
             }
             const symbol = parsed['symbol'];
