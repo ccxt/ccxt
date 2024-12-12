@@ -2351,7 +2351,7 @@ public partial class coinex : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         object requestIds = new List<object>() {};
@@ -2359,7 +2359,7 @@ public partial class coinex : Exchange
         {
             ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["stop_ids"] = requestIds;
         } else
@@ -2368,7 +2368,7 @@ public partial class coinex : Exchange
         }
         if (isTrue(getValue(market, "spot")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, parameters));
             } else
@@ -2378,7 +2378,7 @@ public partial class coinex : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, parameters));
             } else
@@ -2710,7 +2710,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
@@ -2724,7 +2724,7 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             if (isTrue(isClosed))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, parameters));
                 } else
@@ -2733,7 +2733,7 @@ public partial class coinex : Exchange
                 }
             } else if (isTrue(isOpen))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, parameters));
                 } else
@@ -2756,7 +2756,7 @@ public partial class coinex : Exchange
             }
             if (isTrue(isClosed))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, parameters));
                 } else
@@ -2765,7 +2765,7 @@ public partial class coinex : Exchange
                 }
             } else if (isTrue(isEqual(status, "pending")))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, parameters));
                 } else

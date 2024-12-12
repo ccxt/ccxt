@@ -1,6 +1,7 @@
 {
     "exchange": "ndax",
-    "skipKeys": [],
+    "skipKeys": ["AccountId"],
+    "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
         "fetchTrades": [
@@ -58,6 +59,105 @@
                 "url": "https://api.ndax.io:8443/AP/GetDepositInfo?omsId=1&AccountId=187639&ProductId=34&GenerateNewKey=false",
                 "input": [
                   "SOL"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create a market order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                    "ADA/CAD",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":1,\"OrderType\":1}"
+            },
+            {
+                "description": "Stop limit order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "sell",
+                  0.99,
+                  1.6,
+                  {
+                    "triggerPrice": "1.60"
+                  }
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":4,\"LimitPrice\":1.6,\"StopPrice\":\"1.60\"}"
+            },
+            {
+                "description": "Limit Order",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "sell",
+                  0.998,
+                  1.6
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6}"
+            },
+            {
+                "description": "Order with ClientOrderId",
+                "method": "createOrder",
+                "url": "https://api.ndax.io:8443/AP/SendOrder",
+                "input": [
+                  "ADA/CAD",
+                  "limit",
+                  "buy",
+                  0.998,
+                  1.6,
+                  {
+                    "clientOrderId": "27"
+                  }
+                ],
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6,\"ClientOrderId\":27}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel Order",
+                "method": "cancelOrder",
+                "url": "https://api.ndax.io:8443/AP/CancelOrder",
+                "input": [
+                  "23092280996"
+                ],
+                "output": "{\"omsId\":1,\"OrderId\":23092280996}"
+            },
+            {
+                "description": "Cancel order by ClientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.ndax.io:8443/AP/CancelOrder",
+                "input": [
+                  "",
+                  null,
+                  {
+                    "clientOrderId": "27"
+                  }
+                ],
+                "output": "{\"omsId\":1,\"ClOrderId\":27}"
+              }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch Deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch Deposits with a currency argument",
+                "method": "fetchDeposits",
+                "url": "https://api.ndax.io:8443/AP/GetDeposits?omsId=1&AccountId=187639",
+                "input": [
+                  "USDC"
                 ]
             }
         ]

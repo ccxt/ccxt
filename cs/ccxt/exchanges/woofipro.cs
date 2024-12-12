@@ -1343,15 +1343,15 @@ public partial class woofipro : Exchange
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object algoType = this.safeString(parameters, "algoType");
-        object isStop = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
-        object orderQtyKey = ((bool) isTrue(isStop)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isStop)) ? "price" : "order_price";
-        object typeKey = ((bool) isTrue(isStop)) ? "type" : "order_type";
+        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
+        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
+        object typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isTrue(isStop))
+        if (!isTrue(isConditional))
         {
             if (isTrue(postOnly))
             {
@@ -1372,7 +1372,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(isTrue(isMarket) && !isTrue(isStop)))
+        if (isTrue(isTrue(isMarket) && !isTrue(isConditional)))
         {
             ((IDictionary<string,object>)request)[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         } else if (isTrue(!isEqual(algoType, "POSITIONAL_TP_SL")))
@@ -1459,9 +1459,9 @@ public partial class woofipro : Exchange
         object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStop = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
-        if (isTrue(isStop))
+        if (isTrue(isConditional))
         {
             response = await this.v1PrivatePostAlgoOrder(request);
         } else
@@ -1501,8 +1501,8 @@ public partial class woofipro : Exchange
             object stopPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             object stopLoss = this.safeValue(orderParams, "stopLoss");
             object takeProfit = this.safeValue(orderParams, "takeProfit");
-            object isStop = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
-            if (isTrue(isStop))
+            object isConditional = isTrue(isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
+            if (isTrue(isConditional))
             {
                 throw new NotSupported ((string)add(this.id, "createOrders() only support non-stop order")) ;
             }
@@ -1566,9 +1566,9 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
         }
-        object isStop = isTrue((!isEqual(stopPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object orderQtyKey = ((bool) isTrue(isStop)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isStop)) ? "price" : "order_price";
+        object isConditional = isTrue((!isEqual(stopPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
+        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
@@ -1579,7 +1579,7 @@ public partial class woofipro : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
         object response = null;
-        if (isTrue(isStop))
+        if (isTrue(isConditional))
         {
             response = await this.v1PrivatePutAlgoOrder(this.extend(request, parameters));
         } else
@@ -1645,9 +1645,9 @@ public partial class woofipro : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(!isTrue(stop) && isTrue((isEqual(symbol, null)))))
+        if (isTrue(!isTrue(trigger) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
@@ -1664,7 +1664,7 @@ public partial class woofipro : Exchange
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isByClientOrder))
             {
@@ -1714,7 +1714,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)extendParams)["id"] = id;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             return this.extend(this.parseOrder(response), extendParams);
         }
@@ -1780,7 +1780,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -1789,14 +1789,14 @@ public partial class woofipro : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters));
         } else
         {
             response = await this.v1PrivateDeleteOrders(this.extend(request, parameters));
         }
-        // stop
+        // trigger
         // {
         //     "success": true,
         //     "timestamp": 1702989203989,
@@ -1836,12 +1836,12 @@ public partial class woofipro : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(clientOrderId))
             {
@@ -2334,7 +2334,7 @@ public partial class woofipro : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

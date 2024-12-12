@@ -2241,7 +2241,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
      * @param {int} [params.accountType] spot, swap, custody
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';
@@ -3482,10 +3482,8 @@ export default class hashkey extends Exchange {
         }
     }
     handleTriggerOptionAndParams(params, methodName, defaultValue = undefined) {
-        let isStop = defaultValue;
-        [isStop, params] = this.handleOptionAndParams(params, methodName, 'stop', isStop);
-        let isTrigger = isStop;
-        [isTrigger, params] = this.handleOptionAndParams(params, methodName, 'trigger', isTrigger);
+        let isTrigger = defaultValue;
+        [isTrigger, params] = this.handleOptionAndParams2(params, methodName, 'stop', 'trigger', isTrigger);
         return [isTrigger, params];
     }
     parseOrder(order, market = undefined) {

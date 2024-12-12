@@ -517,6 +517,7 @@ public partial class kucoin : Exchange
                     { "400008", typeof(NotSupported) },
                     { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
+                    { "400330", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
@@ -818,11 +819,75 @@ public partial class kucoin : Exchange
                     { "TRUE", "true" },
                     { "CS", "cs" },
                     { "ORAI", "orai" },
+                    { "BASE", "base" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
                     { "isolated", "MARGIN_ISOLATED_TRADE" },
                     { "spot", "TRADE" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -2067,7 +2132,7 @@ public partial class kucoin : Exchange
      * market orders --------------------------------------------------
      * @param {string} [params.funds] // Amount of quote currency to use
      * stop orders ----------------------------------------------------
-     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
+     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
      * margin orders --------------------------------------------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
@@ -2468,7 +2533,7 @@ public partial class kucoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancelling a stop order
+     * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns Response from the exchange
@@ -2479,7 +2544,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2502,7 +2567,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2520,7 +2585,7 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2562,7 +2627,7 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *invalid for isolated margin* true if cancelling all stop orders
+     * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
      * @param {bool} [params.hf] false, // true for hf order
@@ -2573,7 +2638,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object stop = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool(parameters, "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2589,13 +2654,13 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(marginMode, null)))
         {
             ((IDictionary<string,object>)request)["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
-            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(stop)))
+            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(trigger)))
             {
                 throw new BadRequest ((string)add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrderCancel(this.extend(request, query));
         } else if (isTrue(hf))
@@ -2631,9 +2696,9 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2643,7 +2708,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object lowercaseStatus = ((string)status).ToLower();
         object until = this.safeInteger(parameters, "until");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2686,7 +2751,7 @@ public partial class kucoin : Exchange
         }
         ((IDictionary<string,object>)request)["tradeType"] = this.safeString(getValue(this.options, "marginModes"), marginMode, "TRADE");
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrder(this.extend(request, query));
         } else if (isTrue(hf))
@@ -2771,7 +2836,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2804,12 +2869,12 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @param {bool} [params.stop] true if fetching stop orders
+     * @param {bool} [params.trigger] true if fetching trigger orders
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2840,9 +2905,9 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
      * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
      * @param {string} id Order id
-     * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+     * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.stop] true if fetching a stop order
+     * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2853,7 +2918,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2876,7 +2941,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 if (isTrue(!isEqual(symbol, null)))
                 {
@@ -2900,7 +2965,7 @@ public partial class kucoin : Exchange
                 throw new InvalidOrder ((string)add(this.id, " fetchOrder() requires an order id")) ;
             }
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateGetStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(hf))
@@ -3047,7 +3112,7 @@ public partial class kucoin : Exchange
         object feeCurrencyId = this.safeString(order, "feeCurrency");
         object cancelExist = this.safeBool(order, "cancelExist", false);
         object responseStop = this.safeString(order, "stop");
-        object stop = !isEqual(responseStop, null);
+        object trigger = !isEqual(responseStop, null);
         object stopTriggered = this.safeBool(order, "stopTriggered", false);
         object isActive = this.safeBool2(order, "isActive", "active");
         object responseStatus = this.safeString(order, "status");
@@ -3062,7 +3127,7 @@ public partial class kucoin : Exchange
                 status = "closed";
             }
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(responseStatus, "NEW")))
             {
@@ -3186,6 +3251,12 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(hf))
         {
+            // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (isTrue(!isEqual(since, null)))
+            {
+                // only returns trades up to one week after the since param
+                ((IDictionary<string,object>)request)["startAt"] = since;
+            }
             response = await this.privateGetHfFills(this.extend(request, parameters));
         } else if (isTrue(isEqual(method, "private_get_fills")))
         {
@@ -4396,7 +4467,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

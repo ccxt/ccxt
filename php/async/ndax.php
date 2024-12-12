@@ -1115,8 +1115,11 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+            if ($accountId === null) {
+                $accountId = intval($this->accounts[0]['id']);
+            }
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
                 'omsId' => $omsId,
@@ -1245,7 +1248,7 @@ class ndax extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1408,6 +1411,7 @@ class ndax extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+             * @param {string} [$params->clientOrderId] a unique id for the order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -1661,6 +1665,7 @@ class ndax extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] a unique $id for the $order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);

@@ -2804,15 +2804,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         request: dict = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        if stop:
-            request['untriggerred'] = stop
+        if trigger:
+            request['untriggerred'] = trigger
         response = None
         if market['settle'] == 'USDT':
             response = self.privateDeleteGOrdersAll(self.extend(request, params))

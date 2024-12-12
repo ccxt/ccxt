@@ -1635,7 +1635,7 @@ class okcoin extends okcoin$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancel trigger or conditional orders
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
      * @param {bool} [params.advanced] True if canceling advanced orders only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1644,9 +1644,9 @@ class okcoin extends okcoin$1 {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         const advanced = this.safeValue(params, 'advanced');
-        if (stop || advanced) {
+        if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
             return this.safeValue(orderInner, 0);
         }
@@ -1702,7 +1702,7 @@ class okcoin extends okcoin$1 {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         const advanced = this.safeValue(params, 'advanced');
         params = this.omit(params, ['stop', 'trigger', 'advanced']);
         const market = this.market(symbol);
@@ -1720,7 +1720,7 @@ class okcoin extends okcoin$1 {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop || advanced) {
+                if (trigger || advanced) {
                     request.push({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1743,7 +1743,7 @@ class okcoin extends okcoin$1 {
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privatePostTradeCancelAlgos(request);
         }
         else if (advanced) {
@@ -2003,8 +2003,8 @@ class okcoin extends okcoin$1 {
             // 'ordId': id,
         };
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
-        const stop = this.safeValue2(params, 'stop', 'trigger');
-        if (stop) {
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        if (trigger) {
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
             }
@@ -2022,7 +2022,7 @@ class okcoin extends okcoin$1 {
         }
         const query = this.omit(params, ['clientOrderId', 'stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         }
         else {
@@ -2042,7 +2042,7 @@ class okcoin extends okcoin$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2065,13 +2065,13 @@ class okcoin extends okcoin$1 {
             request['limit'] = limit; // default 100, max 100
         }
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit(params, ['stop']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, params));
         }
         else {
@@ -2091,7 +2091,7 @@ class okcoin extends okcoin$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2106,13 +2106,13 @@ class okcoin extends okcoin$1 {
             request['instId'] = market['id'];
         }
         const ordType = this.safeString(params, 'ordType');
-        const stop = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
-        if (stop && (ordType === undefined)) {
+        const trigger = this.safeValue(params, 'stop') || (this.safeString(params, 'ordType') !== undefined);
+        if (trigger && (ordType === undefined)) {
             request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit(params, ['stop']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, params));
         }
         else {
@@ -2871,7 +2871,7 @@ class okcoin extends okcoin$1 {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

@@ -1481,7 +1481,7 @@ public partial class blofin : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1508,14 +1508,14 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
-        if (isTrue(isTrue(isStop) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
+        if (isTrue(isTrue(isTrigger) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         } else
@@ -1678,7 +1678,7 @@ public partial class blofin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1900,8 +1900,8 @@ public partial class blofin : Exchange
         object method = this.safeString(parameters, "method", defaultMethod);
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
-        object stop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
-        if (isTrue(stop))
+        object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
+        if (isTrue(trigger))
         {
             method = "privatePostTradeCancelTpsl";
         }
@@ -1920,7 +1920,7 @@ public partial class blofin : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(stop))
+                if (isTrue(trigger))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(ids, i) },
@@ -2395,7 +2395,7 @@ public partial class blofin : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2426,14 +2426,14 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        object isStop = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
-        if (isTrue(isTrue((isStop)) || isTrue((isEqual(method, "privateGetTradeOrdersTpslHistory")))))
+        if (isTrue(isTrue((isTrigger)) || isTrue((isEqual(method, "privateGetTradeOrdersTpslHistory")))))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else

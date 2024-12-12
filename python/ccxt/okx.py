@@ -2242,6 +2242,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
         :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -3253,9 +3254,9 @@ class okx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        if stop or trailing:
+        if trigger or trailing:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
         self.load_markets()
@@ -3313,9 +3314,9 @@ class okx(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value_2(params, 'clOrdId', 'clientOrderId'))
         algoIds = self.parse_ids(self.safe_value(params, 'algoId'))
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        if stop or trailing:
+        if trigger or trailing:
             method = 'privatePostTradeCancelAlgos'
         if clientOrderIds is None:
             ids = self.parse_ids(ids)
@@ -3326,7 +3327,7 @@ class okx(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if trailing or stop:
+                if trailing or trigger:
                     request.append({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -3397,9 +3398,9 @@ class okx(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
         method = self.safe_string(params, 'method', defaultMethod)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        isStopOrTrailing = stop or trailing
+        isStopOrTrailing = trigger or trailing
         if isStopOrTrailing:
             method = 'privatePostTradeCancelAlgos'
         for i in range(0, len(orders)):
@@ -3722,8 +3723,8 @@ class okx(Exchange, ImplicitAPI):
         options = self.safe_value(self.options, 'fetchOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrder')
         method = self.safe_string(params, 'method', defaultMethod)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
-        if stop:
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        if trigger:
             method = 'privateGetTradeOrderAlgo'
             if clientOrderId is not None:
                 request['algoClOrdId'] = clientOrderId
@@ -3851,7 +3852,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3884,13 +3885,13 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersPending')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        if trailing or stop or (ordType in algoOrderTypes):
+        if trailing or trigger or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoPending'
         if trailing:
             request['ordType'] = 'move_order_stop'
-        elif stop and (ordType is None):
+        elif trigger and (ordType is None):
             request['ordType'] = 'trigger'
         query = self.omit(params, ['method', 'stop', 'trigger', 'trailing'])
         response = None
@@ -4007,7 +4008,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
@@ -4042,18 +4043,18 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         if trailing:
             method = 'privateGetTradeOrdersAlgoHistory'
             request['ordType'] = 'move_order_stop'
-        elif stop or (ordType in algoOrderTypes):
+        elif trigger or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             algoId = self.safe_string(params, 'algoId')
             if algoId is not None:
                 request['algoId'] = algoId
                 params = self.omit(params, 'algoId')
-            if stop:
+            if trigger:
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
         else:
@@ -4223,14 +4224,14 @@ class okx(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
-        if trailing or stop or (ordType in algoOrderTypes):
+        if trailing or trigger or (ordType in algoOrderTypes):
             method = 'privateGetTradeOrdersAlgoHistory'
             request['state'] = 'effective'
         if trailing:
             request['ordType'] = 'move_order_stop'
-        elif stop:
+        elif trigger:
             if ordType is None:
                 request['ordType'] = 'trigger'
         else:
@@ -4452,7 +4453,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False

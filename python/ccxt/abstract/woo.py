@@ -3,7 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     v1_pub_get_hist_kline = v1PubGetHistKline = Entry('hist/kline', ['v1', 'pub'], 'GET', {'cost': 10})
-    v1_pub_get_hist_trades = v1PubGetHistTrades = Entry('hist/trades', ['v1', 'pub'], 'GET', {'cost': 1})
+    v1_pub_get_hist_trades = v1PubGetHistTrades = Entry('hist/trades', ['v1', 'pub'], 'GET', {'cost': 10})
     v1_public_get_info = v1PublicGetInfo = Entry('info', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_info_symbol = v1PublicGetInfoSymbol = Entry('info/{symbol}', ['v1', 'public'], 'GET', {'cost': 1})
     v1_public_get_system_info = v1PublicGetSystemInfo = Entry('system_info', ['v1', 'public'], 'GET', {'cost': 1})
@@ -43,7 +43,7 @@ class ImplicitAPI:
     v1_private_get_position_symbol = v1PrivateGetPositionSymbol = Entry('position/{symbol}', ['v1', 'private'], 'GET', {'cost': 3.33})
     v1_private_get_client_transaction_history = v1PrivateGetClientTransactionHistory = Entry('client/transaction_history', ['v1', 'private'], 'GET', {'cost': 60})
     v1_private_get_client_futures_leverage = v1PrivateGetClientFuturesLeverage = Entry('client/futures_leverage', ['v1', 'private'], 'GET', {'cost': 60})
-    v1_private_post_order = v1PrivatePostOrder = Entry('order', ['v1', 'private'], 'POST', {'cost': 5})
+    v1_private_post_order = v1PrivatePostOrder = Entry('order', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_order_cancel_all_after = v1PrivatePostOrderCancelAllAfter = Entry('order/cancel_all_after', ['v1', 'private'], 'POST', {'cost': 1})
     v1_private_post_asset_main_sub_transfer = v1PrivatePostAssetMainSubTransfer = Entry('asset/main_sub_transfer', ['v1', 'private'], 'POST', {'cost': 30})
     v1_private_post_asset_ltv = v1PrivatePostAssetLtv = Entry('asset/ltv', ['v1', 'private'], 'POST', {'cost': 30})

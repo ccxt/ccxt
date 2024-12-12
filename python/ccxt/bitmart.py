@@ -2890,7 +2890,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot only* the client order id of the order to cancel
-        :param boolean [params.stop]: *swap only* whether the order is a stop order
+        :param boolean [params.trigger]: *swap only* whether the order is a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -2910,9 +2910,9 @@ class bitmart(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            stop = self.safe_bool_2(params, 'stop', 'trigger')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
             params = self.omit(params, ['stop', 'trigger'])
-            if not stop:
+            if not trigger:
                 response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
             else:
                 response = self.privatePostContractPrivateCancelPlanOrder(self.extend(request, params))

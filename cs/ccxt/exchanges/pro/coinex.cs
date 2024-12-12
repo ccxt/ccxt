@@ -1004,7 +1004,7 @@ public partial class coinex : ccxt.coinex
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeBool2(parameters, "trigger", "stop");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object messageHash = "orders";
         object market = null;
@@ -1035,7 +1035,7 @@ public partial class coinex : ccxt.coinex
             }
         }
         object method = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             method = "stop.subscribe";
         } else

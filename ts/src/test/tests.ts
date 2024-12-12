@@ -1225,7 +1225,7 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies; // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1255,6 +1255,10 @@ class testMainClass {
         if (walletAddress) {
             // c# to string requirement
             exchange.walletAddress = walletAddress.toString ();
+        }
+        const accounts = exchange.safeList (exchangeData, 'accounts');
+        if (accounts) {
+            exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
@@ -1420,7 +1424,7 @@ class testMainClass {
             } else {
                 this.responseTestsFailed = true;
             }
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + e.toString ();
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         if (this.requestTestsFailed || this.responseTestsFailed) {

@@ -19,6 +19,7 @@ interface Exchange {
     spotPrivateGetAllOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetAccount(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMyTrades(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetTradeFee(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountList(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConfigGetall(params?: {}): Promise<implicitReturnType>;

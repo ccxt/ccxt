@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, TradingFeeInterface } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -388,14 +388,14 @@ export default class mexc extends Exchange {
     fetchAccounts(params?: {}): Promise<Account[]>;
     /**
      * @method
-     * @name mexc#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @name mexc#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    fetchTradingFees(params?: {}): Promise<TradingFees>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     customParseBalance(response: any, marketType: any): Balances;
     parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     /**

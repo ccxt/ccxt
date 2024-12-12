@@ -2015,7 +2015,7 @@ class vertex extends vertex$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2026,14 +2026,14 @@ class vertex extends vertex$1 {
         [userAddress, params] = this.handlePublicAddress('fetchOpenOrders', params);
         const request = {};
         let market = undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['product_id'] = this.parseToNumeric(market['id']);
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             const contracts = await this.queryContracts();
             const chainId = this.safeString(contracts, 'chain_id');
             const verifyingContractAddress = this.safeString(contracts, 'endpoint_addr');
@@ -2132,15 +2132,15 @@ class vertex extends vertex$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        if (!stop) {
+        if (!trigger) {
             throw new errors.NotSupported(this.id + ' fetchOrders only support trigger orders');
         }
         let userAddress = undefined;
@@ -2218,7 +2218,7 @@ class vertex extends vertex$1 {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2251,10 +2251,10 @@ class vertex extends vertex$1 {
                 'signature': this.buildCancelAllOrdersSig(cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute(this.extend(request, params));
             //
             // {
@@ -2352,10 +2352,10 @@ class vertex extends vertex$1 {
                 'signature': this.buildCancelOrdersSig(cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute(this.extend(request, params));
             //
             // {

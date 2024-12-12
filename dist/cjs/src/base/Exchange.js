@@ -1839,31 +1839,25 @@ class Exchange {
         let wssProxy = undefined;
         let wsSocksProxy = undefined;
         // ws proxy
-        if (this.valueIsDefined(this.wsProxy)) {
+        const isWsProxyDefined = this.valueIsDefined(this.wsProxy);
+        const is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
+        if (isWsProxyDefined || is_ws_proxy_defined) {
             usedProxies.push('wsProxy');
-            wsProxy = this.wsProxy;
-        }
-        if (this.valueIsDefined(this.ws_proxy)) {
-            usedProxies.push('ws_proxy');
-            wsProxy = this.ws_proxy;
+            wsProxy = (isWsProxyDefined) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
-        if (this.valueIsDefined(this.wssProxy)) {
+        const isWssProxyDefined = this.valueIsDefined(this.wssProxy);
+        const is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
+        if (isWssProxyDefined || is_wss_proxy_defined) {
             usedProxies.push('wssProxy');
-            wssProxy = this.wssProxy;
-        }
-        if (this.valueIsDefined(this.wss_proxy)) {
-            usedProxies.push('wss_proxy');
-            wssProxy = this.wss_proxy;
+            wssProxy = (isWssProxyDefined) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
-        if (this.valueIsDefined(this.wsSocksProxy)) {
+        const isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
+        const is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
+        if (isWsSocksProxyDefined || is_ws_socks_proxy_defined) {
             usedProxies.push('wsSocksProxy');
-            wsSocksProxy = this.wsSocksProxy;
-        }
-        if (this.valueIsDefined(this.ws_socks_proxy)) {
-            usedProxies.push('ws_socks_proxy');
-            wsSocksProxy = this.ws_socks_proxy;
+            wsSocksProxy = (isWsSocksProxyDefined) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
         const length = usedProxies.length;
@@ -2416,7 +2410,7 @@ class Exchange {
             // default 'GTC' to true
             const gtcValue = this.safeBool(featuresObj['createOrder']['timeInForce'], 'gtc');
             if (gtcValue === undefined) {
-                featuresObj['createOrder']['timeInForce']['gtc'] = true;
+                featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return featuresObj;
@@ -6813,8 +6807,10 @@ class Exchange {
                 const symbolAndTimeFrame = symbolsAndTimeFrames[i];
                 const symbol = this.safeString(symbolAndTimeFrame, 0);
                 const timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (timeframe in this.ohlcvs[symbol]) {
-                    delete this.ohlcvs[symbol][timeframe];
+                if (symbol in this.ohlcvs) {
+                    if (timeframe in this.ohlcvs[symbol]) {
+                        delete this.ohlcvs[symbol][timeframe];
+                    }
                 }
             }
         }
@@ -6822,35 +6818,50 @@ class Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 if (topic === 'trades') {
-                    delete this.trades[symbol];
+                    if (symbol in this.trades) {
+                        delete this.trades[symbol];
+                    }
                 }
                 else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
+                    if (symbol in this.orderbooks) {
+                        delete this.orderbooks[symbol];
+                    }
                 }
                 else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
+                    if (symbol in this.tickers) {
+                        delete this.tickers[symbol];
+                    }
                 }
             }
         }
         else {
             if (topic === 'myTrades') {
                 // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
+                // because in c# we need to use a different object (thread-safe dict)
                 const keys = Object.keys(this.myTrades);
                 for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
+                    const key = keys[i];
+                    if (key in this.myTrades) {
+                        delete this.myTrades[key];
+                    }
                 }
             }
             else if (topic === 'orders') {
                 const orderSymbols = Object.keys(this.orders);
                 for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
+                    const orderSymbol = orderSymbols[i];
+                    if (orderSymbol in this.orders) {
+                        delete this.orders[orderSymbol];
+                    }
                 }
             }
             else if (topic === 'ticker') {
                 const tickerSymbols = Object.keys(this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
-                    delete this.tickers[tickerSymbols[i]];
+                    const tickerSymbol = tickerSymbols[i];
+                    if (tickerSymbol in this.tickers) {
+                        delete this.tickers[tickerSymbol];
+                    }
                 }
             }
         }

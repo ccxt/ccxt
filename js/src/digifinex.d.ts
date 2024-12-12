@@ -253,7 +253,7 @@ export default class digifinex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
@@ -297,10 +297,12 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+     * @param {string} toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */

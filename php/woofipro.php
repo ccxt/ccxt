@@ -1294,15 +1294,15 @@ class woofipro extends Exchange {
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
-        $isStop = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $orderQtyKey = $isStop ? 'quantity' : 'order_quantity';
-        $priceKey = $isStop ? 'price' : 'order_price';
-        $typeKey = $isStop ? 'type' : 'order_type';
+        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
+        $priceKey = $isConditional ? 'price' : 'order_price';
+        $typeKey = $isConditional ? 'type' : 'order_type';
         $request[$typeKey] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!$isStop) {
+        if (!$isConditional) {
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -1317,7 +1317,7 @@ class woofipro extends Exchange {
         if ($price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        if ($isMarket && !$isStop) {
+        if ($isMarket && !$isConditional) {
             $request[$orderQtyKey] = $this->amount_to_precision($symbol, $amount);
         } elseif ($algoType !== 'POSITIONAL_TP_SL') {
             $request[$orderQtyKey] = $this->amount_to_precision($symbol, $amount);
@@ -1395,9 +1395,9 @@ class woofipro extends Exchange {
         $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isStop = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
-        if ($isStop) {
+        if ($isConditional) {
             $response = $this->v1PrivatePostAlgoOrder ($request);
             //
             // {
@@ -1459,8 +1459,8 @@ class woofipro extends Exchange {
             $stopPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_value($orderParams, 'stopLoss');
             $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-            $isStop = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
-            if ($isStop) {
+            $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
+            if ($isConditional) {
                 throw new NotSupported($this->id . 'createOrders() only support non-stop order');
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
@@ -1520,9 +1520,9 @@ class woofipro extends Exchange {
         if ($stopPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
-        $isStop = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-        $orderQtyKey = $isStop ? 'quantity' : 'order_quantity';
-        $priceKey = $isStop ? 'price' : 'order_price';
+        $isConditional = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
+        $priceKey = $isConditional ? 'price' : 'order_price';
         if ($price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
@@ -1531,7 +1531,7 @@ class woofipro extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         $response = null;
-        if ($isStop) {
+        if ($isConditional) {
             $response = $this->v1PrivatePutAlgoOrder ($this->extend($request, $params));
         } else {
             $request['symbol'] = $market['id'];
@@ -1588,9 +1588,9 @@ class woofipro extends Exchange {
          * @param {string} [$params->clientOrderId] a unique $id for the order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$stop && ($symbol === null)) {
+        if (!$trigger && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
@@ -1605,7 +1605,7 @@ class woofipro extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -1645,7 +1645,7 @@ class woofipro extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($stop) {
+        if ($trigger) {
             return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -1704,7 +1704,7 @@ class woofipro extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
         if ($symbol !== null) {
@@ -1712,12 +1712,12 @@ class woofipro extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->v1PrivateDeleteAlgoOrders ($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateDeleteOrders ($this->extend($request, $params));
         }
-        // $stop
+        // $trigger
         // {
         //     "success" => true,
         //     "timestamp" => 1702989203989,
@@ -1757,12 +1757,12 @@ class woofipro extends Exchange {
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             if ($clientOrderId) {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId ($this->extend($request, $params));
@@ -2202,7 +2202,7 @@ class woofipro extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $params);
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);

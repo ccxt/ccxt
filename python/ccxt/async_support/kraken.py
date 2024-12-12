@@ -1129,7 +1129,7 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param int [params.end]: timestamp in seconds of the latest ledger entry
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         # https://www.kraken.com/features/api#get-ledgers-info
         await self.load_markets()

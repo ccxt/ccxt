@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.37';
+$version = '4.4.39';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.37';
+    const VERSION = '4.4.39';
 
     public $browser;
     public $marketsLoading = null;
@@ -902,31 +902,25 @@ class Exchange extends \ccxt\Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->value_is_defined($this->wsProxy)) {
+        $isWsProxyDefined = $this->value_is_defined($this->wsProxy);
+        $is_ws_proxy_defined = $this->value_is_defined($this->ws_proxy);
+        if ($isWsProxyDefined || $is_ws_proxy_defined) {
             $usedProxies[] = 'wsProxy';
-            $wsProxy = $this->wsProxy;
-        }
-        if ($this->value_is_defined($this->ws_proxy)) {
-            $usedProxies[] = 'ws_proxy';
-            $wsProxy = $this->ws_proxy;
+            $wsProxy = ($isWsProxyDefined) ? $this->wsProxy : $this->ws_proxy;
         }
         // wss proxy
-        if ($this->value_is_defined($this->wssProxy)) {
+        $isWssProxyDefined = $this->value_is_defined($this->wssProxy);
+        $is_wss_proxy_defined = $this->value_is_defined($this->wss_proxy);
+        if ($isWssProxyDefined || $is_wss_proxy_defined) {
             $usedProxies[] = 'wssProxy';
-            $wssProxy = $this->wssProxy;
-        }
-        if ($this->value_is_defined($this->wss_proxy)) {
-            $usedProxies[] = 'wss_proxy';
-            $wssProxy = $this->wss_proxy;
+            $wssProxy = ($isWssProxyDefined) ? $this->wssProxy : $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->value_is_defined($this->wsSocksProxy)) {
+        $isWsSocksProxyDefined = $this->value_is_defined($this->wsSocksProxy);
+        $is_ws_socks_proxy_defined = $this->value_is_defined($this->ws_socks_proxy);
+        if ($isWsSocksProxyDefined || $is_ws_socks_proxy_defined) {
             $usedProxies[] = 'wsSocksProxy';
-            $wsSocksProxy = $this->wsSocksProxy;
-        }
-        if ($this->value_is_defined($this->ws_socks_proxy)) {
-            $usedProxies[] = 'ws_socks_proxy';
-            $wsSocksProxy = $this->ws_socks_proxy;
+            $wsSocksProxy = ($isWsSocksProxyDefined) ? $this->wsSocksProxy : $this->ws_socks_proxy;
         }
         // check
         $length = count($usedProxies);
@@ -1565,7 +1559,7 @@ class Exchange extends \ccxt\Exchange {
             // default 'GTC' to true
             $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
             if ($gtcValue === null) {
-                $featuresObj['createOrder']['timeInForce']['gtc'] = true;
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
             }
         }
         return $featuresObj;
@@ -6272,38 +6266,55 @@ class Exchange extends \ccxt\Exchange {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
+                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                        unset($this->ohlcvs[$symbol][$timeframe]);
+                    }
                 }
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trades') {
-                    unset($this->trades[$symbol]);
+                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                        unset($this->trades[$symbol]);
+                    }
                 } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
+                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                        unset($this->orderbooks[$symbol]);
+                    }
                 } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
+                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                        unset($this->tickers[$symbol]);
+                    }
                 }
             }
         } else {
             if ($topic === 'myTrades') {
                 // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
+                // because in c# we need to use a different object (thread-safe dict)
                 $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
                 for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
+                    $key = $keys[$i];
+                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
+                        unset($this->myTrades[$key]);
+                    }
                 }
             } elseif ($topic === 'orders') {
                 $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
                 for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
+                    $orderSymbol = $orderSymbols[$i];
+                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
+                        unset($this->orders[$orderSymbol]);
+                    }
                 }
             } elseif ($topic === 'ticker') {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
-                    unset($this->tickers[$tickerSymbols[$i]]);
+                    $tickerSymbol = $tickerSymbols[$i];
+                    if (is_array($this->tickers) && array_key_exists($tickerSymbol, $this->tickers)) {
+                        unset($this->tickers[$tickerSymbol]);
+                    }
                 }
             }
         }

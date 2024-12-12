@@ -1644,7 +1644,7 @@ class okcoin extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] True if cancel trigger or conditional orders
+             * @param {bool} [$params->trigger] True if cancel $trigger or conditional orders
              * @param {bool} [$params->advanced] True if canceling $advanced orders only
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
@@ -1652,9 +1652,9 @@ class okcoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $advanced = $this->safe_value($params, 'advanced');
-            if ($stop || $advanced) {
+            if ($trigger || $advanced) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
                 return $this->safe_value($orderInner, 0);
             }
@@ -1710,7 +1710,7 @@ class okcoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $advanced = $this->safe_value($params, 'advanced');
             $params = $this->omit($params, array( 'stop', 'trigger', 'advanced' ));
             $market = $this->market($symbol);
@@ -1728,7 +1728,7 @@ class okcoin extends Exchange {
                     }
                 }
                 for ($i = 0; $i < count($ids); $i++) {
-                    if ($stop || $advanced) {
+                    if ($trigger || $advanced) {
                         $request[] = array(
                             'algoId' => $ids[$i],
                             'instId' => $market['id'],
@@ -1749,7 +1749,7 @@ class okcoin extends Exchange {
                 }
             }
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privatePostTradeCancelAlgos ($request));
             } elseif ($advanced) {
                 $response = Async\await($this->privatePostTradeCancelAdvanceAlgos ($request));
@@ -2009,8 +2009,8 @@ class okcoin extends Exchange {
                 // 'ordId' => $id,
             );
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
-            if ($stop) {
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+            if ($trigger) {
                 if ($clientOrderId !== null) {
                     $request['algoClOrdId'] = $clientOrderId;
                 } else {
@@ -2025,7 +2025,7 @@ class okcoin extends Exchange {
             }
             $query = $this->omit($params, array( 'clientOrderId', 'stop', 'trigger' ));
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privateGetTradeOrderAlgo ($this->extend($request, $query)));
             } else {
                 $response = Async\await($this->privateGetTradeOrder ($this->extend($request, $query)));
@@ -2048,14 +2048,14 @@ class okcoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] True if fetching trigger or conditional orders
+             * @param {bool} [$params->trigger] True if fetching $trigger or conditional orders
              * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array(
                 // 'instId' => $market['id'],
-                // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated, $stop orders => conditional, oco, trigger, move_order_stop, iceberg, or twap
+                // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated, stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
                 // 'state' => 'live', // live, partially_filled
                 // 'after' => orderId,
                 // 'before' => orderId,
@@ -2070,13 +2070,13 @@ class okcoin extends Exchange {
                 $request['limit'] = $limit; // default 100, max 100
             }
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop') || ($this->safe_string($params, 'ordType') !== null);
-            if ($stop && ($ordType === null)) {
-                $request['ordType'] = 'trigger'; // default to trigger
+            $trigger = $this->safe_value($params, 'stop') || ($this->safe_string($params, 'ordType') !== null);
+            if ($trigger && ($ordType === null)) {
+                $request['ordType'] = 'trigger'; // default to $trigger
             }
             $params = $this->omit($params, array( 'stop' ));
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privateGetTradeOrdersAlgoPending ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateGetTradeOrdersPending ($this->extend($request, $params)));
@@ -2099,7 +2099,7 @@ class okcoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] True if fetching trigger or conditional orders
+             * @param {bool} [$params->trigger] True if fetching $trigger or conditional orders
              * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -2113,13 +2113,13 @@ class okcoin extends Exchange {
                 $request['instId'] = $market['id'];
             }
             $ordType = $this->safe_string($params, 'ordType');
-            $stop = $this->safe_value($params, 'stop') || ($this->safe_string($params, 'ordType') !== null);
-            if ($stop && ($ordType === null)) {
-                $request['ordType'] = 'trigger'; // default to trigger
+            $trigger = $this->safe_value($params, 'stop') || ($this->safe_string($params, 'ordType') !== null);
+            if ($trigger && ($ordType === null)) {
+                $request['ordType'] = 'trigger'; // default to $trigger
             }
             $params = $this->omit($params, array( 'stop' ));
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->privateGetTradeOrdersAlgoHistory ($this->extend($request, $params)));
             } else {
                 $method = null;
@@ -2903,7 +2903,7 @@ class okcoin extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $method = null;

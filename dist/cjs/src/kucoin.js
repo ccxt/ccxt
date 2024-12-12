@@ -557,6 +557,7 @@ class kucoin extends kucoin$1 {
                     '400008': errors.NotSupported,
                     '400100': errors.InsufficientFunds,
                     '400200': errors.InvalidOrder,
+                    '400330': errors.InvalidOrder,
                     '400350': errors.InvalidOrder,
                     '400370': errors.InvalidOrder,
                     '400400': errors.BadRequest,
@@ -908,6 +909,7 @@ class kucoin extends kucoin$1 {
                     'TRUE': 'true',
                     'CS': 'cs',
                     'ORAI': 'orai',
+                    'BASE': 'base',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -981,6 +983,74 @@ class kucoin extends kucoin$1 {
                     'cross': 'MARGIN_TRADE',
                     'isolated': 'MARGIN_ISOLATED_TRADE',
                     'spot': 'TRADE',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        // exchange-supported features
+                        // 'iceberg': true,
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 7, // per  implementation comments
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 7,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });
@@ -2162,7 +2232,7 @@ class kucoin extends kucoin$1 {
      * market orders --------------------------------------------------
      * @param {string} [params.funds] // Amount of quote currency to use
      * stop orders ----------------------------------------------------
-     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
+     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
      * margin orders --------------------------------------------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
@@ -2503,7 +2573,7 @@ class kucoin extends kucoin$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancelling a stop order
+     * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns Response from the exchange
@@ -2512,7 +2582,7 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool2(params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         let useSync = false;
@@ -2528,7 +2598,7 @@ class kucoin extends kucoin$1 {
         params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, params));
                 //
                 //    {
@@ -2572,7 +2642,7 @@ class kucoin extends kucoin$1 {
         }
         else {
             request['orderId'] = id;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, params));
                 //
                 //    {
@@ -2624,7 +2694,7 @@ class kucoin extends kucoin$1 {
      * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *invalid for isolated margin* true if cancelling all stop orders
+     * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
      * @param {bool} [params.hf] false, // true for hf order
@@ -2633,7 +2703,7 @@ class kucoin extends kucoin$1 {
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const stop = this.safeBool(params, 'stop', false);
+        const trigger = this.safeBool(params, 'stop', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         params = this.omit(params, 'stop');
@@ -2643,12 +2713,12 @@ class kucoin extends kucoin$1 {
         }
         if (marginMode !== undefined) {
             request['tradeType'] = this.options['marginModes'][marginMode];
-            if (marginMode === 'isolated' && stop) {
+            if (marginMode === 'isolated' && trigger) {
                 throw new errors.BadRequest(this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateDeleteStopOrderCancel(this.extend(request, query));
         }
         else if (hf) {
@@ -2681,9 +2751,9 @@ class kucoin extends kucoin$1 {
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2691,7 +2761,7 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         let lowercaseStatus = status.toLowerCase();
         const until = this.safeInteger(params, 'until');
-        const stop = this.safeBool2(params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         if (hf && (symbol === undefined)) {
@@ -2724,7 +2794,7 @@ class kucoin extends kucoin$1 {
         }
         request['tradeType'] = this.safeString(this.options['marginModes'], marginMode, 'TRADE');
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetStopOrder(this.extend(request, query));
         }
         else if (hf) {
@@ -2805,7 +2875,7 @@ class kucoin extends kucoin$1 {
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2832,12 +2902,12 @@ class kucoin extends kucoin$1 {
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @param {bool} [params.stop] true if fetching stop orders
+     * @param {bool} [params.trigger] true if fetching trigger orders
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2862,9 +2932,9 @@ class kucoin extends kucoin$1 {
      * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
      * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
      * @param {string} id Order id
-     * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+     * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.stop] true if fetching a stop order
+     * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2873,7 +2943,7 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool2(params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         let market = undefined;
@@ -2890,7 +2960,7 @@ class kucoin extends kucoin$1 {
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
-            if (stop) {
+            if (trigger) {
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
@@ -2911,7 +2981,7 @@ class kucoin extends kucoin$1 {
                 throw new errors.InvalidOrder(this.id + ' fetchOrder() requires an order id');
             }
             request['orderId'] = id;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateGetStopOrderOrderId(this.extend(request, params));
             }
             else if (hf) {
@@ -3054,7 +3124,7 @@ class kucoin extends kucoin$1 {
         const feeCurrencyId = this.safeString(order, 'feeCurrency');
         const cancelExist = this.safeBool(order, 'cancelExist', false);
         const responseStop = this.safeString(order, 'stop');
-        const stop = responseStop !== undefined;
+        const trigger = responseStop !== undefined;
         const stopTriggered = this.safeBool(order, 'stopTriggered', false);
         const isActive = this.safeBool2(order, 'isActive', 'active');
         const responseStatus = this.safeString(order, 'status');
@@ -3067,7 +3137,7 @@ class kucoin extends kucoin$1 {
                 status = 'closed';
             }
         }
-        if (stop) {
+        if (trigger) {
             if (responseStatus === 'NEW') {
                 status = 'open';
             }
@@ -3170,6 +3240,11 @@ class kucoin extends kucoin$1 {
         let response = undefined;
         [request, params] = this.handleUntilOption('endAt', request, params);
         if (hf) {
+            // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (since !== undefined) {
+                // only returns trades up to one week after the since param
+                request['startAt'] = since;
+            }
             response = await this.privateGetHfFills(this.extend(request, params));
         }
         else if (method === 'private_get_fills') {
@@ -4289,7 +4364,7 @@ class kucoin extends kucoin$1 {
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

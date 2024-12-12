@@ -127,7 +127,7 @@ public partial class digifinex : Exchange
                     } },
                     { "swap", new Dictionary<string, object>() {
                         { "get", new List<object>() {"account/balance", "account/positions", "account/finance_record", "account/trading_fee_rate", "account/transfer_record", "account/funding_fee", "trade/history_orders", "trade/history_trades", "trade/open_orders", "trade/order_info"} },
-                        { "post", new List<object>() {"account/leverage", "account/position_mode", "account/position_margin", "trade/batch_cancel_order", "trade/batch_order", "trade/cancel_order", "trade/order_place", "follow/sponsor_order", "follow/close_order", "follow/cancel_order", "follow/user_center_current", "follow/user_center_history", "follow/expert_current_open_order", "follow/add_algo", "follow/cancel_algo", "follow/account_available", "follow/plan_task", "follow/instrument_list"} },
+                        { "post", new List<object>() {"account/transfer", "account/leverage", "account/position_mode", "account/position_margin", "trade/batch_cancel_order", "trade/batch_order", "trade/cancel_order", "trade/order_place", "follow/sponsor_order", "follow/close_order", "follow/cancel_order", "follow/user_center_current", "follow/user_center_history", "follow/expert_current_open_order", "follow/add_algo", "follow/cancel_algo", "follow/account_available", "follow/plan_task", "follow/instrument_list"} },
                     } },
                 } },
             } },
@@ -2760,7 +2760,7 @@ public partial class digifinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3097,10 +3097,21 @@ public partial class digifinex : Exchange
     public override object parseTransfer(object transfer, object currency = null)
     {
         //
-        // transfer
+        // transfer between spot, margin and OTC
         //
         //     {
         //         "code": 0
+        //     }
+        //
+        // transfer between spot and swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "type": 2,
+        //             "currency": "USDT",
+        //             "transfer_amount": "5"
+        //         }
         //     }
         //
         // fetchTransfers
@@ -3115,7 +3126,8 @@ public partial class digifinex : Exchange
         //
         object fromAccount = null;
         object toAccount = null;
-        object type = this.safeInteger(transfer, "type");
+        object data = this.safeDict(transfer, "data", transfer);
+        object type = this.safeInteger(data, "type");
         if (isTrue(isEqual(type, 1)))
         {
             fromAccount = "spot";
@@ -3131,8 +3143,8 @@ public partial class digifinex : Exchange
             { "id", this.safeString(transfer, "transfer_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "currency", this.safeCurrencyCode(this.safeString(transfer, "currency"), currency) },
-            { "amount", this.safeNumber(transfer, "amount") },
+            { "currency", this.safeCurrencyCode(this.safeString(data, "currency"), currency) },
+            { "amount", this.safeNumber2(data, "amount", "transfer_amount") },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
             { "status", this.parseTransferStatus(this.safeString(transfer, "code")) },
@@ -3143,10 +3155,12 @@ public partial class digifinex : Exchange
      * @method
      * @name digifinex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+     * @param {string} toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -3155,21 +3169,48 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
+        object currencyId = getValue(currency, "id");
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
-        object request = new Dictionary<string, object>() {
-            { "currency_mark", getValue(currency, "id") },
-            { "num", this.currencyToPrecision(code, amount) },
-            { "from", fromId },
-            { "to", toId },
-        };
-        object response = await this.privateSpotPostTransfer(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0
-        //     }
-        //
+        object request = new Dictionary<string, object>() {};
+        object fromSwap = (isEqual(fromAccount, "swap"));
+        object toSwap = (isEqual(toAccount, "swap"));
+        object response = null;
+        object amountString = this.currencyToPrecision(code, amount);
+        if (isTrue(isTrue(fromSwap) || isTrue(toSwap)))
+        {
+            if (isTrue(isTrue((!isEqual(fromId, "1"))) && isTrue((!isEqual(toId, "1")))))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
+            }
+            ((IDictionary<string,object>)request)["type"] = ((bool) isTrue(toSwap)) ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
+            ((IDictionary<string,object>)request)["currency"] = currencyId;
+            ((IDictionary<string,object>)request)["transfer_amount"] = amountString;
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "type": 2,
+            //             "currency": "USDT",
+            //             "transfer_amount": "5"
+            //         }
+            //     }
+            //
+            response = await this.privateSwapPostAccountTransfer(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["currency_mark"] = currencyId;
+            ((IDictionary<string,object>)request)["num"] = amountString;
+            ((IDictionary<string,object>)request)["from"] = fromId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            ((IDictionary<string,object>)request)["to"] = toId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            //
+            //     {
+            //         "code": 0
+            //     }
+            //
+            response = await this.privateSpotPostTransfer(this.extend(request, parameters));
+        }
         return this.parseTransfer(response, currency);
     }
 

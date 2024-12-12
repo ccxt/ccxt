@@ -848,7 +848,7 @@ class woo(ccxt.async_support.woo):
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
-            'average': None,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,

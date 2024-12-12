@@ -125,7 +125,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a trigger order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -302,7 +302,7 @@ export default class cryptocom extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
