@@ -7703,7 +7703,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 20}, params))
+        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

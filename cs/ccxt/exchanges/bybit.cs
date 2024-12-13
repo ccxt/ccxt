@@ -8745,7 +8745,7 @@ public partial class bybit : Exchange
         }
         object data = await this.getLeverageTiersPaginated(symbol, this.extend(new Dictionary<string, object>() {
             { "paginate", true },
-            { "paginationCalls", 20 },
+            { "paginationCalls", 40 },
         }, parameters));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
