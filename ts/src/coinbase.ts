@@ -2954,23 +2954,23 @@ export default class coinbase extends Exchange {
                     };
                 }
             } else if (isStopLoss || isTakeProfit) {
-                let triggerPrice = undefined;
+                let tpslPrice = undefined;
                 if (isStopLoss) {
                     if (stopDirection === undefined) {
                         stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    tpslPrice = this.priceToPrecision (symbol, stopLossPrice);
                 } else {
                     if (stopDirection === undefined) {
                         stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    tpslPrice = this.priceToPrecision (symbol, takeProfitPrice);
                 }
                 request['order_configuration'] = {
                     'stop_limit_stop_limit_gtc': {
                         'base_size': this.amountToPrecision (symbol, amount),
                         'limit_price': this.priceToPrecision (symbol, price),
-                        'stop_price': triggerPrice,
+                        'stop_price': tpslPrice,
                         'stop_direction': stopDirection,
                     },
                 };
