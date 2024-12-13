@@ -1251,6 +1251,7 @@ ${caseStatements.join('\n')}
             content = content.replace(/var preciseAmount interface\{\} = /gm, "preciseAmount := ");
             content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
             content = content.replace(/ToString\(precise\)/gm, 'precise.ToString()')
+            content = content.replace(/ToString\((precise\w*)\)/gm, '$1.ToString()')
             content = content.replace(/<\-callDynamically/gm, '<-this.callDynamically') //fix this on the transpiler
 
         } else {
