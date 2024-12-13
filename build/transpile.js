@@ -2649,6 +2649,9 @@ class Transpiler {
                     // place main-scope await function calls within asyncio
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
                 }
+                if (tsContent.includes ('ccxt.pro.')) {
+                    fileHeaders.pyAsync += 'import ccxt.pro\n\n';
+                }
 
                 let finalPyHeaders = undefined;
                 if (isCcxtPro) {
