@@ -108,7 +108,8 @@ func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
 }
 
 func (e *Exchange) binaryConcatArray(a interface{}) string {
-	return a.(string) // stub
+	// return a.(string) // stub
+	return ""
 }
 
 func (e *Exchange) BinaryConcatArray(a interface{}) string {

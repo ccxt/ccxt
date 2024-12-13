@@ -379,12 +379,23 @@ func Mod(a, b interface{}) interface{} {
 		return nil
 	}
 
-	aVal, bVal, ok := NormalizeAndConvert(a, b)
-	if !ok || bVal.Float() == 0 {
+	aFloat := ToFloat64(a)
+	bFloat := ToFloat64(b)
+
+	if aFloat == math.NaN() || bFloat == math.NaN() {
 		return nil
 	}
+	res := math.Mod(aFloat, bFloat)
+	if IsInteger(res) {
+		return ParseInt(res)
+	}
+	return res
+	// aVal, bVal, ok := NormalizeAndConvert(a, b)
+	// if !ok || bVal.Float() == 0 {
+	// 	return nil
+	// }
 
-	return float64(int(aVal.Float()) % int(bVal.Float()))
+	// return float64(int(aVal.Float()) % int(bVal.Float()))
 }
 
 // IsEqual checks for equality of a and b with dynamic type support
