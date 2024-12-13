@@ -116,7 +116,8 @@ func (e *Exchange) BinaryConcatArray(a interface{}) string {
 }
 
 func (e *Exchange) numberToBE(n, padding interface{}) string {
-	return n.(string) // stub
+	// return n.(string) // stub
+	return ""
 }
 
 func (e *Exchange) NumberToBE(n, padding interface{}) string {

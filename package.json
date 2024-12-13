@@ -31,7 +31,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "transpileCsSingle": "tsx build/csharpTranspiler.ts",
-    "transpileCS": " \"Will transpile C#\" && tsx build/csharpTranspiler.ts --multi",
+    "transpileCS": "tsx build/csharpTranspiler.ts --multi",
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildGO": "./build-go.sh",
