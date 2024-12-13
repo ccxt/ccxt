@@ -2915,10 +2915,10 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'side': side.toUpperCase (),
         };
-        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        const isStop = stopPrice !== undefined;
+        const isStop = triggerPrice !== undefined;
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2938,7 +2938,7 @@ export default class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
-                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_price': this.priceToPrecision (symbol, triggerPrice),
                             'stop_direction': stopDirection,
                             'end_time': endTime,
                         },
@@ -2948,7 +2948,7 @@ export default class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
-                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_price': this.priceToPrecision (symbol, triggerPrice),
                             'stop_direction': stopDirection,
                         },
                     };
@@ -3239,7 +3239,6 @@ export default class coinbase extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'side'),
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': this.safeString (order, 'filled_size'),
