@@ -44,6 +44,6 @@ jobs:
       - name: Response Tests
         run: npm run response-go
       - name: Live tests
-        run: npm run live-tests -- go
+        run: npm run live-tests -- --go
 
 
