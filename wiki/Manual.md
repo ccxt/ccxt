@@ -4606,8 +4606,8 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
 <!-- tabs:end -->
-###### Trigger Direction
-Typically, it means to touch the price from **any direction**. However, if some exchanges require that you provided `triggerDirection`, with either `ascending` or `descending` values:
+<a name="trigger-direction" id="trigger-direction"></a>
+Typically, exchange automatically determines `triggerPrice`'s direction (whether it is "above" or "below" current price), however, some exchanges require that you provide `triggerDirection` with either `ascending` or `descending` values:
 
 ```
 params = {
