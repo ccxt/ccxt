@@ -5375,10 +5375,10 @@ export default class htx extends Exchange {
         } else {
             let triggerDirection = undefined;
             [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
-            if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) && !('operator' in params)) {
+            if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'ascending', 'descending' ])) && !('operator' in params)) {
                 throw new ArgumentsRequired (this.id + ' createOrder() : trigger order requires a "triggerDirection" parameter to be either "up" or "down"');
             }
-            request['operator'] = (triggerDirection === 'up') ? 'gte' : 'lte';
+            request['operator'] = (triggerDirection === 'ascending') ? 'gte' : 'lte';
             request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
