@@ -1193,7 +1193,6 @@ class bitteam extends bitteam$1 {
         const side = this.safeString(order, 'side');
         const feeRaw = this.safeValue(order, 'fee');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stopPrice');
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'executed');
         let fee = undefined;
@@ -1219,8 +1218,7 @@ class bitteam extends bitteam$1 {
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stopPrice'),
             'average': undefined,
             'amount': amount,
             'cost': undefined,

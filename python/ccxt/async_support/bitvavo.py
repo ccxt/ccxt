@@ -1112,7 +1112,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param float [params.stopPrice]: Alias for triggerPrice
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
@@ -1564,7 +1564,6 @@ class bitvavo(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
-        stopPrice = self.safe_number(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1578,8 +1577,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
             'average': None,

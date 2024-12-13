@@ -2482,7 +2482,6 @@ class bitmart(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.omit_zero(priceString),
-            'stopPrice': trailingActivationPrice,
             'triggerPrice': trailingActivationPrice,
             'amount': self.omit_zero(self.safe_string(order, 'size')),
             'cost': self.safe_string_2(order, 'filled_notional', 'filledNotional'),

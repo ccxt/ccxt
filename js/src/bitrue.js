@@ -1837,8 +1837,7 @@ export default class bitrue extends Exchange {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        const triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice')));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1852,8 +1851,7 @@ export default class bitrue extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1991,10 +1989,10 @@ export default class bitrue extends Exchange {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice !== undefined) {
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder(this.extend(request, params));
             data = response;

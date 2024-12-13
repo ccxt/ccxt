@@ -2583,7 +2583,6 @@ class bitmart extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->omit_zero($priceString),
-            'stopPrice' => $trailingActivationPrice,
             'triggerPrice' => $trailingActivationPrice,
             'amount' => $this->omit_zero($this->safe_string($order, 'size')),
             'cost' => $this->safe_string_2($order, 'filled_notional', 'filledNotional'),

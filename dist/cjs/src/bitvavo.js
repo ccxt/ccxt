@@ -1128,7 +1128,7 @@ class bitvavo extends bitvavo$1 {
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
@@ -1599,7 +1599,6 @@ class bitvavo extends bitvavo$1 {
         const timeInForce = this.safeString(order, 'timeInForce');
         const postOnly = this.safeValue(order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
-        const stopPrice = this.safeNumber(order, 'triggerPrice');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1613,8 +1612,7 @@ class bitvavo extends bitvavo$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
             'average': undefined,

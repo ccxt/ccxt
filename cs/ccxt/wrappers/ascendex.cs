@@ -279,7 +279,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -325,7 +325,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -377,7 +377,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>

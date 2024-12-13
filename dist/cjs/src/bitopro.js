@@ -981,7 +981,6 @@ class bitopro extends bitopro$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1024,13 +1023,13 @@ class bitopro extends bitopro$1 {
         }
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
-            if (stopPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
+            if (triggerPrice === undefined) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             const condition = this.safeString(params, 'condition');
             if (condition === undefined) {

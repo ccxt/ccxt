@@ -559,7 +559,6 @@ class btcbox extends Exchange {
             'status' => $status,
             'symbol' => $market['symbol'],
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'trades' => $trades,
