@@ -1269,6 +1269,7 @@ export default class hyperliquid extends Exchange {
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *trigger orders only* 'up' or 'down', the direction in which the trigger order is triggered
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
