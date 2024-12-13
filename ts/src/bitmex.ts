@@ -2651,7 +2651,7 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
-            'fundingTimestamp': this.parseToNumeric (this.iso8601 (fundingDatetime)),
+            'fundingTimestamp': this.parse8601 (fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber (contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
