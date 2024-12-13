@@ -3687,7 +3687,7 @@ class Exchange {
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
         if ($currencies !== null) {
-            // $currencies is always null when called in constructor but not when called from loadMarkets
+            // $currencies is always null when called in constructor but not when called from loadMarkets.
             $this->currencies = $this->deep_extend($this->currencies, $currencies);
         } else {
             $baseCurrencies = array();
