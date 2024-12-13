@@ -6371,6 +6371,7 @@ export default class Exchange {
         if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down' ]) && !(exchangeSpecificKey in params)) {
             throw new ArgumentsRequired (this.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
         }
+        // if old format was provided, overwrite to new
         if (triggerDirection === 'up') {
             triggerDirection = 'ascending';
         } else if (triggerDirection === 'down') {
