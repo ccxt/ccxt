@@ -6362,7 +6362,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @returns {string} returns the triggerDirection
+         * @returns {[string, object]} the trigger-direction value and omited params
          */
         let triggerDirection = this.safeString (params, 'triggerDirection');
         // throw exception if:
