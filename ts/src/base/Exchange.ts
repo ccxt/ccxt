@@ -6355,6 +6355,21 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
+    handleTriggerDirectionAndParams (params, exchangeSpecificKey: string) {
+        /**
+         * @ignore
+         * @method
+         * @returns {string} returns the triggerDirection
+         */
+        const triggerDirection = this.safeString (params, 'triggerDirection');
+        // check if exchange specific trigger-direction key was provided
+        if (!this.inArray (triggerDirection, [ 'ascending', 'descending' ]) && !(exchangeSpecificKey in params)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
+        }
+        params = this.omit (params, [ 'ascending', 'descending' ]);
+        return [ triggerDirection, params ];
+    }
+
     handleTriggerAndParams (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {

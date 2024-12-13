@@ -1268,8 +1268,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-     * @param {string} [params.triggerDirection] *trigger orders only* 'up' or 'down', the direction in which the trigger order is triggered
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at     * * @param {float} [params.triggerDirection] "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
@@ -1406,15 +1405,13 @@ export default class hyperliquid extends Exchange {
                     'tpsl': (isTp) ? 'tp' : 'sl',
                 };
             } else if (isTrigger) {
-                const triggerDirection = this.safeString (orderParams, 'triggerDirection');
-                if ((triggerDirection === undefined || !this.inArray (triggerDirection, [ 'up', 'down' ])) && !('tpsl' in orderParams)) {
-                    throw new ArgumentsRequired (this.id + ' createOrders() trigger orders require params["triggerDirection"] to be either "up" or "down"');
-                }
+                let triggerDirection = undefined;
+                [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (orderParams, 'tpsl');
                 let flagTp = undefined;
                 if (isBuy) {
-                    flagTp = (triggerDirection === 'up') ? 'sl' : 'tp';
+                    flagTp = (triggerDirection === 'ascending') ? 'sl' : 'tp';
                 } else {
-                    flagTp = (triggerDirection === 'up') ? 'tp' : 'sl';
+                    flagTp = (triggerDirection === 'ascending') ? 'tp' : 'sl';
                 }
                 orderType['trigger'] = {
                     'isMarket': isMarket,
