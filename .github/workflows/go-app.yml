@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: go get ./go/ccxt
       - name: Build
-        run: go build -x ./go/ccxt
+        run: go build ./go/ccxt
       - name: Build tests
         run: go build ./go/tests/main.go
       - name: Run Base Tests
