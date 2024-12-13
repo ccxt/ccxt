@@ -1185,7 +1185,6 @@ class bitteam(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'side')
         feeRaw = self.safe_value(order, 'fee')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'stopPrice')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed')
         fee = None
@@ -1210,8 +1209,7 @@ class bitteam(Exchange, ImplicitAPI):
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'average': None,
             'amount': amount,
             'cost': None,

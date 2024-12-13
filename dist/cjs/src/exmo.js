@@ -1540,7 +1540,7 @@ class exmo extends exmo$1 {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const stop = this.safeValue2(params, 'trigger', 'stop');
+        const trigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
@@ -1556,7 +1556,7 @@ class exmo extends exmo$1 {
             //
         }
         else {
-            if (stop) {
+            if (trigger) {
                 request['parent_order_id'] = id;
                 response = await this.privatePostStopMarketOrderCancel(this.extend(request, params));
                 //

@@ -992,17 +992,17 @@ class woo extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-        $isStop = $isTrailing || $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $reduceOnlyKey = $isStop ? 'reduceOnly' : 'reduce_only';
-        $clientOrderIdKey = $isStop ? 'clientOrderId' : 'client_order_id';
-        $orderQtyKey = $isStop ? 'quantity' : 'order_quantity';
-        $priceKey = $isStop ? 'price' : 'order_price';
-        $typeKey = $isStop ? 'type' : 'order_type';
+        $reduceOnlyKey = $isConditional ? 'reduceOnly' : 'reduce_only';
+        $clientOrderIdKey = $isConditional ? 'clientOrderId' : 'client_order_id';
+        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
+        $priceKey = $isConditional ? 'price' : 'order_price';
+        $typeKey = $isConditional ? 'type' : 'order_type';
         $request[$typeKey] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!$isStop) {
+        if (!$isConditional) {
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -1017,7 +1017,7 @@ class woo extends Exchange {
         if (!$isMarket && $price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        if ($isMarket && !$isStop) {
+        if ($isMarket && !$isConditional) {
             // for $market buy it requires the $amount of quote currency to spend
             $cost = $this->safe_string_2($params, 'cost', 'order_amount');
             $params = $this->omit($params, array( 'cost', 'order_amount' ));
@@ -1095,7 +1095,7 @@ class woo extends Exchange {
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
         $response = null;
-        if ($isStop) {
+        if ($isConditional) {
             $response = $this->v3PrivatePostAlgoOrder ($this->extend($request, $params));
         } else {
             $response = $this->v1PrivatePostOrder ($this->extend($request, $params));
@@ -1204,18 +1204,18 @@ class woo extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $isStop = $isTrailing || ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
         if ($isByClientOrder) {
             $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            if ($isStop) {
+            if ($isConditional) {
                 $response = $this->v3PrivatePutAlgoOrderClientClientOrderId ($this->extend($request, $params));
             } else {
                 $response = $this->v3PrivatePutOrderClientClientOrderId ($this->extend($request, $params));
             }
         } else {
             $request['oid'] = $id;
-            if ($isStop) {
+            if ($isConditional) {
                 $response = $this->v3PrivatePutAlgoOrderOid ($this->extend($request, $params));
             } else {
                 $response = $this->v3PrivatePutOrderOid ($this->extend($request, $params));
@@ -1248,12 +1248,12 @@ class woo extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $stop = $this->safe_bool($params, 'stop', false);
-        $params = $this->omit($params, 'stop');
-        if (!$stop && ($symbol === null)) {
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        if (!$isTrigger && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
@@ -1266,7 +1266,7 @@ class woo extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($stop) {
+        if ($isTrigger) {
             $request['order_id'] = $id;
             $response = $this->v3PrivateDeleteAlgoOrderOrderId ($this->extend($request, $params));
         } else {
@@ -1302,13 +1302,13 @@ class woo extends Exchange {
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($stop) {
+        if ($trigger) {
             return $this->v3PrivateDeleteAlgoOrdersPending ($params);
         }
         if ($symbol === null) {
@@ -1369,17 +1369,17 @@ class woo extends Exchange {
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $request['oid'] = $id;
             $response = $this->v3PrivateGetAlgoOrderOid ($this->extend($request, $params));
         } elseif ($clientOrderId) {
@@ -1439,7 +1439,7 @@ class woo extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing $orders
@@ -1454,7 +1454,7 @@ class woo extends Exchange {
         }
         $request = array();
         $market = null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $params = $this->omit($params, array( 'stop', 'trailing', 'trigger' ));
         if ($symbol !== null) {
@@ -1462,7 +1462,7 @@ class woo extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            if ($stop || $trailing) {
+            if ($trigger || $trailing) {
                 $request['createdTimeStart'] = $since;
             } else {
                 $request['start_t'] = $since;
@@ -1473,13 +1473,13 @@ class woo extends Exchange {
         } else {
             $request['size'] = 500;
         }
-        if ($stop) {
+        if ($trigger) {
             $request['algoType'] = 'stop';
         } elseif ($trailing) {
             $request['algoType'] = 'TRAILING_STOP';
         }
         $response = null;
-        if ($stop || $trailing) {
+        if ($trigger || $trailing) {
             $response = $this->v3PrivateGetAlgoOrders ($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateGetOrders ($this->extend($request, $params));
@@ -1531,7 +1531,7 @@ class woo extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
@@ -1554,7 +1554,7 @@ class woo extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
@@ -2601,8 +2601,8 @@ class woo extends Exchange {
                 if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
-                    $isStop = mb_strpos($path, 'algo') > -1;
-                    if ($isStop) {
+                    $isTrigger = mb_strpos($path, 'algo') > -1;
+                    if ($isTrigger) {
                         $params['brokerId'] = $brokerId;
                     } else {
                         $params['broker_id'] = $brokerId;

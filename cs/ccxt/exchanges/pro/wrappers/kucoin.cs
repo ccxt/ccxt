@@ -250,7 +250,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : trigger orders are watched if true
     /// </description>

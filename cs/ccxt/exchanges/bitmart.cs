@@ -2454,7 +2454,6 @@ public partial class bitmart : Exchange
             { "postOnly", postOnly },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.omitZero(priceString) },
-            { "stopPrice", trailingActivationPrice },
             { "triggerPrice", trailingActivationPrice },
             { "amount", this.omitZero(this.safeString(order, "size")) },
             { "cost", this.safeString2(order, "filled_notional", "filledNotional") },
@@ -2983,7 +2982,7 @@ public partial class bitmart : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.stop] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -3013,9 +3012,9 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
         } else
         {
-            object stop = this.safeBool2(parameters, "stop", "trigger");
+            object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            if (!isTrue(stop))
+            if (!isTrue(trigger))
             {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, parameters));
             } else

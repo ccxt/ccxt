@@ -3397,12 +3397,8 @@ public partial class hashkey : Exchange
 
     public virtual object handleTriggerOptionAndParams(object parameters, object methodName, object defaultValue = null)
     {
-        object isStop = defaultValue;
-        var isStopparametersVariable = this.handleOptionAndParams(parameters, methodName, "stop", isStop);
-        isStop = ((IList<object>)isStopparametersVariable)[0];
-        parameters = ((IList<object>)isStopparametersVariable)[1];
-        object isTrigger = isStop;
-        var isTriggerparametersVariable = this.handleOptionAndParams(parameters, methodName, "trigger", isTrigger);
+        object isTrigger = defaultValue;
+        var isTriggerparametersVariable = this.handleOptionAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
         isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
         return new List<object>() {isTrigger, parameters};

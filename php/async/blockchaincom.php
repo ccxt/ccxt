@@ -593,14 +593,14 @@ class blockchaincom extends Exchange {
                 'orderQty' => $this->amount_to_precision($symbol, $amount),
                 'clOrdId' => $clientOrderId,
             );
-            $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
+            $triggerPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
             $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
             if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
-                if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
+                if ($triggerPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
                 }
             }
-            if ($stopPrice !== null) {
+            if ($triggerPrice !== null) {
                 if ($uppercaseOrderType === 'MARKET') {
                     $request['ordType'] = 'STOP';
                 } elseif ($uppercaseOrderType === 'LIMIT') {
@@ -619,7 +619,7 @@ class blockchaincom extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($stopPriceRequired) {
-                $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPx'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order($response, $market);

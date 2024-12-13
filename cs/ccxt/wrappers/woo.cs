@@ -384,9 +384,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -412,9 +412,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -459,9 +459,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -498,9 +498,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -563,9 +563,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -628,9 +628,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>

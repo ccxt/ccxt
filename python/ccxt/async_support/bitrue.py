@@ -1778,8 +1778,7 @@ class bitrue(Exchange, ImplicitAPI):
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
         if type == 'limit_maker':
             type = 'limit'
-        stopPriceString = self.safe_string(order, 'stopPrice')
-        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
+        triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice')))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1793,8 +1792,7 @@ class bitrue(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1917,10 +1915,10 @@ class bitrue(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
                 request['newClientOrderId'] = clientOrderId
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is not None:
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is not None:
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = await self.spotV1PrivatePostOrder(self.extend(request, params))
             data = response
         else:

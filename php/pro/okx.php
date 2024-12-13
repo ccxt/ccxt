@@ -799,9 +799,9 @@ class okx extends \ccxt\async\okx {
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
             Async\await($this->load_markets());
-            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $isTrigger = $this->safe_value_2($params, 'stop', 'trigger', false);
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
+            Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
             $symbols = $this->market_symbols($symbols, null, true, true);
             $messageHash = 'myLiquidations';
             $messageHashes = array();
@@ -1674,7 +1674,7 @@ class okx extends \ccxt\async\okx {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] true if fetching trigger or conditional trades
+             * @param {bool} [$params->trigger] true if fetching trigger or conditional trades
              * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
@@ -1682,11 +1682,11 @@ class okx extends \ccxt\async\okx {
             // By default, receive order updates from any instrument $type
             $type = null;
             list($type, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'type', 'ANY');
-            $isStop = $this->safe_bool($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
             Async\await($this->load_markets());
-            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
-            $channel = $isStop ? 'orders-algo' : 'orders';
+            Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
+            $channel = $isTrigger ? 'orders-algo' : 'orders';
             $messageHash = $channel . '::myTrades';
             $market = null;
             if ($symbol !== null) {
@@ -1869,7 +1869,7 @@ class okx extends \ccxt\async\okx {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->stop] true if fetching trigger or conditional $orders
+             * @param {bool} [$params->trigger] true if fetching trigger or conditional $orders
              * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1877,10 +1877,10 @@ class okx extends \ccxt\async\okx {
             $type = null;
             // By default, receive order updates from any instrument $type
             list($type, $params) = $this->handle_option_and_params($params, 'watchOrders', 'type', 'ANY');
-            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $isTrigger = $this->safe_value_2($params, 'stop', 'trigger', false);
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             Async\await($this->load_markets());
-            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
+            Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1901,7 +1901,7 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'instType' => $uppercaseType,
             );
-            $channel = $isStop ? 'orders-algo' : 'orders';
+            $channel = $isTrigger ? 'orders-algo' : 'orders';
             $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);

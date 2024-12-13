@@ -4245,7 +4245,6 @@ export default class bitget extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'stopPrice': this.safeNumber(order, 'triggerPrice'),
             'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'takeProfitPrice': this.safeNumber2(order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice': this.safeNumber2(order, 'presetStopLossPrice', 'stopLossTriggerPrice'),

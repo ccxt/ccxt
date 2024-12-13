@@ -1528,19 +1528,19 @@ class exmo extends Exchange {
          * cancels an open order
          *
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
-         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // $stop market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          *
          * @param {string} $id order $id
          * @param {string} $symbol not used by exmo cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] true to cancel a trigger order
+         * @param {boolean} [$params->trigger] true to cancel a $trigger order
          * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
-        $stop = $this->safe_value_2($params, 'trigger', 'stop');
+        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
@@ -1555,7 +1555,7 @@ class exmo extends Exchange {
             //    array()
             //
         } else {
-            if ($stop) {
+            if ($trigger) {
                 $request['parent_order_id'] = $id;
                 $response = $this->privatePostStopMarketOrderCancel ($this->extend($request, $params));
                 //

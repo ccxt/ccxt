@@ -859,7 +859,7 @@ class coinex(ccxt.async_support.coinex):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'trigger', 'stop')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
         market = None
@@ -880,7 +880,7 @@ class coinex(ccxt.async_support.coinex):
             else:
                 messageHash += ':swap'
         method = None
-        if stop:
+        if trigger:
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'

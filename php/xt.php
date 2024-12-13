@@ -2456,8 +2456,8 @@ class xt extends Exchange {
          * @param {string} $id $order $id
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the $order is a $stop trigger $order or not
-         * @param {bool} [$params->stopLossTakeProfit] if the $order is a $stop-loss or take-profit $order
+         * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
+         * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
@@ -2471,16 +2471,16 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
-        $stop = $this->safe_value($params, 'stop');
+        $trigger = $this->safe_value($params, 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-        if ($stop) {
+        if ($trigger) {
             $request['entrustId'] = $id;
         } elseif ($stopLossTakeProfit) {
             $request['profitId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
-        if ($stop) {
+        if ($trigger) {
             $params = $this->omit($params, 'stop');
             if ($subType === 'inverse') {
                 $response = $this->privateInverseGetFutureTradeV1EntrustPlanDetail ($this->extend($request, $params));
@@ -2567,7 +2567,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        // trigger
+        // $trigger
         //
         //     {
         //         "returnCode" => 0,
@@ -2593,7 +2593,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        // $stop-loss and take-profit
+        // stop-loss and take-profit
         //
         //     {
         //         "returnCode" => 0,
@@ -2634,7 +2634,7 @@ class xt extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the order is a $stop trigger order or not
+         * @param {bool} [$params->trigger] if the order is a $trigger order or not
          * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
@@ -2655,9 +2655,9 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrders', $market, $params);
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            $params = $this->omit($params, 'stop');
+        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($trigger) {
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
                 $response = $this->privateInverseGetFutureTradeV1EntrustPlanListHistory ($this->extend($request, $params));
             } else {
@@ -2752,7 +2752,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        // $stop
+        // stop
         //
         //     {
         //         "returnCode" => 0,
@@ -2802,22 +2802,22 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $params);
-        $stop = $this->safe_value($params, 'stop');
+        $trigger = $this->safe_value($params, 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
         if ($status === 'open') {
-            if ($stop || $stopLossTakeProfit) {
+            if ($trigger || $stopLossTakeProfit) {
                 $request['state'] = 'NOT_TRIGGERED';
             } elseif ($subType !== null) {
                 $request['state'] = 'NEW';
             }
         } elseif ($status === 'closed') {
-            if ($stop || $stopLossTakeProfit) {
+            if ($trigger || $stopLossTakeProfit) {
                 $request['state'] = 'TRIGGERED';
             } else {
                 $request['state'] = 'FILLED';
             }
         } elseif ($status === 'canceled') {
-            if ($stop || $stopLossTakeProfit) {
+            if ($trigger || $stopLossTakeProfit) {
                 $request['state'] = 'USER_REVOCATION';
             } else {
                 $request['state'] = 'CANCELED';
@@ -2825,7 +2825,7 @@ class xt extends Exchange {
         } else {
             $request['state'] = $status;
         }
-        if ($stop || $stopLossTakeProfit || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
+        if ($trigger || $stopLossTakeProfit || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
@@ -2833,7 +2833,7 @@ class xt extends Exchange {
                 $request['size'] = $limit;
             }
         }
-        if ($stop) {
+        if ($trigger) {
             $params = $this->omit($params, 'stop');
             if ($subType === 'inverse') {
                 $response = $this->privateInverseGetFutureTradeV1EntrustPlanList ($this->extend($request, $params));
@@ -2983,7 +2983,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        // $stop
+        // stop
         //
         //     {
         //         "returnCode" => 0,
@@ -3016,7 +3016,7 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        // $stop-loss and take-profit
+        // stop-loss and take-profit
         //
         //     {
         //         "returnCode" => 0,
@@ -3067,7 +3067,7 @@ class xt extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the order is a stop trigger order or not
+         * @param {bool} [$params->trigger] if the order is a trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
          * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3087,7 +3087,7 @@ class xt extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the order is a stop trigger order or not
+         * @param {bool} [$params->trigger] if the order is a trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
          * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3107,7 +3107,7 @@ class xt extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the order is a stop trigger order or not
+         * @param {bool} [$params->trigger] if the order is a trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
@@ -3126,8 +3126,8 @@ class xt extends Exchange {
          * @param {string} $id $order $id
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the $order is a $stop trigger $order or not
-         * @param {bool} [$params->stopLossTakeProfit] if the $order is a $stop-loss or take-profit $order
+         * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
+         * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
@@ -3141,17 +3141,17 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
-        $stop = $this->safe_value($params, 'stop');
+        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-        if ($stop) {
+        if ($trigger) {
             $request['entrustId'] = $id;
         } elseif ($stopLossTakeProfit) {
             $request['profitId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
-        if ($stop) {
-            $params = $this->omit($params, 'stop');
+        if ($trigger) {
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
                 $response = $this->privateInversePostFutureTradeV1EntrustCancelPlan ($this->extend($request, $params));
             } else {
@@ -3208,8 +3208,8 @@ class xt extends Exchange {
          *
          * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the xt api endpoint
-         * @param {bool} [$params->stop] if the order is a $stop trigger order or not
-         * @param {bool} [$params->stopLossTakeProfit] if the order is a $stop-loss or take-profit order
+         * @param {bool} [$params->trigger] if the order is a $trigger order or not
+         * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
          * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
@@ -3224,10 +3224,10 @@ class xt extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
-        $stop = $this->safe_value($params, 'stop');
+        $trigger = $this->safe_value_2($params, 'trigger', 'stop');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-        if ($stop) {
-            $params = $this->omit($params, 'stop');
+        if ($trigger) {
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
             if ($subType === 'inverse') {
                 $response = $this->privateInversePostFutureTradeV1EntrustCancelAllPlan ($this->extend($request, $params));
             } else {

@@ -818,10 +818,10 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object isStop = this.safeValue2(parameters, "stop", "trigger", false);
+        object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         await this.authenticate(new Dictionary<string, object>() {
-            { "access", ((bool) isTrue(isStop)) ? "business" : "private" },
+            { "access", ((bool) isTrue(isTrigger)) ? "business" : "private" },
         });
         symbols = this.marketSymbols(symbols, null, true, true);
         object messageHash = "myLiquidations";
@@ -1767,7 +1767,7 @@ public partial class okx : ccxt.okx
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional trades
+     * @param {bool} [params.trigger] true if fetching trigger or conditional trades
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -1780,13 +1780,13 @@ public partial class okx : ccxt.okx
         var typeparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "type", "ANY");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isStop = this.safeBool(parameters, "stop", false);
-        parameters = this.omit(parameters, new List<object>() {"stop"});
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         await this.loadMarkets();
         await this.authenticate(new Dictionary<string, object>() {
-            { "access", ((bool) isTrue(isStop)) ? "business" : "private" },
+            { "access", ((bool) isTrue(isTrigger)) ? "business" : "private" },
         });
-        object channel = ((bool) isTrue(isStop)) ? "orders-algo" : "orders";
+        object channel = ((bool) isTrue(isTrigger)) ? "orders-algo" : "orders";
         object messageHash = add(channel, "::myTrades");
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1981,7 +1981,7 @@ public partial class okx : ccxt.okx
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] true if fetching trigger or conditional orders
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1994,11 +1994,11 @@ public partial class okx : ccxt.okx
         var typeparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "type", "ANY");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isStop = this.safeValue2(parameters, "stop", "trigger", false);
+        object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         await this.loadMarkets();
         await this.authenticate(new Dictionary<string, object>() {
-            { "access", ((bool) isTrue(isStop)) ? "business" : "private" },
+            { "access", ((bool) isTrue(isTrigger)) ? "business" : "private" },
         });
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2026,7 +2026,7 @@ public partial class okx : ccxt.okx
         object request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        object channel = ((bool) isTrue(isStop)) ? "orders-algo" : "orders";
+        object channel = ((bool) isTrue(isTrigger)) ? "orders-algo" : "orders";
         object orders = await this.subscribe("private", channel, channel, symbol, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {

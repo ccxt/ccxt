@@ -574,7 +574,6 @@ class bitbns extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'rate'),
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $this->safe_string($order, 'btc'),
             'cost' => null,

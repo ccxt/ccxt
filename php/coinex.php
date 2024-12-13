@@ -2600,14 +2600,14 @@ class coinex extends Exchange {
          * cancel multiple orders
          *
          * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$order
-         * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$stop-$order
+         * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-$order
          * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$order
-         * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$stop-$order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-$order
          *
          * @param {string[]} $ids $order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true for canceling $stop orders
+         * @param {boolean} [$params->trigger] set to true for canceling stop orders
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
         if ($symbol === null) {
@@ -2618,20 +2618,20 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         $requestIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             $requestIds[] = intval($ids[$i]);
         }
-        if ($stop) {
+        if ($trigger) {
             $request['stop_ids'] = $requestIds;
         } else {
             $request['order_ids'] = $requestIds;
         }
         if ($market['spot']) {
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->v2PrivatePostSpotCancelBatchStopOrder ($this->extend($request, $params));
                 //
                 //     {
@@ -2701,7 +2701,7 @@ class coinex extends Exchange {
             }
         } else {
             $request['market_type'] = 'FUTURES';
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->v2PrivatePostFuturesCancelBatchStopOrder ($this->extend($request, $params));
                 //
                 //     {
@@ -3360,16 +3360,16 @@ class coinex extends Exchange {
          * fetch a list of orders
          *
          * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
-         * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-$stop-order
+         * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
          * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
-         * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-$stop-order
+         * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
          *
          * @param {string} $status order $status to fetch for
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true for fetching trigger orders
+         * @param {boolean} [$params->trigger] set to true for fetching $trigger orders
          * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching spot margin orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -3383,7 +3383,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
@@ -3393,7 +3393,7 @@ class coinex extends Exchange {
         if ($marketType === 'swap') {
             $request['market_type'] = 'FUTURES';
             if ($isClosed) {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->v2PrivateGetFuturesFinishedStopOrder ($this->extend($request, $params));
                     //
                     //     {
@@ -3455,7 +3455,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($isOpen) {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->v2PrivateGetFuturesPendingStopOrder ($this->extend($request, $params));
                     //
                     //     {
@@ -3531,7 +3531,7 @@ class coinex extends Exchange {
                 $request['market_type'] = 'SPOT';
             }
             if ($isClosed) {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->v2PrivateGetSpotFinishedStopOrder ($this->extend($request, $params));
                     //
                     //     {
@@ -3596,7 +3596,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($status === 'pending') {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->v2PrivateGetSpotPendingStopOrder ($this->extend($request, $params));
                     //
                     //     {

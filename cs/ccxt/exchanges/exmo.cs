@@ -1568,7 +1568,7 @@ public partial class exmo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object stop = this.safeValue2(parameters, "trigger", "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -1585,7 +1585,7 @@ public partial class exmo : Exchange
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, parameters));
         } else
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 ((IDictionary<string,object>)request)["parent_order_id"] = id;
                 response = await this.privatePostStopMarketOrderCancel(this.extend(request, parameters));
