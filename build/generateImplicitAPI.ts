@@ -1,4 +1,4 @@
-import ccxt from '../js/ccxt.js';
+import ccxt from '../ts/ccxt.js';
 import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
