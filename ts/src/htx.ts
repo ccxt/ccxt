@@ -5576,6 +5576,7 @@ export default class htx extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price a trigger order is triggered at
+     * @param {float} [params.triggerDirection] the direction for trigger price, "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
      * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
      * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
      * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
