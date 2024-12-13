@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
 
-const JS_PATH = './js/src/abstract/';
+// const JS_PATH = './js/src/abstract/';
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
@@ -11,6 +11,28 @@ const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/ccxt/'
 const IDEN = '    ';
+
+
+let storedCamelCaseMethods = {};
+let storedUnderscoreMethods = {};
+let storedTypeScriptMethods = {};
+let storedCSharpMethods = {};
+let storedContext = {};
+let storedPhpMethods = {};
+let storedPyMethods = {};
+let storedGoMethods = {};
+
+
+const [,, ...args] = process.argv
+const langKeys = {
+    '--ts': false,
+    '--js': false,
+    '--php': false,
+    '--python': false,
+    '--csharp': false,
+    '--go': false,
+}
+
 
 const promisedWriteFile = promisify (fs.writeFile);
 const promisedUnlinkFile = promisify (fs.unlink)
@@ -50,7 +72,7 @@ function generateImplicitMethodNames(id, api, paths = []){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
-        let endpoints = []
+        let endpoints: string[] = []
         if (isHttpMethod(key)){
             if (value && !Array.isArray(value)) {
                 endpoints = Object.keys(value)
@@ -74,7 +96,7 @@ function generateImplicitMethodNames(id, api, paths = []){
                 storedCamelCaseMethods[id].push (camelCasePath)
                 let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
                 storedUnderscoreMethods[id].push (underscorePath)
-                let config = undefined
+                let config: {} = undefined
                 if (Array.isArray (value)) {
                     config = {}
                 } else {
@@ -102,7 +124,26 @@ function generateImplicitMethodNames(id, api, paths = []){
 
 //-------------------------------------------------------------------------
 
-function createImplicitMethodsPyPhp(){
+function createImplicitMethodsPython(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const camelCaseMethods = storedCamelCaseMethods[exchange];
+        const underscoreMethods = storedUnderscoreMethods[exchange]
+
+        const pythonMethods = underscoreMethods.map ((method, idx) => {
+            const i = idx % underscoreMethods.length
+            const camelCaseMethod = camelCaseMethods[i]
+            const context = storedContext[exchange][i]
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
+        })
+        storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
+    }
+}
+
+// -------------------------------------------------------------------------
+
+function createImplicitMethodsPhp(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
         const exchange = exchanges[index];
@@ -119,18 +160,29 @@ function createImplicitMethodsPyPhp(){
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
-        const pythonMethods = underscoreMethods.map ((method, idx) => {
-            const i = idx % underscoreMethods.length
-            const camelCaseMethod = camelCaseMethods[i]
-            const context = storedContext[exchange][i]
-            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
-        })
+
         typeScriptMethods.push ('}')
         phpMethods.push ('}')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
-        storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
+    }
+}
+
+// -------------------------------------------------------------------------
+
+function createImplicitMethodsTs(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const camelCaseMethods = storedCamelCaseMethods[exchange];
+
+        const typeScriptMethods = camelCaseMethods.map (method => {
+            return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
+        });
+        typeScriptMethods.push ('}')
+        const footer = storedTypeScriptMethods[exchange].pop ()
+        storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
     }
 }
 
@@ -191,7 +243,6 @@ function createImplicitMethodsGo(){
             //     ``,
             // ].join('\n')
         });
-        
        storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
@@ -283,10 +334,7 @@ function createGoHeader(exchange, parent){
 
 //-------------------------------------------------------------------------
 
-async function main() {
-    log.bright.cyan ('Exporting TypeScript implicit api methods')
-    const exchanges = ccxt.exchanges;
-    // const exchanges = ['binance']; // tmp
+function populateImplicitMethods(exchanges: string[]) {
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = ccxt[exchange]
@@ -310,40 +358,72 @@ async function main() {
 
         generateImplicitMethodNames (exchange, api)
     }
-    createImplicitMethodsPyPhp ()
-    createImplicitMethodsCSharp()
-    createImplicitMethodsGo()
-    await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
-    log.bright.cyan ('TypeScript implicit api methods completed!')
-    await editFiles (PHP_PATH, storedPhpMethods, '.php');
-    log.bright.cyan ('PHP sync implicit api methods completed!')
-    // one more time for the async php
-    Object.values (storedPhpMethods).forEach (x => {
-        x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
-        x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
-    })
-    await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
-    log.bright.cyan ('PHP async implicit api methods completed!')
-    await editAPIFilesCSharp();
-    log.bright.cyan ('Csharp implicit api methods completed!')
 
-    await editFiles (PY_PATH, storedPyMethods, '.py');
-    log.bright.cyan ('Python implicit api methods completed!')
-
-    await editAPIFilesGo()
-    log.bright.cyan ('GO implicit api methods completed!')
-    await unlinkFiles (JS_PATH, '.js')
-    await unlinkFiles (JS_PATH, '.d.ts')
 }
-let storedCamelCaseMethods = {};
-let storedUnderscoreMethods = {};
-// let storedPhpResult = {};
-let storedTypeScriptMethods = {};
-let storedCSharpResult = {};
-// let storedPyResult = {};
-let storedCSharpMethods = {};
-let storedContext = {};
-let storedPhpMethods = {};
-let storedPyMethods = {};
-let storedGoMethods = {};
+
+//-------------------------------------------------------------------------
+
+function readOptions() {
+    for (const arg of args) {
+        if (arg in langKeys) {
+            langKeys[arg] = true;
+        }
+    }
+}
+
+//-------------------------------------------------------------------------
+
+async function main() {
+    readOptions();
+    const shouldGenerateAll = args.length === 0;
+
+    const exchanges = ccxt.exchanges;
+
+    log.bright.cyan ('Exporting TypeScript implicit api methods')
+    populateImplicitMethods(exchanges); // common step for all languages
+
+    if (shouldGenerateAll || langKeys['--ts']) {
+        createImplicitMethodsTs ()
+        await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
+        log.bright.cyan ('TypeScript implicit api methods completed!')
+
+    }
+
+    if (shouldGenerateAll || langKeys['--python']) {
+        createImplicitMethodsPython ()
+        await editFiles (PY_PATH, storedPyMethods, '.py');
+        log.bright.cyan ('Python implicit api methods completed!')
+
+    }
+
+    if (shouldGenerateAll || langKeys['--php']) {
+        createImplicitMethodsPhp ()
+        await editFiles (PHP_PATH, storedPhpMethods, '.php');
+        log.bright.cyan ('PHP sync implicit api methods completed!')
+        // one more time for the async php
+        Object.values (storedPhpMethods).forEach (x => {
+            x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
+            x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
+        })
+        await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
+        log.bright.cyan ('PHP async implicit api methods completed!')
+    }
+
+    if (shouldGenerateAll || langKeys['--csharp']) {
+        createImplicitMethodsCSharp()
+        await editAPIFilesCSharp();
+        log.bright.cyan ('C# implicit api methods completed!')
+    }
+
+
+    if (shouldGenerateAll || langKeys['--go']) {
+        createImplicitMethodsGo()
+        await editAPIFilesGo()
+        log.bright.cyan ('GO implicit api methods completed!')
+    }
+
+    // await unlinkFiles (JS_PATH, '.js')
+    // await unlinkFiles (JS_PATH, '.d.ts')
+}
+
 main()
