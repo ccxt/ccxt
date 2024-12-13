@@ -6172,15 +6172,10 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
-            // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            $params = $this->omit($params, 'reduceOnly');
-            if ($market['option']) {
-                $request['reduceOnly'] = $reduceOnly;
-            } else {
-                if ($reduceOnly) {
-                    $request['sideEffectType'] = 'AUTO_REPAY';
-                }
+        if ($reduceOnly) {
+            if ($marketType === 'margin' || (!$market['contract'] && ($marginMode !== null))) {
+                $params = $this->omit($params, 'reduceOnly');
+                $request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');

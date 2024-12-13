@@ -6009,14 +6009,10 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        if (marketType == 'margin') or (marginMode is not None) or market['option']:
-            # for swap and future reduceOnly is a string that cant be sent with close position set to True or in hedge mode
-            params = self.omit(params, 'reduceOnly')
-            if market['option']:
-                request['reduceOnly'] = reduceOnly
-            else:
-                if reduceOnly:
-                    request['sideEffectType'] = 'AUTO_REPAY'
+        if reduceOnly:
+            if marketType == 'margin' or (not market['contract'] and (marginMode is not None)):
+                params = self.omit(params, 'reduceOnly')
+                request['sideEffectType'] = 'AUTO_REPAY'
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')

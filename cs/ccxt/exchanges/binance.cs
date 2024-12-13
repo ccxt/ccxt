@@ -6422,19 +6422,12 @@ public partial class binance : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        if (isTrue(isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(getValue(market, "option"))))
+        if (isTrue(reduceOnly))
         {
-            // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            parameters = this.omit(parameters, "reduceOnly");
-            if (isTrue(getValue(market, "option")))
+            if (isTrue(isTrue(isEqual(marketType, "margin")) || isTrue((!isTrue(getValue(market, "contract")) && isTrue((!isEqual(marginMode, null)))))))
             {
-                ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
-            } else
-            {
-                if (isTrue(reduceOnly))
-                {
-                    ((IDictionary<string,object>)request)["sideEffectType"] = "AUTO_REPAY";
-                }
+                parameters = this.omit(parameters, "reduceOnly");
+                ((IDictionary<string,object>)request)["sideEffectType"] = "AUTO_REPAY";
             }
         }
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
