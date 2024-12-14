@@ -4215,7 +4215,6 @@ class bitget extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
-            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
             'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'takeProfitPrice' => $this->safe_number_2($order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice' => $this->safe_number_2($order, 'presetStopLossPrice', 'stopLossTriggerPrice'),

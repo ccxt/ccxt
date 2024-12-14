@@ -259,6 +259,68 @@ class coinbaseinternational extends Exchange {
                     'bitcoin' => 'BTC',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false, // todo implementation
+                        'takeProfitPrice' => false, // todo implementation
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                            'GTC' => true, // has 30 days max
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
+            ),
         ));
     }
 

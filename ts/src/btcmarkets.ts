@@ -1059,7 +1059,6 @@ export default class btcmarkets extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
-        const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeBool (order, 'postOnly');
         return this.safeOrder ({
             'info': order,
@@ -1074,8 +1073,7 @@ export default class btcmarkets extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

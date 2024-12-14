@@ -2557,7 +2557,6 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.omitZero (priceString),
-            'stopPrice': trailingActivationPrice,
             'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero (this.safeString (order, 'size')),
             'cost': this.safeString2 (order, 'filled_notional', 'filledNotional'),

@@ -1066,17 +1066,17 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] trigger orders are watched if true
+     * @param {boolean} [params.trigger] trigger orders are watched if true
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object url = await this.negotiate(true);
-        object topic = ((bool) isTrue(stop)) ? "/spotMarket/advancedOrders" : "/spotMarket/tradeOrders";
+        object topic = ((bool) isTrue(trigger)) ? "/spotMarket/advancedOrders" : "/spotMarket/tradeOrders";
         object request = new Dictionary<string, object>() {
             { "privateChannel", true },
         };

@@ -964,7 +964,6 @@ class bitopro(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1006,12 +1005,12 @@ class bitopro(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
+            if triggerPrice is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders')
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             condition = self.safe_string(params, 'condition')
             if condition is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')

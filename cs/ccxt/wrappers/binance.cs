@@ -911,9 +911,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -971,7 +971,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
     /// </description>
@@ -1068,9 +1068,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1128,9 +1128,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1188,9 +1188,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1231,7 +1231,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel a portfolio margin account conditional order
     /// </description>
@@ -1277,7 +1277,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel portfolio margin account conditional orders
     /// </description>

@@ -209,9 +209,9 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *spot only* whether the order is a stop order
+    /// boolean : *spot only* whether the order is a trigger order
     /// </description>
     /// </item>
     /// <item>

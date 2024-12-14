@@ -989,7 +989,6 @@ class bitopro extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1033,12 +1032,12 @@ class bitopro extends Exchange {
         }
         if ($orderType === 'STOP_LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
+            if ($triggerPrice === null) {
+                throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice parameter for ' . $orderType . ' orders');
             } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $condition = $this->safe_string($params, 'condition');
             if ($condition === null) {

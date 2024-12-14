@@ -2559,7 +2559,6 @@ export default class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.omitZero(priceString),
-            'stopPrice': trailingActivationPrice,
             'triggerPrice': trailingActivationPrice,
             'amount': this.omitZero(this.safeString(order, 'size')),
             'cost': this.safeString2(order, 'filled_notional', 'filledNotional'),
@@ -3025,7 +3024,7 @@ export default class bitmart extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.stop] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3050,9 +3049,9 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
         }
         else {
-            const stop = this.safeBool2(params, 'stop', 'trigger');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
             params = this.omit(params, ['stop', 'trigger']);
-            if (!stop) {
+            if (!trigger) {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
             }
             else {

@@ -1525,10 +1525,10 @@ class bitfinex extends Exchange {
             }
         }
         $price = $this->safe_string($orderList, 16);
-        $stopPrice = null;
+        $triggerPrice = null;
         if (($orderType === 'EXCHANGE STOP') || ($orderType === 'EXCHANGE STOP LIMIT')) {
             $price = null;
-            $stopPrice = $this->safe_string($orderList, 16);
+            $triggerPrice = $this->safe_string($orderList, 16);
             if ($orderType === 'EXCHANGE STOP LIMIT') {
                 $price = $this->safe_string($orderList, 19);
             }
@@ -1554,8 +1554,7 @@ class bitfinex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1577,7 +1576,7 @@ class bitfinex extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price of the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+         * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly]
          * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1595,7 +1594,7 @@ class bitfinex extends Exchange {
             'symbol' => $market['id'],
             'amount' => $amountString,
         );
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $trailingAmount = $this->safe_string($params, 'trailingAmount');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
@@ -1605,9 +1604,9 @@ class bitfinex extends Exchange {
         if ($trailingAmount !== null) {
             $orderType = 'TRAILING STOP';
             $request['price_trailing'] = $trailingAmount;
-        } elseif ($stopPrice !== null) {
+        } elseif ($triggerPrice !== null) {
             // $request['price'] is taken for stop orders
-            $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $orderType = 'STOP LIMIT';
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
@@ -1624,7 +1623,7 @@ class bitfinex extends Exchange {
         if (($ioc || $fok) && ($type === 'market')) {
             throw new InvalidOrder($this->id . ' createOrder() does not allow $market IOC and FOK orders');
         }
-        if (($type !== 'market') && ($stopPrice === null)) {
+        if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($ioc) {
@@ -1669,7 +1668,7 @@ class bitfinex extends Exchange {
          * @param {float} $amount the $amount of currency to trade
          * @param {float} [$price] $price of the $order
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
+         * @param {float} [$params->triggerPrice] the $price that triggers a trigger $order
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order
          * @param {boolean} [$params->reduceOnly] indicates that the $order is to reduce the size of a position
@@ -3689,7 +3688,7 @@ class bitfinex extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
+         * @param {float} [$params->triggerPrice] the $price that triggers a trigger $order
          * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order
          * @param {boolean} [$params->reduceOnly] indicates that the $order is to reduce the size of a position
          * @param {int} [$params->flags] additional $order parameters => 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
@@ -3708,7 +3707,7 @@ class bitfinex extends Exchange {
             $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
             $request['amount'] = $amountString;
         }
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $trailingAmount = $this->safe_string($params, 'trailingAmount');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
@@ -3716,15 +3715,15 @@ class bitfinex extends Exchange {
         $clientOrderId = $this->safe_integer_2($params, 'cid', 'clientOrderId');
         if ($trailingAmount !== null) {
             $request['price_trailing'] = $trailingAmount;
-        } elseif ($stopPrice !== null) {
+        } elseif ($triggerPrice !== null) {
             // $request['price'] is taken for stop orders
-            $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
             }
         }
         $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
-        if (($type !== 'market') && ($stopPrice === null)) {
+        if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         // flag values may be summed to combine $flags

@@ -569,7 +569,6 @@ export default class btcbox extends Exchange {
             'status': status,
             'symbol': market['symbol'],
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'trades': trades,

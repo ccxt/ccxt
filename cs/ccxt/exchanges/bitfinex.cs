@@ -1558,11 +1558,11 @@ public partial class bitfinex : Exchange
             }
         }
         object price = this.safeString(orderList, 16);
-        object stopPrice = null;
+        object triggerPrice = null;
         if (isTrue(isTrue((isEqual(orderType, "EXCHANGE STOP"))) || isTrue((isEqual(orderType, "EXCHANGE STOP LIMIT")))))
         {
             price = null;
-            stopPrice = this.safeString(orderList, 16);
+            triggerPrice = this.safeString(orderList, 16);
             if (isTrue(isEqual(orderType, "EXCHANGE STOP LIMIT")))
             {
                 price = this.safeString(orderList, 19);
@@ -1590,8 +1590,7 @@ public partial class bitfinex : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },
             { "average", average },
@@ -1616,7 +1615,7 @@ public partial class bitfinex : Exchange
         * @param {float} amount how much you want to trade in units of the base currency
         * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly]
         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1635,7 +1634,7 @@ public partial class bitfinex : Exchange
             { "symbol", getValue(market, "id") },
             { "amount", amountString },
         };
-        object stopPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object trailingAmount = this.safeString(parameters, "trailingAmount");
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnlyParam = this.safeBool(parameters, "postOnly", false);
@@ -1646,10 +1645,10 @@ public partial class bitfinex : Exchange
         {
             orderType = "TRAILING STOP";
             ((IDictionary<string,object>)request)["price_trailing"] = trailingAmount;
-        } else if (isTrue(!isEqual(stopPrice, null)))
+        } else if (isTrue(!isEqual(triggerPrice, null)))
         {
-            // request['price'] is taken as stopPrice for stop orders
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, stopPrice);
+            // request['price'] is taken as triggerPrice for stop orders
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isEqual(type, "limit")))
             {
                 orderType = "STOP LIMIT";
@@ -1670,7 +1669,7 @@ public partial class bitfinex : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() does not allow market IOC and FOK orders")) ;
         }
-        if (isTrue(isTrue((!isEqual(type, "market"))) && isTrue((isEqual(stopPrice, null)))))
+        if (isTrue(isTrue((!isEqual(type, "market"))) && isTrue((isEqual(triggerPrice, null)))))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1724,7 +1723,7 @@ public partial class bitfinex : Exchange
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] price of the order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
@@ -3953,7 +3952,7 @@ public partial class bitfinex : Exchange
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
      * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
@@ -3976,7 +3975,7 @@ public partial class bitfinex : Exchange
             amountString = ((bool) isTrue((isEqual(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
             ((IDictionary<string,object>)request)["amount"] = amountString;
         }
-        object stopPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object trailingAmount = this.safeString(parameters, "trailingAmount");
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnlyParam = this.safeBool(parameters, "postOnly", false);
@@ -3985,17 +3984,17 @@ public partial class bitfinex : Exchange
         if (isTrue(!isEqual(trailingAmount, null)))
         {
             ((IDictionary<string,object>)request)["price_trailing"] = trailingAmount;
-        } else if (isTrue(!isEqual(stopPrice, null)))
+        } else if (isTrue(!isEqual(triggerPrice, null)))
         {
-            // request['price'] is taken as stopPrice for stop orders
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, stopPrice);
+            // request['price'] is taken as triggerPrice for stop orders
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isEqual(type, "limit")))
             {
                 ((IDictionary<string,object>)request)["price_aux_limit"] = this.priceToPrecision(symbol, price);
             }
         }
         object postOnly = (isTrue(postOnlyParam) || isTrue((isEqual(timeInForce, "PO"))));
-        if (isTrue(isTrue((!isEqual(type, "market"))) && isTrue((isEqual(stopPrice, null)))))
+        if (isTrue(isTrue((!isEqual(type, "market"))) && isTrue((isEqual(triggerPrice, null)))))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }

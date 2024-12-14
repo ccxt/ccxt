@@ -1916,7 +1916,7 @@ class bitmex extends Exchange {
             $postOnly = ($execInst === 'ParticipateDoNotInitiate');
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
-        $stopPrice = $this->safe_number($order, 'stopPx');
+        $triggerPrice = $this->safe_number($order, 'stopPx');
         $remaining = $this->safe_string($order, 'leavesQty');
         return $this->safe_order(array(
             'info' => $order,
@@ -1931,8 +1931,7 @@ class bitmex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2086,7 +2085,7 @@ class bitmex extends Exchange {
                 } else {
                     if ($triggerPrice === null) {
                         // if exchange specific trigger types were provided
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for the ' . $orderType . ' order type');
                     }
                     $request['stopPx'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 }
@@ -2704,7 +2703,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
+            'fundingTimestamp' => $this->parse8601($fundingDatetime),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
