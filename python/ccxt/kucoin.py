@@ -659,6 +659,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 1,
@@ -1075,7 +1077,7 @@ class kucoin(Exchange, ImplicitAPI):
         })
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
         """
@@ -1312,6 +1314,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             })
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         return result
 
     def load_migration_status(self, force: bool = False):

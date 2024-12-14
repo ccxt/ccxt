@@ -640,6 +640,8 @@ class kucoin extends kucoin$1 {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 1,
@@ -1056,7 +1058,7 @@ class kucoin extends kucoin$1 {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     /**
      * @method
@@ -1296,6 +1298,9 @@ class kucoin extends kucoin$1 {
                 'created': undefined,
                 'info': market,
             });
+        }
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
         }
         return result;
     }
