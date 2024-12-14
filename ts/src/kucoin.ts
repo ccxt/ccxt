@@ -642,6 +642,8 @@ export default class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 1,
@@ -1059,7 +1061,7 @@ export default class kucoin extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     /**
@@ -1302,6 +1304,9 @@ export default class kucoin extends Exchange {
                 'created': undefined,
                 'info': market,
             });
+        }
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
         }
         return result;
     }
