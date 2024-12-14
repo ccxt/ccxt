@@ -9301,6 +9301,68 @@
                     }
                 }
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "linear swap fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "error": null,
+                  "id": "0",
+                  "result": {
+                    "closeRp": "100425",
+                    "fundingRateRr": "0.0001",
+                    "highRp": "102500",
+                    "indexPriceRp": "100448.96664571",
+                    "lowRp": "99168.5",
+                    "markPriceRp": "100425",
+                    "openInterestRv": "0",
+                    "openRp": "100580",
+                    "predFundingRateRr": "0.0001",
+                    "symbol": "BTCUSDT",
+                    "timestamp": "1734087634274355552",
+                    "turnoverRv": "1307890761.3133",
+                    "volumeRq": "13036.35"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "closeRp": "100425",
+                    "fundingRateRr": "0.0001",
+                    "highRp": "102500",
+                    "indexPriceRp": "100448.96664571",
+                    "lowRp": "99168.5",
+                    "markPriceRp": "100425",
+                    "openInterestRv": "0",
+                    "openRp": "100580",
+                    "predFundingRateRr": "0.0001",
+                    "symbol": "BTCUSDT",
+                    "timestamp": "1734087634274355552",
+                    "turnoverRv": "1307890761.3133",
+                    "volumeRq": "13036.35"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": 100425,
+                  "indexPrice": 100448.96664571,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": 1734087634274,
+                  "datetime": "2024-12-13T11:00:34.274Z",
+                  "fundingRate": 0.0001,
+                  "fundingTimestamp": null,
+                  "fundingDatetime": null,
+                  "nextFundingRate": 0.0001,
+                  "nextFundingTimestamp": null,
+                  "nextFundingDatetime": null,
+                  "previousFundingRate": null,
+                  "previousFundingTimestamp": null,
+                  "previousFundingDatetime": null,
+                  "interval": null
+                }
+            }
         ]
     }
 }

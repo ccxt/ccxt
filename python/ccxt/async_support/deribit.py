@@ -220,6 +220,7 @@ class deribit(Exchange, ImplicitAPI):
                         'enable_api_key': 1,
                         'get_access_log': 1,
                         'get_account_summary': 1,
+                        'get_account_summaries': 1,
                         'get_affiliate_program_info': 1,
                         'get_email_language': 1,
                         'get_new_announcements': 1,
@@ -931,13 +932,20 @@ class deribit(Exchange, ImplicitAPI):
         result: dict = {
             'info': balance,
         }
-        currencyId = self.safe_string(balance, 'currency')
-        currencyCode = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(balance, 'available_funds')
-        account['used'] = self.safe_string(balance, 'maintenance_margin')
-        account['total'] = self.safe_string(balance, 'equity')
-        result[currencyCode] = account
+        summaries = []
+        if 'summaries' in balance:
+            summaries = self.safe_list(balance, 'summaries')
+        else:
+            summaries = [balance]
+        for i in range(0, len(summaries)):
+            data = summaries[i]
+            currencyId = self.safe_string(data, 'currency')
+            currencyCode = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(data, 'available_funds')
+            account['used'] = self.safe_string(data, 'maintenance_margin')
+            account['total'] = self.safe_string(data, 'equity')
+            result[currencyCode] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -945,17 +953,24 @@ class deribit(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://docs.deribit.com/#private-get_account_summary
+        https://docs.deribit.com/#private-get_account_summaries
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        code = self.code_from_options('fetchBalance', params)
-        currency = self.currency(code)
+        code = self.safe_string(params, 'code')
+        params = self.omit(params, 'code')
         request: dict = {
-            'currency': currency['id'],
         }
-        response = await self.privateGetGetAccountSummary(self.extend(request, params))
+        if code is not None:
+            request['currency'] = self.currency_id(code)
+        response = None
+        if code is None:
+            response = await self.privateGetGetAccountSummaries(params)
+        else:
+            response = await self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -998,7 +1013,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         return self.parse_balance(result)
 
     async def create_deposit_address(self, code: str, params={}):

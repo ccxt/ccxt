@@ -552,7 +552,6 @@ class bitbns(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'rate'),
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': self.safe_string(order, 'btc'),
             'cost': None,

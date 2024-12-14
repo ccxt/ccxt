@@ -1360,7 +1360,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        stopPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         reduceOnly = None
         execInst = self.safe_string(order, 'execInst')
         if execInst == 'reduceOnly':
@@ -1382,8 +1382,8 @@ class ascendex(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1454,7 +1454,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
@@ -1485,7 +1485,7 @@ class ascendex(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnly = self.is_post_only(isMarketOrder, False, params)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         if timeInForce == 'IOC':
@@ -1494,8 +1494,8 @@ class ascendex(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FOK'
         if postOnly:
             request['postOnly'] = True
-        if stopPrice is not None:
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 request['orderType'] = 'stop_limit'
             elif isMarketOrder:
@@ -1529,7 +1529,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered(perpetual swap markets only)
@@ -1623,7 +1623,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

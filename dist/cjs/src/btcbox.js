@@ -553,7 +553,6 @@ class btcbox extends btcbox$1 {
             'status': status,
             'symbol': market['symbol'],
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'trades': trades,

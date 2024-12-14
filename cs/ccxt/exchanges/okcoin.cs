@@ -1695,7 +1695,7 @@ public partial class okcoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancel trigger or conditional orders
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
      * @param {bool} [params.advanced] True if canceling advanced orders only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1707,9 +1707,9 @@ public partial class okcoin : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
-        if (isTrue(isTrue(stop) || isTrue(advanced)))
+        if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             return this.safeValue(orderInner, 0);
@@ -1772,7 +1772,7 @@ public partial class okcoin : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "advanced"});
         object market = this.market(symbol);
@@ -1794,7 +1794,7 @@ public partial class okcoin : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(isTrue(stop) || isTrue(advanced)))
+                if (isTrue(isTrue(trigger) || isTrue(advanced)))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
@@ -1819,7 +1819,7 @@ public partial class okcoin : Exchange
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privatePostTradeCancelAlgos(request);
         } else if (isTrue(advanced))
@@ -2091,8 +2091,8 @@ public partial class okcoin : Exchange
             { "instId", getValue(market, "id") },
         };
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        if (isTrue(trigger))
         {
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -2113,7 +2113,7 @@ public partial class okcoin : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         } else
@@ -2135,7 +2135,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2155,14 +2155,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, parameters));
         } else
@@ -2184,7 +2184,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2202,14 +2202,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, parameters));
         } else
@@ -3014,7 +3014,7 @@ public partial class okcoin : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

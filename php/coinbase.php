@@ -74,6 +74,8 @@ class coinbase extends Exchange {
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchDepositMethodId' => true,
+                'fetchDepositMethodIds' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -367,6 +369,82 @@ class coinbase extends Exchange {
                 'fetchBalance' => 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 3000,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 350,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
             ),
         ));
     }
@@ -2361,7 +2439,7 @@ class coinbase extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -4299,6 +4377,95 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data);
+    }
+
+    public function fetch_deposit_method_ids($params = array ()) {
+        /**
+         * fetch the deposit id for a fiat currency associated with this account
+         *
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=deposit-id-structure deposit id structures~
+         */
+        $this->load_markets();
+        $response = $this->v3PrivateGetBrokeragePaymentMethods ($params);
+        //
+        //     {
+        //         "payment_methods" => array(
+        //             {
+        //                 "id" => "21b39a5d-f7b46876fb2e",
+        //                 "type" => "COINBASE_FIAT_ACCOUNT",
+        //                 "name" => "CAD Wallet",
+        //                 "currency" => "CAD",
+        //                 "verified" => true,
+        //                 "allow_buy" => false,
+        //                 "allow_sell" => true,
+        //                 "allow_deposit" => false,
+        //                 "allow_withdraw" => false,
+        //                 "created_at" => "2023-06-29T19:58:46Z",
+        //                 "updated_at" => "2023-10-30T20:25:01Z"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'payment_methods', array());
+        return $this->parse_deposit_method_ids($result);
+    }
+
+    public function fetch_deposit_method_id(string $id, $params = array ()) {
+        /**
+         * fetch the deposit $id for a fiat currency associated with this account
+         *
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+         *
+         * @param {string} $id the deposit payment method $id
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=deposit-$id-structure deposit $id structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'payment_method_id' => $id,
+        );
+        $response = $this->v3PrivateGetBrokeragePaymentMethodsPaymentMethodId ($this->extend($request, $params));
+        //
+        //     {
+        //         "payment_method" => {
+        //             "id" => "21b39a5d-f7b46876fb2e",
+        //             "type" => "COINBASE_FIAT_ACCOUNT",
+        //             "name" => "CAD Wallet",
+        //             "currency" => "CAD",
+        //             "verified" => true,
+        //             "allow_buy" => false,
+        //             "allow_sell" => true,
+        //             "allow_deposit" => false,
+        //             "allow_withdraw" => false,
+        //             "created_at" => "2023-06-29T19:58:46Z",
+        //             "updated_at" => "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'payment_method', array());
+        return $this->parse_deposit_method_id($result);
+    }
+
+    public function parse_deposit_method_ids($ids, $params = array ()) {
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
+            $result[] = $id;
+        }
+        return $result;
+    }
+
+    public function parse_deposit_method_id($depositId) {
+        return array(
+            'info' => $depositId,
+            'id' => $this->safe_string($depositId, 'id'),
+            'currency' => $this->safe_string($depositId, 'currency'),
+            'verified' => $this->safe_bool($depositId, 'verified'),
+            'tag' => $this->safe_string($depositId, 'name'),
+        );
     }
 
     public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {

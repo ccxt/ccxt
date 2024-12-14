@@ -1069,8 +1069,10 @@ class ndax(Exchange, ImplicitAPI):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId')
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
+        if accountId is None:
+            accountId = int(self.accounts[0]['id'])
         params = self.omit(params, ['accountId', 'AccountId'])
         request: dict = {
             'omsId': omsId,
@@ -1192,7 +1194,7 @@ class ndax(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -1348,6 +1350,7 @@ class ndax(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
+        :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
@@ -1578,6 +1581,7 @@ class ndax(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)

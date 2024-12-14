@@ -65,6 +65,8 @@ public partial class coinbase : Exchange
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
+                { "fetchDepositMethodId", true },
+                { "fetchDepositMethodIds", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -324,6 +326,82 @@ public partial class coinbase : Exchange
                 { "fetchBalance", "v2PrivateGetAccounts" },
                 { "fetchTime", "v2PublicGetTime" },
                 { "user_native_currency", "USD" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 3000 },
+                        { "daysBack", null },
+                        { "untilDays", 10000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 10000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 10000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 350 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "spot" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "spot" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "spot" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "spot" },
+                    } },
+                } },
             } },
         });
     }
@@ -2464,7 +2542,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4600,6 +4678,103 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodIds
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    public async virtual Task<object> fetchDepositMethodIds(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v3PrivateGetBrokeragePaymentMethods(parameters);
+        //
+        //     {
+        //         "payment_methods": [
+        //             {
+        //                 "id": "21b39a5d-f7b46876fb2e",
+        //                 "type": "COINBASE_FIAT_ACCOUNT",
+        //                 "name": "CAD Wallet",
+        //                 "currency": "CAD",
+        //                 "verified": true,
+        //                 "allow_buy": false,
+        //                 "allow_sell": true,
+        //                 "allow_deposit": false,
+        //                 "allow_withdraw": false,
+        //                 "created_at": "2023-06-29T19:58:46Z",
+        //                 "updated_at": "2023-10-30T20:25:01Z"
+        //             }
+        //         ]
+        //     }
+        //
+        object result = this.safeList(response, "payment_methods", new List<object>() {});
+        return this.parseDepositMethodIds(result);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodId
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+     * @param {string} id the deposit payment method id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    public async virtual Task<object> fetchDepositMethodId(object id, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "payment_method_id", id },
+        };
+        object response = await this.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(this.extend(request, parameters));
+        //
+        //     {
+        //         "payment_method": {
+        //             "id": "21b39a5d-f7b46876fb2e",
+        //             "type": "COINBASE_FIAT_ACCOUNT",
+        //             "name": "CAD Wallet",
+        //             "currency": "CAD",
+        //             "verified": true,
+        //             "allow_buy": false,
+        //             "allow_sell": true,
+        //             "allow_deposit": false,
+        //             "allow_withdraw": false,
+        //             "created_at": "2023-06-29T19:58:46Z",
+        //             "updated_at": "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "payment_method", new Dictionary<string, object>() {});
+        return this.parseDepositMethodId(result);
+    }
+
+    public virtual object parseDepositMethodIds(object ids, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object id = this.extend(this.parseDepositMethodId(getValue(ids, i)), parameters);
+            ((IList<object>)result).Add(id);
+        }
+        return result;
+    }
+
+    public virtual object parseDepositMethodId(object depositId)
+    {
+        return new Dictionary<string, object>() {
+            { "info", depositId },
+            { "id", this.safeString(depositId, "id") },
+            { "currency", this.safeString(depositId, "currency") },
+            { "verified", this.safeBool(depositId, "verified") },
+            { "tag", this.safeString(depositId, "name") },
+        };
     }
 
     /**

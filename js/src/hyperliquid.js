@@ -8,7 +8,7 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
+import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -209,13 +209,103 @@ export default class hyperliquid extends Exchange {
                     'Insufficient spot balance asset': InsufficientFunds,
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': {
+                        'max': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         });
     }
@@ -494,11 +584,13 @@ export default class hyperliquid extends Exchange {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict(baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.safeInteger(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecisionStr = this.safeString(innerBaseTokenInfo, 'szDecimals');
+            const amountPrecision = parseInt(amountPrecisionStr);
             const price = this.safeNumber(extraData, 'midPx');
             const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
+            const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString(i + 10000);
+            const baseId = this.numberToString(index + 10000);
             markets.push(this.safeMarketStructure({
                 'id': marketName,
                 'symbol': symbol,
@@ -527,8 +619,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                    'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -592,9 +684,11 @@ export default class hyperliquid extends Exchange {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeNumber(fees, 'taker');
         const maker = this.safeNumber(fees, 'maker');
-        const amountPrecision = this.safeInteger(market, 'szDecimals');
+        const amountPrecisionStr = this.safeString(market, 'szDecimals');
+        const amountPrecision = parseInt(amountPrecisionStr);
         const price = this.safeNumber(market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
+        const pricePrecisionStr = this.numberToString(pricePrecision);
         return this.safeMarketStructure({
             'id': baseId,
             'symbol': symbol,
@@ -622,8 +716,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': this.parseNumber(this.parsePrecision(amountPrecisionStr)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -1105,7 +1199,8 @@ export default class hyperliquid extends Exchange {
         const significantDigits = Math.max(5, integerPart.length);
         const result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? 8 : 6;
-        return this.decimalToPrecision(result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
+        return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
     hashMessage(message) {
         return '0x' + this.hash(message, keccak, 'hex');
@@ -1199,13 +1294,24 @@ export default class hyperliquid extends Exchange {
         const signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
-    buildTransferSig(message) {
+    buildUsdSendSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'destination', 'type': 'string' },
                 { 'name': 'amount', 'type': 'string' },
                 { 'name': 'time', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+    buildUsdClassSendSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'toPerp', 'type': 'bool' },
+                { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
         return this.signUserSignedAction(messageTypes, message);
@@ -2682,26 +2788,36 @@ export default class hyperliquid extends Exchange {
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
                 throw new NotSupported(this.id + 'transfer() only support spot <> swap transfer');
             }
+            let strAmount = this.numberToString(amount);
             const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
             params = this.omit(params, 'vaultAddress');
+            if (vaultAddress !== undefined) {
+                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
-            const action = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            };
-            const signature = this.signL1Action(action, nonce, vaultAddress);
-            const innerRequest = {
-                'action': action,
+            const transferPayload = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            };
+            const transferSig = this.buildUsdClassSendSig(transferPayload);
+            const transferRequest = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             };
             if (vaultAddress !== undefined) {
-                innerRequest['vaultAddress'] = vaultAddress;
+                transferRequest['vaultAddress'] = vaultAddress;
             }
-            const transferResponse = await this.privatePostExchange(innerRequest);
+            const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2718,7 +2834,7 @@ export default class hyperliquid extends Exchange {
             'amount': this.numberToString(amount),
             'time': nonce,
         };
-        const sig = this.buildTransferSig(payload);
+        const sig = this.buildUsdSendSig(payload);
         const request = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],
@@ -2966,7 +3082,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

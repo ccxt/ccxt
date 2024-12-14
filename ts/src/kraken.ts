@@ -431,31 +431,43 @@ export default class kraken extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
-                'EAPI:Invalid key': AuthenticationError,
-                'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
-                'EFunding:Invalid amount': InsufficientFunds,
-                'EService:Unavailable': ExchangeNotAvailable,
-                'EDatabase:Internal error': ExchangeNotAvailable,
-                'EService:Busy': ExchangeNotAvailable,
-                'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
-                'EAPI:Rate limit exceeded': DDoSProtection,
-                'EOrder:Rate limit exceeded': DDoSProtection,
-                'EGeneral:Internal error': ExchangeNotAvailable,
-                'EGeneral:Temporary lockout': DDoSProtection,
-                'EGeneral:Permission denied': PermissionDenied,
-                'EGeneral:Invalid arguments:price': InvalidOrder,
-                'EOrder:Unknown order': InvalidOrder,
-                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
-                'EOrder:Order minimum not met': InvalidOrder,
-                'EGeneral:Invalid arguments': BadRequest,
-                'ESession:Invalid session': AuthenticationError,
-                'EAPI:Invalid nonce': InvalidNonce,
-                'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
-                'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
-                'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
-                'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
-                'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                'exact': {
+                    'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
+                    'EAPI:Invalid key': AuthenticationError,
+                    'EFunding:Unknown withdraw key': InvalidAddress, // {"error":["EFunding:Unknown withdraw key"]}
+                    'EFunding:Invalid amount': InsufficientFunds,
+                    'EService:Unavailable': ExchangeNotAvailable,
+                    'EDatabase:Internal error': ExchangeNotAvailable,
+                    'EService:Busy': ExchangeNotAvailable,
+                    'EQuery:Unknown asset': BadSymbol, // {"error":["EQuery:Unknown asset"]}
+                    'EAPI:Rate limit exceeded': DDoSProtection,
+                    'EOrder:Rate limit exceeded': DDoSProtection,
+                    'EGeneral:Internal error': ExchangeNotAvailable,
+                    'EGeneral:Temporary lockout': DDoSProtection,
+                    'EGeneral:Permission denied': PermissionDenied,
+                    'EGeneral:Invalid arguments:price': InvalidOrder,
+                    'EOrder:Unknown order': InvalidOrder,
+                    'EOrder:Invalid price:Invalid price argument': InvalidOrder,
+                    'EOrder:Order minimum not met': InvalidOrder,
+                    'EOrder:Insufficient funds': InsufficientFunds,
+                    'EGeneral:Invalid arguments': BadRequest,
+                    'ESession:Invalid session': AuthenticationError,
+                    'EAPI:Invalid nonce': InvalidNonce,
+                    'EFunding:No funding method': BadRequest, // {"error":"EFunding:No funding method"}
+                    'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
+                    'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
+                    'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
+                    'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
+                },
+                'broad': {
+                    ':Invalid order': InvalidOrder,
+                    ':Invalid arguments:volume': InvalidOrder,
+                    ':Invalid arguments:viqc': InvalidOrder,
+                    ':Invalid nonce': InvalidNonce,
+                    ':IInsufficient funds': InsufficientFunds,
+                    ':Cancel pending': CancelPending,
+                    ':Rate limit exceeded': RateLimitExceeded,
+                },
             },
         });
     }
@@ -1140,7 +1152,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1611,18 +1623,9 @@ export default class kraken extends Exchange {
         // editOrder
         //
         //     {
-        //         "status": "ok",
-        //         "txid": "OAW2BO-7RWEK-PZY5UO",
-        //         "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        //         "newuserref": 1234,
-        //         "olduserref": 123,
-        //         "volume": "0.00075000",
-        //         "price": "13500.0",
-        //         "orders_cancelled": 1,
-        //         "descr": {
-        //             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //         }
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //     }
+        //
         //  ws - createOrder
         //    {
         //        "descr": 'sell 0.00010000 XBTUSDT @ market',
@@ -1675,6 +1678,37 @@ export default class kraken extends Exchange {
         //              }
         //      }
         //  }
+        //
+        // fetchOpenOrders
+        //
+        //      {
+        //         "refid": null,
+        //         "userref": null,
+        //         "cl_ord_id": "1234",
+        //         "status": "open",
+        //         "opentm": 1733815269.370054,
+        //         "starttm": 0,
+        //         "expiretm": 0,
+        //         "descr": {
+        //             "pair": "XBTUSD",
+        //             "type": "buy",
+        //             "ordertype": "limit",
+        //             "price": "70000.0",
+        //             "price2": "0",
+        //             "leverage": "none",
+        //             "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //             "close": ""
+        //         },
+        //         "vol": "0.00010000",
+        //         "vol_exec": "0.00000000",
+        //         "cost": "0.00000",
+        //         "fee": "0.00000",
+        //         "price": "0.00000",
+        //         "stopprice": "0.00000",
+        //         "limitprice": "0.00000",
+        //         "misc": "",
+        //         "oflags": "fciq"
+        //     }
         //
         const description = this.safeDict (order, 'descr', {});
         const orderDescriptionObj = this.safeDict (order, 'descr'); // can be null
@@ -1738,7 +1772,7 @@ export default class kraken extends Exchange {
             price = this.safeString (order, 'price', price);
         }
         const flags = this.safeString (order, 'oflags', '');
-        const isPostOnly = flags.indexOf ('post') > -1;
+        let isPostOnly = flags.indexOf ('post') > -1;
         const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -1756,12 +1790,13 @@ export default class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let id = this.safeString2 (order, 'id', 'txid');
+        let id = this.safeStringN (order, [ 'id', 'txid', 'amend_id' ]);
         if ((id === undefined) || (id.startsWith ('['))) {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
-        const clientOrderId = this.safeString2 (order, 'userref', 'newuserref');
+        const userref = this.safeString (order, 'userref');
+        const clientOrderId = this.safeString (order, 'cl_ord_id', userref);
         const rawTrades = this.safeValue (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -1778,16 +1813,18 @@ export default class kraken extends Exchange {
         let takeProfitPrice = undefined;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
-        if (rawType.startsWith ('take-profit')) {
-            takeProfitPrice = this.safeString (description, 'price');
-            price = this.omitZero (this.safeString (description, 'price2'));
-        } else if (rawType.startsWith ('stop-loss')) {
-            stopLossPrice = this.safeString (description, 'price');
-            price = this.omitZero (this.safeString (description, 'price2'));
-        } else if (rawType === 'take profit') {
-            takeProfitPrice = triggerPrice;
-        } else if (rawType === 'stop loss') {
-            stopLossPrice = triggerPrice;
+        if (rawType !== undefined) {
+            if (rawType.startsWith ('take-profit')) {
+                takeProfitPrice = this.safeString (description, 'price');
+                price = this.omitZero (this.safeString (description, 'price2'));
+            } else if (rawType.startsWith ('stop-loss')) {
+                stopLossPrice = this.safeString (description, 'price');
+                price = this.omitZero (this.safeString (description, 'price2'));
+            } else if (rawType === 'take profit') {
+                takeProfitPrice = triggerPrice;
+            } else if (rawType === 'stop loss') {
+                stopLossPrice = triggerPrice;
+            }
         }
         let finalType = this.parseOrderType (rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
@@ -1795,6 +1832,10 @@ export default class kraken extends Exchange {
         // eg: `stop loss > limit 123`, so we need to parse them manually
         if (this.inArray (finalType, [ 'stop loss', 'take profit' ])) {
             finalType = (price === undefined) ? 'market' : 'limit';
+        }
+        const amendId = this.safeString (order, 'amend_id');
+        if (amendId !== undefined) {
+            isPostOnly = undefined;
         }
         return this.safeOrder ({
             'id': id,
@@ -1826,10 +1867,10 @@ export default class kraken extends Exchange {
     }
 
     orderRequest (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, [ 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
+            request['cl_ord_id'] = clientOrderId;
         }
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
@@ -1950,20 +1991,23 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#editOrder
      * @description edit a trade order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/amend-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-     * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
-     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
-     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] the percent away from the trailingAmount
+     * @param {string} [params.offset] '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+     * @param {boolean} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -1972,33 +2016,49 @@ export default class kraken extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request: Dict = {
+        let request: Dict = {
             'txid': id,
-            'pair': market['id'],
         };
-        if (amount !== undefined) {
-            request['volume'] = this.amountToPrecision (symbol, amount);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cl_ord_id');
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'cl_ord_id' ]);
+            request = this.omit (request, 'txid');
         }
-        const orderRequest = this.orderRequest ('editOrder', symbol, type, request, amount, price, params);
-        const response = await this.privatePostEditOrder (this.extend (orderRequest[0], orderRequest[1]));
+        const isMarket = (type === 'market');
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
+        if (postOnly) {
+            request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+        }
+        if (amount !== undefined) {
+            request['order_qty'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+        }
+        let allTriggerPrices = this.safeStringN (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        if (allTriggerPrices !== undefined) {
+            const offset = this.safeString (params, 'offset');
+            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ]);
+            if (offset !== undefined) {
+                allTriggerPrices = offset + allTriggerPrices;
+                request['trigger_price'] = allTriggerPrices;
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, allTriggerPrices);
+            }
+        }
+        const response = await this.privatePostAmendOrder (this.extend (request, params));
         //
         //     {
         //         "error": [],
         //         "result": {
-        //             "status": "ok",
-        //             "txid": "OAW2BO-7RWEK-PZY5UO",
-        //             "originaltxid": "OXL6SS-UPNMC-26WBE7",
-        //             "volume": "0.00075000",
-        //             "price": "13500.0",
-        //             "orders_cancelled": 1,
-        //             "descr": {
-        //                 "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
-        //             }
+        //             "amend_id": "TJSMEH-AA67V-YUSQ6O"
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'result', {});
-        return this.parseOrder (data, market);
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result, market);
     }
 
     /**
@@ -2255,20 +2315,28 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
-        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
-        const request: Dict = {
-            'txid': clientOrderId, // order id or userref
+        const requestId = this.safeValue (params, 'userref', id); // string or integer
+        params = this.omit (params, 'userref');
+        let request: Dict = {
+            'txid': requestId, // order id or userref
         };
-        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cl_ord_id');
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'cl_ord_id' ]);
+            request = this.omit (request, 'txid');
+        }
         try {
             response = await this.privatePostCancelOrder (this.extend (request, params));
             //
@@ -2383,11 +2451,13 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
-     * @param {string} symbol unified market symbol
+     * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2396,19 +2466,67 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        let query = params;
-        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
-            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const userref = this.safeInteger (params, 'userref');
+        if (userref !== undefined) {
+            request['userref'] = userref;
+            params = this.omit (params, 'userref');
         }
-        const response = await this.privatePostOpenOrders (this.extend (request, query));
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        const response = await this.privatePostOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "open": {
+        //                 "O45M52-BFD5S-YXKQOU": {
+        //                     "refid": null,
+        //                     "userref": null,
+        //                     "cl_ord_id": "1234",
+        //                     "status": "open",
+        //                     "opentm": 1733815269.370054,
+        //                     "starttm": 0,
+        //                     "expiretm": 0,
+        //                     "descr": {
+        //                         "pair": "XBTUSD",
+        //                         "type": "buy",
+        //                         "ordertype": "limit",
+        //                         "price": "70000.0",
+        //                         "price2": "0",
+        //                         "leverage": "none",
+        //                         "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //                         "close": ""
+        //                     },
+        //                     "vol": "0.00010000",
+        //                     "vol_exec": "0.00000000",
+        //                     "cost": "0.00000",
+        //                     "fee": "0.00000",
+        //                     "price": "0.00000",
+        //                     "stopprice": "0.00000",
+        //                     "limitprice": "0.00000",
+        //                     "misc": "",
+        //                     "oflags": "fciq"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeDict (result, 'open', {});
+        const open = this.safeDict (result, 'open', {});
+        const orders = [];
+        const orderIds = Object.keys (open);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = open[id];
+            orders.push (this.extend ({ 'id': id }, item));
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2416,12 +2534,14 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2430,14 +2550,18 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        let query = params;
-        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
+        const userref = this.safeInteger (params, 'userref');
+        if (userref !== undefined) {
+            request['userref'] = userref;
+            params = this.omit (params, 'userref');
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
-            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this.privatePostClosedOrders (this.extend (request, query));
+        const response = await this.privatePostClosedOrders (this.extend (request, params));
         //
         //     {
         //         "error":[],
@@ -2482,7 +2606,14 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const orders = this.safeDict (result, 'closed', {});
+        const closed = this.safeDict (result, 'closed', {});
+        const orders = [];
+        const orderIds = Object.keys (closed);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = closed[id];
+            orders.push (this.extend ({ 'id': id }, item));
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3238,28 +3369,6 @@ export default class kraken extends Exchange {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }
-        // todo: rewrite this for "broad" exceptions matching
-        if (body.indexOf ('Invalid order') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid nonce') >= 0) {
-            throw new InvalidNonce (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Insufficient funds') >= 0) {
-            throw new InsufficientFunds (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Cancel pending') >= 0) {
-            throw new CancelPending (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid arguments:volume') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Invalid arguments:viqc') >= 0) {
-            throw new InvalidOrder (this.id + ' ' + body);
-        }
-        if (body.indexOf ('Rate limit exceeded') >= 0) {
-            throw new RateLimitExceeded (this.id + ' ' + body);
-        }
         if (response === undefined) {
             return undefined;
         }
@@ -3271,7 +3380,8 @@ export default class kraken extends Exchange {
                         const message = this.id + ' ' + body;
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
-                            this.throwExactlyMatchedException (this.exceptions, error, message);
+                            this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
+                            this.throwExactlyMatchedException (this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError (message);
                     }

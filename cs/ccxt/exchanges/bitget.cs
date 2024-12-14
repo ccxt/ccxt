@@ -1420,7 +1420,6 @@ public partial class bitget : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1486,7 +1485,6 @@ public partial class bitget : Exchange
                             { "limitPrice", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -4428,7 +4426,6 @@ public partial class bitget : Exchange
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", reduceOnly },
-            { "stopPrice", this.safeNumber(order, "triggerPrice") },
             { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "takeProfitPrice", this.safeNumber2(order, "presetStopSurplusPrice", "stopSurplusTriggerPrice") },
             { "stopLossPrice", this.safeNumber2(order, "presetStopLossPrice", "stopLossTriggerPrice") },
@@ -6441,7 +6438,7 @@ public partial class bitget : Exchange
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

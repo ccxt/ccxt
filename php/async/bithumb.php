@@ -958,7 +958,6 @@ class bithumb extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1096,7 +1095,7 @@ class bithumb extends Exchange {
                 'address' => $address,
                 'currency' => $currency['id'],
             );
-            if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM') {
+            if ($code === 'XRP' || $code === 'XMR' || $code === 'EOS' || $code === 'STEEM' || $code === 'TON') {
                 $destination = $this->safe_string($params, 'destination');
                 if (($tag === null) && ($destination === null)) {
                     throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.34",
+  "version": "4.4.40",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -56,7 +56,7 @@
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
     "dev-force-transpile": "npm run fast-force-transpileRest && npm run fast-force-transpileWs",
     "docker": "docker-compose run --rm ccxt",
-    "emitAPI": "node build/generateImplicitAPI.js",
+    "emitAPI": "tsx build/generateImplicitAPI.ts",
     "eslint": "eslint",
     "export-exchanges": "node build/export-exchanges",
     "fast-force-transpileRest": "node build/transpile.js --multiprocess --force",

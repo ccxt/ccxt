@@ -1568,7 +1568,6 @@ class binance extends binance$1 {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -1635,7 +1634,6 @@ class binance extends binance$1 {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -6251,16 +6249,10 @@ class binance extends binance$1 {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
-            // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            params = this.omit(params, 'reduceOnly');
-            if (market['option']) {
-                request['reduceOnly'] = reduceOnly;
-            }
-            else {
-                if (reduceOnly) {
-                    request['sideEffectType'] = 'AUTO_REPAY';
-                }
+        if (reduceOnly) {
+            if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+                params = this.omit(params, 'reduceOnly');
+                request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -6710,7 +6702,7 @@ class binance extends binance$1 {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6987,7 +6979,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -7309,7 +7301,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7339,7 +7331,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7369,7 +7361,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7401,7 +7393,7 @@ class binance extends binance$1 {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to cancel a portfolio margin account conditional order
+     * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -7506,7 +7498,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -11591,7 +11583,7 @@ class binance extends binance$1 {
      * @param {string} id the identification number of the ledger entry
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -11638,7 +11630,7 @@ class binance extends binance$1 {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

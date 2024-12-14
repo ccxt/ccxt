@@ -258,6 +258,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/data': 5,
                         'v5/spot-cross-margin-trade/pledge-token': 5,
                         'v5/spot-cross-margin-trade/borrow-token': 5,
+                        # crypto loan
+                        'v5/crypto-loan/collateral-data': 5,
+                        'v5/crypto-loan/loanable-data': 5,
                         # institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -385,6 +388,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
                         'v5/user/submembers': 5,
+                        # affilate
+                        'v5/affiliate/aff-user-list': 5,
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
@@ -394,6 +399,13 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
+                        # crypto loan
+                        'v5/crypto-loan/borrowable-collateralisable-number': 5,
+                        'v5/crypto-loan/ongoing-orders': 5,
+                        'v5/crypto-loan/repayment-history': 5,
+                        'v5/crypto-loan/borrow-history': 5,
+                        'v5/crypto-loan/max-collateral-amount': 5,
+                        'v5/crypto-loan/adjustment-history': 5,
                         # institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -405,7 +417,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/lending/history-order': 5,
                         'v5/lending/account': 5,
                         # broker
-                        'v5/broker/earning-record': 5,
+                        'v5/broker/earning-record': 5,  # deprecated
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
@@ -526,6 +538,10 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        # crypto loan
+                        'v5/crypto-loan/borrow': 5,
+                        'v5/crypto-loan/repay': 5,
+                        'v5/crypto-loan/adjust-ltv': 5,
                         # institutional lending
                         'v5/ins-loan/association-uid': 5,
                         # c2c lending
@@ -536,6 +552,10 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/set-collateral-switch-batch': 5,
                         # demo trading
                         'v5/account/demo-apply-money': 5,
+                        # broker
+                        'v5/broker/award/info': 5,
+                        'v5/broker/award/distribute-award': 5,
+                        'v5/broker/award/distribution-record': 5,
                     },
                 },
             },
@@ -657,6 +677,9 @@ class bybit(Exchange, ImplicitAPI):
                     '110071': ExchangeError,  # Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
                     '110072': InvalidOrder,  # OrderLinkedID is duplicate
                     '110073': ExchangeError,  # Set margin mode failed
+                    '110092': InvalidOrder,  # expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
+                    '110093': InvalidOrder,  # expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
+                    '110094': InvalidOrder,  # Order notional value below the lower limit
                     '130006': InvalidOrder,  # {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
                     '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
                     '130074': InvalidOrder,  # {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
@@ -1096,7 +1119,6 @@ class bybit(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -1158,7 +1180,6 @@ class bybit(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -3510,29 +3531,29 @@ class bybit(Exchange, ImplicitAPI):
         avgPrice = self.omit_zero(self.safe_string(order, 'avgPrice'))
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
-        stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
         reduceOnly = self.safe_bool(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         triggerDirection = self.safe_string(order, 'triggerDirection')
         isAscending = (triggerDirection == '1')
-        isStopOrderType2 = (stopPrice is not None) and reduceOnly
+        isStopOrderType2 = (triggerPrice is not None) and reduceOnly
         if (stopLossPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - stopLossPrice
             if isAscending and (side == 'buy'):
                 # stopLoss order against short position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
             if not isAscending and (side == 'sell'):
                 # stopLoss order against a long position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
         if (takeProfitPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - takeProfitPrice
             if isAscending and (side == 'sell'):
                 # takeprofit order against a long position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
             if not isAscending and (side == 'buy'):
                 # takeprofit order against a short position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3548,8 +3569,7 @@ class bybit(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'amount': amount,
@@ -5408,7 +5428,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         paginate = False
@@ -7684,7 +7704,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 20}, params))
+        data = await self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

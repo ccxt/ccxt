@@ -153,6 +153,7 @@ class bitopro(Exchange, ImplicitAPI):
                         'wallet/withdraw/{currency}/id/{id}': 1,
                         'wallet/depositHistory/{currency}': 1,
                         'wallet/withdrawHistory/{currency}': 1,
+                        'orders/open': 1,
                     },
                     'post': {
                         'orders/{pair}': 1 / 2,  # 1200/m => 20/s => 10/20 = 1/2
@@ -963,7 +964,6 @@ class bitopro(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1005,12 +1005,12 @@ class bitopro(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if orderType == 'STOP_LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
+            if triggerPrice is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders')
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             condition = self.safe_string(params, 'condition')
             if condition is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')
@@ -1248,10 +1248,26 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        request: dict = {
-            'statusKind': 'OPEN',
-        }
-        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        """
+        fetch all unfilled currently open orders
+
+        https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = await self.privateGetOrdersOpen(self.extend(request, params))
+        orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

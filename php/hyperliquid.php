@@ -202,7 +202,7 @@ class hyperliquid extends Exchange {
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
             ),
             'options' => array(
@@ -210,6 +210,96 @@ class hyperliquid extends Exchange {
                 'sandboxMode' => false,
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 1000,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forPerps' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null, // todo, in two orders
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
             ),
         ));
     }
@@ -493,11 +583,13 @@ class hyperliquid extends Exchange {
             $symbol = $base . '/' . $quote;
             $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
             // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
-            $amountPrecision = $this->safe_integer($innerBaseTokenInfo, 'szDecimals');
+            $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
+            $amountPrecision = intval($amountPrecisionStr);
             $price = $this->safe_number($extraData, 'midPx');
             $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
-            $baseId = $this->number_to_string($i + 10000);
+            $baseId = $this->number_to_string($index + 10000);
             $markets[] = $this->safe_market_structure(array(
                 'id' => $marketName,
                 'symbol' => $symbol,
@@ -526,8 +618,8 @@ class hyperliquid extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -592,9 +684,11 @@ class hyperliquid extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
-        $amountPrecision = $this->safe_integer($market, 'szDecimals');
+        $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
+        $amountPrecision = intval($amountPrecisionStr);
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecisionStr = $this->number_to_string($pricePrecision);
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -622,8 +716,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
+                'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1115,7 +1209,8 @@ class hyperliquid extends Exchange {
         $significantDigits = max (5, strlen($integerPart));
         $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
         $maxDecimals = $market['spot'] ? 8 : 6;
-        return $this->decimal_to_precision($result, ROUND, $maxDecimals - $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
+        return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
     public function hash_message($message) {
@@ -1216,13 +1311,25 @@ class hyperliquid extends Exchange {
         return $signature;
     }
 
-    public function build_transfer_sig($message) {
+    public function build_usd_send_sig($message) {
         $messageTypes = array(
             'HyperliquidTransaction:UsdSend' => array(
                 array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
                 array( 'name' => 'destination', 'type' => 'string' ),
                 array( 'name' => 'amount', 'type' => 'string' ),
                 array( 'name' => 'time', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function build_usd_class_send_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:UsdClassTransfer' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'amount', 'type' => 'string' ),
+                array( 'name' => 'toPerp', 'type' => 'bool' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
             ),
         );
         return $this->sign_user_signed_action($messageTypes, $message);
@@ -2705,26 +2812,36 @@ class hyperliquid extends Exchange {
             if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
                 throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
             }
+            $strAmount = $this->number_to_string($amount);
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $params = $this->omit($params, 'vaultAddress');
+            if ($vaultAddress !== null) {
+                $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
+            }
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
-            $action = array(
-                'type' => 'spotUser',
-                'classTransfer' => array(
-                    'usdc' => $amount,
-                    'toPerp' => $toPerp,
-                ),
-            );
-            $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
-            $innerRequest = array(
-                'action' => $action,
+            $transferPayload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount' => $strAmount,
+                'toPerp' => $toPerp,
                 'nonce' => $nonce,
-                'signature' => $signature,
+            );
+            $transferSig = $this->build_usd_class_send_sig($transferPayload);
+            $transferRequest = array(
+                'action' => array(
+                    'hyperliquidChain' => $transferPayload['hyperliquidChain'],
+                    'signatureChainId' => '0x66eee',
+                    'type' => 'usdClassTransfer',
+                    'amount' => $strAmount,
+                    'toPerp' => $toPerp,
+                    'nonce' => $nonce,
+                ),
+                'nonce' => $nonce,
+                'signature' => $transferSig,
             );
             if ($vaultAddress !== null) {
-                $innerRequest['vaultAddress'] = $vaultAddress;
+                $transferRequest['vaultAddress'] = $vaultAddress;
             }
-            $transferResponse = $this->privatePostExchange ($innerRequest);
+            $transferResponse = $this->privatePostExchange ($transferRequest);
             return $transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2741,7 +2858,7 @@ class hyperliquid extends Exchange {
             'amount' => $this->number_to_string($amount),
             'time' => $nonce,
         );
-        $sig = $this->build_transfer_sig($payload);
+        $sig = $this->build_usd_send_sig($payload);
         $request = array(
             'action' => array(
                 'hyperliquidChain' => $payload['hyperliquidChain'],
@@ -2990,7 +3107,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $userAddress = null;

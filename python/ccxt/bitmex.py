@@ -286,6 +286,108 @@ class bitmex(Exchange, ImplicitAPI):
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
+                'features': {
+                    'default': {
+                        'sandbox': True,
+                        'createOrder': {
+                            'marginMode': True,
+                            'triggerPrice': True,
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                            },
+                            'triggerDirection': True,
+                            'stopLossPrice': False,
+                            'takeProfitPrice': False,
+                            'attachedStopLossTakeProfit': None,
+                            'timeInForce': {
+                                'IOC': True,
+                                'FOK': True,
+                                'PO': True,
+                                'GTD': False,
+                            },
+                            'hedged': False,
+                            'trailing': True,
+                            'marketBuyRequiresPrice': False,
+                            'marketBuyByCost': False,
+                            # exchange-supported features
+                            # 'selfTradePrevention': True,
+                            # 'twap': False,
+                            # 'iceberg': False,
+                            # 'oco': False,
+                        },
+                        'createOrders': None,
+                        'fetchMyTrades': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBack': None,
+                            'untilDays': 1000000,
+                        },
+                        'fetchOrder': {
+                            'marginMode': False,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOpenOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBack': None,
+                            'untilDays': 1000000,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchClosedOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBackClosed': None,
+                            'daysBackCanceled': None,
+                            'untilDays': 1000000,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOHLCV': {
+                            'limit': 10000,
+                        },
+                    },
+                    'spot': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': False,
+                            },
+                        },
+                    },
+                    'forDeriv': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': True,
+                            },
+                        },
+                    },
+                    'swap': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
+                    'future': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -991,7 +1093,7 @@ class bitmex(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(500, limit)
         until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
@@ -1175,7 +1277,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {
@@ -1705,7 +1807,7 @@ class bitmex(Exchange, ImplicitAPI):
         if execInst is not None:
             postOnly = (execInst == 'ParticipateDoNotInitiate')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        stopPrice = self.safe_number(order, 'stopPx')
+        triggerPrice = self.safe_number(order, 'stopPx')
         remaining = self.safe_string(order, 'leavesQty')
         return self.safe_order({
             'info': order,
@@ -1720,8 +1822,7 @@ class bitmex(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1859,7 +1960,7 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 if triggerPrice is None:
                     # if exchange specific trigger types were provided
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type')
                 request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
             request['ordType'] = orderType
             params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
@@ -2421,7 +2522,7 @@ class bitmex(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'fundingRate'),
-            'fundingTimestamp': self.parse_to_numeric(self.iso8601(fundingDatetime)),
+            'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': self.safe_number(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': None,

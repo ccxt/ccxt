@@ -230,6 +230,7 @@ class digifinex(Exchange, ImplicitAPI):
                             'trade/order_info',
                         ],
                         'post': [
+                            'account/transfer',
                             'account/leverage',
                             'account/position_mode',
                             'account/position_margin',
@@ -2476,7 +2477,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {}
@@ -2748,10 +2749,21 @@ class digifinex(Exchange, ImplicitAPI):
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer
+        # transfer between spot, margin and OTC
         #
         #     {
         #         "code": 0
+        #     }
+        #
+        # transfer between spot and swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "type": 2,
+        #             "currency": "USDT",
+        #             "transfer_amount": "5"
+        #         }
         #     }
         #
         # fetchTransfers
@@ -2766,7 +2778,8 @@ class digifinex(Exchange, ImplicitAPI):
         #
         fromAccount = None
         toAccount = None
-        type = self.safe_integer(transfer, 'type')
+        data = self.safe_dict(transfer, 'data', transfer)
+        type = self.safe_integer(data, 'type')
         if type == 1:
             fromAccount = 'spot'
             toAccount = 'swap'
@@ -2779,8 +2792,8 @@ class digifinex(Exchange, ImplicitAPI):
             'id': self.safe_string(transfer, 'transfer_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
-            'amount': self.safe_number(transfer, 'amount'),
+            'currency': self.safe_currency_code(self.safe_string(data, 'currency'), currency),
+            'amount': self.safe_number_2(data, 'amount', 'transfer_amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
@@ -2789,30 +2802,56 @@ class digifinex(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+        https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+        :param str toAccount: 'spot', 'swap', 'margin', 'OTC' - account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request: dict = {
-            'currency_mark': currency['id'],
-            'num': self.currency_to_precision(code, amount),
-            'from': fromId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
-            'to': toId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
-        }
-        response = self.privateSpotPostTransfer(self.extend(request, params))
-        #
-        #     {
-        #         "code": 0
-        #     }
-        #
+        request = {}
+        fromSwap = (fromAccount == 'swap')
+        toSwap = (toAccount == 'swap')
+        response = None
+        amountString = self.currency_to_precision(code, amount)
+        if fromSwap or toSwap:
+            if (fromId != '1') and (toId != '1'):
+                raise ExchangeError(self.id + ' transfer() supports transferring between spot and swap, spot and margin, spot and OTC only')
+            request['type'] = 1 if toSwap else 2  # 1 = spot to swap, 2 = swap to spot
+            request['currency'] = currencyId
+            request['transfer_amount'] = amountString
+            #
+            #     {
+            #         "code": 0,
+            #         "data": {
+            #             "type": 2,
+            #             "currency": "USDT",
+            #             "transfer_amount": "5"
+            #         }
+            #     }
+            #
+            response = self.privateSwapPostAccountTransfer(self.extend(request, params))
+        else:
+            request['currency_mark'] = currencyId
+            request['num'] = amountString
+            request['from'] = fromId  # 1 = SPOT, 2 = MARGIN, 3 = OTC
+            request['to'] = toId  # 1 = SPOT, 2 = MARGIN, 3 = OTC
+            #
+            #     {
+            #         "code": 0
+            #     }
+            #
+            response = self.privateSpotPostTransfer(self.extend(request, params))
         return self.parse_transfer(response, currency)
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:

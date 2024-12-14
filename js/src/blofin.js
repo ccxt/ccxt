@@ -1375,7 +1375,7 @@ export default class blofin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1395,12 +1395,12 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response = undefined;
-        if (isStop || (method === 'privateGetTradeOrdersTpslPending')) {
+        if (isTrigger || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
         else {
@@ -1529,7 +1529,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1726,8 +1726,8 @@ export default class blofin extends Exchange {
         let method = this.safeString(params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
-        const stop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
-        if (stop) {
+        const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
+        if (trigger) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -1741,7 +1741,7 @@ export default class blofin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trigger) {
                     request.push({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2159,7 +2159,7 @@ export default class blofin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2182,12 +2182,12 @@ export default class blofin extends Exchange {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const isStop = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
+        const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response = undefined;
-        if ((isStop) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {

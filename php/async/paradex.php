@@ -272,6 +272,7 @@ class paradex extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
+                'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
                 'broker' => 'CCXT',
             ),
         ));
@@ -1017,11 +1018,11 @@ class paradex extends Exchange {
 
     public function retrieve_account() {
         return Async\async(function ()  {
-            $this->check_required_credentials();
             $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
             if ($cachedAccount !== null) {
                 return $cachedAccount;
             }
+            $this->check_required_credentials();
             $systemConfig = Async\await($this->get_system_config());
             $domain = Async\await($this->prepare_paradex_domain(true));
             $messageTypes = array(
@@ -2106,7 +2107,6 @@ class paradex extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
-            $this->check_required_credentials();
             $headers = array(
                 'Accept' => 'application/json',
                 'PARADEX-PARTNER' => $this->safe_string($this->options, 'broker', 'CCXT'),

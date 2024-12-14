@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -132,8 +132,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': True,
@@ -206,6 +206,7 @@ class mexc(Exchange, ImplicitAPI):
                             'allOrders': 10,
                             'account': 10,
                             'myTrades': 10,
+                            'tradeFee': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
                             'capital/config/getall': 10,
@@ -686,6 +687,143 @@ class mexc(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
                 'broker': 'CCXT',
+            },
+            'features': {
+                'def': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': {
+                            'last': False,
+                            'mark': False,
+                            'index': False,
+                        },
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        # exchange-supported features
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBackClosed': 7,
+                        'daysBackCanceled': 7,
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'def',
+                },
+                'forDerivs': {
+                    'extends': 'def',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,
+                        'hedged': True,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': None,
+                        'untilDays': 90,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -2159,7 +2297,6 @@ class mexc(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param str [marginMode]: only 'isolated' is supported for spot-margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -3425,34 +3562,44 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_trading_fees(self, params={}) -> TradingFees:
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
-        fetch the trading fees for multiple markets
+        fetch the trading fees for a market
 
-        https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-        https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+        https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
 
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.fetch_account_helper('spot', params)
-        makerFee = self.safe_string(response, 'makerCommission')
-        takerFee = self.safe_string(response, 'takerCommission')
-        makerFee = Precise.string_div(makerFee, '1000')
-        takerFee = Precise.string_div(takerFee, '1000')
-        result: dict = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
-            result[symbol] = {
-                'symbol': symbol,
-                'maker': self.parse_number(makerFee),
-                'taker': self.parse_number(takerFee),
-                'percentage': True,
-                'tierBased': False,
-                'info': response,
-            }
-        return result
+        market = self.market(symbol)
+        if not market['spot']:
+            raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.spotPrivateGetTradeFee(self.extend(request, params))
+        #
+        #  {
+        #      "data":{
+        #        "makerCommission":0.003000000000000000,
+        #        "takerCommission":0.003000000000000000
+        #      },
+        #      "code":0,
+        #      "msg":"success",
+        #      "timestamp":1669109672717
+        #  }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': self.safe_number(data, 'makerCommission'),
+            'taker': self.safe_number(data, 'takerCommission'),
+            'percentage': None,
+            'tierBased': None,
+        }
 
     def custom_parse_balance(self, response, marketType) -> Balances:
         #

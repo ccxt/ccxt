@@ -916,7 +916,6 @@ public partial class bithumb : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1062,7 +1061,7 @@ public partial class bithumb : Exchange
             { "address", address },
             { "currency", getValue(currency, "id") },
         };
-        if (isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))))
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
         {
             object destination = this.safeString(parameters, "destination");
             if (isTrue(isTrue((isEqual(tag, null))) && isTrue((isEqual(destination, null)))))

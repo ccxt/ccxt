@@ -1,5 +1,5 @@
 import Exchange from './abstract/onetrading.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 /**
  * @class onetrading
  * @augments Exchange
@@ -102,64 +102,11 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.onetrading.com/#balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
-    /**
-     * @method
-     * @name onetrading#createDepositAddress
-     * @description create a currency deposit address
-     * @param {string} code unified currency code of the currency for the deposit address
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    /**
-     * @method
-     * @name onetrading#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    /**
-     * @method
-     * @name onetrading#fetchDeposits
-     * @description fetch all deposits made to an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    /**
-     * @method
-     * @name onetrading#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    /**
-     * @method
-     * @name onetrading#withdraw
-     * @description make a withdrawal
-     * @param {string} code unified currency code
-     * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): string;
@@ -182,6 +129,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#cancelOrder
      * @description cancels an open order
+     * @see https://docs.onetrading.com/#close-order-by-order-id
      * @param {string} id order id
      * @param {string} symbol not used by bitmex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -192,6 +140,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#cancelAllOrders
      * @description cancel all open orders
+     * @see https://docs.onetrading.com/#close-all-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -201,6 +150,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#cancelOrders
      * @description cancel multiple orders
+     * @see https://docs.onetrading.com/#close-all-orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -211,6 +161,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchOrder
      * @description fetches information on an order made by the user
+     * @see https://docs.onetrading.com/#get-order
      * @param {string} id the order id
      * @param {string} symbol not used by onetrading fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -221,6 +172,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @see https://docs.onetrading.com/#get-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -232,6 +184,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.onetrading.com/#get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -243,6 +196,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchOrderTrades
      * @description fetch all the trades made from a single order
+     * @see https://docs.onetrading.com/#trades-for-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -255,6 +209,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://docs.onetrading.com/#all-trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve

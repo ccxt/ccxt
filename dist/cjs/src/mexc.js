@@ -118,8 +118,8 @@ class mexc extends mexc$1 {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
@@ -192,6 +192,7 @@ class mexc extends mexc$1 {
                             'allOrders': 10,
                             'account': 10,
                             'myTrades': 10,
+                            'tradeFee': 10,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
                             'capital/config/getall': 10,
@@ -672,6 +673,143 @@ class mexc extends mexc$1 {
                 'recvWindow': 5 * 1000,
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,
                 'broker': 'CCXT',
+            },
+            'features': {
+                'def': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': false,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        // exchange-supported features
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBackClosed': 7,
+                        'daysBackCanceled': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'def',
+                },
+                'forDerivs': {
+                    'extends': 'def',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'hedged': true,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -2234,7 +2372,6 @@ class mexc extends mexc$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {string} [marginMode] only 'isolated' is supported for spot-margin trading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2283,7 +2420,7 @@ class mexc extends mexc$1 {
     /**
      * @ignore
      * @method
-     * @name mexc#createOrder
+     * @name mexc#createSwapOrder
      * @description create a trade order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
@@ -3603,33 +3740,43 @@ class mexc extends mexc$1 {
     }
     /**
      * @method
-     * @name mexc#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
-     * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+     * @name mexc#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchTradingFees(params = {}) {
+    async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
-        const response = await this.fetchAccountHelper('spot', params);
-        let makerFee = this.safeString(response, 'makerCommission');
-        let takerFee = this.safeString(response, 'takerCommission');
-        makerFee = Precise["default"].stringDiv(makerFee, '1000');
-        takerFee = Precise["default"].stringDiv(takerFee, '1000');
-        const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'symbol': symbol,
-                'maker': this.parseNumber(makerFee),
-                'taker': this.parseNumber(takerFee),
-                'percentage': true,
-                'tierBased': false,
-                'info': response,
-            };
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
         }
-        return result;
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.spotPrivateGetTradeFee(this.extend(request, params));
+        //
+        //  {
+        //      "data":{
+        //        "makerCommission":0.003000000000000000,
+        //        "takerCommission":0.003000000000000000
+        //      },
+        //      "code":0,
+        //      "msg":"success",
+        //      "timestamp":1669109672717
+        //  }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': this.safeNumber(data, 'makerCommission'),
+            'taker': this.safeNumber(data, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
+        };
     }
     customParseBalance(response, marketType) {
         //

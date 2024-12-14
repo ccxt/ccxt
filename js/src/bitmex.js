@@ -278,6 +278,108 @@ export default class bitmex extends Exchange {
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
+                'features': {
+                    'default': {
+                        'sandbox': true,
+                        'createOrder': {
+                            'marginMode': true,
+                            'triggerPrice': true,
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                            },
+                            'triggerDirection': true,
+                            'stopLossPrice': false,
+                            'takeProfitPrice': false,
+                            'attachedStopLossTakeProfit': undefined,
+                            'timeInForce': {
+                                'IOC': true,
+                                'FOK': true,
+                                'PO': true,
+                                'GTD': false,
+                            },
+                            'hedged': false,
+                            'trailing': true,
+                            'marketBuyRequiresPrice': false,
+                            'marketBuyByCost': false,
+                            // exchange-supported features
+                            // 'selfTradePrevention': true,
+                            // 'twap': false,
+                            // 'iceberg': false,
+                            // 'oco': false,
+                        },
+                        'createOrders': undefined,
+                        'fetchMyTrades': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'daysBack': undefined,
+                            'untilDays': 1000000,
+                        },
+                        'fetchOrder': {
+                            'marginMode': false,
+                            'trigger': false,
+                            'trailing': false,
+                        },
+                        'fetchOpenOrders': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'trigger': false,
+                            'trailing': false,
+                        },
+                        'fetchOrders': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'daysBack': undefined,
+                            'untilDays': 1000000,
+                            'trigger': false,
+                            'trailing': false,
+                        },
+                        'fetchClosedOrders': {
+                            'marginMode': false,
+                            'limit': 500,
+                            'daysBackClosed': undefined,
+                            'daysBackCanceled': undefined,
+                            'untilDays': 1000000,
+                            'trigger': false,
+                            'trailing': false,
+                        },
+                        'fetchOHLCV': {
+                            'limit': 10000,
+                        },
+                    },
+                    'spot': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': false,
+                            },
+                        },
+                    },
+                    'forDeriv': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': true,
+                            },
+                        },
+                    },
+                    'swap': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
+                    'future': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -1017,7 +1119,7 @@ export default class bitmex extends Exchange {
             request['startTime'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min(500, limit);
         }
         const until = this.safeInteger2(params, 'until', 'endTime');
         if (until !== undefined) {
@@ -1208,7 +1310,7 @@ export default class bitmex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1766,7 +1868,7 @@ export default class bitmex extends Exchange {
             postOnly = (execInst === 'ParticipateDoNotInitiate');
         }
         const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
-        const stopPrice = this.safeNumber(order, 'stopPx');
+        const triggerPrice = this.safeNumber(order, 'stopPx');
         const remaining = this.safeString(order, 'leavesQty');
         return this.safeOrder({
             'info': order,
@@ -1781,8 +1883,7 @@ export default class bitmex extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1936,7 +2037,7 @@ export default class bitmex extends Exchange {
             else {
                 if (triggerPrice === undefined) {
                     // if exchange specific trigger types were provided
-                    throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
+                    throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type');
                 }
                 request['stopPx'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2530,7 +2631,7 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': this.parseToNumeric(this.iso8601(fundingDatetime)),
+            'fundingTimestamp': this.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,

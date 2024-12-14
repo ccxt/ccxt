@@ -2804,15 +2804,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         request: dict = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        if stop:
-            request['untriggerred'] = stop
+        if trigger:
+            request['untriggerred'] = trigger
         response = None
         if market['settle'] == 'USDT':
             response = self.privateDeleteGOrdersAll(self.extend(request, params))
@@ -3894,19 +3894,23 @@ class phemex(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(contract, 'timestamp', 0.000001)
+        markEp = self.from_ep(self.safe_string(contract, 'markEp'), market)
+        indexEp = self.from_ep(self.safe_string(contract, 'indexEp'), market)
+        fundingRateEr = self.from_er(self.safe_string(contract, 'fundingRateEr'), market)
+        nextFundingRateEr = self.from_er(self.safe_string(contract, 'predFundingRateEr'), market)
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': self.from_ep(self.safe_string_2(contract, 'markEp', 'markPriceRp'), market),
-            'indexPrice': self.from_ep(self.safe_string_2(contract, 'indexEp', 'indexPriceRp'), market),
+            'markPrice': self.safe_number(contract, 'markPriceRp', markEp),
+            'indexPrice': self.safe_number(contract, 'indexPriceRp', indexEp),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.from_er(self.safe_string(contract, 'fundingRateEr'), market),
+            'fundingRate': self.safe_number(contract, 'fundingRateRr', fundingRateEr),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.from_er(self.safe_string_2(contract, 'predFundingRateEr', 'predFundingRateRr'), market),
+            'nextFundingRate': self.safe_number(contract, 'predFundingRateRr', nextFundingRateEr),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,

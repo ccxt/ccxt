@@ -80,6 +80,8 @@ export default class coinbase extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchDepositMethodId': true,
+                'fetchDepositMethodIds': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -373,6 +375,82 @@ export default class coinbase extends Exchange {
                 'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 3000,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 350,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
             },
         });
     }
@@ -2366,7 +2444,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -4305,6 +4383,95 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodIds
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    async fetchDepositMethodIds (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v3PrivateGetBrokeragePaymentMethods (params);
+        //
+        //     {
+        //         "payment_methods": [
+        //             {
+        //                 "id": "21b39a5d-f7b46876fb2e",
+        //                 "type": "COINBASE_FIAT_ACCOUNT",
+        //                 "name": "CAD Wallet",
+        //                 "currency": "CAD",
+        //                 "verified": true,
+        //                 "allow_buy": false,
+        //                 "allow_sell": true,
+        //                 "allow_deposit": false,
+        //                 "allow_withdraw": false,
+        //                 "created_at": "2023-06-29T19:58:46Z",
+        //                 "updated_at": "2023-10-30T20:25:01Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (response, 'payment_methods', []);
+        return this.parseDepositMethodIds (result);
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositMethodId
+     * @description fetch the deposit id for a fiat currency associated with this account
+     * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+     * @param {string} id the deposit payment method id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/#/?id=deposit-id-structure}
+     */
+    async fetchDepositMethodId (id: string, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'payment_method_id': id,
+        };
+        const response = await this.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (this.extend (request, params));
+        //
+        //     {
+        //         "payment_method": {
+        //             "id": "21b39a5d-f7b46876fb2e",
+        //             "type": "COINBASE_FIAT_ACCOUNT",
+        //             "name": "CAD Wallet",
+        //             "currency": "CAD",
+        //             "verified": true,
+        //             "allow_buy": false,
+        //             "allow_sell": true,
+        //             "allow_deposit": false,
+        //             "allow_withdraw": false,
+        //             "created_at": "2023-06-29T19:58:46Z",
+        //             "updated_at": "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'payment_method', {});
+        return this.parseDepositMethodId (result);
+    }
+
+    parseDepositMethodIds (ids, params = {}) {
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = this.extend (this.parseDepositMethodId (ids[i]), params);
+            result.push (id);
+        }
+        return result;
+    }
+
+    parseDepositMethodId (depositId) {
+        return {
+            'info': depositId,
+            'id': this.safeString (depositId, 'id'),
+            'currency': this.safeString (depositId, 'currency'),
+            'verified': this.safeBool (depositId, 'verified'),
+            'tag': this.safeString (depositId, 'name'),
+        };
     }
 
     /**

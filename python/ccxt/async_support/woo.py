@@ -45,7 +45,7 @@ class woo(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
-                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createConvertTrade': True,
@@ -124,7 +124,7 @@ class woo(Exchange, ImplicitAPI):
                 'setMargin': False,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -168,7 +168,7 @@ class woo(Exchange, ImplicitAPI):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -218,11 +218,11 @@ class woo(Exchange, ImplicitAPI):
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,  # 2 requests per 1 second per symbol
+                            'order': 1,  # 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -235,7 +235,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -975,17 +975,17 @@ class woo(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         isTrailingPercentOrder = trailingPercent is not None
         isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-        isStop = isTrailing or stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        reduceOnlyKey = 'reduceOnly' if isStop else 'reduce_only'
-        clientOrderIdKey = 'clientOrderId' if isStop else 'client_order_id'
-        orderQtyKey = 'quantity' if isStop else 'order_quantity'
-        priceKey = 'price' if isStop else 'order_price'
-        typeKey = 'type' if isStop else 'order_type'
+        reduceOnlyKey = 'reduceOnly' if isConditional else 'reduce_only'
+        clientOrderIdKey = 'clientOrderId' if isConditional else 'client_order_id'
+        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
+        priceKey = 'price' if isConditional else 'order_price'
+        typeKey = 'type' if isConditional else 'order_type'
         request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if not isStop:
+        if not isConditional:
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -996,7 +996,7 @@ class woo(Exchange, ImplicitAPI):
             request[reduceOnlyKey] = reduceOnly
         if not isMarket and price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
-        if isMarket and not isStop:
+        if isMarket and not isConditional:
             # for market buy it requires the amount of quote currency to spend
             cost = self.safe_string_2(params, 'cost', 'order_amount')
             params = self.omit(params, ['cost', 'order_amount'])
@@ -1064,7 +1064,7 @@ class woo(Exchange, ImplicitAPI):
             request['childOrders'] = [outterOrder]
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
-        if isStop:
+        if isConditional:
             response = await self.v3PrivatePostAlgoOrder(self.extend(request, params))
         else:
             response = await self.v1PrivatePostOrder(self.extend(request, params))
@@ -1163,17 +1163,17 @@ class woo(Exchange, ImplicitAPI):
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        isStop = isTrailing or (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isByClientOrder:
             request['client_order_id'] = clientOrderIdExchangeSpecific
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
         else:
             request['oid'] = id
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderOid(self.extend(request, params))
@@ -1203,12 +1203,12 @@ class woo(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_bool(params, 'stop', False)
-        params = self.omit(params, 'stop')
-        if not stop and (symbol is None):
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        params = self.omit(params, ['trigger', 'stop'])
+        if not isTrigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market: Market = None
@@ -1219,7 +1219,7 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if stop:
+        if isTrigger:
             request['order_id'] = id
             response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
@@ -1251,13 +1251,13 @@ class woo(Exchange, ImplicitAPI):
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if stop:
+        if trigger:
             return await self.v3PrivateDeleteAlgoOrdersPending(params)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -1314,17 +1314,17 @@ class woo(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         response = None
-        if stop:
+        if trigger:
             request['oid'] = id
             response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
@@ -1382,7 +1382,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1396,14 +1396,14 @@ class woo(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request: dict = {}
         market: Market = None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'trailing', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            if stop or trailing:
+            if trigger or trailing:
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
@@ -1411,12 +1411,12 @@ class woo(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = 500
-        if stop:
+        if trigger:
             request['algoType'] = 'stop'
         elif trailing:
             request['algoType'] = 'TRAILING_STOP'
         response = None
-        if stop or trailing:
+        if trigger or trailing:
             response = await self.v3PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
@@ -1466,7 +1466,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1488,7 +1488,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -2056,7 +2056,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
@@ -2473,8 +2473,8 @@ class woo(Exchange, ImplicitAPI):
                 if not isSandboxMode:
                     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                    isStop = path.find('algo') > -1
-                    if isStop:
+                    isTrigger = path.find('algo') > -1
+                    if isTrigger:
                         params['brokerId'] = brokerId
                     else:
                         params['broker_id'] = brokerId

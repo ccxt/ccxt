@@ -573,7 +573,6 @@ export default class bitbns extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'rate'),
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': this.safeString (order, 'btc'),
             'cost': undefined,

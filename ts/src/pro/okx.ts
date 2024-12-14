@@ -768,9 +768,9 @@ export default class okx extends okxRest {
      */
     async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
+        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHash = 'myLiquidations';
         const messageHashes = [];
@@ -1630,7 +1630,7 @@ export default class okx extends okxRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional trades
+     * @param {bool} [params.trigger] true if fetching trigger or conditional trades
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -1639,11 +1639,11 @@ export default class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
-        const isStop = this.safeBool (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         await this.loadMarkets ();
-        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
-        const channel = isStop ? 'orders-algo' : 'orders';
+        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
+        const channel = isTrigger ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1821,7 +1821,7 @@ export default class okx extends okxRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] true if fetching trigger or conditional orders
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1830,10 +1830,10 @@ export default class okx extends okxRest {
         let type = undefined;
         // By default, receive order updates from any instrument type
         [ type, params ] = this.handleOptionAndParams (params, 'watchOrders', 'type', 'ANY');
-        const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         await this.loadMarkets ();
-        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
+        await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1854,7 +1854,7 @@ export default class okx extends okxRest {
         const request: Dict = {
             'instType': uppercaseType,
         };
-        const channel = isStop ? 'orders-algo' : 'orders';
+        const channel = isTrigger ? 'orders-algo' : 'orders';
         const orders = await this.subscribe ('private', channel, channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);

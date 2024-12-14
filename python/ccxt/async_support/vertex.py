@@ -1964,7 +1964,7 @@ class vertex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1974,13 +1974,13 @@ class vertex(Exchange, ImplicitAPI):
         userAddress, params = self.handle_public_address('fetchOpenOrders', params)
         request = {}
         market: Market = None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = self.parse_to_numeric(market['id'])
         response = None
-        if stop:
+        if trigger:
             contracts = await self.query_contracts()
             chainId = self.safe_string(contracts, 'chain_id')
             verifyingContractAddress = self.safe_string(contracts, 'endpoint_addr')
@@ -2076,14 +2076,14 @@ class vertex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if not stop:
+        if not trigger:
             raise NotSupported(self.id + ' fetchOrders only support trigger orders')
         userAddress = None
         userAddress, params = self.handle_public_address('fetchOrders', params)
@@ -2158,7 +2158,7 @@ class vertex(Exchange, ImplicitAPI):
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
@@ -2189,10 +2189,10 @@ class vertex(Exchange, ImplicitAPI):
                 'signature': self.build_cancel_all_orders_sig(cancels, chainId, verifyingContractAddress),
             },
         }
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.v1TriggerPostExecute(self.extend(request, params))
             #
             # {
@@ -2286,10 +2286,10 @@ class vertex(Exchange, ImplicitAPI):
                 'signature': self.build_cancel_orders_sig(cancels, chainId, verifyingContractAddress),
             },
         }
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.v1TriggerPostExecute(self.extend(request, params))
             #
             # {

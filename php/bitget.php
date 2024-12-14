@@ -1449,8 +1449,8 @@ class bitget extends Exchange {
                             'index' => false, // not on spot
                         ),
                         'triggerDirection' => false,
-                        'stopLossPrice' => true, // but not yet implemented in spot
-                        'takeProfitPrice' => true, // but not yet implemented in spot
+                        'stopLossPrice' => true, // todo =>  not yet implemented in spot
+                        'takeProfitPrice' => true, // todo => not yet implemented in spot
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => array(
                                 'last' => false,
@@ -1460,7 +1460,6 @@ class bitget extends Exchange {
                             'limitPrice' => true,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -1531,7 +1530,6 @@ class bitget extends Exchange {
                             'limitPrice' => false,
                         ),
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -4217,7 +4215,6 @@ class bitget extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
-            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
             'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'takeProfitPrice' => $this->safe_number_2($order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice' => $this->safe_number_2($order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -5975,7 +5972,7 @@ class bitget extends Exchange {
          * @param {string} [$params->symbol] *contract only* unified $market $symbol
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $symbol = $this->safe_string($params, 'symbol');

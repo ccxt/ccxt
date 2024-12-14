@@ -136,6 +136,7 @@ public partial class bitopro : Exchange
                         { "wallet/withdraw/{currency}/id/{id}", 1 },
                         { "wallet/depositHistory/{currency}", 1 },
                         { "wallet/withdrawHistory/{currency}", 1 },
+                        { "orders/open", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders/{pair}", divide(1, 2) },
@@ -1011,7 +1012,6 @@ public partial class bitopro : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1059,14 +1059,14 @@ public partial class bitopro : Exchange
         if (isTrue(isEqual(orderType, "STOP_LIMIT")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-            object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+            object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice parameter for "), orderType), " orders")) ;
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")) ;
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
             object condition = this.safeString(parameters, "condition");
             if (isTrue(isEqual(condition, null)))
@@ -1343,13 +1343,31 @@ public partial class bitopro : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitopro#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
-            { "statusKind", "OPEN" },
-        };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+        }
+        object response = await this.privateGetOrdersOpen(this.extend(request, parameters));
+        object orders = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(orders, market, since, limit);
     }
 
     /**

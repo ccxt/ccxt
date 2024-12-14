@@ -911,9 +911,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -971,7 +971,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to fetch portfolio margin account conditional orders
     /// </description>
@@ -1068,9 +1068,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1128,9 +1128,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1188,9 +1188,9 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : set to true if you would like to fetch portfolio margin account stop or conditional orders
+    /// boolean : set to true if you would like to fetch portfolio margin account trigger or conditional orders
     /// </description>
     /// </item>
     /// </list>
@@ -1231,7 +1231,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel a portfolio margin account conditional order
     /// </description>
@@ -1277,7 +1277,7 @@ public partial class binance
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true if you would like to cancel portfolio margin account conditional orders
     /// </description>
@@ -2353,7 +2353,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntry(id, code, parameters);
@@ -2419,7 +2419,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

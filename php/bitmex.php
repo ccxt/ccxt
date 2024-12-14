@@ -271,6 +271,108 @@ class bitmex extends Exchange {
                     'SOL' => 'sol',
                     'ADA' => 'ada',
                 ),
+                'features' => array(
+                    'default' => array(
+                        'sandbox' => true,
+                        'createOrder' => array(
+                            'marginMode' => true,
+                            'triggerPrice' => true,
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                            ),
+                            'triggerDirection' => true,
+                            'stopLossPrice' => false,
+                            'takeProfitPrice' => false,
+                            'attachedStopLossTakeProfit' => null,
+                            'timeInForce' => array(
+                                'IOC' => true,
+                                'FOK' => true,
+                                'PO' => true,
+                                'GTD' => false,
+                            ),
+                            'hedged' => false,
+                            'trailing' => true,
+                            'marketBuyRequiresPrice' => false,
+                            'marketBuyByCost' => false,
+                            // exchange-supported features
+                            // 'selfTradePrevention' => true,
+                            // 'twap' => false,
+                            // 'iceberg' => false,
+                            // 'oco' => false,
+                        ),
+                        'createOrders' => null,
+                        'fetchMyTrades' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBack' => null,
+                            'untilDays' => 1000000,
+                        ),
+                        'fetchOrder' => array(
+                            'marginMode' => false,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOpenOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBack' => null,
+                            'untilDays' => 1000000,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchClosedOrders' => array(
+                            'marginMode' => false,
+                            'limit' => 500,
+                            'daysBackClosed' => null,
+                            'daysBackCanceled' => null,
+                            'untilDays' => 1000000,
+                            'trigger' => false,
+                            'trailing' => false,
+                        ),
+                        'fetchOHLCV' => array(
+                            'limit' => 10000,
+                        ),
+                    ),
+                    'spot' => array(
+                        'extends' => 'default',
+                        'createOrder' => array(
+                            'triggerPriceType' => array(
+                                'index' => false,
+                            ),
+                        ),
+                    ),
+                    'forDeriv' => array(
+                        'extends' => 'default',
+                        'createOrder' => array(
+                            'triggerPriceType' => array(
+                                'index' => true,
+                            ),
+                        ),
+                    ),
+                    'swap' => array(
+                        'linear' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                        'inverse' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                    ),
+                    'future' => array(
+                        'linear' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                        'inverse' => array(
+                            'extends' => 'forDeriv',
+                        ),
+                    ),
+                ),
             ),
             'commonCurrencies' => array(
                 'USDt' => 'USDT',
@@ -1018,7 +1120,7 @@ class bitmex extends Exchange {
             $request['startTime'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['count'] = $limit;
+            $request['count'] = min (500, $limit);
         }
         $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
@@ -1212,7 +1314,7 @@ class bitmex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $request = array(
@@ -1776,7 +1878,7 @@ class bitmex extends Exchange {
             $postOnly = ($execInst === 'ParticipateDoNotInitiate');
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
-        $stopPrice = $this->safe_number($order, 'stopPx');
+        $triggerPrice = $this->safe_number($order, 'stopPx');
         $remaining = $this->safe_string($order, 'leavesQty');
         return $this->safe_order(array(
             'info' => $order,
@@ -1791,8 +1893,7 @@ class bitmex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1943,7 +2044,7 @@ class bitmex extends Exchange {
             } else {
                 if ($triggerPrice === null) {
                     // if exchange specific trigger types were provided
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice (stopPx|stopPrice) parameter for the ' . $orderType . ' order type');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for the ' . $orderType . ' order type');
                 }
                 $request['stopPx'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
             }
@@ -2542,7 +2643,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
+            'fundingTimestamp' => $this->parse8601($fundingDatetime),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,

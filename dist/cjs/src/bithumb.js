@@ -922,7 +922,6 @@ class bithumb extends bithumb$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1049,7 +1048,7 @@ class bithumb extends bithumb$1 {
             'address': address,
             'currency': currency['id'],
         };
-        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM') {
+        if (code === 'XRP' || code === 'XMR' || code === 'EOS' || code === 'STEEM' || code === 'TON') {
             const destination = this.safeString(params, 'destination');
             if ((tag === undefined) && (destination === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');

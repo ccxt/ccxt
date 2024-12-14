@@ -271,6 +271,8 @@ class probit extends probit$1 {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const closed = this.safeBool(market, 'closed', false);
+        const showInUI = this.safeBool(market, 'show_in_ui', true);
+        const active = !closed && showInUI;
         const takerFeeRate = this.safeString(market, 'taker_fee_rate');
         const taker = Precise["default"].stringDiv(takerFeeRate, '100');
         const makerFeeRate = this.safeString(market, 'maker_fee_rate');
@@ -290,7 +292,7 @@ class probit extends probit$1 {
             'swap': false,
             'future': false,
             'option': false,
-            'active': !closed,
+            'active': active,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

@@ -1563,16 +1563,16 @@ class okcoin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if cancel trigger or conditional orders
+        :param bool [params.trigger]: True if cancel trigger or conditional orders
         :param bool [params.advanced]: True if canceling advanced orders only
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         advanced = self.safe_value(params, 'advanced')
-        if stop or advanced:
+        if trigger or advanced:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_value(orderInner, 0)
         market = self.market(symbol)
@@ -1620,7 +1620,7 @@ class okcoin(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         advanced = self.safe_value(params, 'advanced')
         params = self.omit(params, ['stop', 'trigger', 'advanced'])
         market = self.market(symbol)
@@ -1636,7 +1636,7 @@ class okcoin(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if stop or advanced:
+                if trigger or advanced:
                     request.append({
                         'algoId': ids[i],
                         'instId': market['id'],
@@ -1653,7 +1653,7 @@ class okcoin(Exchange, ImplicitAPI):
                     'clOrdId': clientOrderIds[i],
                 })
         response = None
-        if stop:
+        if trigger:
             response = self.privatePostTradeCancelAlgos(request)
         elif advanced:
             response = self.privatePostTradeCancelAdvanceAlgos(request)
@@ -1901,8 +1901,8 @@ class okcoin(Exchange, ImplicitAPI):
             # 'ordId': id,
         }
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
-        stop = self.safe_value_2(params, 'stop', 'trigger')
-        if stop:
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        if trigger:
             if clientOrderId is not None:
                 request['algoClOrdId'] = clientOrderId
             else:
@@ -1914,7 +1914,7 @@ class okcoin(Exchange, ImplicitAPI):
                 request['ordId'] = id
         query = self.omit(params, ['clientOrderId', 'stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = self.privateGetTradeOrderAlgo(self.extend(request, query))
         else:
             response = self.privateGetTradeOrder(self.extend(request, query))
@@ -1933,7 +1933,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1953,12 +1953,12 @@ class okcoin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
-        if stop and (ordType is None):
+        trigger = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
+        if trigger and (ordType is None):
             request['ordType'] = 'trigger'  # default to trigger
         params = self.omit(params, ['stop'])
         response = None
-        if stop:
+        if trigger:
             response = self.privateGetTradeOrdersAlgoPending(self.extend(request, params))
         else:
             response = self.privateGetTradeOrdersPending(self.extend(request, params))
@@ -1977,7 +1977,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1990,12 +1990,12 @@ class okcoin(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instId'] = market['id']
         ordType = self.safe_string(params, 'ordType')
-        stop = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
-        if stop and (ordType is None):
+        trigger = self.safe_value(params, 'stop') or (self.safe_string(params, 'ordType') is not None)
+        if trigger and (ordType is None):
             request['ordType'] = 'trigger'  # default to trigger
         params = self.omit(params, ['stop'])
         response = None
-        if stop:
+        if trigger:
             response = self.privateGetTradeOrdersAlgoHistory(self.extend(request, params))
         else:
             method = None
@@ -2726,7 +2726,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         method = None

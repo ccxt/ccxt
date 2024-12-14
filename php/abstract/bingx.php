@@ -106,9 +106,6 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_private_get_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
-    public function swap_v1_private_get_market_markpriceklines($params = array()) {
-        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
-    }
     public function swap_v1_private_get_trade_batchcancelreplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
@@ -397,6 +394,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function subaccount_v1_private_get_assets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function subaccount_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function subaccount_v1_private_post_create($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
@@ -552,9 +552,6 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV1PrivateGetPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function swapV1PrivateGetMarketMarkPriceKlines($params = array()) {
-        return $this->request('market/markPriceKlines', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function swapV1PrivateGetTradeBatchCancelReplace($params = array()) {
         return $this->request('trade/batchCancelReplace', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
@@ -843,6 +840,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function subAccountV1PrivateGetAssets($params = array()) {
         return $this->request('assets', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function subAccountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('subAccount', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function subAccountV1PrivatePostCreate($params = array()) {
         return $this->request('create', array('subAccount', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 10));

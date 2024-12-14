@@ -577,6 +577,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '400008': NotSupported,
                     '400100': InsufficientFunds,  # {"msg":"account.available.amount","code":"400100"} or {"msg":"Withdrawal amount is below the minimum requirement.","code":"400100"}
                     '400200': InvalidOrder,  # {"code":"400200","msg":"Forbidden to place an order"}
+                    '400330': InvalidOrder,  # {"msg":"Order price can't deviate from NAV by 50%","code":"400330"}
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400370': InvalidOrder,  # {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest,  # Parameter error
@@ -659,6 +660,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 1,
@@ -928,6 +931,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TRUE': 'true',
                     'CS': 'cs',
                     'ORAI': 'orai',
+                    'BASE': 'base',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -1003,10 +1007,78 @@ class kucoin(Exchange, ImplicitAPI):
                     'spot': 'TRADE',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,  # not supported
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'iceberg': True,
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 7,  # per  implementation comments
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 500,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 7,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
         """
@@ -1243,6 +1315,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             })
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         return result
 
     async def load_migration_status(self, force: bool = False):
@@ -2144,7 +2218,7 @@ class kucoin(Exchange, ImplicitAPI):
  market orders --------------------------------------------------
         :param str [params.funds]:  # Amount of quote currency to use
  stop orders ----------------------------------------------------
-        :param str [params.stop]:  Either loss or entry, the default is loss. Requires stopPrice to be defined
+        :param str [params.stop]:  Either loss or entry, the default is loss. Requires triggerPrice to be defined
  margin orders --------------------------------------------------
         :param float [params.leverage]: Leverage size of the order
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
@@ -2449,7 +2523,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if cancelling a stop order
+        :param bool [params.trigger]: True if cancelling a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param bool [params.sync]: False,  # True to use the hf sync call
         :returns: Response from the exchange
@@ -2457,7 +2531,7 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         useSync = False
@@ -2471,7 +2545,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger'])
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            if stop:
+            if trigger:
                 response = await self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, params))
                 #
                 #    {
@@ -2510,7 +2584,7 @@ class kucoin(Exchange, ImplicitAPI):
             return self.parse_order(response)
         else:
             request['orderId'] = id
-            if stop:
+            if trigger:
                 response = await self.privateDeleteStopOrderOrderId(self.extend(request, params))
                 #
                 #    {
@@ -2558,7 +2632,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *invalid for isolated margin* True if cancelling all stop orders
+        :param bool [params.trigger]: *invalid for isolated margin* True if cancelling all stop orders
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param str [params.orderIds]: *stop orders only* Comma seperated order IDs
         :param bool [params.hf]: False,  # True for hf order
@@ -2566,7 +2640,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        stop = self.safe_bool(params, 'stop', False)
+        trigger = self.safe_bool(params, 'stop', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         params = self.omit(params, 'stop')
@@ -2575,10 +2649,10 @@ class kucoin(Exchange, ImplicitAPI):
             request['symbol'] = self.market_id(symbol)
         if marginMode is not None:
             request['tradeType'] = self.options['marginModes'][marginMode]
-            if marginMode == 'isolated' and stop:
+            if marginMode == 'isolated' and trigger:
                 raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
         response = None
-        if stop:
+        if trigger:
             response = await self.privateDeleteStopOrderCancel(self.extend(request, query))
         elif hf:
             if symbol is None:
@@ -2607,16 +2681,16 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param int [params.currentPage]: *stop orders only* current page
-        :param str [params.orderIds]: *stop orders only* comma seperated order ID list
-        :param bool [params.stop]: True if fetching a stop order
+        :param int [params.currentPage]: *trigger orders only* current page
+        :param str [params.orderIds]: *trigger orders only* comma seperated order ID list
+        :param bool [params.trigger]: True if fetching a trigger order
         :param bool [params.hf]: False,  # True for hf order
         :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         lowercaseStatus = status.lower()
         until = self.safe_integer(params, 'until')
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         if hf and (symbol is None):
@@ -2642,7 +2716,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['endAt'] = until
         request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
         response = None
-        if stop:
+        if trigger:
             response = await self.privateGetStopOrder(self.extend(request, query))
         elif hf:
             if lowercaseStatus == 'active':
@@ -2718,7 +2792,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param bool [params.stop]: True if fetching a stop order
+        :param bool [params.trigger]: True if fetching a trigger order
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2744,12 +2818,12 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
-        :param bool [params.stop]: True if fetching stop orders
+        :param bool [params.trigger]: True if fetching trigger orders
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param int [params.currentPage]: *stop orders only* current page
-        :param str [params.orderIds]: *stop orders only* comma seperated order ID list
+        :param int [params.currentPage]: *trigger orders only* current page
+        :param str [params.orderIds]: *trigger orders only* comma seperated order ID list
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2773,9 +2847,9 @@ class kucoin(Exchange, ImplicitAPI):
         https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
 
         :param str id: Order id
-        :param str symbol: not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+        :param str symbol: not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
         :param dict [params]: exchange specific parameters
-        :param bool [params.stop]: True if fetching a stop order
+        :param bool [params.trigger]: True if fetching a trigger order
         :param bool [params.hf]: False,  # True for hf order
         :param bool [params.clientOid]: unique order id created by users to identify their orders
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2783,7 +2857,7 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         market = None
@@ -2797,7 +2871,7 @@ class kucoin(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
-            if stop:
+            if trigger:
                 if symbol is not None:
                     request['symbol'] = market['id']
                 response = await self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, params))
@@ -2812,7 +2886,7 @@ class kucoin(Exchange, ImplicitAPI):
             if id is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
             request['orderId'] = id
-            if stop:
+            if trigger:
                 response = await self.privateGetStopOrderOrderId(self.extend(request, params))
             elif hf:
                 response = await self.privateGetHfOrdersOrderId(self.extend(request, params))
@@ -2950,7 +3024,7 @@ class kucoin(Exchange, ImplicitAPI):
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         cancelExist = self.safe_bool(order, 'cancelExist', False)
         responseStop = self.safe_string(order, 'stop')
-        stop = responseStop is not None
+        trigger = responseStop is not None
         stopTriggered = self.safe_bool(order, 'stopTriggered', False)
         isActive = self.safe_bool_2(order, 'isActive', 'active')
         responseStatus = self.safe_string(order, 'status')
@@ -2960,7 +3034,7 @@ class kucoin(Exchange, ImplicitAPI):
                 status = 'open'
             else:
                 status = 'closed'
-        if stop:
+        if trigger:
             if responseStatus == 'NEW':
                 status = 'open'
             elif not isActive and not stopTriggered:
@@ -3054,6 +3128,10 @@ class kucoin(Exchange, ImplicitAPI):
         response = None
         request, params = self.handle_until_option('endAt', request, params)
         if hf:
+            # does not return trades earlier than 2019-02-18T00:00:00Z
+            if since is not None:
+                # only returns trades up to one week after the since param
+                request['startAt'] = since
             response = await self.privateGetHfFills(self.extend(request, params))
         elif method == 'private_get_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
@@ -4109,7 +4187,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.hf]: default False, when True will fetch ledger entries for the high frequency trading account
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         await self.load_accounts()

@@ -2629,21 +2629,21 @@ class coinex extends coinex$1 {
         const request = {
             'market': market['id'],
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         const requestIds = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push(parseInt(ids[i]));
         }
-        if (stop) {
+        if (trigger) {
             request['stop_ids'] = requestIds;
         }
         else {
             request['order_ids'] = requestIds;
         }
         if (market['spot']) {
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -2715,7 +2715,7 @@ class coinex extends coinex$1 {
         }
         else {
             request['market_type'] = 'FUTURES';
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -3411,7 +3411,7 @@ class coinex extends coinex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
@@ -3421,7 +3421,7 @@ class coinex extends coinex$1 {
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3485,7 +3485,7 @@ class coinex extends coinex$1 {
                 }
             }
             else if (isOpen) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3564,7 +3564,7 @@ class coinex extends coinex$1 {
                 request['market_type'] = 'SPOT';
             }
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3631,7 +3631,7 @@ class coinex extends coinex$1 {
                 }
             }
             else if (status === 'pending') {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, params));
                     //
                     //     {

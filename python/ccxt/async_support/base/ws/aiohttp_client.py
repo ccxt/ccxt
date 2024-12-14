@@ -88,8 +88,8 @@ class AiohttpClient(Client):
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers')).__aenter__()
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:

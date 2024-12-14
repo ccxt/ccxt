@@ -682,6 +682,151 @@ class bitmart extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'brokerId' => 'CCXTxBitmart000',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        // exchange-supported features
+                        // 'leverage' => true,
+                        // 'selfTradePrevention' => false,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => 99999,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 200,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 200,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => true, // todo => implementation broken
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => false,
+                            ),
+                            'limitPrice' => false,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        // exchange-supported features
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 99999,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 200,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -1939,11 +2084,12 @@ class bitmart extends Exchange {
                 $request['orderMode'] = 'iso_margin';
             }
             $options = $this->safe_dict($this->options, 'fetchMyTrades', array());
-            $defaultLimit = $this->safe_integer($options, 'limit', 200);
+            $maxLimit = 200;
+            $defaultLimit = $this->safe_integer($options, 'limit', $maxLimit);
             if ($limit === null) {
                 $limit = $defaultLimit;
             }
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, $maxLimit);
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
@@ -2394,7 +2540,6 @@ class bitmart extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->omit_zero($priceString),
-            'stopPrice' => $trailingActivationPrice,
             'triggerPrice' => $trailingActivationPrice,
             'amount' => $this->omit_zero($this->safe_string($order, 'size')),
             'cost' => $this->safe_string_2($order, 'filled_notional', 'filledNotional'),
@@ -2622,8 +2767,7 @@ class bitmart extends Exchange {
         /**
          * @ignore
          * create a trade order
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2844,7 +2988,7 @@ class bitmart extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] *spot only* the client $order $id of the $order to cancel
-         * @param {boolean} [$params->stop] *swap only* whether the $order is a $stop $order
+         * @param {boolean} [$params->trigger] *swap only* whether the $order is a $trigger $order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -2866,9 +3010,9 @@ class bitmart extends Exchange {
         if ($market['spot']) {
             $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
         } else {
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            if (!$stop) {
+            if (!$trigger) {
                 $response = $this->privatePostContractPrivateCancelOrder ($this->extend($request, $params));
             } else {
                 $response = $this->privatePostContractPrivateCancelPlanOrder ($this->extend($request, $params));
@@ -3120,13 +3264,13 @@ class bitmart extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         $type = null;
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($type === 'spot') {
+            if ($limit !== null) {
+                $request['limit'] = min ($limit, 200);
+            }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             if ($marginMode === 'isolated') {
@@ -3142,9 +3286,12 @@ class bitmart extends Exchange {
             }
             $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
         } elseif ($type === 'swap') {
-            $isStop = $this->safe_bool_2($params, 'stop', 'trigger');
+            if ($limit !== null) {
+                $request['limit'] = min ($limit, 100);
+            }
+            $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            if ($isStop) {
+            if ($isTrigger) {
                 $response = $this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params));
             } else {
                 $trailing = $this->safe_bool($params, 'trailing', false);
@@ -3249,13 +3396,8 @@ class bitmart extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
         }
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchClosedOrders', $params);
-        if ($marginMode === 'isolated') {
-            $request['orderMode'] = 'iso_margin';
-        }
-        $startTimeKey = ($type === 'spot') ? 'startTime' : 'start_time';
         if ($since !== null) {
+            $startTimeKey = ($type === 'spot') ? 'startTime' : 'start_time';
             $request[$startTimeKey] = $since;
         }
         $endTimeKey = ($type === 'spot') ? 'endTime' : 'end_time';
@@ -3266,6 +3408,11 @@ class bitmart extends Exchange {
         }
         $response = null;
         if ($type === 'spot') {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchClosedOrders', $params);
+            if ($marginMode === 'isolated') {
+                $request['orderMode'] = 'iso_margin';
+            }
             $response = $this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params));
         } else {
             $response = $this->privateGetContractPrivateOrderHistory ($this->extend($request, $params));

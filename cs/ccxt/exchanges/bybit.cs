@@ -221,6 +221,8 @@ public partial class bybit : Exchange
                         { "v5/spot-cross-margin-trade/data", 5 },
                         { "v5/spot-cross-margin-trade/pledge-token", 5 },
                         { "v5/spot-cross-margin-trade/borrow-token", 5 },
+                        { "v5/crypto-loan/collateral-data", 5 },
+                        { "v5/crypto-loan/loanable-data", 5 },
                         { "v5/ins-loan/product-infos", 5 },
                         { "v5/ins-loan/ensure-tokens-convert", 5 },
                     } },
@@ -336,6 +338,7 @@ public partial class bybit : Exchange
                         { "v5/user/aff-customer-info", 5 },
                         { "v5/user/del-submember", 5 },
                         { "v5/user/submembers", 5 },
+                        { "v5/affiliate/aff-user-list", 5 },
                         { "v5/spot-lever-token/order-record", 1 },
                         { "v5/spot-margin-trade/interest-rate-history", 5 },
                         { "v5/spot-margin-trade/state", 5 },
@@ -343,6 +346,12 @@ public partial class bybit : Exchange
                         { "v5/spot-cross-margin-trade/account", 1 },
                         { "v5/spot-cross-margin-trade/orders", 1 },
                         { "v5/spot-cross-margin-trade/repay-history", 1 },
+                        { "v5/crypto-loan/borrowable-collateralisable-number", 5 },
+                        { "v5/crypto-loan/ongoing-orders", 5 },
+                        { "v5/crypto-loan/repayment-history", 5 },
+                        { "v5/crypto-loan/borrow-history", 5 },
+                        { "v5/crypto-loan/max-collateral-amount", 5 },
+                        { "v5/crypto-loan/adjustment-history", 5 },
                         { "v5/ins-loan/product-infos", 5 },
                         { "v5/ins-loan/ensure-tokens-convert", 5 },
                         { "v5/ins-loan/loan-order", 5 },
@@ -459,6 +468,9 @@ public partial class bybit : Exchange
                         { "v5/spot-cross-margin-trade/loan", 2.5 },
                         { "v5/spot-cross-margin-trade/repay", 2.5 },
                         { "v5/spot-cross-margin-trade/switch", 2.5 },
+                        { "v5/crypto-loan/borrow", 5 },
+                        { "v5/crypto-loan/repay", 5 },
+                        { "v5/crypto-loan/adjust-ltv", 5 },
                         { "v5/ins-loan/association-uid", 5 },
                         { "v5/lending/purchase", 5 },
                         { "v5/lending/redeem", 5 },
@@ -466,6 +478,9 @@ public partial class bybit : Exchange
                         { "v5/account/set-collateral-switch", 5 },
                         { "v5/account/set-collateral-switch-batch", 5 },
                         { "v5/account/demo-apply-money", 5 },
+                        { "v5/broker/award/info", 5 },
+                        { "v5/broker/award/distribute-award", 5 },
+                        { "v5/broker/award/distribution-record", 5 },
                     } },
                 } },
             } },
@@ -582,6 +597,9 @@ public partial class bybit : Exchange
                     { "110071", typeof(ExchangeError) },
                     { "110072", typeof(InvalidOrder) },
                     { "110073", typeof(ExchangeError) },
+                    { "110092", typeof(InvalidOrder) },
+                    { "110093", typeof(InvalidOrder) },
+                    { "110094", typeof(InvalidOrder) },
                     { "130006", typeof(InvalidOrder) },
                     { "130021", typeof(InsufficientFunds) },
                     { "130074", typeof(InvalidOrder) },
@@ -1019,7 +1037,6 @@ public partial class bybit : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -1080,7 +1097,6 @@ public partial class bybit : Exchange
                             { "limitPrice", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -3813,25 +3829,25 @@ public partial class bybit : Exchange
         object avgPrice = this.omitZero(this.safeString(order, "avgPrice"));
         object rawTimeInForce = this.safeString(order, "timeInForce");
         object timeInForce = this.parseTimeInForce(rawTimeInForce);
-        object stopPrice = this.omitZero(this.safeString(order, "triggerPrice"));
+        object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         object reduceOnly = this.safeBool(order, "reduceOnly");
         object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         object triggerDirection = this.safeString(order, "triggerDirection");
         object isAscending = (isEqual(triggerDirection, "1"));
-        object isStopOrderType2 = isTrue((!isEqual(stopPrice, null))) && isTrue(reduceOnly);
+        object isStopOrderType2 = isTrue((!isEqual(triggerPrice, null))) && isTrue(reduceOnly);
         if (isTrue(isTrue((isEqual(stopLossPrice, null))) && isTrue(isStopOrderType2)))
         {
             // check if order is stop order type 2 - stopLossPrice
             if (isTrue(isTrue(isAscending) && isTrue((isEqual(side, "buy")))))
             {
                 // stopLoss order against short position
-                stopLossPrice = stopPrice;
+                stopLossPrice = triggerPrice;
             }
             if (isTrue(!isTrue(isAscending) && isTrue((isEqual(side, "sell")))))
             {
                 // stopLoss order against a long position
-                stopLossPrice = stopPrice;
+                stopLossPrice = triggerPrice;
             }
         }
         if (isTrue(isTrue((isEqual(takeProfitPrice, null))) && isTrue(isStopOrderType2)))
@@ -3840,12 +3856,12 @@ public partial class bybit : Exchange
             if (isTrue(isTrue(isAscending) && isTrue((isEqual(side, "sell")))))
             {
                 // takeprofit order against a long position
-                takeProfitPrice = stopPrice;
+                takeProfitPrice = triggerPrice;
             }
             if (isTrue(!isTrue(isAscending) && isTrue((isEqual(side, "buy")))))
             {
                 // takeprofit order against a short position
-                takeProfitPrice = stopPrice;
+                takeProfitPrice = triggerPrice;
             }
         }
         return this.safeOrder(new Dictionary<string, object>() {
@@ -3863,8 +3879,7 @@ public partial class bybit : Exchange
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "amount", amount },
@@ -6094,7 +6109,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -8730,7 +8745,7 @@ public partial class bybit : Exchange
         }
         object data = await this.getLeverageTiersPaginated(symbol, this.extend(new Dictionary<string, object>() {
             { "paginate", true },
-            { "paginationCalls", 20 },
+            { "paginationCalls", 40 },
         }, parameters));
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");

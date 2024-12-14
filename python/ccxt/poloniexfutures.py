@@ -1180,17 +1180,17 @@ class poloniexfutures(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :param dict [params.trigger]: When True, all the trigger orders will be cancelled
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = self.privateDeleteStopOrders(self.extend(request, params))
         else:
             response = self.privateDeleteOrders(self.extend(request, params))
@@ -1254,13 +1254,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['trigger', 'stop', 'until'])
         if status == 'closed':
             status = 'done'
         request: dict = {}
-        if not stop:
+        if not trigger:
             request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
@@ -1273,7 +1273,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         if until is not None:
             request['endAt'] = until
         response = None
-        if stop:
+        if trigger:
             response = self.privateGetStopOrders(self.extend(request, params))
         else:
             response = self.privateGetOrders(self.extend(request, params))

@@ -34,7 +34,6 @@ interface Exchange {
     swapV1PublicGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PublicGetTradeMultiAssetsRules(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
-    swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeFullOrder(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetMaintMarginRatio(params?: {}): Promise<implicitReturnType>;
@@ -131,6 +130,7 @@ interface Exchange {
     walletsV1PrivatePostCapitalDepositCreateSubAddress(params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetList(params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetAssets(params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivateGetAllAccountBalance(params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostCreate(params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyCreate(params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyEdit(params?: {}): Promise<implicitReturnType>;

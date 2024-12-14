@@ -1182,7 +1182,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] *contract only* set to true for watching trigger $orders
+             * @param {boolean} [$params->trigger] *contract only* set to true for watching trigger $orders
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
              * @param {string} [$params->type] 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'

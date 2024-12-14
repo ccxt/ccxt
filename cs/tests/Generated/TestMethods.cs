@@ -1036,7 +1036,7 @@ public partial class testMainClass
         return result;
     }
 
-    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutputInner(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         if (isTrue(isTrue(isNullValue(newOutput)) && isTrue(isNullValue(storedOutput))))
@@ -1153,6 +1153,39 @@ public partial class testMainClass
             }
         }
         return true;  // c# requ
+    }
+
+    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    {
+        strictTypeCheck ??= true;
+        try
+        {
+            return this.assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
+        } catch(Exception e)
+        {
+            if (isTrue(this.info))
+            {
+                object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
+                dump(add("[TEST_FAILURE_DETAIL]", errorMessage));
+            }
+            throw e;
+        }
+    }
+
+    public virtual object varToString(object obj = null)
+    {
+        object newString = null;
+        if (isTrue(isEqual(obj, null)))
+        {
+            newString = "undefined";
+        } else if (isTrue(isNullValue(obj)))
+        {
+            newString = "null";
+        } else
+        {
+            newString = jsonStringify(obj);
+        }
+        return newString;
     }
 
     public virtual void assertStaticRequestOutput(Exchange exchange, object type, object skipKeys, object storedUrl, object requestUrl, object storedOutput, object newOutput)
@@ -1318,6 +1351,7 @@ public partial class testMainClass
             { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
+            { "login", "login" },
             { "accountId", "accountId" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
@@ -1367,6 +1401,11 @@ public partial class testMainClass
         {
             // c# to string requirement
             exchange.walletAddress = ((object)walletAddress).ToString();
+        }
+        object accounts = exchange.safeList(exchangeData, "accounts");
+        if (isTrue(accounts))
+        {
+            exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
@@ -1566,7 +1605,7 @@ public partial class testMainClass
             {
                 this.responseTestsFailed = true;
             }
-            object errorMessage = add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add("[", this.lang), "][STATIC_REQUEST]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
@@ -1593,7 +1632,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2258,6 +2297,27 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testDefx()
+    {
+        Exchange exchange = this.initOfflineExchange("defx");
+        object reqHeaders = null;
+        try
+        {
+            await exchange.createOrder("DOGE/USDC:USDC", "limit", "buy", 100, 1);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        object id = "ccxt";
+        assert(isEqual(getValue(reqHeaders, "X-DEFX-SOURCE"), id), add(add("defx - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

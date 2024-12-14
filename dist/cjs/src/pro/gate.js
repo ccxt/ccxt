@@ -200,14 +200,14 @@ class gate extends gate$1 {
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         let channel = messageType + '.order_cancel_cp';
         [channel, params] = this.handleOptionAndParams(params, 'cancelAllOrdersWs', 'channel', channel);
         const url = this.getUrlByMarket(market);
         params = this.omit(params, ['stop', 'trigger']);
         const [type, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        const [request, requestParams] = (type === 'spot') ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        const [request, requestParams] = (type === 'spot') ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         await this.authenticate(url, messageType);
         const rawOrders = await this.requestPrivate(url, this.extend(request, requestParams), channel);
         return this.parseOrders(rawOrders, market);
@@ -221,16 +221,16 @@ class gate extends gate$1 {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const stop = this.safeValueN(params, ['is_stop_order', 'stop', 'trigger'], false);
+        const trigger = this.safeValueN(params, ['is_stop_order', 'stop', 'trigger'], false);
         params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel';
         const url = this.getUrlByMarket(market);
@@ -274,7 +274,7 @@ class gate extends gate$1 {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol, *required for spot and margin*
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order being fetched is a trigger order
+     * @param {bool} [params.trigger] True if the order being fetched is a trigger order
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future

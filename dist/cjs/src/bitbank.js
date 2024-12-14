@@ -633,7 +633,6 @@ class bitbank extends bitbank$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': average,

@@ -1474,8 +1474,8 @@ class bitget(Exchange, ImplicitAPI):
                             'index': False,  # not on spot
                         },
                         'triggerDirection': False,
-                        'stopLossPrice': True,  # but not yet implemented in spot
-                        'takeProfitPrice': True,  # but not yet implemented in spot
+                        'stopLossPrice': True,  # todo:  not yet implemented in spot
+                        'takeProfitPrice': True,  # todo: not yet implemented in spot
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': False,
@@ -1485,7 +1485,6 @@ class bitget(Exchange, ImplicitAPI):
                             'limitPrice': True,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -1556,7 +1555,6 @@ class bitget(Exchange, ImplicitAPI):
                             'limitPrice': False,
                         },
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -4105,7 +4103,6 @@ class bitget(Exchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'takeProfitPrice': self.safe_number_2(order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice': self.safe_number_2(order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -5715,7 +5712,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.symbol]: *contract only* unified market symbol
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         symbol = self.safe_string(params, 'symbol')

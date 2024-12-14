@@ -211,14 +211,14 @@ class gate(ccxt.async_support.gate):
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel_cp'
         channel, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'channel', channel)
         url = self.get_url_by_market(market)
         params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        request, requestParams = self.multiOrderSpotPrepareRequest(market, stop, query) if (type == 'spot') else self.prepareRequest(market, type, query)
+        request, requestParams = self.multiOrderSpotPrepareRequest(market, trigger, query) if (type == 'spot') else self.prepareRequest(market, type, query)
         await self.authenticate(url, messageType)
         rawOrders = await self.request_private(url, self.extend(request, requestParams), channel)
         return self.parse_orders(rawOrders, market)
@@ -233,15 +233,15 @@ class gate(ccxt.async_support.gate):
         :param str id: Order id
         :param str symbol: Unified market symbol
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order to be cancelled is a trigger order
+        :param bool [params.trigger]: True if the order to be cancelled is a trigger order
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        trigger = self.safe_value_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        request, requestParams = self.spotOrderPrepareRequest(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
+        request, requestParams = self.spotOrderPrepareRequest(market, trigger, query) if (type == 'spot' or type == 'margin') else self.prepareRequest(market, type, query)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel'
         url = self.get_url_by_market(market)
@@ -286,7 +286,7 @@ class gate(ccxt.async_support.gate):
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order being fetched is a trigger order
+        :param bool [params.trigger]: True if the order being fetched is a trigger order
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.type]: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
