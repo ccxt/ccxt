@@ -6368,13 +6368,13 @@ export default class Exchange {
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down' ]) && !(exchangeSpecificKey in params)) {
+        if (!this.inArray (triggerDirection, [ 'ascending', 'descending', 'up', 'down', 'above', 'below' ]) && !(exchangeSpecificKey in params)) {
             throw new ArgumentsRequired (this.id + ' createOrder() : trigger orders require params["triggerDirection"] to be either "ascending" or "descending"');
         }
         // if old format was provided, overwrite to new
-        if (triggerDirection === 'up') {
+        if (triggerDirection === 'up' || triggerDirection === 'above') {
             triggerDirection = 'ascending';
-        } else if (triggerDirection === 'down') {
+        } else if (triggerDirection === 'down' || triggerDirection === 'below') {
             triggerDirection = 'descending';
         }
         params = this.omit (params, [ 'ascending', 'descending' ]);
