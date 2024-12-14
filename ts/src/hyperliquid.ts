@@ -1268,7 +1268,8 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at     * * @param {float} [params.triggerDirection] "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerDirection] "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
