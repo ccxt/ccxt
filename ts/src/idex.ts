@@ -1204,7 +1204,7 @@ export default class idex extends Exchange {
             'takeProfit': 5,
             'takeProfitLimit': 6,
         };
-        let triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
         let triggerPriceString = undefined;
         if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
             if (triggerPrice === undefined) {
