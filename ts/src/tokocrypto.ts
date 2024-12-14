@@ -1559,8 +1559,6 @@ export default class tokocrypto extends Exchange {
             timeInForce = 'PO';
         }
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
-        const stopPriceString = this.safeString (order, 'stopPrice');
-        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1575,8 +1573,7 @@ export default class tokocrypto extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'stopPrice'))),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1626,8 +1623,8 @@ export default class tokocrypto extends Exchange {
         params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
-        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
@@ -1638,7 +1635,7 @@ export default class tokocrypto extends Exchange {
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             } else {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
@@ -1674,7 +1671,7 @@ export default class tokocrypto extends Exchange {
         }
         // additional required fields depending on the order type
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
+        let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         //
         // spot/margin
@@ -1716,14 +1713,14 @@ export default class tokocrypto extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (market['linear'] || market['inverse']) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
             priceIsRequired = true;
@@ -1738,11 +1735,11 @@ export default class tokocrypto extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        if (triggerPriceIsRequired) {
+            if (triggerPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
             } else {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
         }
         const response = await this.privatePostOpenV1Orders (this.extend (request, params));
