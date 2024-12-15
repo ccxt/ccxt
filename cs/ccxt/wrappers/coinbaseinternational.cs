@@ -103,7 +103,7 @@ public partial class coinbaseinternational
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -275,12 +275,6 @@ public partial class coinbaseinternational
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>method</term>
-    /// <description>
-    /// string : method name to call, "positionRisk", "account" or "option", default is "positionRisk"
     /// </description>
     /// </item>
     /// </list>

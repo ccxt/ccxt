@@ -232,7 +232,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -386,7 +386,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// object : When true, all the trigger orders will be cancelled
     /// </description>
@@ -600,10 +600,30 @@ public partial class poloniexfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch all trades made by the user
@@ -627,6 +647,30 @@ public partial class poloniexfutures
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderIdFills</term>
+    /// <description>
+    /// string : filles for a specific order (other parameters can be ignored if specified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : buy or sell
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string :  limit, market, limit_stop or market_stop
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.endAt</term>
+    /// <description>
+    /// int : end time (milisecond)
     /// </description>
     /// </item>
     /// </list>

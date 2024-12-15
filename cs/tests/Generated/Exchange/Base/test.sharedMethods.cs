@@ -11,7 +11,11 @@ public partial class testMainClass : BaseTest
     {
         public object logTemplate(Exchange exchange, object method, object entry)
         {
-            return add(add(add(add(add(add(" <<< ", exchange.id), " "), method), " ::: "), exchange.json(entry)), " >>> ");
+            // there are cases when exchange is undefined (eg. base tests)
+            object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
+            object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
+            object entryString = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
+            return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)
         {
@@ -49,9 +53,9 @@ public partial class testMainClass : BaseTest
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
-        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null)
+        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
         {
-            emptyAllowedFor ??= new List<object>();
+            deep ??= false;
             object logText = logTemplate(exchange, method, entry);
             assert(entry, add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -63,7 +67,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
                 for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
-                    object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     if (isTrue(inOp(skippedProperties, i)))
                     {
@@ -97,7 +101,7 @@ public partial class testMainClass : BaseTest
                     {
                         continue;
                     }
-                    object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -113,6 +117,13 @@ public partial class testMainClass : BaseTest
                     {
                         object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        if (isTrue(deep))
+                        {
+                            if (isTrue((value is IDictionary<string, object>)))
+                            {
+                                assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
+                            }
+                        }
                     }
                 }
             }
@@ -416,7 +427,8 @@ public partial class testMainClass : BaseTest
                 }
             } else
             {
-                assertInteger(exchange, skippedProperties, method, entry, key); // should be integer
+                // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+                // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
                 assertLessOrEqual(exchange, skippedProperties, method, entry, key, "18"); // should be under 18 decimals
                 assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8"); // in real-world cases, there would not be less than that
             }
@@ -469,6 +481,15 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
+        }
+        public object deepEqual(object a, object b)
+        {
+            return isEqual(json(a), json(b));
+        }
+        public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+        {
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
     }

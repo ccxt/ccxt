@@ -566,7 +566,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>
@@ -614,10 +614,10 @@ public partial class kuna
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -634,10 +634,10 @@ public partial class kuna
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -696,7 +696,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>

@@ -687,10 +687,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -707,10 +707,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -788,10 +788,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch all open positions
@@ -814,11 +814,17 @@ public partial class bitfinex2
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.bitfinex.com/reference/rest-auth-ledgers"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -828,7 +834,7 @@ public partial class bitfinex2
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined max is 2500
+    /// int : max number of ledger entries to return, default is undefined, max is 2500
     /// </description>
     /// </item>
     /// <item>
@@ -852,15 +858,15 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
-    /// fetch the current funding rate
+    /// fetch the current funding rate for multiple symbols
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.bitfinex.com/reference/rest-public-derivatives-status"/>  <br/>
@@ -873,16 +879,11 @@ public partial class bitfinex2
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices

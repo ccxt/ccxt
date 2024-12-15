@@ -110,7 +110,7 @@ class ascendex extends Exchange {
             ),
             'version' => 'v2',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1',
                 'api' => array(
                     'rest' => 'https://ascendex.com',
                 ),
@@ -382,7 +382,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $assets = $this->v1PublicGetAssets ($params);
+        $assetsPromise = $this->v1PublicGetAssets ($params);
         //
         //     {
         //         "code":0,
@@ -399,7 +399,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $margin = $this->v1PublicGetMarginAssets ($params);
+        $marginPromise = $this->v1PublicGetMarginAssets ($params);
         //
         //     {
         //         "code":0,
@@ -419,7 +419,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $cash = $this->v1PublicGetCashAssets ($params);
+        $cashPromise = $this->v1PublicGetCashAssets ($params);
         //
         //     {
         //         "code":0,
@@ -436,6 +436,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
+        list($assets, $margin, $cash) = array( $assetsPromise, $marginPromise, $cashPromise );
         $assetsData = $this->safe_list($assets, 'data', array());
         $marginData = $this->safe_list($margin, 'data', array());
         $cashData = $this->safe_list($cash, 'data', array());
@@ -489,7 +490,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $products = $this->v1PublicGetProducts ($params);
+        $productsPromise = $this->v1PublicGetProducts ($params);
         //
         //     {
         //         "code" => 0,
@@ -510,7 +511,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $cash = $this->v1PublicGetCashProducts ($params);
+        $cashPromise = $this->v1PublicGetCashProducts ($params);
         //
         //     {
         //         "code" => 0,
@@ -540,7 +541,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $perpetuals = $this->v2PublicGetFuturesContract ($params);
+        $perpetualsPromise = $this->v2PublicGetFuturesContract ($params);
         //
         //    {
         //        "code" => 0,
@@ -578,6 +579,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
+        list($products, $cash, $perpetuals) = array( $productsPromise, $cashPromise, $perpetualsPromise );
         $productsData = $this->safe_list($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_list($cash, 'data', array());
@@ -802,9 +804,11 @@ class ascendex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#cash-$account-balance
          * @see https://ascendex.github.io/ascendex-pro-api/#margin-$account-balance
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] wallet type, 'spot', 'margin', or 'swap'
          * @param {string} [$params->marginMode] 'cross' or null, for spot margin trading, value of 'isolated' is invalid
@@ -1021,8 +1025,10 @@ class ascendex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#ticker
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1189,7 +1195,9 @@ class ascendex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#$market-$trades
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1381,7 +1389,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         $reduceOnly = null;
         $execInst = $this->safe_string($order, 'execInst');
         if ($execInst === 'reduceOnly') {
@@ -1405,8 +1413,8 @@ class ascendex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1480,7 +1488,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
-         * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
@@ -1512,7 +1520,7 @@ class ascendex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         if ($isLimitOrder) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
@@ -1525,8 +1533,8 @@ class ascendex extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        if ($stopPrice !== null) {
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($triggerPrice !== null) {
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 $request['orderType'] = 'stop_limit';
             } elseif ($isMarketOrder) {
@@ -1556,8 +1564,10 @@ class ascendex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order on the exchange
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#place-$order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-$order
+         *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $type "limit" or "market"
          * @param {string} $side "buy" or "sell"
@@ -1566,7 +1576,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
-         * @param {float} [$params->stopPrice] the $price at which a trigger $order is triggered at
+         * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss $order will be triggered (perpetual swap markets only)
@@ -1654,13 +1664,15 @@ class ascendex extends Exchange {
     public function create_orders(array $orders, $params = array ()) {
         /**
          * create a list of trade $orders
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-$orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-$orders
+         *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
-         * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1749,8 +1761,10 @@ class ascendex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#$query-order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#$query-order-by-$id
+         *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1855,8 +1869,10 @@ class ascendex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#list-open-$orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-$orders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -1971,8 +1987,10 @@ class ascendex extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2143,8 +2161,10 @@ class ascendex extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#cancel-$order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-$order
+         *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2255,8 +2275,10 @@ class ascendex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
+         *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list with a single ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ with the $response assigned to the info property
@@ -2328,7 +2350,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2350,18 +2372,20 @@ class ascendex extends Exchange {
         $chainName = $this->safe_string($depositAddress, 'blockchain');
         $network = $this->network_id_to_code($chainName, $code);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-$addresses
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified network $code for deposit chain
@@ -2718,7 +2742,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2753,15 +2777,16 @@ class ascendex extends Exchange {
             'fundingRate' => $nextFundingRate,
             'fundingTimestamp' => $nextFundingRateTimestamp,
             'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2874,7 +2899,9 @@ class ascendex extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-$leverage
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2905,7 +2932,9 @@ class ascendex extends Exchange {
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         *
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
+         *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3008,14 +3037,15 @@ class ascendex extends Exchange {
         //    }
         //
         $marginRequirements = $this->safe_list($info, 'marginRequirements', array());
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($marginRequirements); $i++) {
             $tier = $marginRequirements[$i];
             $initialMarginRate = $this->safe_string($tier, 'initialMarginRate');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number($tier, 'positionNotionalLowerBound'),
                 'maxNotional' => $this->safe_number($tier, 'positionNotionalUpperBound'),
@@ -3081,7 +3111,9 @@ class ascendex extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
+         *
          * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -3165,7 +3197,9 @@ class ascendex extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this $account
+         *
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+         *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -3242,7 +3276,9 @@ class ascendex extends Exchange {
     public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
         /**
          * fetches the set margin mode of the user
+         *
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
@@ -3313,7 +3349,9 @@ class ascendex extends Exchange {
     public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all contract markets
+         *
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+         *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~

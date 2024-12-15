@@ -157,16 +157,37 @@ export default class kucoin extends kucoinRest {
         }
         return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
     }
+    async unSubscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend(request, params);
+        if (subscription !== undefined) {
+            subscription[requestId] = requestId;
+        }
+        const client = this.client(url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
+    /**
+     * @method
+     * @name kucoin#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -176,17 +197,17 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         return await this.subscribe(url, messageHash, topic, query);
     }
+    /**
+     * @method
+     * @name kucoin#watchTickers
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchTickers
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const messageHash = 'tickers';
@@ -304,16 +325,16 @@ export default class kucoin extends kucoinRest {
         allTickers[symbol] = ticker;
         client.resolve(allTickers, 'tickers');
     }
+    /**
+     * @method
+     * @name kucoin#watchBidsAsks
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchBidsAsks
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-         * @description watches best bid & ask for symbols
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         const ticker = await this.watchMultiHelper('watchBidsAsks', '/spotMarket/level1:', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
@@ -390,19 +411,19 @@ export default class kucoin extends kucoinRest {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name kucoin#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const url = await this.negotiate(false);
         const market = this.market(symbol);
@@ -459,32 +480,32 @@ export default class kucoin extends kucoinRest {
         stored.append(ohlcv);
         client.resolve(stored, messageHash);
     }
+    /**
+     * @method
+     * @name kucoin#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name kucoin#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @param {string[]} symbols
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -509,6 +530,49 @@ export default class kucoin extends kucoinRest {
             limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kucoin#unWatchTradesForSymbols
+     * @description unWatches trades stream
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @param {string} symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        const topic = '/market/match:' + marketIds.join(',');
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:trades:' + symbol);
+            subscriptionHashes.push('trades:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
+    }
+    /**
+     * @method
+     * @name kucoin#unWatchTrades
+     * @description unWatches trades stream
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrade(client, message) {
         //
@@ -543,21 +607,21 @@ export default class kucoin extends kucoinRest {
         trades.append(trade);
         client.resolve(trades, messageHash);
     }
+    /**
+     * @method
+     * @name kucoin#watchOrderBook
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchOrderBook
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -575,21 +639,37 @@ export default class kucoin extends kucoinRest {
         //
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    /**
+     * @method
+     * @name kucoin#unWatchOrderBook
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook(symbol, params = {}) {
+        return await this.unWatchOrderBookForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name kucoin#watchOrderBookForSymbols
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchOrderBookForSymbols
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -627,6 +707,48 @@ export default class kucoin extends kucoinRest {
         }
         const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit();
+    }
+    /**
+     * @method
+     * @name kucoin#unWatchOrderBookForSymbols
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        const limit = this.safeInteger(params, 'limit');
+        params = this.omit(params, 'limit');
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'method', '/market/level2');
+        if ((limit === 5) || (limit === 50)) {
+            method = '/spotMarket/level2Depth' + limit.toString();
+        }
+        const topic = method + ':' + marketIds.join(',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:orderbook:' + symbol);
+            subscriptionHashes.push('orderbook:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': true,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
     }
     handleOrderBook(client, message) {
         //
@@ -794,6 +916,17 @@ export default class kucoin extends kucoinRest {
         if (method !== undefined) {
             method.call(this, client, message, subscription);
         }
+        const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
+        if (isUnSub) {
+            const messageHashes = this.safeList(subscription, 'messageHashes', []);
+            const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, messageHash);
+            }
+            this.cleanCache(subscription);
+        }
     }
     handleSystemStatus(client, message) {
         //
@@ -808,25 +941,25 @@ export default class kucoin extends kucoinRest {
         //
         return message;
     }
+    /**
+     * @method
+     * @name kucoin#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] trigger orders are watched if true
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] trigger orders are watched if true
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const url = await this.negotiate(true);
-        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+        const topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
@@ -979,19 +1112,19 @@ export default class kucoin extends kucoinRest {
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
+    /**
+     * @method
+     * @name kucoin#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const url = await this.negotiate(true);
         let topic = undefined;
@@ -1046,7 +1179,8 @@ export default class kucoin extends kucoinRest {
         }
         const data = this.safeDict(message, 'data');
         const parsed = this.parseWsTrade(data);
-        this.myTrades.append(parsed);
+        const myTrades = this.myTrades;
+        myTrades.append(parsed);
         const messageHash = 'myTrades';
         client.resolve(this.myTrades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
@@ -1131,15 +1265,15 @@ export default class kucoin extends kucoinRest {
             },
         }, market);
     }
+    /**
+     * @method
+     * @name kucoin#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name kucoin#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const url = await this.negotiate(true);
         const topic = '/account/balance';

@@ -17,6 +17,7 @@ class upbit extends \ccxt\async\upbit {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchOrders' => true,
@@ -63,11 +64,43 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_public_multiple(?array $symbols, $channel, $params = array ()) {
+        return Async\async(function () use ($symbols, $channel, $params) {
+            Async\await($this->load_markets());
+            if ($symbols === null) {
+                $symbols = $this->symbols;
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $url = $this->implode_params($this->urls['api']['ws'], array(
+                'hostname' => $this->hostname,
+            ));
+            $messageHashes = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $messageHashes[] = $channel . ':' . $marketIds[$i];
+            }
+            $request = array(
+                array(
+                    'ticket' => $this->uuid(),
+                ),
+                array(
+                    'type' => $channel,
+                    'codes' => $marketIds,
+                    // 'isOnlySnapshot' => false,
+                    // 'isOnlyRealtime' => false,
+                ),
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://global-docs.upbit.com/reference/websocket-ticker
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -76,11 +109,34 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://global-docs.upbit.com/reference/websocket-ticker
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://global-docs.upbit.com/reference/websocket-trade
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -95,7 +151,9 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://global-docs.upbit.com/reference/websocket-trade
+             *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -146,7 +204,9 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://global-docs.upbit.com/reference/websocket-$orderbook
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -342,7 +402,9 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myorder
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -364,7 +426,9 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myorder
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -557,7 +621,9 @@ class upbit extends \ccxt\async\upbit {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myasset
+             *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~

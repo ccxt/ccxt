@@ -27,12 +27,14 @@ public partial class kucoinfutures : kucoin
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
                 { "closePositions", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopLossOrder", true },
@@ -50,10 +52,14 @@ public partial class kucoinfutures : kucoin
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchIndexOHLCV", false },
@@ -61,12 +67,14 @@ public partial class kucoinfutures : kucoin
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
+                { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchMarginAdjustmentHistory", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
@@ -87,7 +95,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchTransactionFee", false },
                 { "fetchWithdrawals", true },
                 { "setLeverage", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "transfer", true },
                 { "withdraw", null },
             } },
@@ -161,12 +169,15 @@ public partial class kucoinfutures : kucoin
                         { "trade-fees", 1 },
                         { "history-positions", 1 },
                         { "getMaxOpenSize", 1 },
+                        { "getCrossUserLeverage", 1 },
+                        { "position/getMarginMode", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "withdrawals", 1 },
                         { "transfer-out", 1 },
                         { "transfer-in", 1 },
                         { "orders", 1.33 },
+                        { "st-orders", 1.33 },
                         { "orders/test", 1.33 },
                         { "position/margin/auto-deposit-status", 1 },
                         { "position/margin/deposit-margin", 1 },
@@ -174,6 +185,8 @@ public partial class kucoinfutures : kucoin
                         { "bullet-private", 1 },
                         { "sub/api-key", 1 },
                         { "sub/api-key/update", 1 },
+                        { "changeCrossUserLeverage", 1 },
+                        { "position/changeMarginMode", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{withdrawalId}", 1 },
@@ -183,6 +196,7 @@ public partial class kucoinfutures : kucoin
                         { "stopOrders", 1 },
                         { "sub/api-key", 1 },
                         { "orders/client-order/{clientOid}", 1 },
+                        { "orders/multi-cancel", 20 },
                     } },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
@@ -222,6 +236,7 @@ public partial class kucoinfutures : kucoin
                     { "400100", typeof(BadRequest) },
                     { "411100", typeof(AccountSuspended) },
                     { "500000", typeof(ExchangeNotAvailable) },
+                    { "300009", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Position does not exist", typeof(OrderNotFound) },
@@ -279,9 +294,13 @@ public partial class kucoinfutures : kucoin
                     { "futuresPrivate", new Dictionary<string, object>() {
                         { "GET", new Dictionary<string, object>() {
                             { "getMaxOpenSize", "v2" },
+                            { "getCrossUserLeverage", "v2" },
+                            { "position/getMarginMode", "v2" },
                         } },
                         { "POST", new Dictionary<string, object>() {
                             { "transfer-out", "v2" },
+                            { "changeCrossUserLeverage", "v2" },
+                            { "position/changeMarginMode", "v2" },
                         } },
                     } },
                     { "futuresPublic", new Dictionary<string, object>() {
@@ -296,19 +315,99 @@ public partial class kucoinfutures : kucoin
                     { "TRC20", "trx" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", null },
+                { "forDerivs", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPrice", null },
+                            { "triggerPriceType", null },
+                            { "limitPrice", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivs" },
+                    } },
+                } },
+            } },
         });
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.futuresPublicGetStatus(parameters);
         //
@@ -331,16 +430,16 @@ public partial class kucoinfutures : kucoin
         };
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchMarkets
+     * @description retrieves data on all markets for kucoinfutures
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchMarkets
-        * @description retrieves data on all markets for kucoinfutures
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
-        * @param {object} [params] extra parameters specific to the exchange api endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.futuresPublicGetContractsActive(parameters);
         //
@@ -504,16 +603,16 @@ public partial class kucoinfutures : kucoin
         return result;
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.futuresPublicGetTimestamp(parameters);
         //
@@ -525,21 +624,21 @@ public partial class kucoinfutures : kucoin
         return this.safeInteger(response, "data");
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -611,17 +710,17 @@ public partial class kucoinfutures : kucoin
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -649,24 +748,24 @@ public partial class kucoinfutures : kucoin
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", currencyId },
+            { "network", this.safeString(data, "chain") },
             { "address", address },
             { "tag", this.safeString(data, "memo") },
-            { "network", this.safeString(data, "chain") },
         };
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object level = this.safeNumber(parameters, "level");
@@ -717,17 +816,17 @@ public partial class kucoinfutures : kucoin
         return orderbook;
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -756,18 +855,40 @@ public partial class kucoinfutures : kucoin
         return this.parseTicker(getValue(response, "data"), market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchMarkPrice
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
+        //
+        return this.parseTicker(getValue(response, "data"), market);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -852,6 +973,14 @@ public partial class kucoinfutures : kucoin
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -954,20 +1083,22 @@ public partial class kucoinfutures : kucoin
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchBidsAsks
-        * @description fetches the bid and ask price and volume for multiple markets
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "method", "futuresPublicGetAllTickers" },
@@ -975,19 +1106,19 @@ public partial class kucoinfutures : kucoin
         return await this.fetchTickers(symbols, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1054,17 +1185,17 @@ public partial class kucoinfutures : kucoin
         return fees;
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchPosition
+     * @see https://docs.kucoin.com/futures/#get-position-details
+     * @description fetch data on an open position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchPosition
-        * @see https://docs.kucoin.com/futures/#get-position-details
-        * @description fetch data on an open position
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1120,17 +1251,17 @@ public partial class kucoinfutures : kucoin
         return this.parsePosition(data, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.kucoin.com/futures/#get-position-list
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.kucoin.com/futures/#get-position-list
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.futuresPrivateGetPositions(parameters);
@@ -1184,19 +1315,21 @@ public partial class kucoinfutures : kucoin
         return this.parsePositions(data, symbols);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] closing end time
+     * @param {int} [params.pageId] page id
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchPositionsHistory
-        * @description fetches historical positions
-        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] closing end time
-        * @param {int} [params.pageId] page id
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(limit, null)))
@@ -1399,41 +1532,46 @@ public partial class kucoinfutures : kucoin
         });
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#createOrder
+     * @description Create an order on the exchange
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+     * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+     * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
+     * ----------------- Exchange Specific Parameters -----------------
+     * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
+     * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
+     * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
+     * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
+     * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to MP: Mark Price
+     * @param {bool} [params.closeOrder] set to true to close position
+     * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#createOrder
-        * @description Create an order on the exchange
-        * @see https://docs.kucoin.com/futures/#place-an-order
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} type 'limit' or 'market'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount the amount of currency to trade
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params]  extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
-        * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-        * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-        * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
-        * ----------------- Exchange Specific Parameters -----------------
-        * @param {float} [params.leverage] Leverage size of the order
-        * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
-        * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
-        * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
-        * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to MP: Mark Price
-        * @param {bool} [params.closeOrder] set to true to close position
-        * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-        * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
+        object isTpAndSlOrder = isTrue((!isEqual(this.safeValue(parameters, "stopLoss"), null))) || isTrue((!isEqual(this.safeValue(parameters, "takeProfit"), null)));
         object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(testOrder))
@@ -1441,7 +1579,13 @@ public partial class kucoinfutures : kucoin
             response = await this.futuresPrivatePostOrdersTest(orderRequest);
         } else
         {
-            response = await this.futuresPrivatePostOrders(orderRequest);
+            if (isTrue(isTpAndSlOrder))
+            {
+                response = await this.futuresPrivatePostStOrders(orderRequest);
+            } else
+            {
+                response = await this.futuresPrivatePostOrders(orderRequest);
+            }
         }
         //
         //    {
@@ -1455,17 +1599,17 @@ public partial class kucoinfutures : kucoin
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#createOrders
+     * @description create a list of trade orders
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#createOrders
-        * @description create a list of trade orders
-        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @param {object} [params]  extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
@@ -1515,23 +1659,33 @@ public partial class kucoinfutures : kucoin
         // required param, cannot be used twice
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
-        if (isTrue(isLessThan(amount, 1)))
-        {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
-        }
-        object preciseAmount = parseInt(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
             { "symbol", getValue(market, "id") },
             { "type", type },
-            { "size", preciseAmount },
             { "leverage", 1 },
         };
+        object cost = this.safeString(parameters, "cost");
+        parameters = this.omit(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)request)["valueQty"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            if (isTrue(isLessThan(amount, 1)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
+            }
+            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[2];
+        object stopLoss = this.safeDict(parameters, "stopLoss");
+        object takeProfit = this.safeDict(parameters, "takeProfit");
+        // const isTpAndSl = stopLossPrice && takeProfitPrice;
         object triggerPriceTypes = new Dictionary<string, object>() {
             { "mark", "MP" },
             { "last", "TP" },
@@ -1539,12 +1693,28 @@ public partial class kucoinfutures : kucoin
         };
         object triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
         object triggerPriceTypeValue = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
-        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"});
         if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["stopPriceType"] = triggerPriceTypeValue;
+        } else if (isTrue(isTrue(!isEqual(stopLoss, null)) || isTrue(!isEqual(takeProfit, null))))
+        {
+            object priceType = triggerPriceTypeValue;
+            if (isTrue(!isEqual(stopLoss, null)))
+            {
+                object slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
+                ((IDictionary<string,object>)request)["triggerStopDownPrice"] = this.priceToPrecision(symbol, slPrice);
+                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+            }
+            if (isTrue(!isEqual(takeProfit, null)))
+            {
+                object tpPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
+                ((IDictionary<string,object>)request)["triggerStopUpPrice"] = this.priceToPrecision(symbol, tpPrice);
+                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+            }
+            ((IDictionary<string,object>)request)["stopPriceType"] = priceType;
         } else if (isTrue(isTrue(stopLossPrice) || isTrue(takeProfitPrice)))
         {
             if (isTrue(stopLossPrice))
@@ -1601,19 +1771,19 @@ public partial class kucoinfutures : kucoin
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#cancelOrder
+     * @description cancels an open order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] cancel order by client order id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#cancelOrder
-        * @description cancels an open order
-        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] cancel order by client order id
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -1648,19 +1818,87 @@ public partial class kucoinfutures : kucoin
         return this.safeValue(response, "data");
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object ordersRequests = new List<object>() {};
+        object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
+        object useClientorderId = false;
+        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        {
+            useClientorderId = true;
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
+            }
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "clientOid", this.safeString(clientOrderIds, i) },
+            });
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(getValue(ids, i));
+        }
+        object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
+        object request = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
+        object response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
+        //
+        //   {
+        //       "code": "200000",
+        //       "data":
+        //       [
+        //           {
+        //               "orderId": "80465574458560512",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           },
+        //           {
+        //               "orderId": "80465575289094144",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           }
+        //       ]
+        //   }
+        //
+        object orders = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(orders, market);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
+     * @returns Response from the exchange
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
-        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
-        * @returns Response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1668,10 +1906,10 @@ public partial class kucoinfutures : kucoin
         {
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, parameters));
         } else
@@ -1691,18 +1929,18 @@ public partial class kucoinfutures : kucoin
         return this.safeValue(response, "data");
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#addMargin
+     * @description add margin
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#addMargin
-        * @description add margin
-        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1837,26 +2075,26 @@ public partial class kucoinfutures : kucoin
         };
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchOrdersByStatus
+     * @description fetches a list of orders placed on the exchange
+     * @see https://docs.kucoin.com/futures/#get-order-list
+     * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+     * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+     * @param {string} symbol unified symbol for the market to retrieve orders from
+     * @param {int} [since] timestamp in ms of the earliest order to retrieve
+     * @param {int} [limit] The maximum number of orders to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
+     * @param {int} [params.until] End time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit or market
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchOrdersByStatus
-        * @description fetches a list of orders placed on the exchange
-        * @see https://docs.kucoin.com/futures/#get-order-list
-        * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
-        * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
-        * @param {string} symbol unified symbol for the market to retrieve orders from
-        * @param {int} [since] timestamp in ms of the earliest order to retrieve
-        * @param {int} [limit] The maximum number of orders to retrieve
-        * @param {object} [params] exchange specific parameters
-        * @param {bool} [params.trigger] set to true to retrieve untriggered stop orders
-        * @param {int} [params.until] End time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit or market
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1867,7 +2105,7 @@ public partial class kucoinfutures : kucoin
         {
             return await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters);
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
         if (isTrue(isEqual(status, "closed")))
@@ -1878,7 +2116,7 @@ public partial class kucoinfutures : kucoin
             status = "active";
         }
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["status"] = status;
         } else if (isTrue(!isEqual(status, "active")))
@@ -1900,7 +2138,7 @@ public partial class kucoinfutures : kucoin
             ((IDictionary<string,object>)request)["endAt"] = until;
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.futuresPrivateGetStopOrders(this.extend(request, parameters));
         } else
@@ -1963,23 +2201,23 @@ public partial class kucoinfutures : kucoin
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.kucoin.com/futures/#get-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit, or market
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.kucoin.com/futures/#get-order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit, or market
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1993,25 +2231,25 @@ public partial class kucoinfutures : kucoin
         return await this.fetchOrdersByStatus("done", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchOpenOrders
+     * @description fetches information on multiple open orders made by the user
+     * @see https://docs.kucoin.com/futures/#get-order-list
+     * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type] limit, or market
+     * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchOpenOrders
-        * @description fetches information on multiple open orders made by the user
-        * @see https://docs.kucoin.com/futures/#get-order-list
-        * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @param {string} [params.side] buy or sell
-        * @param {string} [params.type] limit, or market
-        * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2025,17 +2263,18 @@ public partial class kucoinfutures : kucoin
         return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id = null, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2180,8 +2419,8 @@ public partial class kucoinfutures : kucoin
         object amount = this.safeString(order, "size");
         object filled = this.safeString(order, "filledSize");
         object cost = this.safeString(order, "filledValue");
-        object average = null;
-        if (isTrue(Precise.stringGt(filled, "0")))
+        object average = this.safeString(order, "avgDealPrice");
+        if (isTrue(isTrue((isEqual(average, null))) && isTrue(Precise.stringGt(filled, "0"))))
         {
             object contractSize = this.safeString(market, "contractSize");
             if (isTrue(getValue(market, "linear")))
@@ -2245,17 +2484,17 @@ public partial class kucoinfutures : kucoin
         }, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2275,12 +2514,42 @@ public partial class kucoinfutures : kucoin
         //        },
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         // the website displayes the previous funding rate as "funding rate"
+        return this.parseFundingRate(data, market);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
+        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
@@ -2296,7 +2565,20 @@ public partial class kucoinfutures : kucoin
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public override object parseBalance(object response)
@@ -2316,16 +2598,16 @@ public partial class kucoinfutures : kucoin
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only fetches one balance at a time
@@ -2356,24 +2638,22 @@ public partial class kucoinfutures : kucoin
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue((isTrue(!isEqual(toAccount, "main")) && isTrue(!isEqual(toAccount, "funding")))) || isTrue((isTrue(isTrue(!isEqual(fromAccount, "futures")) && isTrue(!isEqual(fromAccount, "future"))) && isTrue(!isEqual(fromAccount, "contract"))))))
-        {
-            throw new BadRequest ((string)add(this.id, " transfer() only supports transfers from contract(future) account to main(funding) account")) ;
-        }
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
@@ -2381,31 +2661,57 @@ public partial class kucoinfutures : kucoin
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
-        // transfer from usdm futures wallet to spot wallet
-        object response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //        }
-        //    }
-        //
-        object data = this.safeValue(response, "data");
+        object toAccountString = this.parseTransferType(toAccount);
+        object response = null;
+        if (isTrue(isTrue(isEqual(toAccountString, "TRADE")) || isTrue(isEqual(toAccountString, "MAIN"))))
+        {
+            ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
+            response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isTrue(isEqual(toAccount, "future")) || isTrue(isEqual(toAccount, "swap"))) || isTrue(isEqual(toAccount, "contract"))))
+        {
+            ((IDictionary<string,object>)request)["payAccountType"] = this.parseTransferType(fromAccount);
+            response = await this.futuresPrivatePostTransferIn(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", "future" },
-            { "toAccount", "spot" },
+            { "fromAccount", fromAccount },
+            { "toAccount", toAccount },
         });
     }
 
     public override object parseTransfer(object transfer, object currency = null)
     {
         //
-        // transfer
+        // transfer to spot or funding account
         //
         //     {
         //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        // transfer to future account
+        //
+        //     {
+        //         "applyId": "6738754373ceee00011ec3f8",
+        //         "bizNo": "6738754373ceee00011ec3f7",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": "",
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": "",
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "USDT",
+        //         "amount": "5",
+        //         "fee": "0",
+        //         "sn": 1519769124846692,
+        //         "reason": "",
+        //         "createdAt": 1731753283000,
+        //         "updatedAt": 1731753283000
         //     }
         //
         object timestamp = this.safeInteger(transfer, "updatedAt");
@@ -2414,7 +2720,7 @@ public partial class kucoinfutures : kucoin
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", this.safeCurrencyCode(null, currency) },
-            { "amount", null },
+            { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", null },
             { "toAccount", null },
             { "status", this.safeString(transfer, "status") },
@@ -2430,21 +2736,30 @@ public partial class kucoinfutures : kucoin
         return this.safeString(statuses, status, status);
     }
 
+    public virtual object parseTransferType(object transferType)
+    {
+        object transferTypes = new Dictionary<string, object>() {
+            { "spot", "TRADE" },
+            { "funding", "MAIN" },
+        };
+        return this.safeStringUpper(transferTypes, transferType, transferType);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchMyTrades
+     * @see https://docs.kucoin.com/futures/#get-fills
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] End time in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchMyTrades
-        * @see https://docs.kucoin.com/futures/#get-fills
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] End time in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2465,6 +2780,10 @@ public partial class kucoinfutures : kucoin
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = mathMin(1000, limit);
         }
         var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -2508,19 +2827,19 @@ public partial class kucoinfutures : kucoin
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2692,18 +3011,18 @@ public partial class kucoinfutures : kucoin
         }, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2755,18 +3074,18 @@ public partial class kucoinfutures : kucoin
         });
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2818,17 +3137,17 @@ public partial class kucoinfutures : kucoin
         });
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchMarketLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2866,6 +3185,7 @@ public partial class kucoinfutures : kucoin
         /**
          * @ignore
          * @method
+         * @name kucoinfutures#parseMarketLeverageTiers
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
          */
@@ -2884,8 +3204,10 @@ public partial class kucoinfutures : kucoin
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = getValue(info, i);
+            object marketId = this.safeString(tier, "symbol");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(tier, "level") },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", getValue(market, "base") },
                 { "minNotional", this.safeNumber(tier, "minRiskLimit") },
                 { "maxNotional", this.safeNumber(tier, "maxRiskLimit") },
@@ -2897,20 +3219,20 @@ public partial class kucoinfutures : kucoin
         return tiers;
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchFundingRateHistory
+     * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
+     * @description fetches historical funding rate prices
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] not used by kucuoinfutures
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] end time in ms
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchFundingRateHistory
-        * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
-        * @description fetches historical funding rate prices
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] not used by kucuoinfutures
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] end time in ms
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2971,19 +3293,19 @@ public partial class kucoinfutures : kucoin
         };
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#closePosition
+     * @description closes open positions for a market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side not used by kucoinfutures closePositions
+     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#closePosition
-        * @description closes open positions for a market
-        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} side not used by kucoinfutures closePositions
-        * @param {object} [params] extra parameters specific to the okx api endpoint
-        * @param {string} [params.clientOrderId] client order id of the order
-        * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3011,17 +3333,17 @@ public partial class kucoinfutures : kucoin
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name kucoinfutures#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kucoinfutures#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3049,6 +3371,179 @@ public partial class kucoinfutures : kucoin
             { "taker", this.safeNumber(first, "takerFeeRate") },
             { "percentage", true },
             { "tierBased", true },
+        };
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchMarginMode
+     * @description fetches the margin mode of a trading pair
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "marginMode": "ISOLATED"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        marginType = ((bool) isTrue((isEqual(marginType, "ISOLATED")))) ? "isolated" : "cross";
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginType },
+        };
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginMode", ((string)marginMode).ToUpper() },
+        };
+        object response = await this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "marginMode": "ISOLATED"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, "cross")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "leverage": "3"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object parsed = this.parseLeverage(data, market);
+        return this.extend(parsed, new Dictionary<string, object>() {
+            { "marginMode", marginMode },
+        });
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, "cross")))
+        {
+            throw new NotSupported ((string)add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "leverage", ((object)leverage).ToString() },
+        };
+        object response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": true
+        //    }
+        //
+        return this.parseLeverage(response, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        market = this.safeMarket(marketId, market);
+        object leverageNum = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageNum },
+            { "shortLeverage", leverageNum },
         };
     }
 }

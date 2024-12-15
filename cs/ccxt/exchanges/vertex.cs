@@ -39,6 +39,8 @@ public partial class vertex : Exchange
                 { "createOrder", true },
                 { "createOrders", true },
                 { "createReduceOnlyOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -338,16 +340,16 @@ public partial class vertex : Exchange
         return Precise.stringDiv(numStr, "1000000000000000000");
     }
 
+    /**
+     * @method
+     * @name vertex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
         object response = await this.v2GatewayGetAssets(this.extend(request, parameters));
@@ -510,16 +512,16 @@ public partial class vertex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name vertex#fetchMarkets
+     * @description retrieves data on all markets for vertex
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchMarkets
-        * @description retrieves data on all markets for vertex
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "type", "symbols" },
@@ -562,31 +564,31 @@ public partial class vertex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name vertex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1GatewayGetTime(parameters);
         // 1717481623452
         return this.parseNumber(response);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "type", "status" },
@@ -749,19 +751,19 @@ public partial class vertex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -799,20 +801,20 @@ public partial class vertex : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object userAddress = null;
@@ -1017,18 +1019,18 @@ public partial class vertex : Exchange
         return this.parseTrades(trades, market, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1084,17 +1086,17 @@ public partial class vertex : Exchange
         return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
     }
 
+    /**
+     * @method
+     * @name vertex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object userAddress = null;
@@ -1168,20 +1170,20 @@ public partial class vertex : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.parseNumber(this.convertFromX18(this.safeString(ohlcv, "open_x18"))), this.parseNumber(this.convertFromX18(this.safeString(ohlcv, "high_x18"))), this.parseNumber(this.convertFromX18(this.safeString(ohlcv, "low_x18"))), this.parseNumber(this.convertFromX18(this.safeString(ohlcv, "close_x18"))), this.parseNumber(this.convertFromX18(this.safeString(ohlcv, "volume")))};
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOHLCV
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOHLCV
-        * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1293,20 +1295,21 @@ public partial class vertex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name vertex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1326,17 +1329,17 @@ public partial class vertex : Exchange
         return this.parseFundingRate(response, market);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchFundingRates
+     * @description fetches funding rates for multiple markets
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchFundingRates
-        * @description fetches funding rates for multiple markets
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
-        * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1418,17 +1421,17 @@ public partial class vertex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOpenInterest
-        * @description Retrieves the open interest of a derivative trading pair
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1511,17 +1514,17 @@ public partial class vertex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true, true, true);
@@ -1765,26 +1768,26 @@ public partial class vertex : Exchange
         return amountString;
     }
 
+    /**
+     * @method
+     * @name vertex#createOrder
+     * @description create a trade order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] ioc, fok
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#createOrder
-        * @description create a trade order
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] ioc, fok
-        * @param {bool} [params.postOnly] true or false whether the order is post-only
-        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object marketType = ((string)type).ToLower();
@@ -1877,26 +1880,26 @@ public partial class vertex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name vertex#editOrder
+     * @description edit a trade order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] ioc, fok
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#editOrder
-        * @description edit a trade order
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] ioc, fok
-        * @param {bool} [params.postOnly] true or false whether the order is post-only
-        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object marketType = ((string)type).ToLower();
@@ -2134,18 +2137,18 @@ public partial class vertex : Exchange
         return this.safeStringUpper(timeInForces, timeInForce, timeInForce);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2177,22 +2180,22 @@ public partial class vertex : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -2202,7 +2205,7 @@ public partial class vertex : Exchange
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2210,7 +2213,7 @@ public partial class vertex : Exchange
             ((IDictionary<string,object>)request)["product_id"] = this.parseToNumeric(getValue(market, "id"));
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             object contracts = await this.queryContracts();
             object chainId = this.safeString(contracts, "chain_id");
@@ -2249,26 +2252,26 @@ public partial class vertex : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name vertex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             throw new NotSupported ((string)add(this.id, " fetchOrders only support trigger orders")) ;
         }
@@ -2345,19 +2348,19 @@ public partial class vertex : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name vertex#cancelAllOrders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+     * @description cancel all open orders in a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#cancelAllOrders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
-        * @description cancel all open orders in a market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -2387,10 +2390,10 @@ public partial class vertex : Exchange
                 { "signature", this.buildCancelAllOrdersSig(cancels, chainId, verifyingContractAddress) },
             } },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.v1TriggerPostExecute(this.extend(request, parameters));
         } else
@@ -2400,36 +2403,36 @@ public partial class vertex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name vertex#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name vertex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#cancelOrders
-        * @description cancel multiple orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
-        * @param {string[]} ids order ids
-        * @param {string} [symbol] unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isTrue(isEqual(symbol, null)))
@@ -2466,10 +2469,10 @@ public partial class vertex : Exchange
                 { "signature", this.buildCancelOrdersSig(cancels, chainId, verifyingContractAddress) },
             } },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.v1TriggerPostExecute(this.extend(request, parameters));
         } else
@@ -2479,17 +2482,17 @@ public partial class vertex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name vertex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
         var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
@@ -2901,18 +2904,18 @@ public partial class vertex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name vertex#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
-        * @param {string[]} [symbols] list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
         var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
@@ -2960,20 +2963,20 @@ public partial class vertex : Exchange
         return this.safeDict(response, "data", new Dictionary<string, object>() {});
     }
 
+    /**
+     * @method
+     * @name vertex#withdraw
+     * @description make a withdrawal
+     * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name vertex#withdraw
-        * @description make a withdrawal
-        * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -3002,13 +3005,63 @@ public partial class vertex : Exchange
         };
         object response = await this.v1GatewayPostExecute(this.extend(request, parameters));
         //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "request_type": "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
         //
-        return response;
+        object transaction = this.parseTransaction(response, currency);
+        return this.extend(transaction, new Dictionary<string, object>() {
+            { "amount", amount },
+            { "address", address },
+        });
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
+        //
+        object code = null;
+        if (isTrue(!isEqual(currency, null)))
+        {
+            code = getValue(currency, "code");
+        }
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", null },
+            { "txid", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "addressFrom", null },
+            { "address", null },
+            { "addressTo", null },
+            { "tagFrom", null },
+            { "tag", null },
+            { "tagTo", null },
+            { "type", "withdrawal" },
+            { "amount", null },
+            { "currency", code },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "updated", null },
+            { "network", null },
+            { "comment", null },
+            { "internal", null },
+            { "fee", null },
+        };
+    }
+
+    public virtual object parseTransactionStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "success", "ok" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     public virtual object handlePublicAddress(object methodName, object parameters)
@@ -3029,7 +3082,7 @@ public partial class vertex : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside \'params\' or the wallet address set")) ;
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -3076,6 +3129,19 @@ public partial class vertex : Exchange
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
+            }
+        }
+        if (isTrue(!isEqual(path, "execute")))
+        {
+            // required encoding for public methods
+            if (isTrue(!isEqual(headers, null)))
+            {
+                ((IDictionary<string,object>)headers)["Accept-Encoding"] = "gzip";
+            } else
+            {
+                headers = new Dictionary<string, object>() {
+                    { "Accept-Encoding", "gzip" },
+                };
             }
         }
         return new Dictionary<string, object>() {

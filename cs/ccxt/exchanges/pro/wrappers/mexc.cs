@@ -12,6 +12,61 @@ public partial class mexc
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.miniTicker</term>
+    /// <description>
+    /// boolean : set to true for using the miniTicker endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.miniTicker</term>
+    /// <description>
+    /// boolean : set to true for using the miniTicker endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -22,10 +77,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchTicker(symbol, parameters);
-        return new Ticker(res);
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
     }
     public async Task<Dictionary<string, object>> WatchSpotPublic(object channel, object messageHash, Dictionary<string, object> parameters = null)
     {
