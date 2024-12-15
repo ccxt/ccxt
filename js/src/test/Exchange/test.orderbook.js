@@ -43,7 +43,7 @@ export default (exchange, orderbook, method, symbol) => {
         'blockchaincom',
         'btcalpha',
         'btcbox',
-        'ftxus',
+        'bybit',
         'mexc',
         'xbtce',
         'upbit', // an orderbook might have a 0-price ask occasionally

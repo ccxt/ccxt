@@ -30,7 +30,7 @@ async def watch_ticker_loop(exchange, symbol):
 async def main():
     exchanges = {
         'binance': [ 'BTC/USDT', 'ETH/USDT' ],
-        'ftx': [ 'BTC/USD', 'ETH/USD' ],
+        'bybit': [ 'BTC/USD', 'ETH/USD' ],
     }
     loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
     await gather(*loops)

@@ -12,7 +12,7 @@ sys.path.append(root + '/python')
 print('CCXT Version:', ccxt.__version__)
 
 # data
-exchange_name = 'ftx'
+exchange_name = 'bybit'
 symbol = "BTC/USD"
 max_candles = 5000
 timeframe = '1h'
@@ -34,7 +34,7 @@ now = int(datetime.now().timestamp() * 1000)
 outfile = f"{symbol.replace('/', '-')}_{timeframe}_{exchange_name}_{start}-{now}.csv"
 
 # setup
-exchange = ccxt.ftx()
+exchange = ccxt.bybit()
 exchange.load_markets()
 ohlcv = []
 

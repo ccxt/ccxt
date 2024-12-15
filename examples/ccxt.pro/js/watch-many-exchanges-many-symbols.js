@@ -31,7 +31,7 @@ async function exchangeLoop (exchangeId, symbols) {
 async function main () {
     const exchanges = {
         'binance': [ 'BTC/USDT', 'ETH/USDT' ],
-        'ftx': [ 'BTC/USD', 'ETH/USD' ],
+        'bybit': [ 'BTC/USD', 'ETH/USD' ],
     }
     const loops = Object.entries (exchanges).map (([ exchangeId, symbols ]) => exchangeLoop (exchangeId, symbols))
     await Promise.all (loops)
