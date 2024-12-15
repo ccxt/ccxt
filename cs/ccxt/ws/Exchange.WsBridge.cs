@@ -170,7 +170,7 @@ public partial class Exchange
             return await future;
         }
 
-        if (!client.startedConnecting && this.enableRateLimit) {
+        if (!client.startedConnecting && this.enableWsRateLimit) {
             var cost = this.getWsRateLimitCost(url, "connections");
             await client.connectionsThrottler.throttle(cost);
         } 
@@ -183,7 +183,7 @@ public partial class Exchange
             {
                 try
                 {
-                    if (this.enableRateLimit)
+                    if (this.enableWsRateLimit)
                     {
                         if (messageCost2 == null)
                         {
@@ -232,7 +232,7 @@ public partial class Exchange
         }
 
 
-        if (!client.startedConnecting && this.enableRateLimit) {
+        if (!client.startedConnecting && this.enableWsRateLimit) {
             var cost = this.getWsRateLimitCost(url, "connections");
             await client.connectionsThrottler.throttle(cost);
         } 
@@ -245,7 +245,7 @@ public partial class Exchange
             {
                 try
                 {
-                    if (this.enableRateLimit)
+                    if (this.enableWsRateLimit)
                     {
                         messageCost = this.getWsRateLimitCost(url, "messages");
                         await client.messagesThrottler.throttle (messageCost);

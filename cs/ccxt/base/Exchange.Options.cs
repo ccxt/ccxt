@@ -17,6 +17,7 @@ public partial class Exchange
     public string userAgent { get; set; }
     public bool verbose { get; set; } = true;
     public bool enableRateLimit { get; set; } = true;
+    public bool enableWsRateLimit { get; set; } = false;
     public long lastRestRequestTimestamp { get; set; } = 0;
     public string url { get; set; } = "";
 

@@ -421,7 +421,7 @@ class Exchange(BaseExchange):
             connected = client.connected
         else:
             async def connect():
-                if self.enableRateLimit:
+                if self.enableWsRateLimit:
                     await client.connections_throttler()
                 await client.connect(self.session)
             connected = asyncio.ensure_future(connect())
@@ -430,7 +430,7 @@ class Exchange(BaseExchange):
             # todo: decouple signing from subscriptions
             if message:
                 async def send_message(message_cost):
-                    if self.enableRateLimit:
+                    if self.enableWsRateLimit:
                         if message_cost is None:
                             message_cost = self.get_ws_rate_limit_cost(url, 'messages')
                         await client.messages_throttler(message_cost)
@@ -464,7 +464,7 @@ class Exchange(BaseExchange):
             connected = client.connected
         else:
             async def connect():
-                if self.enableRateLimit:
+                if self.enableWsRateLimit:
                     cost = self.get_ws_rate_limit_cost(url, 'connections')
                     await client.connections_throttler(cost)
                 await client.connect(self.session)
@@ -474,7 +474,7 @@ class Exchange(BaseExchange):
             # todo: decouple signing from subscriptions
             if message:
                 async def send_message(message_cost):
-                    if self.enableRateLimit:
+                    if self.enableWsRateLimit:
                         if message_cost is None:
                             message_cost = self.get_ws_rate_limit_cost(url, 'messages')
                         await client.messages_throttler(message_cost)

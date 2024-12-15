@@ -54,7 +54,6 @@ function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
-
 // non-transpiled part, but shared names among langs
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
