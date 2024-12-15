@@ -384,9 +384,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -412,9 +412,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -459,9 +459,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
@@ -498,9 +498,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -563,9 +563,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -628,9 +628,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -895,7 +895,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

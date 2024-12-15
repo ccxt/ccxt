@@ -1457,7 +1457,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1483,8 +1483,8 @@ public partial class ascendex : Exchange
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },
             { "average", average },
@@ -1566,7 +1566,7 @@ public partial class ascendex : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
-        * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+        * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         * @returns {object} request to be sent to the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -1602,7 +1602,7 @@ public partial class ascendex : Exchange
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(isLimitOrder))
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -1619,9 +1619,9 @@ public partial class ascendex : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isLimitOrder))
             {
                 ((IDictionary<string,object>)request)["orderType"] = "stop_limit";
@@ -1670,7 +1670,7 @@ public partial class ascendex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
@@ -1770,7 +1770,7 @@ public partial class ascendex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)

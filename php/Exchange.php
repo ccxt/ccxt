@@ -46,7 +46,7 @@ use Exception;
 use ccxt\pro\Stream;
 
 
-$version = '4.4.38';
+$version = '4.4.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -65,7 +65,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.38';
+    const VERSION = '4.4.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2914,31 +2914,25 @@ class Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->value_is_defined($this->wsProxy)) {
+        $isWsProxyDefined = $this->value_is_defined($this->wsProxy);
+        $is_ws_proxy_defined = $this->value_is_defined($this->ws_proxy);
+        if ($isWsProxyDefined || $is_ws_proxy_defined) {
             $usedProxies[] = 'wsProxy';
-            $wsProxy = $this->wsProxy;
-        }
-        if ($this->value_is_defined($this->ws_proxy)) {
-            $usedProxies[] = 'ws_proxy';
-            $wsProxy = $this->ws_proxy;
+            $wsProxy = ($isWsProxyDefined) ? $this->wsProxy : $this->ws_proxy;
         }
         // wss proxy
-        if ($this->value_is_defined($this->wssProxy)) {
+        $isWssProxyDefined = $this->value_is_defined($this->wssProxy);
+        $is_wss_proxy_defined = $this->value_is_defined($this->wss_proxy);
+        if ($isWssProxyDefined || $is_wss_proxy_defined) {
             $usedProxies[] = 'wssProxy';
-            $wssProxy = $this->wssProxy;
-        }
-        if ($this->value_is_defined($this->wss_proxy)) {
-            $usedProxies[] = 'wss_proxy';
-            $wssProxy = $this->wss_proxy;
+            $wssProxy = ($isWssProxyDefined) ? $this->wssProxy : $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->value_is_defined($this->wsSocksProxy)) {
+        $isWsSocksProxyDefined = $this->value_is_defined($this->wsSocksProxy);
+        $is_ws_socks_proxy_defined = $this->value_is_defined($this->ws_socks_proxy);
+        if ($isWsSocksProxyDefined || $is_ws_socks_proxy_defined) {
             $usedProxies[] = 'wsSocksProxy';
-            $wsSocksProxy = $this->wsSocksProxy;
-        }
-        if ($this->value_is_defined($this->ws_socks_proxy)) {
-            $usedProxies[] = 'ws_socks_proxy';
-            $wsSocksProxy = $this->ws_socks_proxy;
+            $wsSocksProxy = ($isWsSocksProxyDefined) ? $this->wsSocksProxy : $this->ws_socks_proxy;
         }
         // check
         $length = count($usedProxies);

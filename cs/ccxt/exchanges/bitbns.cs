@@ -540,7 +540,6 @@ public partial class bitbns : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "rate") },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", this.safeString(order, "btc") },
             { "cost", null },

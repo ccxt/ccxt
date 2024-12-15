@@ -3116,14 +3116,14 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object stop = this.safeValue2(parameters, "stop", "trigger", false);
-        parameters = this.omit(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger", false);
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
-            ((IDictionary<string,object>)request)["untriggerred"] = stop;
+            ((IDictionary<string,object>)request)["untriggerred"] = trigger;
         }
         object response = null;
         if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
@@ -4372,19 +4372,23 @@ public partial class phemex : Exchange
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
+        object markEp = this.fromEp(this.safeString(contract, "markEp"), market);
+        object indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
+        object fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
+        object nextFundingRateEr = this.fromEr(this.safeString(contract, "predFundingRateEr"), market);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
-            { "markPrice", this.fromEp(this.safeString2(contract, "markEp", "markPriceRp"), market) },
-            { "indexPrice", this.fromEp(this.safeString2(contract, "indexEp", "indexPriceRp"), market) },
+            { "markPrice", this.safeNumber(contract, "markPriceRp", markEp) },
+            { "indexPrice", this.safeNumber(contract, "indexPriceRp", indexEp) },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.fromEr(this.safeString(contract, "fundingRateEr"), market) },
+            { "fundingRate", this.safeNumber(contract, "fundingRateRr", fundingRateEr) },
             { "fundingTimestamp", null },
             { "fundingDatetime", null },
-            { "nextFundingRate", this.fromEr(this.safeString2(contract, "predFundingRateEr", "predFundingRateRr"), market) },
+            { "nextFundingRate", this.safeNumber(contract, "predFundingRateRr", nextFundingRateEr) },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
             { "previousFundingRate", null },

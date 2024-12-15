@@ -720,9 +720,9 @@ class okx(ccxt.async_support.okx):
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         await self.load_markets()
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isTrigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        await self.authenticate({'access': 'business' if isStop else 'private'})
+        await self.authenticate({'access': 'business' if isTrigger else 'private'})
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'myLiquidations'
         messageHashes = []
@@ -1513,7 +1513,7 @@ class okx(ccxt.async_support.okx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional trades
+        :param bool [params.trigger]: True if fetching trigger or conditional trades
         :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
         :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
@@ -1521,11 +1521,11 @@ class okx(ccxt.async_support.okx):
         # By default, receive order updates from any instrument type
         type = None
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
-        isStop = self.safe_bool(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        params = self.omit(params, ['trigger', 'stop'])
         await self.load_markets()
-        await self.authenticate({'access': 'business' if isStop else 'private'})
-        channel = 'orders-algo' if isStop else 'orders'
+        await self.authenticate({'access': 'business' if isTrigger else 'private'})
+        channel = 'orders-algo' if isTrigger else 'orders'
         messageHash = channel + '::myTrades'
         market = None
         if symbol is not None:
@@ -1690,7 +1690,7 @@ class okx(ccxt.async_support.okx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
         :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1698,10 +1698,10 @@ class okx(ccxt.async_support.okx):
         type = None
         # By default, receive order updates from any instrument type
         type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
-        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        isTrigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
         await self.load_markets()
-        await self.authenticate({'access': 'business' if isStop else 'private'})
+        await self.authenticate({'access': 'business' if isTrigger else 'private'})
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1718,7 +1718,7 @@ class okx(ccxt.async_support.okx):
         request: dict = {
             'instType': uppercaseType,
         }
-        channel = 'orders-algo' if isStop else 'orders'
+        channel = 'orders-algo' if isTrigger else 'orders'
         orders = await self.subscribe('private', channel, channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)

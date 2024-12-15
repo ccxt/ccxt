@@ -446,7 +446,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// string :  Either loss or entry, the default is loss. Requires stopPrice to be defined
+    /// string :  Either loss or entry, the default is loss. Requires triggerPrice to be defined
     /// </description>
     /// </item>
     /// <item>
@@ -648,7 +648,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if cancelling a stop order
     /// </description>
@@ -688,7 +688,7 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : *invalid for isolated margin* true if cancelling all stop orders
     /// </description>
@@ -773,19 +773,19 @@ public partial class kucoin
     /// <item>
     /// <term>params.currentPage</term>
     /// <description>
-    /// int : *stop orders only* current page
+    /// int : *trigger orders only* current page
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *stop orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma seperated order ID list
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : True if fetching a stop order
+    /// bool : True if fetching a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -856,9 +856,9 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : True if fetching a stop order
+    /// bool : True if fetching a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -917,9 +917,9 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true if fetching stop orders
+    /// bool : true if fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -943,13 +943,13 @@ public partial class kucoin
     /// <item>
     /// <term>params.currentPage</term>
     /// <description>
-    /// int : *stop orders only* current page
+    /// int : *trigger orders only* current page
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *stop orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma seperated order ID list
     /// </description>
     /// </item>
     /// <item>
@@ -992,9 +992,9 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true if fetching a stop order
+    /// bool : true if fetching a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -1387,7 +1387,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

@@ -1311,7 +1311,6 @@ public partial class bitfinex1 : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "average", this.safeString(order, "avg_execution_price") },
             { "amount", this.safeString(order, "original_amount") },

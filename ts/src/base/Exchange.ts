@@ -2289,31 +2289,25 @@ export default class Exchange {
         let wssProxy = undefined;
         let wsSocksProxy = undefined;
         // ws proxy
-        if (this.valueIsDefined (this.wsProxy)) {
+        const isWsProxyDefined = this.valueIsDefined (this.wsProxy);
+        const is_ws_proxy_defined = this.valueIsDefined (this.ws_proxy);
+        if (isWsProxyDefined || is_ws_proxy_defined) {
             usedProxies.push ('wsProxy');
-            wsProxy = this.wsProxy;
-        }
-        if (this.valueIsDefined (this.ws_proxy)) {
-            usedProxies.push ('ws_proxy');
-            wsProxy = this.ws_proxy;
+            wsProxy = (isWsProxyDefined) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
-        if (this.valueIsDefined (this.wssProxy)) {
+        const isWssProxyDefined = this.valueIsDefined (this.wssProxy);
+        const is_wss_proxy_defined = this.valueIsDefined (this.wss_proxy);
+        if (isWssProxyDefined || is_wss_proxy_defined) {
             usedProxies.push ('wssProxy');
-            wssProxy = this.wssProxy;
-        }
-        if (this.valueIsDefined (this.wss_proxy)) {
-            usedProxies.push ('wss_proxy');
-            wssProxy = this.wss_proxy;
+            wssProxy = (isWssProxyDefined) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
-        if (this.valueIsDefined (this.wsSocksProxy)) {
+        const isWsSocksProxyDefined = this.valueIsDefined (this.wsSocksProxy);
+        const is_ws_socks_proxy_defined = this.valueIsDefined (this.ws_socks_proxy);
+        if (isWsSocksProxyDefined || is_ws_socks_proxy_defined) {
             usedProxies.push ('wsSocksProxy');
-            wsSocksProxy = this.wsSocksProxy;
-        }
-        if (this.valueIsDefined (this.ws_socks_proxy)) {
-            usedProxies.push ('ws_socks_proxy');
-            wsSocksProxy = this.ws_socks_proxy;
+            wsSocksProxy = (isWsSocksProxyDefined) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
         const length = usedProxies.length;

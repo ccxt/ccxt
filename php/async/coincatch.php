@@ -5164,7 +5164,7 @@ class coincatch extends Exchange {
              * @param {string} [$params->business] *swap only*
              * @param {string} [$params->lastEndId] *swap only*
              * @param {bool} [$params->next] *swap only*
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $methodName = 'fetchLedger';
             Async\await($this->load_markets());

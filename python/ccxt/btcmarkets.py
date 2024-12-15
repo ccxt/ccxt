@@ -1015,7 +1015,6 @@ class btcmarkets(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_bool(order, 'postOnly')
         return self.safe_order({
             'info': order,
@@ -1030,8 +1029,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'cost': None,
             'amount': amount,
             'filled': None,

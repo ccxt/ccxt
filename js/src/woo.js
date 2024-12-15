@@ -116,7 +116,7 @@ export default class woo extends Exchange {
                 'setMargin': false,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -160,7 +160,7 @@ export default class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -210,7 +210,7 @@ export default class woo extends Exchange {
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,
+                            'order': 1,
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,
                             'asset/ltv': 30,
@@ -227,7 +227,7 @@ export default class woo extends Exchange {
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -988,17 +988,17 @@ export default class woo extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isStop = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        const reduceOnlyKey = isStop ? 'reduceOnly' : 'reduce_only';
-        const clientOrderIdKey = isStop ? 'clientOrderId' : 'client_order_id';
-        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
-        const priceKey = isStop ? 'price' : 'order_price';
-        const typeKey = isStop ? 'type' : 'order_type';
+        const reduceOnlyKey = isConditional ? 'reduceOnly' : 'reduce_only';
+        const clientOrderIdKey = isConditional ? 'clientOrderId' : 'client_order_id';
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
+        const typeKey = isConditional ? 'type' : 'order_type';
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isStop) {
+        if (!isConditional) {
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }
@@ -1015,7 +1015,7 @@ export default class woo extends Exchange {
         if (!isMarket && price !== undefined) {
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isMarket && !isStop) {
+        if (isMarket && !isConditional) {
             // for market buy it requires the amount of quote currency to spend
             const cost = this.safeString2(params, 'cost', 'order_amount');
             params = this.omit(params, ['cost', 'order_amount']);
@@ -1099,7 +1099,7 @@ export default class woo extends Exchange {
         }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
         let response = undefined;
-        if (isStop) {
+        if (isConditional) {
             response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
         }
         else {
@@ -1208,11 +1208,11 @@ export default class woo extends Exchange {
             }
         }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
-        const isStop = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
-            if (isStop) {
+            if (isConditional) {
                 response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, params));
             }
             else {
@@ -1221,7 +1221,7 @@ export default class woo extends Exchange {
         }
         else {
             request['oid'] = id;
-            if (isStop) {
+            if (isConditional) {
                 response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, params));
             }
             else {
@@ -1253,13 +1253,13 @@ export default class woo extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        const stop = this.safeBool(params, 'stop', false);
-        params = this.omit(params, 'stop');
-        if (!stop && (symbol === undefined)) {
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        params = this.omit(params, ['trigger', 'stop']);
+        if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
@@ -1272,7 +1272,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (stop) {
+        if (isTrigger) {
             request['order_id'] = id;
             response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, params));
         }
@@ -1309,14 +1309,14 @@ export default class woo extends Exchange {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        if (stop) {
+        if (trigger) {
             return await this.v3PrivateDeleteAlgoOrdersPending(params);
         }
         if (symbol === undefined) {
@@ -1374,18 +1374,18 @@ export default class woo extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             request['oid'] = id;
             response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, params));
         }
@@ -1445,7 +1445,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1461,7 +1461,7 @@ export default class woo extends Exchange {
         }
         const request = {};
         let market = undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'trailing', 'trigger']);
         if (symbol !== undefined) {
@@ -1469,7 +1469,7 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (stop || trailing) {
+            if (trigger || trailing) {
                 request['createdTimeStart'] = since;
             }
             else {
@@ -1482,14 +1482,14 @@ export default class woo extends Exchange {
         else {
             request['size'] = 500;
         }
-        if (stop) {
+        if (trigger) {
             request['algoType'] = 'stop';
         }
         else if (trailing) {
             request['algoType'] = 'TRAILING_STOP';
         }
         let response = undefined;
-        if (stop || trailing) {
+        if (trigger || trailing) {
             response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
@@ -1540,7 +1540,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1562,7 +1562,7 @@ export default class woo extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -2150,7 +2150,7 @@ export default class woo extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
@@ -2584,8 +2584,8 @@ export default class woo extends Exchange {
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
-                    const isStop = path.indexOf('algo') > -1;
-                    if (isStop) {
+                    const isTrigger = path.indexOf('algo') > -1;
+                    if (isTrigger) {
                         params['brokerId'] = brokerId;
                     }
                     else {

@@ -2054,7 +2054,7 @@ export default class vertex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2065,14 +2065,14 @@ export default class vertex extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         const request = {};
         let market: Market = undefined;
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = this.parseToNumeric (market['id']);
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             const contracts = await this.queryContracts ();
             const chainId = this.safeString (contracts, 'chain_id');
             const verifyingContractAddress = this.safeString (contracts, 'endpoint_addr');
@@ -2171,15 +2171,15 @@ export default class vertex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!stop) {
+        if (!trigger) {
             throw new NotSupported (this.id + ' fetchOrders only support trigger orders');
         }
         let userAddress = undefined;
@@ -2258,7 +2258,7 @@ export default class vertex extends Exchange {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -2291,10 +2291,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelAllOrdersSig (cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute (this.extend (request, params));
             //
             // {
@@ -2393,10 +2393,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelOrdersSig (cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute (this.extend (request, params));
             //
             // {

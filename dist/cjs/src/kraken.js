@@ -1134,7 +1134,7 @@ class kraken extends kraken$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1652,6 +1652,37 @@ class kraken extends kraken$1 {
         //      }
         //  }
         //
+        // fetchOpenOrders
+        //
+        //      {
+        //         "refid": null,
+        //         "userref": null,
+        //         "cl_ord_id": "1234",
+        //         "status": "open",
+        //         "opentm": 1733815269.370054,
+        //         "starttm": 0,
+        //         "expiretm": 0,
+        //         "descr": {
+        //             "pair": "XBTUSD",
+        //             "type": "buy",
+        //             "ordertype": "limit",
+        //             "price": "70000.0",
+        //             "price2": "0",
+        //             "leverage": "none",
+        //             "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //             "close": ""
+        //         },
+        //         "vol": "0.00010000",
+        //         "vol_exec": "0.00000000",
+        //         "cost": "0.00000",
+        //         "fee": "0.00000",
+        //         "price": "0.00000",
+        //         "stopprice": "0.00000",
+        //         "limitprice": "0.00000",
+        //         "misc": "",
+        //         "oflags": "fciq"
+        //     }
+        //
         const description = this.safeDict(order, 'descr', {});
         const orderDescriptionObj = this.safeDict(order, 'descr'); // can be null
         let orderDescription = undefined;
@@ -1742,7 +1773,8 @@ class kraken extends kraken$1 {
             const txid = this.safeList(order, 'txid');
             id = this.safeString(txid, 0);
         }
-        const clientOrderId = this.safeString(order, 'userref');
+        const userref = this.safeString(order, 'userref');
+        const clientOrderId = this.safeString(order, 'cl_ord_id', userref);
         const rawTrades = this.safeValue(order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -1977,10 +2009,10 @@ class kraken extends kraken$1 {
         let request = {
             'txid': id,
         };
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'cl_ord_id');
         if (clientOrderId !== undefined) {
             request['cl_ord_id'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            params = this.omit(params, ['clientOrderId', 'cl_ord_id']);
             request = this.omit(request, 'txid');
         }
         const isMarket = (type === 'market');
@@ -2271,20 +2303,28 @@ class kraken extends kraken$1 {
      * @method
      * @name kraken#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         let response = undefined;
-        const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId', id);
-        const request = {
-            'txid': clientOrderId, // order id or userref
+        const requestId = this.safeValue(params, 'userref', id); // string or integer
+        params = this.omit(params, 'userref');
+        let request = {
+            'txid': requestId, // order id or userref
         };
-        params = this.omit(params, ['userref', 'clientOrderId']);
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'cl_ord_id');
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit(params, ['clientOrderId', 'cl_ord_id']);
+            request = this.omit(request, 'txid');
+        }
         try {
             response = await this.privatePostCancelOrder(this.extend(request, params));
             //
@@ -2396,11 +2436,13 @@ class kraken extends kraken$1 {
      * @method
      * @name kraken#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
-     * @param {string} symbol unified market symbol
+     * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2409,31 +2451,81 @@ class kraken extends kraken$1 {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        let query = params;
-        const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
-            query = this.omit(params, ['userref', 'clientOrderId']);
+        const userref = this.safeInteger(params, 'userref');
+        if (userref !== undefined) {
+            request['userref'] = userref;
+            params = this.omit(params, 'userref');
         }
-        const response = await this.privatePostOpenOrders(this.extend(request, query));
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
+        }
+        const response = await this.privatePostOpenOrders(this.extend(request, params));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "open": {
+        //                 "O45M52-BFD5S-YXKQOU": {
+        //                     "refid": null,
+        //                     "userref": null,
+        //                     "cl_ord_id": "1234",
+        //                     "status": "open",
+        //                     "opentm": 1733815269.370054,
+        //                     "starttm": 0,
+        //                     "expiretm": 0,
+        //                     "descr": {
+        //                         "pair": "XBTUSD",
+        //                         "type": "buy",
+        //                         "ordertype": "limit",
+        //                         "price": "70000.0",
+        //                         "price2": "0",
+        //                         "leverage": "none",
+        //                         "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //                         "close": ""
+        //                     },
+        //                     "vol": "0.00010000",
+        //                     "vol_exec": "0.00000000",
+        //                     "cost": "0.00000",
+        //                     "fee": "0.00000",
+        //                     "price": "0.00000",
+        //                     "stopprice": "0.00000",
+        //                     "limitprice": "0.00000",
+        //                     "misc": "",
+        //                     "oflags": "fciq"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const result = this.safeDict(response, 'result', {});
-        const orders = this.safeDict(result, 'open', {});
+        const open = this.safeDict(result, 'open', {});
+        const orders = [];
+        const orderIds = Object.keys(open);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = open[id];
+            orders.push(this.extend({ 'id': id }, item));
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     /**
      * @method
      * @name kraken#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2442,14 +2534,18 @@ class kraken extends kraken$1 {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        let query = params;
-        const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId');
+        const userref = this.safeInteger(params, 'userref');
+        if (userref !== undefined) {
+            request['userref'] = userref;
+            params = this.omit(params, 'userref');
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
-            query = this.omit(params, ['userref', 'clientOrderId']);
+            request['cl_ord_id'] = clientOrderId;
+            params = this.omit(params, 'clientOrderId');
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        const response = await this.privatePostClosedOrders(this.extend(request, query));
+        const response = await this.privatePostClosedOrders(this.extend(request, params));
         //
         //     {
         //         "error":[],
@@ -2494,7 +2590,14 @@ class kraken extends kraken$1 {
             market = this.market(symbol);
         }
         const result = this.safeDict(response, 'result', {});
-        const orders = this.safeDict(result, 'closed', {});
+        const closed = this.safeDict(result, 'closed', {});
+        const orders = [];
+        const orderIds = Object.keys(closed);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i];
+            const item = closed[id];
+            orders.push(this.extend({ 'id': id }, item));
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     parseTransactionStatus(status) {

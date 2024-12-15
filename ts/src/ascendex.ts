@@ -1408,7 +1408,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -1432,8 +1432,8 @@ export default class ascendex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1511,7 +1511,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -1543,7 +1543,7 @@ export default class ascendex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
@@ -1556,8 +1556,8 @@ export default class ascendex extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        if (stopPrice !== undefined) {
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
                 request['orderType'] = 'stop_limit';
             } else if (isMarketOrder) {
@@ -1598,7 +1598,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
@@ -1694,7 +1694,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {

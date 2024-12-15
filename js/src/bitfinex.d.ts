@@ -148,7 +148,7 @@ export default class bitfinex extends Exchange {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] price of the order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
@@ -369,7 +369,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     /**
@@ -493,7 +493,7 @@ export default class bitfinex extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
      * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)

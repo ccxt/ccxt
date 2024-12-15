@@ -1386,7 +1386,7 @@ class blofin extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->stop] True if fetching trigger or conditional orders
+         * @param {bool} [$params->trigger] True if fetching trigger or conditional orders
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1406,12 +1406,12 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         $response = null;
-        if ($isStop || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if ($isTrigger || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending ($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrdersPending ($this->extend($request, $query));
@@ -1547,7 +1547,7 @@ class blofin extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -1746,8 +1746,8 @@ class blofin extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
         $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
-        $stop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
-        if ($stop) {
+        $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
+        if ($trigger) {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
@@ -1761,7 +1761,7 @@ class blofin extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($stop) {
+                if ($trigger) {
                     $request[] = array(
                         'tpslId' => $ids[$i],
                         'instId' => $market['id'],
@@ -2183,7 +2183,7 @@ class blofin extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->stop] True if fetching trigger or conditional orders
+         * @param {bool} [$params->trigger] True if fetching trigger or conditional orders
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2206,12 +2206,12 @@ class blofin extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $isStop = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
+        $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
         $response = null;
-        if (($isStop) || ($method === 'privateGetTradeOrdersTpslHistory')) {
+        if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory ($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrdersHistory ($this->extend($request, $query));

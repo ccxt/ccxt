@@ -2190,7 +2190,7 @@ public partial class vertex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2205,7 +2205,7 @@ public partial class vertex : Exchange
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2213,7 +2213,7 @@ public partial class vertex : Exchange
             ((IDictionary<string,object>)request)["product_id"] = this.parseToNumeric(getValue(market, "id"));
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             object contracts = await this.queryContracts();
             object chainId = this.safeString(contracts, "chain_id");
@@ -2261,7 +2261,7 @@ public partial class vertex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2269,9 +2269,9 @@ public partial class vertex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             throw new NotSupported ((string)add(this.id, " fetchOrders only support trigger orders")) ;
         }
@@ -2356,7 +2356,7 @@ public partial class vertex : Exchange
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -2390,10 +2390,10 @@ public partial class vertex : Exchange
                 { "signature", this.buildCancelAllOrdersSig(cancels, chainId, verifyingContractAddress) },
             } },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.v1TriggerPostExecute(this.extend(request, parameters));
         } else
@@ -2469,10 +2469,10 @@ public partial class vertex : Exchange
                 { "signature", this.buildCancelOrdersSig(cancels, chainId, verifyingContractAddress) },
             } },
         };
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.v1TriggerPostExecute(this.extend(request, parameters));
         } else

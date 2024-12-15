@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.38'
+__version__ = '4.4.40'
 
 # -----------------------------------------------------------------------------
 
@@ -2351,26 +2351,23 @@ class Exchange(object):
         wssProxy = None
         wsSocksProxy = None
         # ws proxy
-        if self.value_is_defined(self.wsProxy):
+        isWsProxyDefined = self.value_is_defined(self.wsProxy)
+        is_ws_proxy_defined = self.value_is_defined(self.ws_proxy)
+        if isWsProxyDefined or is_ws_proxy_defined:
             usedProxies.append('wsProxy')
-            wsProxy = self.wsProxy
-        if self.value_is_defined(self.ws_proxy):
-            usedProxies.append('ws_proxy')
-            wsProxy = self.ws_proxy
+            wsProxy = self.wsProxy if (isWsProxyDefined) else self.ws_proxy
         # wss proxy
-        if self.value_is_defined(self.wssProxy):
+        isWssProxyDefined = self.value_is_defined(self.wssProxy)
+        is_wss_proxy_defined = self.value_is_defined(self.wss_proxy)
+        if isWssProxyDefined or is_wss_proxy_defined:
             usedProxies.append('wssProxy')
-            wssProxy = self.wssProxy
-        if self.value_is_defined(self.wss_proxy):
-            usedProxies.append('wss_proxy')
-            wssProxy = self.wss_proxy
+            wssProxy = self.wssProxy if (isWssProxyDefined) else self.wss_proxy
         # ws socks proxy
-        if self.value_is_defined(self.wsSocksProxy):
+        isWsSocksProxyDefined = self.value_is_defined(self.wsSocksProxy)
+        is_ws_socks_proxy_defined = self.value_is_defined(self.ws_socks_proxy)
+        if isWsSocksProxyDefined or is_ws_socks_proxy_defined:
             usedProxies.append('wsSocksProxy')
-            wsSocksProxy = self.wsSocksProxy
-        if self.value_is_defined(self.ws_socks_proxy):
-            usedProxies.append('ws_socks_proxy')
-            wsSocksProxy = self.ws_socks_proxy
+            wsSocksProxy = self.wsSocksProxy if (isWsSocksProxyDefined) else self.ws_socks_proxy
         # check
         length = len(usedProxies)
         if length > 1:

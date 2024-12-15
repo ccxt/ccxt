@@ -2307,7 +2307,7 @@ class hashkey extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {int} [$params->flowType] trade, fee, transfer, deposit, withdrawal
              * @param {int} [$params->accountType] spot, swap, custody
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $methodName = 'fetchLedger';
             if ($since === null) {
@@ -3562,10 +3562,8 @@ class hashkey extends Exchange {
     }
 
     public function handle_trigger_option_and_params(array $params, string $methodName, $defaultValue = null) {
-        $isStop = $defaultValue;
-        list($isStop, $params) = $this->handle_option_and_params($params, $methodName, 'stop', $isStop);
-        $isTrigger = $isStop;
-        list($isTrigger, $params) = $this->handle_option_and_params($params, $methodName, 'trigger', $isTrigger);
+        $isTrigger = $defaultValue;
+        list($isTrigger, $params) = $this->handle_option_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
         return array( $isTrigger, $params );
     }
 

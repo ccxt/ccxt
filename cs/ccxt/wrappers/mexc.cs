@@ -312,6 +312,138 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : only 'isolated' is supported for spot-margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : if true, the order will only be posted if it will be a maker order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : *contract only* indicates if this order is to reduce the size of a position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// int : *contract only* leverage is necessary on isolated margin
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionId</term>
+    /// <description>
+    /// long : *contract only* it is recommended to fill in this parameter when closing a position
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.externalOid</term>
+    /// <description>
+    /// string : *contract only* external order ID
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionMode</term>
+    /// <description>
+    /// int : *contract only*  1:hedge, 2:one-way, default: the user's current config
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// boolean : *spot only* whether to use the test endpoint or not, default is false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public Dictionary<string, object> CreateSpotOrderRequest(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// create a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>marginMode</term>
+    /// <description>
+    /// string : only 'isolated' is supported for spot-margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : if true, the order will only be posted if it will be a maker order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSpotOrder(market, type, side, amount, price, marginMode, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// create a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>marginMode</term>
     /// <description>
     /// string : only 'isolated' is supported for spot-margin trading
@@ -374,61 +506,6 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
-    }
-    public Dictionary<string, object> CreateSpotOrderRequest(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
-    {
-        var res = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// create a trade order
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>price</term>
-    /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>marginMode</term>
-    /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.triggerPrice</term>
-    /// <description>
-    /// float : The price at which a trigger order is triggered at
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.postOnly</term>
-    /// <description>
-    /// bool : if true, the order will only be posted if it will be a maker order
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createSpotOrder(market, type, side, amount, price, marginMode, parameters);
-        return new Order(res);
-    }
     public async Task<Order> CreateSwapOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSwapOrder(market, type, side, amount, price, marginMode, parameters);

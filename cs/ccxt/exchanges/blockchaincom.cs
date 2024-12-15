@@ -556,16 +556,16 @@ public partial class blockchaincom : Exchange
             { "orderQty", this.amountToPrecision(symbol, amount) },
             { "clOrdId", clientOrderId },
         };
-        object stopPrice = this.safeValue2(parameters, "stopPx", "stopPrice");
+        object triggerPrice = this.safeValue2(parameters, "stopPx", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice"});
         if (isTrue(isTrue(isEqual(uppercaseOrderType, "STOP")) || isTrue(isEqual(uppercaseOrderType, "STOPLIMIT"))))
         {
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPx or stopPrice param for a "), uppercaseOrderType), " order")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
             }
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(uppercaseOrderType, "MARKET")))
             {
@@ -591,7 +591,7 @@ public partial class blockchaincom : Exchange
         }
         if (isTrue(stopPriceRequired))
         {
-            ((IDictionary<string,object>)request)["stopPx"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPx"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object response = await this.privatePostOrders(this.extend(request, parameters));
         return this.parseOrder(response, market);

@@ -916,7 +916,7 @@ export default class woo extends wooRest {
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,

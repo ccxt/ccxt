@@ -1264,15 +1264,15 @@ class woofipro(Exchange, ImplicitAPI):
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
-        isStop = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        orderQtyKey = 'quantity' if isStop else 'order_quantity'
-        priceKey = 'price' if isStop else 'order_price'
-        typeKey = 'type' if isStop else 'order_type'
+        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
+        priceKey = 'price' if isConditional else 'order_price'
+        typeKey = 'type' if isConditional else 'order_type'
         request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if not isStop:
+        if not isConditional:
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -1283,7 +1283,7 @@ class woofipro(Exchange, ImplicitAPI):
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
-        if isMarket and not isStop:
+        if isMarket and not isConditional:
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         elif algoType != 'POSITIONAL_TP_SL':
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
@@ -1355,9 +1355,9 @@ class woofipro(Exchange, ImplicitAPI):
         stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isStop = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         response = None
-        if isStop:
+        if isConditional:
             response = await self.v1PrivatePostAlgoOrder(request)
             #
             # {
@@ -1417,8 +1417,8 @@ class woofipro(Exchange, ImplicitAPI):
             stopPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_value(orderParams, 'stopLoss')
             takeProfit = self.safe_value(orderParams, 'takeProfit')
-            isStop = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
-            if isStop:
+            isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
+            if isConditional:
                 raise NotSupported(self.id + 'createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -1474,16 +1474,16 @@ class woofipro(Exchange, ImplicitAPI):
         stopPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        orderQtyKey = 'quantity' if isStop else 'order_quantity'
-        priceKey = 'price' if isStop else 'order_price'
+        isConditional = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
+        priceKey = 'price' if isConditional else 'order_price'
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
         if amount is not None:
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
         response = None
-        if isStop:
+        if isConditional:
             response = await self.v1PrivatePutAlgoOrder(self.extend(request, params))
         else:
             request['symbol'] = market['id']
@@ -1536,9 +1536,9 @@ class woofipro(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not stop and (symbol is None):
+        if not trigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market: Market = None
@@ -1551,7 +1551,7 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if stop:
+        if trigger:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -1587,7 +1587,7 @@ class woofipro(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if stop:
+        if trigger:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
@@ -1642,18 +1642,18 @@ class woofipro(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if stop:
+        if trigger:
             response = await self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
-        # stop
+        # trigger
         # {
         #     "success": True,
         #     "timestamp": 1702989203989,
@@ -1692,12 +1692,12 @@ class woofipro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
-        stop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         request: dict = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if stop:
+        if trigger:
             if clientOrderId:
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
@@ -2107,7 +2107,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)

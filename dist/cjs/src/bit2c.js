@@ -637,7 +637,6 @@ class bit2c extends bit2c$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'filled': undefined,

@@ -1058,7 +1058,6 @@ public partial class btcmarkets : Exchange
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
-        object stopPrice = this.safeNumber(order, "triggerPrice");
         object postOnly = this.safeBool(order, "postOnly");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1073,8 +1072,7 @@ public partial class btcmarkets : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "cost", null },
             { "amount", amount },
             { "filled", null },

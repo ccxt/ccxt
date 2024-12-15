@@ -933,7 +933,7 @@ class woo extends \ccxt\async\woo {
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
-            'average' => null,
+            'average' => $avgPrice,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,

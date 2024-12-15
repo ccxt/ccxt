@@ -2199,7 +2199,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :param int [params.flowType]: trade, fee, transfer, deposit, withdrawal
         :param int [params.accountType]: spot, swap, custody
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         methodName = 'fetchLedger'
         if since is None:
@@ -3337,10 +3337,8 @@ class hashkey(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue=None):
-        isStop = defaultValue
-        isStop, params = self.handle_option_and_params(params, methodName, 'stop', isStop)
-        isTrigger = isStop
-        isTrigger, params = self.handle_option_and_params(params, methodName, 'trigger', isTrigger)
+        isTrigger = defaultValue
+        isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
