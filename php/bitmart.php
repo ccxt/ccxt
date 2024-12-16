@@ -151,6 +151,7 @@ class bitmart extends Exchange {
                         'contract/public/depth' => 5,
                         'contract/public/open-interest' => 30,
                         'contract/public/funding-rate' => 30,
+                        'contract/public/funding-rate-history' => 30,
                         'contract/public/kline' => 6, // should be 5 but errors
                         'account/v1/currencies' => 30,
                     ),
@@ -201,6 +202,7 @@ class bitmart extends Exchange {
                         'contract/private/position-risk' => 10,
                         'contract/private/affilate/rebate-list' => 10,
                         'contract/private/affilate/trade-list' => 10,
+                        'contract/private/transaction-history' => 10,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -4581,6 +4583,66 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_funding_rate($data, $market);
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of funding rate structures to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetContractPublicFundingRateHistory ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "BTCUSDT",
+        //                     "funding_rate" => "0.000091412174",
+        //                     "funding_time" => "1734336000000"
+        //                 ),
+        //             )
+        //         ),
+        //         "trace" => "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $result = $this->safe_list($data, 'list', array());
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbolInner = $this->safe_symbol($marketId, $market, '-', 'swap');
+            $timestamp = $this->safe_integer($entry, 'funding_time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbolInner,
+                'fundingRate' => $this->safe_number($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

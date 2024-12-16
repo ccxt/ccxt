@@ -24,6 +24,9 @@ public partial class exmo : Exchange
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "createDepositAddress", false },
+                { "createMarketBuyOrder", true },
+                { "createMarketBuyOrderWithCost", true },
+                { "createMarketOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -1422,6 +1425,67 @@ public partial class exmo : Exchange
 
     /**
      * @method
+     * @name exmo#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name exmo#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name exmo#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+    }
+
+    /**
+     * @method
      * @name exmo#createOrder
      * @description create a trade order
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -1436,6 +1500,7 @@ public partial class exmo : Exchange
      * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
      * @param {boolean} [params.postOnly] *spot only* true for post only orders
+     * @param {float} [params.cost] *spot only* *market orders only* the cost of the order in the quote currency for market orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1453,11 +1518,18 @@ public partial class exmo : Exchange
             throw new BadRequest ((string)add(this.id, " only supports isolated margin")) ;
         }
         object isSpot = (!isEqual(marginMode, "isolated"));
-        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object cost = this.safeString(parameters, "cost");
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
-            { "quantity", this.amountToPrecision(getValue(market, "symbol"), amount) },
         };
+        if (isTrue(isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+        } else
+        {
+            ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(getValue(market, "symbol"), cost);
+        }
         object clientOrderId = this.safeValue2(parameters, "client_id", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1475,7 +1547,7 @@ public partial class exmo : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder requires an extra param params[\"leverage\"] for margin orders")) ;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice", "timeInForce", "client_id", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice", "timeInForce", "client_id", "clientOrderId", "cost"});
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
@@ -1508,7 +1580,8 @@ public partial class exmo : Exchange
                     ((IDictionary<string,object>)request)["type"] = side;
                 } else if (isTrue(isEqual(type, "market")))
                 {
-                    ((IDictionary<string,object>)request)["type"] = add("market_", side);
+                    object marketSuffix = ((bool) isTrue((!isEqual(cost, null)))) ? "_total" : "";
+                    ((IDictionary<string,object>)request)["type"] = add(add("market_", side), marketSuffix);
                 }
                 if (isTrue(isPostOnly))
                 {

@@ -173,6 +173,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
+                        'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6,  # should be 5 but errors
                         'account/v1/currencies': 30,
                     },
@@ -223,6 +224,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/position-risk': 10,
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
+                        'contract/private/transaction-history': 10,
                     },
                     'post': {
                         # sub-account endpoints
@@ -4374,6 +4376,62 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
+
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding rate prices
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of funding rate structures to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetContractPublicFundingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "funding_rate": "0.000091412174",
+        #                     "funding_time": "1734336000000"
+        #                 },
+        #             ]
+        #         },
+        #         "trace": "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        result = self.safe_list(data, 'list', [])
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
+            timestamp = self.safe_integer(entry, 'funding_time')
+            rates.append({
+                'info': entry,
+                'symbol': symbolInner,
+                'fundingRate': self.safe_number(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

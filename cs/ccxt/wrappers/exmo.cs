@@ -328,6 +328,66 @@ public partial class exmo
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// create a market order by providing the symbol, side and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketOrderWithCost(string symbol, string side, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketOrderWithCost(symbol, side, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// create a market buy order by providing the symbol and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// create a market sell order by providing the symbol and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketSellOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -363,6 +423,12 @@ public partial class exmo
     /// <term>params.postOnly</term>
     /// <description>
     /// boolean : *spot only* true for post only orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : *spot only* *market orders only* the cost of the order in the quote currency for market orders
     /// </description>
     /// </item>
     /// </list>

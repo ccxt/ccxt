@@ -1205,6 +1205,7 @@ public partial class bitget : Exchange
                     { "41103", typeof(InvalidOrder) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
+                    { "43001", typeof(OrderNotFound) },
                     { "43012", typeof(InsufficientFunds) },
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },

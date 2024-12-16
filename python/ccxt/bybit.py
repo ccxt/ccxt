@@ -3530,29 +3530,29 @@ class bybit(Exchange, ImplicitAPI):
         avgPrice = self.omit_zero(self.safe_string(order, 'avgPrice'))
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
-        stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
         reduceOnly = self.safe_bool(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         triggerDirection = self.safe_string(order, 'triggerDirection')
         isAscending = (triggerDirection == '1')
-        isStopOrderType2 = (stopPrice is not None) and reduceOnly
+        isStopOrderType2 = (triggerPrice is not None) and reduceOnly
         if (stopLossPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - stopLossPrice
             if isAscending and (side == 'buy'):
                 # stopLoss order against short position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
             if not isAscending and (side == 'sell'):
                 # stopLoss order against a long position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
         if (takeProfitPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - takeProfitPrice
             if isAscending and (side == 'sell'):
                 # takeprofit order against a long position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
             if not isAscending and (side == 'buy'):
                 # takeprofit order against a short position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3568,7 +3568,7 @@ class bybit(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'amount': amount,

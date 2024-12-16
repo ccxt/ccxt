@@ -3657,33 +3657,33 @@ class bybit extends Exchange {
         $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
         $reduceOnly = $this->safe_bool($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         $triggerDirection = $this->safe_string($order, 'triggerDirection');
         $isAscending = ($triggerDirection === '1');
-        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        $isStopOrderType2 = ($triggerPrice !== null) && $reduceOnly;
         if (($stopLossPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $stopLossPrice
             if ($isAscending && ($side === 'buy')) {
                 // stopLoss $order against short position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'sell')) {
                 // stopLoss $order against a long position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
         }
         if (($takeProfitPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $takeProfitPrice
             if ($isAscending && ($side === 'sell')) {
                 // takeprofit $order against a long position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'buy')) {
                 // takeprofit $order against a short position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
         }
         return $this->safe_order(array(
@@ -3701,7 +3701,7 @@ class bybit extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,

@@ -4380,7 +4380,10 @@ class xt extends xt$1 {
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_', 'swap');
         const timestamp = this.safeInteger(contract, 'nextCollectionTime');
-        const interval = this.safeString(contract, 'collectionInternal');
+        let interval = this.safeString(contract, 'collectionInternal');
+        if (interval !== undefined) {
+            interval = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -4399,7 +4402,7 @@ class xt extends xt$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': interval + 'h',
+            'interval': interval,
         };
     }
     /**

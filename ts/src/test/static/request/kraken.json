@@ -292,6 +292,20 @@
                     "LTC/USDT"
                 ],
                 "output": "nonce=1699458294470"
+            },
+            {
+                "description": "fetch spot open orders by client order id",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kraken.com/0/private/OpenOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  null,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733815452225&cl_ord_id=1234"
             }
         ],
         "fetchClosedOrders": [
@@ -303,6 +317,20 @@
                     "LTC/USDT"
                 ],
                 "output": "nonce=1699458294863"
+            },
+            {
+                "description": "fetch spot closed orders with a limit argument and client order id param",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kraken.com/0/private/ClosedOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  1,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733816591092&cl_ord_id=1234"
             }
         ],
         "cancelAllOrders": [
@@ -354,6 +382,19 @@
                     "OF7S76-H2IMS-N2ML4U"
                 ],
                 "output": "nonce=1706895560930&txid=OF7S76-H2IMS-N2ML4U"
+            },
+            {
+                "description": "spot cancel order by client order id",
+                "method": "cancelOrder",
+                "url": "https://api.kraken.com/0/private/CancelOrder",
+                "input": [
+                  "O45M52-BFD55-YXKQOU",
+                  "BTC/USD",
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733816320725&cl_ord_id=1234"
             }
         ],
         "fetchBalance": [
