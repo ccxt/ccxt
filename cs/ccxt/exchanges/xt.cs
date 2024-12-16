@@ -4667,6 +4667,10 @@ public partial class xt : Exchange
         object symbol = this.safeSymbol(marketId, market, "_", "swap");
         object timestamp = this.safeInteger(contract, "nextCollectionTime");
         object interval = this.safeString(contract, "collectionInternal");
+        if (isTrue(!isEqual(interval, null)))
+        {
+            interval = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -4685,7 +4689,7 @@ public partial class xt : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", add(interval, "h") },
+            { "interval", interval },
         };
     }
 
