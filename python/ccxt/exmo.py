@@ -43,6 +43,9 @@ class exmo(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
+                'createMarketBuyOrder': True,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketOrderWithCost': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -1352,6 +1355,52 @@ class exmo(Exchange, ImplicitAPI):
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return self.create_order(symbol, 'market', side, cost, None, params)
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        params = self.extend(params, {'cost': cost})
+        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -1369,6 +1418,7 @@ class exmo(Exchange, ImplicitAPI):
         :param float [params.stopPrice]: the price at which a trigger order is triggered at
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
         :param boolean [params.postOnly]: *spot only* True for post only orders
+        :param float [params.cost]: *spot only* *market orders only* the cost of the order in the quote currency for market orders
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -1379,11 +1429,12 @@ class exmo(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             raise BadRequest(self.id + ' only supports isolated margin')
         isSpot = (marginMode != 'isolated')
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        cost = self.safe_string(params, 'cost')
         request: dict = {
             'pair': market['id'],
             # 'leverage': 2,
-            'quantity': self.amount_to_precision(market['symbol'], amount),
+            # 'quantity': self.amount_to_precision(market['symbol'], amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
@@ -1392,6 +1443,10 @@ class exmo(Exchange, ImplicitAPI):
             # 'client_id': 123,  # optional, must be a positive integer
             # 'comment': '',  # up to 50 latin symbols, whitespaces, underscores
         }
+        if cost is None:
+            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+        else:
+            request['quantity'] = self.cost_to_precision(market['symbol'], cost)
         clientOrderId = self.safe_value_2(params, 'client_id', 'clientOrderId')
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
@@ -1402,7 +1457,7 @@ class exmo(Exchange, ImplicitAPI):
         leverage = self.safe_number(params, 'leverage')
         if not isSpot and (leverage is None):
             raise ArgumentsRequired(self.id + ' createOrder requires an extra param params["leverage"] for margin orders')
-        params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId', 'cost'])
         if price is not None:
             request['price'] = self.price_to_precision(market['symbol'], price)
         response = None
@@ -1423,7 +1478,8 @@ class exmo(Exchange, ImplicitAPI):
                 if type == 'limit':
                     request['type'] = side
                 elif type == 'market':
-                    request['type'] = 'market_' + side
+                    marketSuffix = '_total' if (cost is not None) else ''
+                    request['type'] = 'market_' + side + marketSuffix
                 if isPostOnly:
                     request['exec_type'] = 'post_only'
                 elif timeInForce is not None:
