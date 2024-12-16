@@ -750,6 +750,18 @@
                   "BTC/USDT"
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history with a symbol and limit argument",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/funding-rate-history?symbol=BTCUSDT&limit=2",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  2
+                ]
+            }
         ]
     }
 }
