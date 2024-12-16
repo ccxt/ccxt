@@ -154,6 +154,7 @@ class bitmart extends bitmart$1 {
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
+                        'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6,
                         'account/v1/currencies': 30,
                     },
@@ -204,6 +205,7 @@ class bitmart extends bitmart$1 {
                         'contract/private/position-risk': 10,
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
+                        'contract/private/transaction-history': 10,
                     },
                     'post': {
                         // sub-account endpoints
@@ -4614,6 +4616,65 @@ class bitmart extends bitmart$1 {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseFundingRate(data, market);
+    }
+    /**
+     * @method
+     * @name bitmart#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetContractPublicFundingRateHistory(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "funding_rate": "0.000091412174",
+        //                     "funding_time": "1734336000000"
+        //                 },
+        //             ]
+        //         },
+        //         "trace": "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const result = this.safeList(data, 'list', []);
+        const rates = [];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const marketId = this.safeString(entry, 'symbol');
+            const symbolInner = this.safeSymbol(marketId, market, '-', 'swap');
+            const timestamp = this.safeInteger(entry, 'funding_time');
+            rates.push({
+                'info': entry,
+                'symbol': symbolInner,
+                'fundingRate': this.safeNumber(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+            });
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     parseFundingRate(contract, market = undefined) {
         //

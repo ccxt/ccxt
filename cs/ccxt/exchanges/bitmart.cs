@@ -143,6 +143,7 @@ public partial class bitmart : Exchange
                         { "contract/public/depth", 5 },
                         { "contract/public/open-interest", 30 },
                         { "contract/public/funding-rate", 30 },
+                        { "contract/public/funding-rate-history", 30 },
                         { "contract/public/kline", 6 },
                         { "account/v1/currencies", 30 },
                     } },
@@ -186,6 +187,7 @@ public partial class bitmart : Exchange
                         { "contract/private/position-risk", 10 },
                         { "contract/private/affilate/rebate-list", 10 },
                         { "contract/private/affilate/trade-list", 10 },
+                        { "contract/private/transaction-history", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -4772,6 +4774,71 @@ public partial class bitmart : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseFundingRate(data, market);
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetContractPublicFundingRateHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "funding_rate": "0.000091412174",
+        //                     "funding_time": "1734336000000"
+        //                 },
+        //             ]
+        //         },
+        //         "trace": "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeList(data, "list", new List<object>() {});
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        {
+            object entry = getValue(result, i);
+            object marketId = this.safeString(entry, "symbol");
+            object symbolInner = this.safeSymbol(marketId, market, "-", "swap");
+            object timestamp = this.safeInteger(entry, "funding_time");
+            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                { "info", entry },
+                { "symbol", symbolInner },
+                { "fundingRate", this.safeNumber(entry, "funding_rate") },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+            });
+        }
+        object sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
     }
 
     public override object parseFundingRate(object contract, object market = null)
