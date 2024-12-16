@@ -987,6 +987,44 @@
               }
             ]
           }
+        ],
+        "fetchFundingRateHistory": [
+          {
+            "description": "fetch funding rate history with symbol and limit arguments",
+            "method": "fetchFundingRateHistory",
+            "input": [
+              "BTC/USDT:USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "1000",
+              "message": "Ok",
+              "data": {
+                "list": [
+                  {
+                    "symbol": "BTCUSDT",
+                    "funding_rate": "0.000091412174",
+                    "funding_time": "1734336000000"
+                  }
+                ]
+              },
+              "trace": "392136c66bd4464aaa7c9a95fdb2f7cb.74.17343482807603181"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "symbol": "BTCUSDT",
+                  "funding_rate": "0.000091412174",
+                  "funding_time": "1734336000000"
+                },
+                "symbol": "BTC/USDT:USDT",
+                "fundingRate": 0.000091412174,
+                "timestamp": 1734336000000,
+                "datetime": "2024-12-16T08:00:00.000Z"
+              }
+            ]
+          }
         ]
     }
 }
