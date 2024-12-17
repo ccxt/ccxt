@@ -1008,6 +1008,45 @@ public struct Liquidation
     }
 }
 
+public struct OpenInterests
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OpenInterest> openInterests;
+
+    public OpenInterests(object fr2)
+    {
+        var rates = (Dictionary<string, object>)fr2;
+
+        info = Helper.GetInfo(rates);
+        this.openInterests = new Dictionary<string, OpenInterest>();
+        foreach (var rate in rates)
+        {
+            if (rate.Key != "info")
+                this.openInterests.Add(rate.Key, new OpenInterest(rate.Value));
+        }
+    }
+
+    // Indexer
+    public OpenInterest this[string key]
+    {
+        get
+        {
+            if (openInterests.ContainsKey(key))
+            {
+                return openInterests[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OpenInterests.");
+            }
+        }
+        set
+        {
+            openInterests[key] = value;
+        }
+    }
+}
+
 public struct FundingRate
 {
     public string? symbol;
@@ -1051,23 +1090,23 @@ public struct FundingRate
 public struct FundingRates
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, Ticker> fundingRates;
+    public Dictionary<string, FundingRate> fundingRates;
 
     public FundingRates(object fr2)
     {
         var rates = (Dictionary<string, object>)fr2;
 
         info = Helper.GetInfo(rates);
-        this.fundingRates = new Dictionary<string, Ticker>();
+        this.fundingRates = new Dictionary<string, FundingRate>();
         foreach (var rate in rates)
         {
             if (rate.Key != "info")
-                this.fundingRates.Add(rate.Key, new Ticker(rate.Value));
+                this.fundingRates.Add(rate.Key, new FundingRate(rate.Value));
         }
     }
 
     // Indexer
-    public Ticker this[string key]
+    public FundingRate this[string key]
     {
         get
         {
