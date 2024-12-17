@@ -55,7 +55,7 @@
     "emitAPICs": "tsx build/generateImplicitAPI.ts -- --csharp",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
-    "pre-transpile-js": "npm run export-exchanges && npm run vss && && npm run emitAPITs && npm run tsBuild && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
+    "pre-transpile-js": "npm run export-exchanges && npm run vss && npm run emitAPITs && npm run tsBuild && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
     "pre-transpile-py": "npm run export-exchanges && npm run emitAPIPy",
     "pre-transpile-php": "npm run export-exchanges && npm run emitAPIPhp",
     "pre-transpile-go": "npm run export-exchanges && npm run emitAPIGo",

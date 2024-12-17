@@ -15,6 +15,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+      - name: Install python dependencies
+        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Check tsc version
