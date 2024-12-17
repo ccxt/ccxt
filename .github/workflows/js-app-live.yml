@@ -1,4 +1,4 @@
-name: Js Live Tests
+name: Js Live Tests # ignore this file for now
 on:
   workflow_run:
     workflows: ["Js"]
