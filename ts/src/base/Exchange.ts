@@ -6377,7 +6377,7 @@ export default class Exchange {
         } else if (triggerDirection === 'down' || triggerDirection === 'below') {
             triggerDirection = 'descending';
         }
-        params = this.omit (params, [ 'ascending', 'descending' ]);
+        params = this.omit (params, 'triggerDirection');
         return [ triggerDirection, params ];
     }
 
