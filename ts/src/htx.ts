@@ -8459,7 +8459,7 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const tick = this.safeList (data, 'tick');
-        return this.parseOpenInterests (tick, market, since, limit);
+        return this.parseOpenInterestsHistory (tick, market, since, limit);
     }
 
     /**

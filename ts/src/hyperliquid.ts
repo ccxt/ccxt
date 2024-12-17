@@ -8,7 +8,7 @@ import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -87,8 +87,9 @@ export default class hyperliquid extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -3311,6 +3312,72 @@ export default class hyperliquid extends Exchange {
         const records = this.extractTypeFromDelta (response);
         const withdrawals = this.filterByArray (records, 'type', [ 'withdraw' ], false);
         return this.parseTransactions (withdrawals, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const swapMarkets = await this.fetchSwapMarkets ();
+        const result = this.parseOpenInterests (swapMarkets);
+        return this.filterByArray (result, 'symbol', symbols) as OpenInterests;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        symbol = this.symbol (symbol);
+        await this.loadMarkets ();
+        const ois = await this.fetchOpenInterests ([ symbol ], params);
+        return ois[symbol];
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //  {
+        //      szDecimals: '2',
+        //      name: 'HYPE',
+        //      maxLeverage: '3',
+        //      funding: '0.00014735',
+        //      openInterest: '14677900.74',
+        //      prevDayPx: '26.145',
+        //      dayNtlVlm: '299643445.12560016',
+        //      premium: '0.00081613',
+        //      oraclePx: '27.569',
+        //      markPx: '27.63',
+        //      midPx: '27.599',
+        //      impactPxs: [ '27.5915', '27.6319' ],
+        //      dayBaseVlm: '10790652.83',
+        //      baseId: 159
+        //  }
+        //
+        interest = this.safeDict (interest, 'info', {});
+        const coin = this.safeString (interest, 'name');
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId (coin);
+        }
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId),
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
     }
 
     extractTypeFromDelta (data = []) {
