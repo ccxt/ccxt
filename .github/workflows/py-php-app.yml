@@ -1,0 +1,55 @@
+name: Python/Php
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Check tsc version
+        run: tsc --version
+      - name: Install tsx
+        run: npm install -g tsx
+      - name: export exchanges
+        run: npm run export-exchanges
+      - name: Generate implicit API
+        run: npm run emitAPI -- --python --php
+      - name: Transpile Python/PHP
+        run: npm run force-transpile-fast
+      - name: Post-transpile (syntax check)
+        run: npm run post-transpile
+      - name: Run Base Rest Tests Python
+        run: npm run test-base-rest-py
+      - name: Run Base WS Tests Python
+        run: npm run test-base-ws-py
+      - name: Run Base Rest Tests PHP
+        run: npm run test-base-rest-php
+      - name: Run Base WS Tests Php
+        run: npm run test-base-ws-php
+      - name: Run Id Tests Python
+        run: npm run id-tests-py
+      - name: Run Id Tests Php
+        run: npm run id-tests-php
+      - name: Request tests Python
+        run: npm run request-py
+      - name: Request tests Php
+        run: npm run request-php
+      - name: Response Tests Python
+        run: npm run response-py
+      - name: Response Tests Php
+        run: npm run response-php
+      - name: Live tests
+        run: npm run live-tests -- ---python-async --php-async
+
+

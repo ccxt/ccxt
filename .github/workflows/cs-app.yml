@@ -1,4 +1,4 @@
-name: Js
+name: C#
 on:
   pull_request:
     branches:
@@ -9,27 +9,31 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+          dotnet-quality: 'preview'
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
         run: npm ci --include=dev
-      - name: Check tsc version
-        run: tsc --version
       - name: Install tsx
         run: npm install -g tsx
-      - name: Pre-transpile and transpile TS
-        run: npm run pre-transpile-js
+      - name: Pre-transpile
+        run: npm run pre-transpile-cs
+      - name: Transpile and build C#
+        run: npm run csharp
       - name: Run Base Tests
-        run: npm run test-base-rest-js
+        run: npm run test-base-rest-cs
       - name: Run Base Ws Tests
-        run: npm run test-base-ws-js
+        run: npm run test-base-ws-cs
       - name: Run Id Tests
-        run: npm run id-tests-js
+        run: npm run id-tests-cs
       - name: Request tests
-        run: npm run request-js
+        run: npm run request-cs
       - name: Response Tests
-        run: npm run response-js
+        run: npm run response-cs
       - name: Live tests
-        run: npm run live-tests -- --js
+        run: npm run live-tests -- --cs
 
 
