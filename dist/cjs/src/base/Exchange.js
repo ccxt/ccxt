@@ -6206,7 +6206,7 @@ class Exchange {
         }
         return [maxEntriesPerRequest, params];
     }
-    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
         let maxCalls = undefined;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6214,6 +6214,8 @@ class Exchange {
         let paginationDirection = undefined;
         [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
+        let removeRepeatedOption = removeRepeated;
+        [removeRepeatedOption, params] = this.handleOptionAndParams(params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result = [];
         let errors$1 = 0;
@@ -6284,7 +6286,10 @@ class Exchange {
                 }
             }
         }
-        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        let uniqueResults = result;
+        if (removeRepeatedOption) {
+            uniqueResults = this.removeRepeatedElementsFromArray(result);
+        }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }

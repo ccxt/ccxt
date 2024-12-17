@@ -1162,7 +1162,7 @@ export default class Exchange {
     filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
-    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: any): Promise<any>;
     fetchPaginatedCallCursor(method: string, symbol?: Str, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;

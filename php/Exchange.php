@@ -7403,7 +7403,7 @@ class Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
         $maxCalls = null;
         list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
         $maxRetries = null;
@@ -7411,6 +7411,8 @@ class Exchange {
         $paginationDirection = null;
         list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
+        $removeRepeatedOption = $removeRepeated;
+        list($removeRepeatedOption, $params) = $this->handle_option_and_params($params, $method, 'removeRepeated', $removeRepeated);
         $calls = 0;
         $result = array();
         $errors = 0;
@@ -7479,7 +7481,10 @@ class Exchange {
                 }
             }
         }
-        $uniqueResults = $this->remove_repeated_elements_from_array($result);
+        $uniqueResults = $result;
+        if ($removeRepeatedOption) {
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+        }
         $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
         return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
     }

@@ -10887,7 +10887,7 @@ class binance(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, None, False)
         type = None
         subType = None
         currency = None

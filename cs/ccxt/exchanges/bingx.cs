@@ -1070,7 +1070,7 @@ public partial class bingx : Exchange
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            ((IDictionary<string,object>)request)["startTime"] = mathMax(subtract(since, 1), 0);
         }
         if (isTrue(!isEqual(limit, null)))
         {

@@ -11448,7 +11448,7 @@ class binance extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params);
+            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, null, false);
         }
         $type = null;
         $subType = null;

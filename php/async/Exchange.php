@@ -5657,8 +5657,8 @@ class Exchange extends \ccxt\Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
-        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest, $removeRepeated) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
             $maxRetries = null;
@@ -5666,6 +5666,8 @@ class Exchange extends \ccxt\Exchange {
             $paginationDirection = null;
             list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
             $paginationTimestamp = null;
+            $removeRepeatedOption = $removeRepeated;
+            list($removeRepeatedOption, $params) = $this->handle_option_and_params($params, $method, 'removeRepeated', $removeRepeated);
             $calls = 0;
             $result = array();
             $errors = 0;
@@ -5734,7 +5736,10 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $result;
+            if ($removeRepeatedOption) {
+                $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
             return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();

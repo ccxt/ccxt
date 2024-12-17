@@ -1039,7 +1039,7 @@ class bingx extends bingx$1 {
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.max(since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

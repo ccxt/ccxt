@@ -11637,7 +11637,7 @@ class binance extends binance$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params, undefined, false);
         }
         let type = undefined;
         let subType = undefined;

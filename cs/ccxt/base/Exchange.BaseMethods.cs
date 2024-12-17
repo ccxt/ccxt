@@ -6521,9 +6521,10 @@ public partial class Exchange
         return new List<object>() {maxEntriesPerRequest, parameters};
     }
 
-    public async virtual Task<object> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null)
+    public async virtual Task<object> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, object removeRepeated = null)
     {
         parameters ??= new Dictionary<string, object>();
+        removeRepeated ??= true;
         object maxCalls = null;
         var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", 10);
         maxCalls = ((IList<object>)maxCallsparametersVariable)[0];
@@ -6537,6 +6538,10 @@ public partial class Exchange
         paginationDirection = ((IList<object>)paginationDirectionparametersVariable)[0];
         parameters = ((IList<object>)paginationDirectionparametersVariable)[1];
         object paginationTimestamp = null;
+        object removeRepeatedOption = removeRepeated;
+        var removeRepeatedOptionparametersVariable = this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
+        removeRepeatedOption = ((IList<object>)removeRepeatedOptionparametersVariable)[0];
+        parameters = ((IList<object>)removeRepeatedOptionparametersVariable)[1];
         object calls = 0;
         object result = new List<object>() {};
         object errors = 0;
@@ -6624,7 +6629,11 @@ public partial class Exchange
                 }
             }
         }
-        object uniqueResults = this.removeRepeatedElementsFromArray(result);
+        object uniqueResults = result;
+        if (isTrue(removeRepeatedOption))
+        {
+            uniqueResults = this.removeRepeatedElementsFromArray(result);
+        }
         object key = ((bool) isTrue((isEqual(method, "fetchOHLCV")))) ? 0 : "timestamp";
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }

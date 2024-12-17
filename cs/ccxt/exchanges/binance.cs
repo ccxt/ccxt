@@ -12069,7 +12069,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, null, false);
         }
         object type = null;
         object subType = null;

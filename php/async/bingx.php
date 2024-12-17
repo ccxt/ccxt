@@ -1066,7 +1066,7 @@ class bingx extends Exchange {
             );
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if ($since !== null) {
-                $request['startTime'] = $since;
+                $request['startTime'] = max ($since - 1, 0);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
