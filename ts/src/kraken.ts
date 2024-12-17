@@ -481,6 +481,14 @@ export default class kraken extends Exchange {
                         'limit': 720,
                     },
                 },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
