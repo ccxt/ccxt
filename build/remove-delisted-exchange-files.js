@@ -4,7 +4,8 @@ import { URL } from 'url'
 import path from 'path'
 import { platform } from 'process'
 
-let __dirname = new URL('.', import.meta.url).pathname;
+const urlObj = new URL('.', import.meta.url);
+let __dirname = urlObj.pathname;
 __dirname = (platform === 'win32' && __dirname[0] === '/' ? __dirname = __dirname.substring(1) : __dirname);
 
 const { keys, values, entries, fromEntries } = Object
@@ -70,11 +71,35 @@ function findRemovedExchanges () {
             const allowedFiles = [...ids, ...block2.excluded];
             for (const file of files) {
                 const id = file.split('.')[0];
+                if (!allowedFiles.includes (id)) {
+                    console.log (ext, 'File needs to be removed:', id, '(if you think this is a mistake, add it to the allowedFiles array in ' + __filename + ')');
+                }
             }
         }
     }
-    console.log ('ids', ids);
 }
 
 
-findRemovedExchanges ();
+
+
+function getErrorHierarchy() {
+    const path = rootDir + '/ts/src/base/errorHierarchy.ts';
+    const content = fs.readFileSync (path, 'utf8');
+    let errorObject = content.matchAll (/const\s*[\w\d]+\s*=\s({(.|\n)+});/gm).next().value[1];
+    errorObject = errorObject.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
+    errorObject = errorObject.replace(/'/g, '"');
+    return JSON.parse(errorObject);
+}
+
+function generateErrorClasses (errorObject) {
+    const errorsFlatArray = [];
+    for (const key in errorObject) {
+        const className = key;
+        errorsFlatArray.push(className);
+    }
+    return errorsFlatArray;
+};
+
+console.log (generateErrorClasses(getErrorHierarchy()));
+
+// findRemovedExchanges ();
