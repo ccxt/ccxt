@@ -88,8 +88,8 @@ export default class hyperliquid extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
-                'fetchOpenInterests': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -3325,7 +3325,7 @@ export default class hyperliquid extends Exchange {
     async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const swapMarkets = this.fetchSwapMarkets ();
+        const swapMarkets = await this.fetchSwapMarkets ();
         return this.parseOpenInterests (swapMarkets);
     }
 
