@@ -34,6 +34,6 @@ jobs:
       - name: Response Tests
         run: npm run response-cs
       - name: Live tests
-        run: ./run-tests-simul.sh --cs
+        run: ./run-tests-simul.sh --csharp
 
 
