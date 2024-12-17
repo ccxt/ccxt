@@ -4,6 +4,9 @@ on:
     workflows: ["Js"]
     types:
       - completed
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   build:
     runs-on: ubuntu-20.04
