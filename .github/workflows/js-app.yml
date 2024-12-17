@@ -30,6 +30,7 @@ jobs:
       - name: Response Tests
         run: npm run response-js
       - name: Live tests
-        run: npm run live-tests -- --js
+        run: ./run-tests-simul.sh --js
+
 
 

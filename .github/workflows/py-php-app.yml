@@ -52,6 +52,5 @@ jobs:
       - name: Response Tests Php
         run: npm run response-php
       - name: Live tests
-        run: npm run live-tests -- ---python-async --php-async
-
+        run: ./run-tests-simul.sh ---python-async --php-async
 
