@@ -3340,7 +3340,7 @@ export default class hyperliquid extends Exchange {
     async fetchOpenInterest (symbol: string, params = {}) {
         symbol = this.symbol (symbol);
         await this.loadMarkets ();
-        const ois = this.fetchOpenInterests ([ symbol ], params);
+        const ois = await this.fetchOpenInterests ([ symbol ], params);
         return ois[symbol];
     }
 
