@@ -1,0 +1,21 @@
+name: Js Live Tests
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_run:
+    workflows: ["Js"]
+    types:
+      - completed
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 60
+    steps:
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+      - name: Live tests
+        run: ./run-tests-simul.sh --js

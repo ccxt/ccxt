@@ -29,8 +29,13 @@ jobs:
         run: npm run request-js
       - name: Response Tests
         run: npm run response-js
-      - name: Live tests
-        run: ./run-tests-simul.sh --js
+
+
+      - name: Upload Js Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-files
+          path: js/
 
 
 
