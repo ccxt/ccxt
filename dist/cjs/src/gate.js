@@ -6896,7 +6896,7 @@ class gate extends gate$1 {
         //        ...
         //    ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
         //

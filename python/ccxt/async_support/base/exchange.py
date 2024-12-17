@@ -755,6 +755,9 @@ class Exchange(BaseExchange):
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
+
     async def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 

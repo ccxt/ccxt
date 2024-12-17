@@ -3625,7 +3625,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
 
     public override object parseOpenInterest(object interest, object market = null)

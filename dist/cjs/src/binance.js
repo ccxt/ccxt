@@ -12819,7 +12819,7 @@ class binance extends binance$1 {
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
     /**
      * @method
@@ -12888,7 +12888,7 @@ class binance extends binance$1 {
         //
         if (market['option']) {
             symbol = market['symbol'];
-            const result = this.parseOpenInterests(response, market);
+            const result = this.parseOpenInterestsHistory(response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];
                 if (item['symbol'] === symbol) {

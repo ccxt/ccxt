@@ -7764,7 +7764,7 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOpenInterests(data, null, since, limit);
+        return this.parseOpenInterestsHistory(data, null, since, limit);
     }
 
     public override object parseOpenInterest(object interest, object market = null)

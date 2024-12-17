@@ -683,7 +683,7 @@ class mexc extends Exchange {
                 'broker' => 'CCXT',
             ),
             'features' => array(
-                'def' => array(
+                'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -751,10 +751,10 @@ class mexc extends Exchange {
                     ),
                 ),
                 'spot' => array(
-                    'extends' => 'def',
+                    'extends' => 'default',
                 ),
                 'forDerivs' => array(
-                    'extends' => 'def',
+                    'extends' => 'default',
                     'createOrder' => array(
                         'triggerPrice' => true,
                         'triggerPriceType' => array(

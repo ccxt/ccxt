@@ -11962,7 +11962,7 @@ class binance(Exchange, ImplicitAPI):
         #      ...
         #  ]
         #
-        return self.parse_open_interests(response, market, since, limit)
+        return self.parse_open_interests_history(response, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -12025,7 +12025,7 @@ class binance(Exchange, ImplicitAPI):
         #
         if market['option']:
             symbol = market['symbol']
-            result = self.parse_open_interests(response, market)
+            result = self.parse_open_interests_history(response, market)
             for i in range(0, len(result)):
                 item = result[i]
                 if item['symbol'] == symbol:

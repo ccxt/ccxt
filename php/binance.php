@@ -12626,7 +12626,7 @@ class binance extends Exchange {
         //      ...
         //  )
         //
-        return $this->parse_open_interests($response, $market, $since, $limit);
+        return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -12693,7 +12693,7 @@ class binance extends Exchange {
         //
         if ($market['option']) {
             $symbol = $market['symbol'];
-            $result = $this->parse_open_interests($response, $market);
+            $result = $this->parse_open_interests_history($response, $market);
             for ($i = 0; $i < count($result); $i++) {
                 $item = $result[$i];
                 if ($item['symbol'] === $symbol) {

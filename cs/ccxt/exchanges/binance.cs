@@ -13401,7 +13401,7 @@ public partial class binance : Exchange
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
 
     /**
@@ -13477,7 +13477,7 @@ public partial class binance : Exchange
         if (isTrue(getValue(market, "option")))
         {
             symbol = getValue(market, "symbol");
-            object result = this.parseOpenInterests(response, market);
+            object result = this.parseOpenInterestsHistory(response, market);
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object item = getValue(result, i);

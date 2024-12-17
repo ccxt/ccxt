@@ -283,6 +283,11 @@ public partial class Exchange
         var res = await this.fetchOpenInterest(symbol, parameters);
         return new OpenInterest(res);
     }
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
     public async Task<Dictionary<string, object>> FetchPaymentMethods(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPaymentMethods(parameters);

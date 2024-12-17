@@ -94,8 +94,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -3130,6 +3131,64 @@ class hyperliquid(Exchange, ImplicitAPI):
         records = self.extract_type_from_delta(response)
         withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
         return self.parse_transactions(withdrawals, None, since, limit)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+        :param str[] [symbols]: Unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        swapMarkets = self.fetch_swap_markets()
+        result = self.parse_open_interests(swapMarkets)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict: an `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        symbol = self.symbol(symbol)
+        self.load_markets()
+        ois = self.fetch_open_interests([symbol], params)
+        return ois[symbol]
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #  {
+        #      szDecimals: '2',
+        #      name: 'HYPE',
+        #      maxLeverage: '3',
+        #      funding: '0.00014735',
+        #      openInterest: '14677900.74',
+        #      prevDayPx: '26.145',
+        #      dayNtlVlm: '299643445.12560016',
+        #      premium: '0.00081613',
+        #      oraclePx: '27.569',
+        #      markPx: '27.63',
+        #      midPx: '27.599',
+        #      impactPxs: ['27.5915', '27.6319'],
+        #      dayBaseVlm: '10790652.83',
+        #      baseId: 159
+        #  }
+        #
+        interest = self.safe_dict(interest, 'info', {})
+        coin = self.safe_string(interest, 'name')
+        marketId = None
+        if coin is not None:
+            marketId = self.coin_to_market_id(coin)
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(marketId),
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
+        }, market)
 
     def extract_type_from_delta(self, data=[]):
         records = []

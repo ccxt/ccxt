@@ -2410,6 +2410,7 @@ class Exchange {
                 'fetchOHLCV' => null,
                 'fetchOHLCVWs' => null,
                 'fetchOpenInterest' => null,
+                'fetchOpenInterests' => null,
                 'fetchOpenInterestHistory' => null,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => null,
@@ -3319,6 +3320,10 @@ class Exchange {
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterests() is not supported yet');
     }
 
     public function sign_in($params = array ()) {
@@ -6928,6 +6933,15 @@ class Exchange {
         return $result;
     }
 
+    public function parse_open_interests($response, ?array $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_open_interest($response[$i], $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_long_short_ratio(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLongShortRatio() is not supported yet');
     }
@@ -7042,7 +7056,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests($response, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];

@@ -7039,7 +7039,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_open_interests(data, None, since, limit)
+        return self.parse_open_interests_history(data, None, since, limit)
 
     def parse_open_interest(self, interest, market: Market = None):
         #

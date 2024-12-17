@@ -156,6 +156,7 @@ public partial class Exchange
                 { "fetchOHLCV", null },
                 { "fetchOHLCVWs", null },
                 { "fetchOpenInterest", null },
+                { "fetchOpenInterests", null },
                 { "fetchOpenInterestHistory", null },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", null },
@@ -1312,6 +1313,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOpenInterests() is not supported yet")) ;
     }
 
     public async virtual Task<object> signIn(object parameters = null)
@@ -5912,6 +5919,17 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object parseOpenInterests(object response, object market = null)
+    {
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseOpenInterest(getValue(response, i), market);
+            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+        }
+        return result;
+    }
+
     public virtual object parseLongShortRatio(object info, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseLongShortRatio() is not supported yet")) ;
@@ -6060,7 +6078,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseOpenInterest () is not supported yet")) ;
     }
 
-    public virtual object parseOpenInterests(object response, object market = null, object since = null, object limit = null)
+    public virtual object parseOpenInterestsHistory(object response, object market = null, object since = null, object limit = null)
     {
         object interests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))

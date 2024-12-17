@@ -7400,7 +7400,7 @@ class okx extends okx$1 {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseOpenInterests(data, undefined, since, limit);
+        return this.parseOpenInterestsHistory(data, undefined, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
         //

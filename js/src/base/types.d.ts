@@ -403,6 +403,8 @@ export interface OpenInterest {
     datetime?: Str;
     info: any;
 }
+export interface OpenInterests extends Dictionary<OpenInterest> {
+}
 export interface Liquidation {
     info: any;
     symbol: string;

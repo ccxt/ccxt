@@ -1940,6 +1940,7 @@ class Exchange(object):
                 'fetchOHLCV': None,
                 'fetchOHLCVWs': None,
                 'fetchOpenInterest': None,
+                'fetchOpenInterests': None,
                 'fetchOpenInterestHistory': None,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': None,
@@ -2690,6 +2691,9 @@ class Exchange(object):
 
     def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
 
     def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
@@ -5639,6 +5643,13 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
+    def parse_open_interests(self, response, market: Market = None):
+        result = {}
+        for i in range(0, len(response)):
+            parsed = self.parse_open_interest(response[i], market)
+            result[parsed['symbol']] = parsed
+        return result
+
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
@@ -5733,7 +5744,7 @@ class Exchange(object):
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
-    def parse_open_interests(self, response, market=None, since: Int = None, limit: Int = None):
+    def parse_open_interests_history(self, response, market=None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]

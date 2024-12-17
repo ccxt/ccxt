@@ -1427,6 +1427,7 @@ export default class Exchange {
                 'fetchOHLCV': undefined,
                 'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
+                'fetchOpenInterests': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
@@ -2260,6 +2261,9 @@ export default class Exchange {
     }
     async fetchOpenInterest(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
     }
     async signIn(params = {}) {
         throw new NotSupported(this.id + ' signIn() is not supported yet');
@@ -5716,6 +5720,14 @@ export default class Exchange {
         }
         return result;
     }
+    parseOpenInterests(response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseOpenInterest(response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
     parseLongShortRatio(info, market = undefined) {
         throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -5825,7 +5837,7 @@ export default class Exchange {
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
     }
-    parseOpenInterests(response, market = undefined, since = undefined, limit = undefined) {
+    parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];

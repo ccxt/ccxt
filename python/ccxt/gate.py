@@ -6487,7 +6487,7 @@ class gate(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        return self.parse_open_interests(response, market, since, limit)
+        return self.parse_open_interests_history(response, market, since, limit)
 
     def parse_open_interest(self, interest, market: Market = None):
         #
