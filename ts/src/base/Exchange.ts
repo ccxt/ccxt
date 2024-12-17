@@ -2687,6 +2687,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterest[]> {
+        throw new NotSupported (this.id + ' fetchOpenInterests() is not supported yet');
+    }
+
     async signIn (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
@@ -6459,7 +6463,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+    parseOpenInterestsHistory (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
