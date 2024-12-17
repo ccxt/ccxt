@@ -677,7 +677,7 @@ export default class mexc extends Exchange {
                 'broker': 'CCXT',
             },
             'features': {
-                'def': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -745,10 +745,10 @@ export default class mexc extends Exchange {
                     },
                 },
                 'spot': {
-                    'extends': 'def',
+                    'extends': 'default',
                 },
                 'forDerivs': {
-                    'extends': 'def',
+                    'extends': 'default',
                     'createOrder': {
                         'triggerPrice': true,
                         'triggerPriceType': {
