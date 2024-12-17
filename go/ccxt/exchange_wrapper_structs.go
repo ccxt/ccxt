@@ -3730,6 +3730,27 @@ func (this *FetchOpenOrdersV2OptionsStruct) WithParams(params map[string]interfa
 }
 
 
+type FetchOpenInterestsOptionsStruct struct {
+    Symbols *[]string
+    Params *map[string]interface{}
+}
+
+type FetchOpenInterestsOptions func(opts *FetchOpenInterestsOptionsStruct)
+
+func (this *FetchOpenInterestsOptionsStruct) WithSymbols(symbols []string) FetchOpenInterestsOptions {
+    return func(opts *FetchOpenInterestsOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
+func (this *FetchOpenInterestsOptionsStruct) WithParams(params map[string]interface{}) FetchOpenInterestsOptions {
+    return func(opts *FetchOpenInterestsOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchOrdersHelperOptionsStruct struct {
     Symbol *string
     Since *int64

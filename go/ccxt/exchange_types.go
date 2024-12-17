@@ -1038,6 +1038,31 @@ func NewOpenInterest(data interface{}) OpenInterest {
 	}
 }
 
+type OpenInterests struct {
+	Info          map[string]interface{}
+	OpenInterests map[string]OpenInterest
+}
+
+// NewFundingRates initializes a FundingRates struct from a map.
+func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
+	fundingRatesData := fundingRatesData2.(map[string]interface{})
+	info := GetInfo(fundingRatesData) // Assuming Helper.GetInfo is implemented
+	fundingRatesMap := make(map[string]OpenInterest)
+
+	for key, value := range fundingRatesData {
+		if key != "info" {
+			if rateData, ok := value.(map[string]interface{}); ok {
+				fundingRatesMap[key] = NewOpenInterest(rateData)
+			}
+		}
+	}
+
+	return OpenInterests{
+		Info:          info,
+		OpenInterests: fundingRatesMap,
+	}
+}
+
 type Liquidation struct {
 	Symbol     string
 	QuoteValue float64
