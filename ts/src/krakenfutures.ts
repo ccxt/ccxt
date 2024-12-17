@@ -276,62 +276,61 @@ export default class krakenfutures extends Exchange {
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': {
-                            'triggerPriceType': {
-                                'last': true,
-                                'mark': true,
-                                'index': true,
-                            },
-                            'limitPrice': true,
-                        },
+                        'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': true,
-                        'trailing': true,
+                        'hedged': false,
+                        'trailing': false,
                     },
                     'createOrders': {
-                        'max': 5,
+                        'max': 100,
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
-                        'daysBack': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
-                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
                     },
-                    'fetchOrder': {
-                        'marginMode': false,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrder': undefined,
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOrders': {
-                        'marginMode': false,
-                        'limit': 1000,
-                        'daysBack': 20000, // since epoch
-                        'untilDays': 7,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': 1000,
+                        'limit': undefined,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
-                        'untilDays': 7,
+                        'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1440,
+                        'limit': 5000,
+                    },
+                },
+                'spot': undefined,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
                     },
                 },
             },
@@ -1112,7 +1111,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
      * @param {string} symbol unified market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -1173,7 +1172,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1999,6 +1998,7 @@ export default class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills (params);
         //
         //    {
