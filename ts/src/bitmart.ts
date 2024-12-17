@@ -5237,7 +5237,7 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the starting timestamp in milliseconds
      * @param {int} [limit] the number of entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
