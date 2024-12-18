@@ -574,7 +574,19 @@ export default class coinex extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                     },
-                }
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
