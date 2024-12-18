@@ -433,9 +433,6 @@ export interface OpenInterest {
     timestamp?: number;
 }
 
-export interface OpenInterests extends Dictionary<OpenInterest> {
-}
-
 export interface Liquidation {
     baseValue?: number;
     datetime?: Str;
@@ -599,6 +596,9 @@ export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 export interface MarginModes extends Dictionary<MarginMode> {
+}
+
+export interface OpenInterests extends Dictionary<OpenInterest> {
 }
 
 export interface OptionChain extends Dictionary<Option> {
