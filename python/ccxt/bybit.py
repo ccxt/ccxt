@@ -3530,29 +3530,29 @@ class bybit(Exchange, ImplicitAPI):
         avgPrice = self.omit_zero(self.safe_string(order, 'avgPrice'))
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
-        stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
         reduceOnly = self.safe_bool(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
         triggerDirection = self.safe_string(order, 'triggerDirection')
         isAscending = (triggerDirection == '1')
-        isStopOrderType2 = (stopPrice is not None) and reduceOnly
+        isStopOrderType2 = (triggerPrice is not None) and reduceOnly
         if (stopLossPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - stopLossPrice
             if isAscending and (side == 'buy'):
                 # stopLoss order against short position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
             if not isAscending and (side == 'sell'):
                 # stopLoss order against a long position
-                stopLossPrice = stopPrice
+                stopLossPrice = triggerPrice
         if (takeProfitPrice is None) and isStopOrderType2:
             # check if order is stop order type 2 - takeProfitPrice
             if isAscending and (side == 'sell'):
                 # takeprofit order against a long position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
             if not isAscending and (side == 'buy'):
                 # takeprofit order against a short position
-                takeProfitPrice = stopPrice
+                takeProfitPrice = triggerPrice
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3568,8 +3568,7 @@ class bybit(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'amount': amount,
@@ -5428,7 +5427,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -6370,7 +6369,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        return self.parse_open_interests(data, market, since, limit)
+        return self.parse_open_interests_history(data, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -7704,7 +7703,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             if market['spot']:
                 raise NotSupported(self.id + ' fetchLeverageTiers() is not supported for spot market')
             symbol = market['symbol']
-        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 20}, params))
+        data = self.get_leverage_tiers_paginated(symbol, self.extend({'paginate': True, 'paginationCalls': 40}, params))
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 

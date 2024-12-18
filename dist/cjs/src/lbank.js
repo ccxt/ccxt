@@ -1661,7 +1661,6 @@ class lbank extends lbank$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': costString,
             'amount': amountString,

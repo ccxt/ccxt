@@ -2393,7 +2393,7 @@ public partial class hitbtc : Exchange
             }
         } else if (isTrue(isTrue(isTrue(isTrue((isEqual(type, "stopLimit"))) || isTrue((isEqual(type, "stopMarket")))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((isEqual(type, "takeProfitMarket")))))
         {
-            throw new ExchangeError ((string)add(this.id, " createOrder() requires a stopPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ExchangeError ((string)add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"});
         if (isTrue(isEqual(marketType, "swap")))
@@ -2513,7 +2513,6 @@ public partial class hitbtc : Exchange
         object postOnly = this.safeValue(order, "post_only");
         object timeInForce = this.safeString(order, "time_in_force");
         object rawTrades = this.safeValue(order, "trades");
-        object stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2537,8 +2536,7 @@ public partial class hitbtc : Exchange
             { "average", average },
             { "trades", rawTrades },
             { "fee", null },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "stop_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
         }, market);

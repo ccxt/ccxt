@@ -1333,7 +1333,6 @@ class bigone(Exchange, ImplicitAPI):
             'postOnly': self.safe_bool(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,

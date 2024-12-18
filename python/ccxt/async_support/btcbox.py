@@ -548,7 +548,6 @@ class btcbox(Exchange, ImplicitAPI):
             'status': status,
             'symbol': market['symbol'],
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'trades': trades,

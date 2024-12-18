@@ -2007,7 +2007,6 @@ export default class coinex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'trigger_price'),
             'triggerPrice': this.safeString(order, 'trigger_price'),
             'takeProfitPrice': this.safeNumber(order, 'take_profit_price'),
             'stopLossPrice': this.safeNumber(order, 'stop_loss_price'),
@@ -2048,7 +2047,7 @@ export default class coinex extends Exchange {
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
-        const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const option = this.safeString(params, 'option');
@@ -2107,8 +2106,8 @@ export default class coinex extends Exchange {
             }
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
-                if (stopPrice !== undefined) {
-                    request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+                if (triggerPrice !== undefined) {
+                    request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
                     request['trigger_price_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
             }
@@ -2146,8 +2145,8 @@ export default class coinex extends Exchange {
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
-            if (stopPrice !== undefined) {
-                request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+            if (triggerPrice !== undefined) {
+                request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         params = this.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
@@ -2632,21 +2631,21 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
         const requestIds = [];
         for (let i = 0; i < ids.length; i++) {
             requestIds.push(parseInt(ids[i]));
         }
-        if (stop) {
+        if (trigger) {
             request['stop_ids'] = requestIds;
         }
         else {
             request['order_ids'] = requestIds;
         }
         if (market['spot']) {
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -2718,7 +2717,7 @@ export default class coinex extends Exchange {
         }
         else {
             request['market_type'] = 'FUTURES';
-            if (stop) {
+            if (trigger) {
                 response = await this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, params));
                 //
                 //     {
@@ -3414,7 +3413,7 @@ export default class coinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
@@ -3424,7 +3423,7 @@ export default class coinex extends Exchange {
         if (marketType === 'swap') {
             request['market_type'] = 'FUTURES';
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3488,7 +3487,7 @@ export default class coinex extends Exchange {
                 }
             }
             else if (isOpen) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3567,7 +3566,7 @@ export default class coinex extends Exchange {
                 request['market_type'] = 'SPOT';
             }
             if (isClosed) {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, params));
                     //
                     //     {
@@ -3634,7 +3633,7 @@ export default class coinex extends Exchange {
                 }
             }
             else if (status === 'pending') {
-                if (stop) {
+                if (trigger) {
                     response = await this.v2PrivateGetSpotPendingStopOrder(this.extend(request, params));
                     //
                     //     {

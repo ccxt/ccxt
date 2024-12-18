@@ -1528,10 +1528,10 @@ export default class bitfinex extends Exchange {
             }
         }
         let price = this.safeString (orderList, 16);
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         if ((orderType === 'EXCHANGE STOP') || (orderType === 'EXCHANGE STOP LIMIT')) {
             price = undefined;
-            stopPrice = this.safeString (orderList, 16);
+            triggerPrice = this.safeString (orderList, 16);
             if (orderType === 'EXCHANGE STOP LIMIT') {
                 price = this.safeString (orderList, 19);
             }
@@ -1557,8 +1557,7 @@ export default class bitfinex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1582,7 +1581,7 @@ export default class bitfinex extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly]
          * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
@@ -1600,7 +1599,7 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
             'amount': amountString,
         };
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const trailingAmount = this.safeString (params, 'trailingAmount');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeBool (params, 'postOnly', false);
@@ -1610,9 +1609,9 @@ export default class bitfinex extends Exchange {
         if (trailingAmount !== undefined) {
             orderType = 'TRAILING STOP';
             request['price_trailing'] = trailingAmount;
-        } else if (stopPrice !== undefined) {
-            // request['price'] is taken as stopPrice for stop orders
-            request['price'] = this.priceToPrecision (symbol, stopPrice);
+        } else if (triggerPrice !== undefined) {
+            // request['price'] is taken as triggerPrice for stop orders
+            request['price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'limit') {
                 orderType = 'STOP LIMIT';
                 request['price_aux_limit'] = this.priceToPrecision (symbol, price);
@@ -1629,7 +1628,7 @@ export default class bitfinex extends Exchange {
         if ((ioc || fok) && (type === 'market')) {
             throw new InvalidOrder (this.id + ' createOrder() does not allow market IOC and FOK orders');
         }
-        if ((type !== 'market') && (stopPrice === undefined)) {
+        if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (ioc) {
@@ -1673,7 +1672,7 @@ export default class bitfinex extends Exchange {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] price of the order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
@@ -2990,7 +2989,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -3387,7 +3386,7 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseOpenInterests (response, market, since, limit);
+        return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
@@ -3693,7 +3692,7 @@ export default class bitfinex extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price that triggers a trigger order
+     * @param {float} [params.triggerPrice] the price that triggers a trigger order
      * @param {boolean} [params.postOnly] set to true if you want to make a post only order
      * @param {boolean} [params.reduceOnly] indicates that the order is to reduce the size of a position
      * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
@@ -3713,7 +3712,7 @@ export default class bitfinex extends Exchange {
             amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
             request['amount'] = amountString;
         }
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const trailingAmount = this.safeString (params, 'trailingAmount');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeBool (params, 'postOnly', false);
@@ -3721,15 +3720,15 @@ export default class bitfinex extends Exchange {
         const clientOrderId = this.safeInteger2 (params, 'cid', 'clientOrderId');
         if (trailingAmount !== undefined) {
             request['price_trailing'] = trailingAmount;
-        } else if (stopPrice !== undefined) {
-            // request['price'] is taken as stopPrice for stop orders
-            request['price'] = this.priceToPrecision (symbol, stopPrice);
+        } else if (triggerPrice !== undefined) {
+            // request['price'] is taken as triggerPrice for stop orders
+            request['price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'limit') {
                 request['price_aux_limit'] = this.priceToPrecision (symbol, price);
             }
         }
         const postOnly = (postOnlyParam || (timeInForce === 'PO'));
-        if ((type !== 'market') && (stopPrice === undefined)) {
+        if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         // flag values may be summed to combine flags

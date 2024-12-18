@@ -85,8 +85,9 @@ class hyperliquid extends hyperliquid$1 {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -3079,7 +3080,7 @@ class hyperliquid extends hyperliquid$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3251,6 +3252,69 @@ class hyperliquid extends hyperliquid$1 {
         const records = this.extractTypeFromDelta(response);
         const withdrawals = this.filterByArray(records, 'type', ['withdraw'], false);
         return this.parseTransactions(withdrawals, undefined, since, limit);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const swapMarkets = await this.fetchSwapMarkets();
+        const result = this.parseOpenInterests(swapMarkets);
+        return this.filterByArray(result, 'symbol', symbols);
+    }
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        symbol = this.symbol(symbol);
+        await this.loadMarkets();
+        const ois = await this.fetchOpenInterests([symbol], params);
+        return ois[symbol];
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //  {
+        //      szDecimals: '2',
+        //      name: 'HYPE',
+        //      maxLeverage: '3',
+        //      funding: '0.00014735',
+        //      openInterest: '14677900.74',
+        //      prevDayPx: '26.145',
+        //      dayNtlVlm: '299643445.12560016',
+        //      premium: '0.00081613',
+        //      oraclePx: '27.569',
+        //      markPx: '27.63',
+        //      midPx: '27.599',
+        //      impactPxs: [ '27.5915', '27.6319' ],
+        //      dayBaseVlm: '10790652.83',
+        //      baseId: 159
+        //  }
+        //
+        interest = this.safeDict(interest, 'info', {});
+        const coin = this.safeString(interest, 'name');
+        let marketId = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId(coin);
+        }
+        return this.safeOpenInterest({
+            'symbol': this.safeSymbol(marketId),
+            'openInterestAmount': this.safeNumber(interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
     }
     extractTypeFromDelta(data = []) {
         const records = [];

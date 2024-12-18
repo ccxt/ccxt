@@ -137,7 +137,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
@@ -155,7 +155,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;

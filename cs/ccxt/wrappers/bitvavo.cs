@@ -296,7 +296,7 @@ public partial class bitvavo
     /// <item>
     /// <term>params.stopPrice</term>
     /// <description>
-    /// float : The price at which a trigger order is triggered at
+    /// float : Alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>

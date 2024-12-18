@@ -1250,6 +1250,7 @@ class bitget extends Exchange {
                     '41103' => '\\ccxt\\InvalidOrder', // array("code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null)
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
+                    '43001' => '\\ccxt\\OrderNotFound',
                     '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist
                     '43115' => '\\ccxt\\OnMaintenance', // array("code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null)
@@ -4259,7 +4260,6 @@ class bitget extends Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
-            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
             'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'takeProfitPrice' => $this->safe_number_2($order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice' => $this->safe_number_2($order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -6042,7 +6042,7 @@ class bitget extends Exchange {
              * @param {string} [$params->symbol] *contract only* unified $market $symbol
              * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $symbol = $this->safe_string($params, 'symbol');

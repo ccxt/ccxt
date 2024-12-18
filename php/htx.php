@@ -4139,7 +4139,7 @@ class htx extends Exchange {
         $request = array(
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol' => $market['settleId'], // BTC, ETH, ...
-            // 'order_type' => '1', // 1 $limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
+            // 'order_type' => '1', // 1 $limit，3 opponent，4 lightning, 5 $trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
             // POST /swap-api/v3/swap_hisorders inverse swap ------------------
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
@@ -4147,11 +4147,11 @@ class htx extends Exchange {
             'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         );
         $response = null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
-        if ($stop || $stopLossTakeProfit || $trailing) {
+        if ($trigger || $stopLossTakeProfit || $trailing) {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
@@ -4171,7 +4171,7 @@ class htx extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchContractOrders', $params);
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
             if ($marginMode === 'isolated') {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerHisorders ($this->extend($request, $params));
                 } elseif ($stopLossTakeProfit) {
                     $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslHisorders ($this->extend($request, $params));
@@ -4181,7 +4181,7 @@ class htx extends Exchange {
                     $response = $this->contractPrivatePostLinearSwapApiV3SwapHisorders ($this->extend($request, $params));
                 }
             } elseif ($marginMode === 'cross') {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders ($this->extend($request, $params));
                 } elseif ($stopLossTakeProfit) {
                     $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders ($this->extend($request, $params));
@@ -4193,7 +4193,7 @@ class htx extends Exchange {
             }
         } elseif ($market['inverse']) {
             if ($market['swap']) {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->contractPrivatePostSwapApiV1SwapTriggerHisorders ($this->extend($request, $params));
                 } elseif ($stopLossTakeProfit) {
                     $response = $this->contractPrivatePostSwapApiV1SwapTpslHisorders ($this->extend($request, $params));
@@ -4204,7 +4204,7 @@ class htx extends Exchange {
                 }
             } elseif ($market['future']) {
                 $request['symbol'] = $market['settleId'];
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->contractPrivatePostApiV1ContractTriggerHisorders ($this->extend($request, $params));
                 } elseif ($stopLossTakeProfit) {
                     $response = $this->contractPrivatePostApiV1ContractTpslHisorders ($this->extend($request, $params));
@@ -4265,7 +4265,7 @@ class htx extends Exchange {
         //         "ts" => 1683239909141
         //     }
         //
-        // trigger
+        // $trigger
         //
         //     {
         //         "status" => "ok",
@@ -4312,7 +4312,7 @@ class htx extends Exchange {
         //         "ts" => 1683239702792
         //     }
         //
-        // $stop-loss and take-profit
+        // stop-loss and take-profit
         //
         //     {
         //         "status" => "ok",
@@ -4386,7 +4386,7 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->stop] *$contract only* if the orders are stop trigger orders or not
+         * @param {bool} [$params->trigger] *$contract only* if the orders are trigger trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *$contract only* if the orders are stop-loss or take-profit orders
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->trailing] *$contract only* set to true if you want to fetch trailing stop orders
@@ -4460,9 +4460,9 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->stop] *contract only* if the $orders are $stop trigger $orders or not
-         * @param {bool} [$params->stopLossTakeProfit] *contract only* if the $orders are $stop-loss or take-profit $orders
-         * @param {boolean} [$params->trailing] *contract only* set to true if you want to fetch $trailing $stop $orders
+         * @param {bool} [$params->trigger] *contract only* if the $orders are $trigger trigger $orders or not
+         * @param {bool} [$params->stopLossTakeProfit] *contract only* if the $orders are stop-loss or take-profit $orders
+         * @param {boolean} [$params->trailing] *contract only* set to true if you want to fetch $trailing stop $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -4507,7 +4507,7 @@ class htx extends Exchange {
                 $request['page_size'] = $limit;
             }
             $request['contract_code'] = $market['id'];
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
@@ -4516,7 +4516,7 @@ class htx extends Exchange {
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslOpenorders ($this->extend($request, $params));
@@ -4526,7 +4526,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapOpenorders ($this->extend($request, $params));
                     }
                 } elseif ($marginMode === 'cross') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders ($this->extend($request, $params));
@@ -4538,7 +4538,7 @@ class htx extends Exchange {
                 }
             } elseif ($market['inverse']) {
                 if ($market['swap']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTpslOpenorders ($this->extend($request, $params));
@@ -4549,7 +4549,7 @@ class htx extends Exchange {
                     }
                 } elseif ($market['future']) {
                     $request['symbol'] = $market['settleId'];
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostApiV1ContractTpslOpenorders ($this->extend($request, $params));
@@ -4628,7 +4628,7 @@ class htx extends Exchange {
         //         "ts" => 1604370488518
         //     }
         //
-        // trigger
+        // $trigger
         //
         //     {
         //         "status" => "ok",
@@ -4667,7 +4667,7 @@ class htx extends Exchange {
         //         "ts" => 1683177805320
         //     }
         //
-        // $stop-loss and take-profit
+        // stop-loss and take-profit
         //
         //     {
         //         "status" => "ok",
@@ -5176,7 +5176,6 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $stopPrice = $this->safe_string_2($order, 'stop-price', 'trigger_price');
         $average = $this->safe_string($order, 'trade_avg_price');
         $trades = $this->safe_value($order, 'trades');
         $reduceOnlyInteger = $this->safe_integer($order, 'reduce_only');
@@ -5197,8 +5196,7 @@ class htx extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string_2($order, 'stop-price', 'trigger_price'),
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -5294,7 +5292,7 @@ class htx extends Exchange {
         if ($triggerPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a stop order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
             }
         } else {
             $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
@@ -5782,8 +5780,8 @@ class htx extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] *contract only* if the order is a $stop trigger order or not
-         * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the order is a $stop-loss or take-profit order
+         * @param {boolean} [$params->trigger] *contract only* if the order is a $trigger trigger order or not
+         * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
          * @param {boolean} [$params->trailing] *contract only* set to true if you want to cancel a $trailing order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -5833,7 +5831,7 @@ class htx extends Exchange {
             } else {
                 $request['contract_code'] = $market['id'];
             }
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
@@ -5842,7 +5840,7 @@ class htx extends Exchange {
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslCancel ($this->extend($request, $params));
@@ -5852,7 +5850,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCancel ($this->extend($request, $params));
                     }
                 } elseif ($marginMode === 'cross') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel ($this->extend($request, $params));
@@ -5864,7 +5862,7 @@ class htx extends Exchange {
                 }
             } elseif ($market['inverse']) {
                 if ($market['swap']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTpslCancel ($this->extend($request, $params));
@@ -5874,7 +5872,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostSwapApiV1SwapCancel ($this->extend($request, $params));
                     }
                 } elseif ($market['future']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostApiV1ContractTpslCancel ($this->extend($request, $params));
@@ -5919,8 +5917,8 @@ class htx extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->stop] *contract only* if the orders are $stop trigger orders or not
-         * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
+         * @param {bool} [$params->trigger] *contract only* if the orders are $trigger trigger orders or not
+         * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -5976,7 +5974,7 @@ class htx extends Exchange {
             } else {
                 $request['contract_code'] = $market['id'];
             }
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trigger' ));
             if ($market['linear']) {
@@ -5984,7 +5982,7 @@ class htx extends Exchange {
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslCancel ($this->extend($request, $params));
@@ -5992,7 +5990,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCancel ($this->extend($request, $params));
                     }
                 } elseif ($marginMode === 'cross') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel ($this->extend($request, $params));
@@ -6002,7 +6000,7 @@ class htx extends Exchange {
                 }
             } elseif ($market['inverse']) {
                 if ($market['swap']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTpslCancel ($this->extend($request, $params));
@@ -6010,7 +6008,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostSwapApiV1SwapCancel ($this->extend($request, $params));
                     }
                 } elseif ($market['future']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerCancel ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostApiV1ContractTpslCancel ($this->extend($request, $params));
@@ -6140,8 +6138,8 @@ class htx extends Exchange {
          * cancel all open orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] *contract only* if the orders are $stop trigger orders or not
-         * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
+         * @param {boolean} [$params->trigger] *contract only* if the orders are $trigger trigger orders or not
+         * @param {boolean} [$params->stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
          * @param {boolean} [$params->trailing] *contract only* set to true if you want to cancel all $trailing orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -6156,7 +6154,7 @@ class htx extends Exchange {
             // spot -----------------------------------------------------------
             // 'account-id' => account['id'],
             // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-$stop-limit, sell-$stop-limit, buy-limit-fok, sell-limit-fok, buy-$stop-limit-fok, sell-$stop-limit-fok
+            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'side' => 'buy', // or 'sell'
             // 'size' => 100, // the number of orders to cancel 1-100
             // contract -------------------------------------------------------
@@ -6196,7 +6194,7 @@ class htx extends Exchange {
                 $request['symbol'] = $market['settleId'];
             }
             $request['contract_code'] = $market['id'];
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
@@ -6205,7 +6203,7 @@ class htx extends Exchange {
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                 if ($marginMode === 'isolated') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerCancelall ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslCancelall ($this->extend($request, $params));
@@ -6215,7 +6213,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCancelall ($this->extend($request, $params));
                     }
                 } elseif ($marginMode === 'cross') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall ($this->extend($request, $params));
@@ -6227,7 +6225,7 @@ class htx extends Exchange {
                 }
             } elseif ($market['inverse']) {
                 if ($market['swap']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerCancelall ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTpslCancelall ($this->extend($request, $params));
@@ -6237,7 +6235,7 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostSwapApiV1SwapCancelall ($this->extend($request, $params));
                     }
                 } elseif ($market['future']) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerCancelall ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
                         $response = $this->contractPrivatePostApiV1ContractTpslCancelall ($this->extend($request, $params));
@@ -8188,7 +8186,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -8440,7 +8438,7 @@ class htx extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $tick = $this->safe_list($data, 'tick');
-        return $this->parse_open_interests($tick, $market, $since, $limit);
+        return $this->parse_open_interests_history($tick, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

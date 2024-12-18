@@ -64,6 +64,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -86,6 +87,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
@@ -1037,7 +1039,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         until = self.safe_integer_2(params, 'until', 'endTime')
@@ -3440,7 +3442,6 @@ class bingx(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.parse_order_side(side),
             'price': self.safe_string_2(order, 'price', 'p'),
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
@@ -5873,7 +5874,7 @@ class bingx(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.stopPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+        :param str [params.triggerPrice]: Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered

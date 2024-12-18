@@ -2198,7 +2198,7 @@ class phemex(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(order, 'feeCurrency')),
             }
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
+        triggerPrice = self.parse_number(self.omit_zero(self.from_ep(self.safe_string(order, 'stopPxEp'))))
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
@@ -2213,8 +2213,7 @@ class phemex(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2358,7 +2357,7 @@ class phemex(Exchange, ImplicitAPI):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.omit_zero(self.safe_string_2(order, 'stopPx', 'stopPxRp'))
+        triggerPrice = self.omit_zero(self.safe_string_2(order, 'stopPx', 'stopPxRp'))
         postOnly = (timeInForce == 'PO')
         reduceOnly = self.safe_value(order, 'reduceOnly')
         execInst = self.safe_string(order, 'execInst')
@@ -2393,8 +2392,7 @@ class phemex(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfit,
             'stopLossPrice': stopLoss,
             'amount': amount,
@@ -2732,12 +2730,12 @@ class phemex(Exchange, ImplicitAPI):
                 request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
-        stopPrice = self.safe_string_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
-        if stopPrice is not None:
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
+        if triggerPrice is not None:
             if isUSDTSettled:
-                request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPxRp'] = self.price_to_precision(symbol, triggerPrice)
             else:
-                request['stopPxEp'] = self.to_ep(stopPrice, market)
+                request['stopPxEp'] = self.to_ep(triggerPrice, market)
         params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         response = None
         if isUSDTSettled:
@@ -2804,15 +2802,15 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         request: dict = {
             'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        if stop:
-            request['untriggerred'] = stop
+        if trigger:
+            request['untriggerred'] = trigger
         response = None
         if market['settle'] == 'USDT':
             response = await self.privateDeleteGOrdersAll(self.extend(request, params))
@@ -3894,19 +3892,23 @@ class phemex(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(contract, 'timestamp', 0.000001)
+        markEp = self.from_ep(self.safe_string(contract, 'markEp'), market)
+        indexEp = self.from_ep(self.safe_string(contract, 'indexEp'), market)
+        fundingRateEr = self.from_er(self.safe_string(contract, 'fundingRateEr'), market)
+        nextFundingRateEr = self.from_er(self.safe_string(contract, 'predFundingRateEr'), market)
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': self.from_ep(self.safe_string_2(contract, 'markEp', 'markPriceRp'), market),
-            'indexPrice': self.from_ep(self.safe_string_2(contract, 'indexEp', 'indexPriceRp'), market),
+            'markPrice': self.safe_number(contract, 'markPriceRp', markEp),
+            'indexPrice': self.safe_number(contract, 'indexPriceRp', indexEp),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.from_er(self.safe_string(contract, 'fundingRateEr'), market),
+            'fundingRate': self.safe_number(contract, 'fundingRateRr', fundingRateEr),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.from_er(self.safe_string_2(contract, 'predFundingRateEr', 'predFundingRateRr'), market),
+            'nextFundingRate': self.safe_number(contract, 'predFundingRateRr', nextFundingRateEr),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,

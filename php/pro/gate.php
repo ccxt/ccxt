@@ -216,14 +216,14 @@ class gate extends \ccxt\async\gate {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.order_cancel_cp';
             list($channel, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersWs', 'channel', $channel);
             $url = $this->get_url_by_market($market);
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-            list($request, $requestParams) = ($type === 'spot') ? $this->multiOrderSpotPrepareRequest ($market, $stop, $query) : $this->prepareRequest ($market, $type, $query);
+            list($request, $requestParams) = ($type === 'spot') ? $this->multiOrderSpotPrepareRequest ($market, $trigger, $query) : $this->prepareRequest ($market, $type, $query);
             Async\await($this->authenticate($url, $messageType));
             $rawOrders = Async\await($this->request_private($url, $this->extend($request, $requestParams), $channel));
             return $this->parse_orders($rawOrders, $market);
@@ -241,15 +241,15 @@ class gate extends \ccxt\async\gate {
              * @param {string} $id Order $id
              * @param {string} $symbol Unified $market $symbol
              * @param {array} [$params] Parameters specified by the exchange api
-             * @param {bool} [$params->stop] True if the order to be cancelled is a trigger order
+             * @param {bool} [$params->trigger] True if the order to be cancelled is a $trigger order
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+            $trigger = $this->safe_value_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
             $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spotOrderPrepareRequest ($market, $stop, $query) : $this->prepareRequest ($market, $type, $query);
+            list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spotOrderPrepareRequest ($market, $trigger, $query) : $this->prepareRequest ($market, $type, $query);
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.order_cancel';
             $url = $this->get_url_by_market($market);
@@ -300,7 +300,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $id Order $id
              * @param {string} $symbol Unified $market $symbol, *required for spot and margin*
              * @param {array} [$params] Parameters specified by the exchange api
-             * @param {bool} [$params->stop] True if the order being fetched is a trigger order
+             * @param {bool} [$params->trigger] True if the order being fetched is a trigger order
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future

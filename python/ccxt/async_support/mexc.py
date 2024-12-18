@@ -689,6 +689,143 @@ class mexc(Exchange, ImplicitAPI):
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': {
+                            'last': False,
+                            'mark': False,
+                            'index': False,
+                        },
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        # exchange-supported features
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBackClosed': 7,
+                        'daysBackCanceled': 7,
+                        'untilDays': 7,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivs': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,
+                        'hedged': True,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': None,
+                        'untilDays': 90,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
@@ -2161,7 +2298,6 @@ class mexc(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param str [marginMode]: only 'isolated' is supported for spot-margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2306,11 +2442,11 @@ class mexc(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response = None
-        if stopPrice:
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
             request['trend'] = self.safe_integer(params, 'trend', 1)
@@ -3291,7 +3427,6 @@ class mexc(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
-            'stopPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'average': self.safe_number(order, 'dealAvgPrice'),
             'amount': self.safe_number_2(order, 'origQty', 'vol'),

@@ -1265,6 +1265,7 @@ class bitget(Exchange, ImplicitAPI):
                     '41103': InvalidOrder,  # {"code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null}
                     '41114': OnMaintenance,  # {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
+                    '43001': OrderNotFound,
                     '43012': InsufficientFunds,  # {"code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null}
                     '43025': InvalidOrder,  # Plan order does not exist
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
@@ -4103,7 +4104,6 @@ class bitget(Exchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'takeProfitPrice': self.safe_number_2(order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice': self.safe_number_2(order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -5713,7 +5713,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.symbol]: *contract only* unified market symbol
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         symbol = self.safe_string(params, 'symbol')

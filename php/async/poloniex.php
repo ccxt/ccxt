@@ -1186,7 +1186,6 @@ class poloniex extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $triggerPrice = $this->safe_string_2($order, 'triggerPrice', 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1201,8 +1200,7 @@ class poloniex extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string_2($order, 'triggerPrice', 'stopPrice'),
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,
@@ -1249,7 +1247,7 @@ class poloniex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] set true to fetch trigger orders instead of regular orders
+             * @param {boolean} [$params->trigger] set true to fetch trigger orders instead of regular orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());

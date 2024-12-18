@@ -1183,7 +1183,7 @@ class defx extends Exchange {
             'type' => $orderType,
         );
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $isMarket = $orderType === 'MARKET';
         $isLimit = $orderType === 'LIMIT';
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -1202,7 +1202,7 @@ class defx extends Exchange {
         if ($clientOrderId !== null) {
             $request['newClientOrderId'] = $clientOrderId;
         }
-        if ($stopPrice !== null || $takeProfitPrice !== null) {
+        if ($triggerPrice !== null || $takeProfitPrice !== null) {
             $request['workingType'] = 'MARK_PRICE';
             if ($takeProfitPrice !== null) {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
@@ -1212,7 +1212,7 @@ class defx extends Exchange {
                     $request['type'] = 'TAKE_PROFIT_LIMIT';
                 }
             } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($isMarket) {
                     $request['type'] = 'STOP_MARKET';
                 } else {
@@ -1306,12 +1306,12 @@ class defx extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $timeInForce = $this->safe_string_lower($order, 'timeInForce');
         $takeProfitPrice = null;
-        $stopPrice = null;
+        $triggerPrice = null;
         if ($orderType !== null) {
             if (mb_strpos($orderType, 'take_profit') !== false) {
                 $takeProfitPrice = $this->safe_string($order, 'stopPrice');
             } else {
-                $stopPrice = $this->safe_string($order, 'stopPrice');
+                $triggerPrice = $this->safe_string($order, 'stopPrice');
             }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
@@ -1331,8 +1331,7 @@ class defx extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => null,
             'average' => $average,
@@ -1358,7 +1357,6 @@ class defx extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -1802,7 +1800,7 @@ class defx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;

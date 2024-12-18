@@ -1536,8 +1536,6 @@ class tokocrypto(Exchange, ImplicitAPI):
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
         postOnly = (type == 'limit_maker') or (timeInForce == 'PO')
-        stopPriceString = self.safe_string(order, 'stopPrice')
-        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1552,8 +1550,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice'))),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1600,8 +1597,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientId', 'clientOrderId'])
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice is not None:
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice is not None:
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
@@ -1610,7 +1607,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         reverseOrderTypeMapping: dict = {
@@ -1640,7 +1637,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['clientId'] = clientOrderId
         # additional required fields depending on the order type
         priceIsRequired = False
-        stopPriceIsRequired = False
+        triggerPriceIsRequired = False
         quantityIsRequired = False
         #
         # spot/margin
@@ -1679,13 +1676,13 @@ class tokocrypto(Exchange, ImplicitAPI):
             priceIsRequired = True
             quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             quantityIsRequired = True
             if market['linear'] or market['inverse']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             priceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
             priceIsRequired = True
@@ -1696,11 +1693,11 @@ class tokocrypto(Exchange, ImplicitAPI):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
-        if stopPriceIsRequired:
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
+        if triggerPriceIsRequired:
+            if triggerPrice is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         response = self.privatePostOpenV1Orders(self.extend(request, params))
         #
         #     {

@@ -1231,7 +1231,6 @@ public partial class bitteam : Exchange
         object side = this.safeString(order, "side");
         object feeRaw = this.safeValue(order, "fee");
         object price = this.safeString(order, "price");
-        object stopPrice = this.safeString(order, "stopPrice");
         object amount = this.safeString(order, "quantity");
         object filled = this.safeString(order, "executed");
         object fee = null;
@@ -1258,8 +1257,7 @@ public partial class bitteam : Exchange
             { "timeInForce", "GTC" },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "average", null },
             { "amount", amount },
             { "cost", null },

@@ -763,13 +763,13 @@ class novadax extends Exchange {
             // "amount" => $this->amount_to_precision($symbol, $amount),
             // "price" => "1234.5678", // required for LIMIT and STOP orders
             // "operator" => "" // for stop orders, can be found in order introduction
-            // "stopPrice" => $this->price_to_precision($symbol, $stopPrice),
+            // "stopPrice" => $this->price_to_precision($symbol, stopPrice),
             // "accountId" => "...", // subaccount id, optional
         );
-        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        if ($stopPrice === null) {
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice === null) {
             if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter for ' . $uppercaseType . ' orders');
             }
         } else {
             if ($uppercaseType === 'LIMIT') {
@@ -779,7 +779,7 @@ class novadax extends Exchange {
             }
             $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         }
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
@@ -1115,7 +1115,6 @@ class novadax extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -1129,8 +1128,7 @@ class novadax extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

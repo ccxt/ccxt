@@ -1194,7 +1194,7 @@ class ndax(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
@@ -1327,7 +1327,7 @@ class ndax(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower(order, 'Side'),
             'price': self.safe_string(order, 'Price'),
-            'stopPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
+            'triggerPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
             'cost': self.safe_string(order, 'GrossValueExecuted'),
             'amount': self.safe_string(order, 'OrigQuantity'),
             'filled': self.safe_string(order, 'QuantityExecuted'),

@@ -580,7 +580,6 @@ public partial class btcbox : Exchange
             { "status", status },
             { "symbol", getValue(market, "symbol") },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "trades", trades },

@@ -1504,7 +1504,7 @@ class coinlist(Exchange, ImplicitAPI):
             elif type == 'limit':
                 request['type'] = 'stop_limit'
         elif (type == 'stop_market') or (type == 'stop_limit') or (type == 'take_market') or (type == 'take_limit'):
-            raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
@@ -1643,7 +1643,7 @@ class coinlist(Exchange, ImplicitAPI):
         type = self.parse_order_type(self.safe_string(order, 'type'))
         side = self.safe_string(order, 'side')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'stop_price')
+        triggerPrice = self.safe_string(order, 'stop_price')
         average = self.safe_string(order, 'average_fill_price')  # from documentation
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'size_filled')
@@ -1668,8 +1668,7 @@ class coinlist(Exchange, ImplicitAPI):
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
             'amount': amount,
             'cost': None,
@@ -2046,7 +2045,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         traderId = self.safe_string_2(params, 'trader_id', 'traderId')
         if traderId is None:

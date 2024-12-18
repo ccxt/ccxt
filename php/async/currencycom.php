@@ -1249,7 +1249,6 @@ class currencycom extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1355,11 +1354,11 @@ class currencycom extends Exchange {
                     $request['type'] = 'STOP';
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 } elseif ($type === 'market') {
-                    $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                    $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
                     $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                    if ($stopPrice !== null) {
+                    if ($triggerPrice !== null) {
                         $request['type'] = 'STOP';
-                        $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                        $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
                     }
                 }
             }
@@ -1771,7 +1770,7 @@ class currencycom extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();

@@ -1143,7 +1143,6 @@ class poloniex(Exchange, ImplicitAPI):
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        triggerPrice = self.safe_string_2(order, 'triggerPrice', 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1158,8 +1157,7 @@ class poloniex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string_2(order, 'triggerPrice', 'stopPrice'),
             'cost': None,
             'average': self.safe_string(order, 'avgPrice'),
             'amount': amount,
@@ -1201,7 +1199,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set True to fetch trigger orders instead of regular orders
+        :param boolean [params.trigger]: set True to fetch trigger orders instead of regular orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

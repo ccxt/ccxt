@@ -444,7 +444,6 @@ public partial class independentreserve : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "Price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", this.safeString(order, "Value") },
             { "average", this.safeString(order, "AvgPrice") },

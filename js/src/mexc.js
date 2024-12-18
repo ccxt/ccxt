@@ -677,6 +677,143 @@ export default class mexc extends Exchange {
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': false,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        // exchange-supported features
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 30,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBackClosed': 7,
+                        'daysBackCanceled': 7,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivs': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'hedged': true,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
@@ -2238,7 +2375,6 @@ export default class mexc extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {string} [marginMode] only 'isolated' is supported for spot-margin trading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2287,7 +2423,7 @@ export default class mexc extends Exchange {
     /**
      * @ignore
      * @method
-     * @name mexc#createOrder
+     * @name mexc#createSwapOrder
      * @description create a trade order
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
@@ -2407,11 +2543,11 @@ export default class mexc extends Exchange {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
-        if (stopPrice) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        if (triggerPrice) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
             request['trend'] = this.safeInteger(params, 'trend', 1);
@@ -3467,7 +3603,6 @@ export default class mexc extends Exchange {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
             'amount': this.safeNumber2(order, 'origQty', 'vol'),

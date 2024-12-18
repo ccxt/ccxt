@@ -1140,7 +1140,6 @@ class probit(Exchange, ImplicitAPI):
             'side': side,
             'status': status,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'filled': filled,

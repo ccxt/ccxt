@@ -1583,8 +1583,6 @@ class tokocrypto extends Exchange {
             $timeInForce = 'PO';
         }
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
-        $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1599,8 +1597,7 @@ class tokocrypto extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice'))),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1651,8 +1648,8 @@ class tokocrypto extends Exchange {
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
             $initialUppercaseType = strtoupper($type);
             $uppercaseType = $initialUppercaseType;
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice !== null) {
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 if ($uppercaseType === 'MARKET') {
                     $uppercaseType = 'STOP_LOSS';
@@ -1663,7 +1660,7 @@ class tokocrypto extends Exchange {
             $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
                 } else {
                     throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
                 }
@@ -1699,17 +1696,17 @@ class tokocrypto extends Exchange {
             }
             // additional required fields depending on the order $type
             $priceIsRequired = false;
-            $stopPriceIsRequired = false;
+            $triggerPriceIsRequired = false;
             $quantityIsRequired = false;
             //
             // spot/margin
             //
             //     LIMIT                timeInForce, quantity, $price
             //     MARKET               quantity or quoteOrderQty
-            //     STOP_LOSS            quantity, $stopPrice
-            //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, $stopPrice
-            //     TAKE_PROFIT          quantity, $stopPrice
-            //     TAKE_PROFIT_LIMIT    timeInForce, quantity, $price, $stopPrice
+            //     STOP_LOSS            quantity, stopPrice
+            //     STOP_LOSS_LIMIT      timeInForce, quantity, $price, stopPrice
+            //     TAKE_PROFIT          quantity, stopPrice
+            //     TAKE_PROFIT_LIMIT    timeInForce, quantity, $price, stopPrice
             //     LIMIT_MAKER          quantity, $price
             //
             if ($uppercaseType === 'MARKET') {
@@ -1741,14 +1738,14 @@ class tokocrypto extends Exchange {
                 $priceIsRequired = true;
                 $quantityIsRequired = true;
             } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-                $stopPriceIsRequired = true;
+                $triggerPriceIsRequired = true;
                 $quantityIsRequired = true;
                 if ($market['linear'] || $market['inverse']) {
                     $priceIsRequired = true;
                 }
             } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
                 $quantityIsRequired = true;
-                $stopPriceIsRequired = true;
+                $triggerPriceIsRequired = true;
                 $priceIsRequired = true;
             } elseif ($uppercaseType === 'LIMIT_MAKER') {
                 $priceIsRequired = true;
@@ -1763,11 +1760,11 @@ class tokocrypto extends Exchange {
                 }
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            if ($stopPriceIsRequired) {
-                if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+            if ($triggerPriceIsRequired) {
+                if ($triggerPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
                 } else {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
             }
             $response = Async\await($this->privatePostOpenV1Orders ($this->extend($request, $params)));

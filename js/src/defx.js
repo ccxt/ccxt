@@ -1173,7 +1173,7 @@ export default class defx extends Exchange {
             'type': orderType,
         };
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const isMarket = orderType === 'MARKET';
         const isLimit = orderType === 'LIMIT';
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
@@ -1193,7 +1193,7 @@ export default class defx extends Exchange {
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
-        if (stopPrice !== undefined || takeProfitPrice !== undefined) {
+        if (triggerPrice !== undefined || takeProfitPrice !== undefined) {
             request['workingType'] = 'MARK_PRICE';
             if (takeProfitPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
@@ -1205,7 +1205,7 @@ export default class defx extends Exchange {
                 }
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
                 if (isMarket) {
                     request['type'] = 'STOP_MARKET';
                 }
@@ -1298,13 +1298,13 @@ export default class defx extends Exchange {
         const average = this.omitZero(this.safeString(order, 'avgPrice'));
         const timeInForce = this.safeStringLower(order, 'timeInForce');
         let takeProfitPrice = undefined;
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         if (orderType !== undefined) {
             if (orderType.indexOf('take_profit') >= 0) {
                 takeProfitPrice = this.safeString(order, 'stopPrice');
             }
             else {
-                stopPrice = this.safeString(order, 'stopPrice');
+                triggerPrice = this.safeString(order, 'stopPrice');
             }
         }
         const timestamp = this.parse8601(this.safeString(order, 'createdAt'));
@@ -1324,8 +1324,7 @@ export default class defx extends Exchange {
             'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': undefined,
             'average': average,
@@ -1349,7 +1348,6 @@ export default class defx extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -1782,7 +1780,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

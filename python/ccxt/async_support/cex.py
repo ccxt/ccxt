@@ -1067,7 +1067,7 @@ class cex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_number(order, 'price'),
-            'stopPrice': self.safe_number(order, 'stopPrice'),
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': self.safe_number(order, 'averagePrice'),
@@ -1238,7 +1238,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         currency = None

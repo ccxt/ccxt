@@ -386,6 +386,67 @@ public partial class kraken : Exchange
                     { "Celestia", "TIA" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 720 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -1028,7 +1089,7 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
+     * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1168,7 +1229,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1742,6 +1803,37 @@ public partial class kraken : Exchange
         //      }
         //  }
         //
+        // fetchOpenOrders
+        //
+        //      {
+        //         "refid": null,
+        //         "userref": null,
+        //         "cl_ord_id": "1234",
+        //         "status": "open",
+        //         "opentm": 1733815269.370054,
+        //         "starttm": 0,
+        //         "expiretm": 0,
+        //         "descr": {
+        //             "pair": "XBTUSD",
+        //             "type": "buy",
+        //             "ordertype": "limit",
+        //             "price": "70000.0",
+        //             "price2": "0",
+        //             "leverage": "none",
+        //             "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //             "close": ""
+        //         },
+        //         "vol": "0.00010000",
+        //         "vol_exec": "0.00000000",
+        //         "cost": "0.00000",
+        //         "fee": "0.00000",
+        //         "price": "0.00000",
+        //         "stopprice": "0.00000",
+        //         "limitprice": "0.00000",
+        //         "misc": "",
+        //         "oflags": "fciq"
+        //     }
+        //
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
         object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
@@ -1844,7 +1936,8 @@ public partial class kraken : Exchange
             object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
-        object clientOrderId = this.safeString(order, "userref");
+        object userref = this.safeString(order, "userref");
+        object clientOrderId = this.safeString(order, "cl_ord_id", userref);
         object rawTrades = this.safeValue(order, "trades", new List<object>() {});
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
@@ -1914,7 +2007,6 @@ public partial class kraken : Exchange
             { "postOnly", isPostOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
@@ -2119,11 +2211,11 @@ public partial class kraken : Exchange
         object request = new Dictionary<string, object>() {
             { "txid", id },
         };
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
-            parameters = this.omit(parameters, "clientOrderId");
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cl_ord_id"});
             request = this.omit(request, "txid");
         }
         object isMarket = (isEqual(type, "market"));
@@ -2374,7 +2466,7 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+     * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2446,22 +2538,31 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = null;
-        object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId", id);
+        object requestId = this.safeValue(parameters, "userref", id); // string or integer
+        parameters = this.omit(parameters, "userref");
         object request = new Dictionary<string, object>() {
-            { "txid", clientOrderId },
+            { "txid", requestId },
         };
-        parameters = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cl_ord_id"});
+            request = this.omit(request, "txid");
+        }
         try
         {
             response = await this.privatePostCancelOrder(this.extend(request, parameters));
@@ -2575,11 +2676,13 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
-     * @param {string} symbol unified market symbol
+     * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2591,21 +2694,73 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object query = parameters;
-        object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
+        object userref = this.safeInteger(parameters, "userref");
+        if (isTrue(!isEqual(userref, null)))
+        {
+            ((IDictionary<string,object>)request)["userref"] = userref;
+            parameters = this.omit(parameters, "userref");
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
-            ((IDictionary<string,object>)request)["userref"] = clientOrderId;
-            query = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
+            ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
+            parameters = this.omit(parameters, "clientOrderId");
         }
-        object response = await this.privatePostOpenOrders(this.extend(request, query));
+        object response = await this.privatePostOpenOrders(this.extend(request, parameters));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "open": {
+        //                 "O45M52-BFD5S-YXKQOU": {
+        //                     "refid": null,
+        //                     "userref": null,
+        //                     "cl_ord_id": "1234",
+        //                     "status": "open",
+        //                     "opentm": 1733815269.370054,
+        //                     "starttm": 0,
+        //                     "expiretm": 0,
+        //                     "descr": {
+        //                         "pair": "XBTUSD",
+        //                         "type": "buy",
+        //                         "ordertype": "limit",
+        //                         "price": "70000.0",
+        //                         "price2": "0",
+        //                         "leverage": "none",
+        //                         "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        //                         "close": ""
+        //                     },
+        //                     "vol": "0.00010000",
+        //                     "vol_exec": "0.00000000",
+        //                     "cost": "0.00000",
+        //                     "fee": "0.00000",
+        //                     "price": "0.00000",
+        //                     "stopprice": "0.00000",
+        //                     "limitprice": "0.00000",
+        //                     "misc": "",
+        //                     "oflags": "fciq"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeDict(result, "open", new Dictionary<string, object>() {});
+        object open = this.safeDict(result, "open", new Dictionary<string, object>() {});
+        object orders = new List<object>() {};
+        object orderIds = new List<object>(((IDictionary<string,object>)open).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(orderIds, i);
+            object item = getValue(open, id);
+            ((IList<object>)orders).Add(this.extend(new Dictionary<string, object>() {
+                { "id", id },
+            }, item));
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -2613,12 +2768,14 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2630,17 +2787,22 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object query = parameters;
-        object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
+        object userref = this.safeInteger(parameters, "userref");
+        if (isTrue(!isEqual(userref, null)))
+        {
+            ((IDictionary<string,object>)request)["userref"] = userref;
+            parameters = this.omit(parameters, "userref");
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
-            ((IDictionary<string,object>)request)["userref"] = clientOrderId;
-            query = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
+            ((IDictionary<string,object>)request)["cl_ord_id"] = clientOrderId;
+            parameters = this.omit(parameters, "clientOrderId");
         }
         var requestparametersVariable = this.handleUntilOption("end", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.privatePostClosedOrders(this.extend(request, query));
+        object response = await this.privatePostClosedOrders(this.extend(request, parameters));
         //
         //     {
         //         "error":[],
@@ -2686,7 +2848,17 @@ public partial class kraken : Exchange
             market = this.market(symbol);
         }
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeDict(result, "closed", new Dictionary<string, object>() {});
+        object closed = this.safeDict(result, "closed", new Dictionary<string, object>() {});
+        object orders = new List<object>() {};
+        object orderIds = new List<object>(((IDictionary<string,object>)closed).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            object id = getValue(orderIds, i);
+            object item = getValue(closed, id);
+            ((IList<object>)orders).Add(this.extend(new Dictionary<string, object>() {
+                { "id", id },
+            }, item));
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 

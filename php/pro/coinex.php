@@ -924,11 +924,11 @@ class coinex extends \ccxt\async\coinex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] if the $orders to watch are trigger $orders or not
+             * @param {bool} [$params->trigger] if the $orders to watch are $trigger $orders or not
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $stop = $this->safe_bool_2($params, 'trigger', 'stop');
+            $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $messageHash = 'orders';
             $market = null;
@@ -952,7 +952,7 @@ class coinex extends \ccxt\async\coinex {
                 }
             }
             $method = null;
-            if ($stop) {
+            if ($trigger) {
                 $method = 'stop.subscribe';
             } else {
                 $method = 'order.subscribe';

@@ -291,7 +291,7 @@ export default class okx extends okxRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional trades
+     * @param {bool} [params.trigger] true if fetching trigger or conditional trades
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -319,7 +319,7 @@ export default class okx extends okxRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] true if fetching trigger or conditional orders
      * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

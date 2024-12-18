@@ -3657,33 +3657,33 @@ class bybit extends Exchange {
         $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
         $reduceOnly = $this->safe_bool($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         $triggerDirection = $this->safe_string($order, 'triggerDirection');
         $isAscending = ($triggerDirection === '1');
-        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        $isStopOrderType2 = ($triggerPrice !== null) && $reduceOnly;
         if (($stopLossPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $stopLossPrice
             if ($isAscending && ($side === 'buy')) {
                 // stopLoss $order against short position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'sell')) {
                 // stopLoss $order against a long position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
         }
         if (($takeProfitPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $takeProfitPrice
             if ($isAscending && ($side === 'sell')) {
                 // takeprofit $order against a long position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'buy')) {
                 // takeprofit $order against a short position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
         }
         return $this->safe_order(array(
@@ -3701,8 +3701,7 @@ class bybit extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
@@ -5712,7 +5711,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -6718,7 +6717,7 @@ class bybit extends Exchange {
         $data = $this->add_pagination_cursor_to_result($response);
         $id = $this->safe_string($result, 'symbol');
         $market = $this->safe_market($id, $market, null, 'contract');
-        return $this->parse_open_interests($data, $market, $since, $limit);
+        return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -8122,7 +8121,7 @@ class bybit extends Exchange {
             }
             $symbol = $market['symbol'];
         }
-        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 20 ), $params));
+        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }

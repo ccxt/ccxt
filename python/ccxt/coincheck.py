@@ -267,7 +267,6 @@ class coincheck(Exchange, ImplicitAPI):
             'status': status,
             'symbol': symbol,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'fee': None,

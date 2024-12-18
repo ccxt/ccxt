@@ -567,12 +567,12 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderQty': self.amount_to_precision(symbol, amount),
             'clOrdId': clientOrderId,
         }
-        stopPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
+        triggerPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
         params = self.omit(params, ['stopPx', 'stopPrice'])
         if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order')
-        if stopPrice is not None:
+            if triggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order')
+        if triggerPrice is not None:
             if uppercaseOrderType == 'MARKET':
                 request['ordType'] = 'STOP'
             elif uppercaseOrderType == 'LIMIT':
@@ -586,7 +586,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         if priceRequired:
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceRequired:
-            request['stopPx'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPx'] = self.price_to_precision(symbol, triggerPrice)
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 

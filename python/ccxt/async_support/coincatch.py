@@ -3907,7 +3907,6 @@ class coincatch(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': self.safe_string_2(order, 'fillQuantity', 'filledQty'),
             'remaining': None,
-            'stopPrice': None,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -4783,7 +4782,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param str [params.business]: *swap only*
         :param str [params.lastEndId]: *swap only*
         :param bool [params.next]: *swap only*
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         methodName = 'fetchLedger'
         await self.load_markets()

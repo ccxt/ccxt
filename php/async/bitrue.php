@@ -1853,8 +1853,7 @@ class bitrue extends Exchange {
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
-        $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice')));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1868,8 +1867,7 @@ class bitrue extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2006,10 +2004,10 @@ class bitrue extends Exchange {
                     $params = $this->omit($params, array( 'newClientOrderId', 'clientOrderId' ));
                     $request['newClientOrderId'] = $clientOrderId;
                 }
-                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-                if ($stopPrice !== null) {
+                $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                if ($triggerPrice !== null) {
                     $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
                 $response = Async\await($this->spotV1PrivatePostOrder ($this->extend($request, $params)));
                 $data = $response;

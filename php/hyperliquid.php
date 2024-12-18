@@ -80,8 +80,9 @@ class hyperliquid extends Exchange {
                 'fetchMyLiquidations' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -3107,7 +3108,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $userAddress = null;
@@ -3278,6 +3279,68 @@ class hyperliquid extends Exchange {
         $records = $this->extract_type_from_delta($response);
         $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
         return $this->parse_transactions($withdrawals, null, $since, $limit);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         * @param {string[]} [$symbols] Unified CCXT market symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $swapMarkets = $this->fetch_swap_markets();
+        $result = $this->parse_open_interests($swapMarkets);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        /**
+         * retrieves the open interest of a contract trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
+         */
+        $symbol = $this->symbol($symbol);
+        $this->load_markets();
+        $ois = $this->fetch_open_interests(array( $symbol ), $params);
+        return $ois[$symbol];
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        //  {
+        //      szDecimals => '2',
+        //      name => 'HYPE',
+        //      maxLeverage => '3',
+        //      funding => '0.00014735',
+        //      openInterest => '14677900.74',
+        //      prevDayPx => '26.145',
+        //      dayNtlVlm => '299643445.12560016',
+        //      premium => '0.00081613',
+        //      oraclePx => '27.569',
+        //      markPx => '27.63',
+        //      midPx => '27.599',
+        //      impactPxs => array( '27.5915', '27.6319' ),
+        //      dayBaseVlm => '10790652.83',
+        //      baseId => 159
+        //  }
+        //
+        $interest = $this->safe_dict($interest, 'info', array());
+        $coin = $this->safe_string($interest, 'name');
+        $marketId = null;
+        if ($coin !== null) {
+            $marketId = $this->coin_to_market_id($coin);
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol($marketId),
+            'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
+            'openInterestValue' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
+        ), $market);
     }
 
     public function extract_type_from_delta($data = []) {

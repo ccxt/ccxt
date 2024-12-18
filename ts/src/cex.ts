@@ -1112,7 +1112,7 @@ export default class cex extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeNumber (order, 'price'),
-            'stopPrice': this.safeNumber (order, 'stopPrice'),
+            'triggerPrice': this.safeNumber (order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': this.safeNumber (order, 'averagePrice'),
@@ -1290,7 +1290,7 @@ export default class cex extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

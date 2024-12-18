@@ -1152,7 +1152,6 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const triggerPrice = this.safeString2(order, 'triggerPrice', 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1167,8 +1166,7 @@ export default class poloniex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'stopPrice'),
             'cost': undefined,
             'average': this.safeString(order, 'avgPrice'),
             'amount': amount,
@@ -1210,7 +1208,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
+     * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -257,6 +257,68 @@ export default class coinbaseinternational extends Exchange {
                     'bitcoin': 'BTC',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': false, // todo implementation
+                        'takeProfitPrice': false, // todo implementation
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                            'GTC': true, // has 30 days max
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+            },
         });
     }
 
@@ -1654,7 +1716,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {bool} [params.postOnly] true or false
@@ -1667,7 +1729,7 @@ export default class coinbaseinternational extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let typeId = type.toUpperCase ();
-        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'brokerId', 'nfqkvdjp');
         let clientOrderId = clientOrderIdprefix + '-' + this.uuid ();
         clientOrderId = clientOrderId.slice (0, 17);
@@ -1677,13 +1739,13 @@ export default class coinbaseinternational extends Exchange {
             'instrument': market['id'],
             'size': this.amountToPrecision (market['symbol'], amount),
         };
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (type === 'limit') {
                 typeId = 'STOP_LIMIT';
             } else {
                 typeId = 'STOP';
             }
-            request['stop_price'] = stopPrice;
+            request['stop_price'] = triggerPrice;
         }
         request['type'] = typeId;
         if (type === 'limit') {
@@ -1786,7 +1848,6 @@ export default class coinbaseinternational extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
-            'stopPrice': this.safeString (order, 'stop_price'),
             'triggerPrice': this.safeString (order, 'stop_price'),
             'amount': this.safeString (order, 'size'),
             'filled': this.safeString (order, 'exec_qty'),
@@ -1933,9 +1994,9 @@ export default class coinbaseinternational extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
-        if (stopPrice !== undefined) {
-            request['stop_price'] = stopPrice;
+        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = triggerPrice;
         }
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {

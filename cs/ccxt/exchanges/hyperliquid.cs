@@ -76,8 +76,9 @@ public partial class hyperliquid : Exchange
                 { "fetchMyLiquidations", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -3350,7 +3351,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3547,6 +3548,78 @@ public partial class hyperliquid : Exchange
         object records = this.extractTypeFromDelta(response);
         object withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
         return this.parseTransactions(withdrawals, null, since, limit);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object swapMarkets = await this.fetchSwapMarkets();
+        object result = this.parseOpenInterests(swapMarkets);
+        return this.filterByArray(result, "symbol", symbols);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        symbol = this.symbol(symbol);
+        await this.loadMarkets();
+        object ois = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
+        return getValue(ois, symbol);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //  {
+        //      szDecimals: '2',
+        //      name: 'HYPE',
+        //      maxLeverage: '3',
+        //      funding: '0.00014735',
+        //      openInterest: '14677900.74',
+        //      prevDayPx: '26.145',
+        //      dayNtlVlm: '299643445.12560016',
+        //      premium: '0.00081613',
+        //      oraclePx: '27.569',
+        //      markPx: '27.63',
+        //      midPx: '27.599',
+        //      impactPxs: [ '27.5915', '27.6319' ],
+        //      dayBaseVlm: '10790652.83',
+        //      baseId: 159
+        //  }
+        //
+        interest = this.safeDict(interest, "info", new Dictionary<string, object>() {});
+        object coin = this.safeString(interest, "name");
+        object marketId = null;
+        if (isTrue(!isEqual(coin, null)))
+        {
+            marketId = this.coinToMarketId(coin);
+        }
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(marketId) },
+            { "openInterestAmount", this.safeNumber(interest, "openInterest") },
+            { "openInterestValue", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "info", interest },
+        }, market);
     }
 
     public virtual object extractTypeFromDelta(object data = null)

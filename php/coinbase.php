@@ -370,6 +370,82 @@ class coinbase extends Exchange {
                 'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 3000,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 350,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'spot',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'spot',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -2363,7 +2439,7 @@ class coinbase extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -2814,7 +2890,7 @@ class coinbase extends Exchange {
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {bool} [$params->postOnly] true or false
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
-         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
@@ -2833,10 +2909,10 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-        $isStop = $stopPrice !== null;
+        $isStop = $triggerPrice !== null;
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2856,7 +2932,7 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                             'end_time' => $endTime,
                         ),
@@ -2866,29 +2942,29 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                         ),
                     );
                 }
             } elseif ($isStopLoss || $isTakeProfit) {
-                $triggerPrice = null;
+                $tpslPrice = null;
                 if ($isStopLoss) {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
                 $request['order_configuration'] = array(
                     'stop_limit_stop_limit_gtc' => array(
                         'base_size' => $this->amount_to_precision($symbol, $amount),
                         'limit_price' => $this->price_to_precision($symbol, $price),
-                        'stop_price' => $triggerPrice,
+                        'stop_price' => $tpslPrice,
                         'stop_direction' => $stopDirection,
                     ),
                 );
@@ -3157,7 +3233,6 @@ class coinbase extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $this->safe_string($order, 'filled_size'),

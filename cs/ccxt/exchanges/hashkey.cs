@@ -2329,7 +2329,7 @@ public partial class hashkey : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
      * @param {int} [params.accountType] spot, swap, custody
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3397,12 +3397,8 @@ public partial class hashkey : Exchange
 
     public virtual object handleTriggerOptionAndParams(object parameters, object methodName, object defaultValue = null)
     {
-        object isStop = defaultValue;
-        var isStopparametersVariable = this.handleOptionAndParams(parameters, methodName, "stop", isStop);
-        isStop = ((IList<object>)isStopparametersVariable)[0];
-        parameters = ((IList<object>)isStopparametersVariable)[1];
-        object isTrigger = isStop;
-        var isTriggerparametersVariable = this.handleOptionAndParams(parameters, methodName, "trigger", isTrigger);
+        object isTrigger = defaultValue;
+        var isTriggerparametersVariable = this.handleOptionAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
         isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
         return new List<object>() {isTrigger, parameters};
@@ -3561,7 +3557,6 @@ public partial class hashkey : Exchange
         {
             feeCurrncyId = null;
         }
-        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", this.safeString(order, "clientOrderId") },
@@ -3579,8 +3574,7 @@ public partial class hashkey : Exchange
             { "amount", this.omitZero(this.safeString(order, "origQty")) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },

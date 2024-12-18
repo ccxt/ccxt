@@ -238,7 +238,7 @@ public partial class poloniex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set true to fetch trigger orders instead of regular orders
     /// </description>

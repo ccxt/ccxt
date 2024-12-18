@@ -1246,6 +1246,7 @@ export default class bitget extends Exchange {
                     '41103': InvalidOrder,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
+                    '43001': OrderNotFound,
                     '43012': InsufficientFunds,
                     '43025': InvalidOrder,
                     '43115': OnMaintenance,
@@ -4245,7 +4246,6 @@ export default class bitget extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'stopPrice': this.safeNumber(order, 'triggerPrice'),
             'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'takeProfitPrice': this.safeNumber2(order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
             'stopLossPrice': this.safeNumber2(order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
@@ -6068,7 +6068,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

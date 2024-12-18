@@ -2056,7 +2056,6 @@ class coinex extends Exchange {
             'reduceOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'trigger_price'),
             'triggerPrice' => $this->safe_string($order, 'trigger_price'),
             'takeProfitPrice' => $this->safe_number($order, 'take_profit_price'),
             'stopLossPrice' => $this->safe_number($order, 'stop_loss_price'),
@@ -2101,7 +2100,7 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
@@ -2155,8 +2154,8 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                if ($stopPrice !== null) {
-                    $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+                if ($triggerPrice !== null) {
+                    $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                     $request['trigger_price_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
             }
@@ -2189,8 +2188,8 @@ class coinex extends Exchange {
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
-            if ($stopPrice !== null) {
-                $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($triggerPrice !== null) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
         $params = $this->omit($params, array( 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -2651,14 +2650,14 @@ class coinex extends Exchange {
              * cancel multiple orders
              *
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$order
-             * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$stop-$order
+             * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-stop-$order
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$order
-             * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$stop-$order
+             * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-stop-$order
              *
              * @param {string[]} $ids $order $ids
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->trigger] set to true for canceling $stop orders
+             * @param {boolean} [$params->trigger] set to true for canceling stop orders
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             if ($symbol === null) {
@@ -2669,20 +2668,20 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
             $requestIds = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $requestIds[] = intval($ids[$i]);
             }
-            if ($stop) {
+            if ($trigger) {
                 $request['stop_ids'] = $requestIds;
             } else {
                 $request['order_ids'] = $requestIds;
             }
             if ($market['spot']) {
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->v2PrivatePostSpotCancelBatchStopOrder ($this->extend($request, $params)));
                     //
                     //     {
@@ -2752,7 +2751,7 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['market_type'] = 'FUTURES';
-                if ($stop) {
+                if ($trigger) {
                     $response = Async\await($this->v2PrivatePostFuturesCancelBatchStopOrder ($this->extend($request, $params)));
                     //
                     //     {
@@ -3421,16 +3420,16 @@ class coinex extends Exchange {
              * fetch a list of orders
              *
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
-             * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-$stop-order
+             * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
-             * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-$stop-order
+             * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
              *
              * @param {string} $status order $status to fetch for
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->trigger] set to true for fetching trigger orders
+             * @param {boolean} [$params->trigger] set to true for fetching $trigger orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching spot margin orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -3444,7 +3443,7 @@ class coinex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
@@ -3454,7 +3453,7 @@ class coinex extends Exchange {
             if ($marketType === 'swap') {
                 $request['market_type'] = 'FUTURES';
                 if ($isClosed) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = Async\await($this->v2PrivateGetFuturesFinishedStopOrder ($this->extend($request, $params)));
                         //
                         //     {
@@ -3516,7 +3515,7 @@ class coinex extends Exchange {
                         //
                     }
                 } elseif ($isOpen) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = Async\await($this->v2PrivateGetFuturesPendingStopOrder ($this->extend($request, $params)));
                         //
                         //     {
@@ -3592,7 +3591,7 @@ class coinex extends Exchange {
                     $request['market_type'] = 'SPOT';
                 }
                 if ($isClosed) {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = Async\await($this->v2PrivateGetSpotFinishedStopOrder ($this->extend($request, $params)));
                         //
                         //     {
@@ -3657,7 +3656,7 @@ class coinex extends Exchange {
                         //
                     }
                 } elseif ($status === 'pending') {
-                    if ($stop) {
+                    if ($trigger) {
                         $response = Async\await($this->v2PrivateGetSpotPendingStopOrder ($this->extend($request, $params)));
                         //
                         //     {

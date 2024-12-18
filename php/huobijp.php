@@ -1342,7 +1342,6 @@ class huobijp extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'average' => null,
             'cost' => $cost,

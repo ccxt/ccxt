@@ -165,7 +165,8 @@ export default class xt extends Exchange {
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -184,7 +185,7 @@ export default class xt extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -200,7 +201,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -217,7 +218,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -234,7 +235,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -251,7 +252,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -267,7 +268,7 @@ export default class xt extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -282,7 +283,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */

@@ -930,7 +930,6 @@ class coinone extends coinone$1 {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString(order, 'averageExecutedPrice'),

@@ -1568,7 +1568,6 @@ class upbit extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => $this->parse_number($cost),
             'average' => $this->parse_number($average),

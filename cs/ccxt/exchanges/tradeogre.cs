@@ -622,7 +622,7 @@ public partial class tradeogre : Exchange
             { "postOnly", null },
             { "side", this.safeString(order, "type") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "amount", this.safeString(order, "quantity") },
             { "cost", null },
             { "average", null },

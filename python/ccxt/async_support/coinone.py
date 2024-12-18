@@ -915,7 +915,6 @@ class coinone(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'average': self.safe_string(order, 'averageExecutedPrice'),

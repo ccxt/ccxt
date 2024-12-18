@@ -1200,7 +1200,6 @@ class bitteam extends Exchange {
         $side = $this->safe_string($order, 'side');
         $feeRaw = $this->safe_value($order, 'fee');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stopPrice');
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed');
         $fee = null;
@@ -1226,8 +1225,7 @@ class bitteam extends Exchange {
             'timeInForce' => 'GTC',
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'average' => null,
             'amount' => $amount,
             'cost' => null,

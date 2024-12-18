@@ -1804,7 +1804,6 @@ class krakenfutures(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
             'side': self.safe_string(details, 'side'),
             'price': price,
-            'stopPrice': self.safe_string(details, 'triggerPrice'),
             'triggerPrice': self.safe_string(details, 'triggerPrice'),
             'amount': amount,
             'cost': cost,

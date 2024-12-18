@@ -1372,7 +1372,7 @@ public partial class bitmex : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1970,7 +1970,7 @@ public partial class bitmex : Exchange
             postOnly = (isEqual(execInst, "ParticipateDoNotInitiate"));
         }
         object timestamp = this.parse8601(this.safeString(order, "timestamp"));
-        object stopPrice = this.safeNumber(order, "stopPx");
+        object triggerPrice = this.safeNumber(order, "stopPx");
         object remaining = this.safeString(order, "leavesQty");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1985,8 +1985,7 @@ public partial class bitmex : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -2161,7 +2160,7 @@ public partial class bitmex : Exchange
             {
                 if (isTrue(isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the "), orderType), " order type")) ;
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
                 }
                 ((IDictionary<string,object>)request)["stopPx"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2812,7 +2811,7 @@ public partial class bitmex : Exchange
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", this.parseToNumeric(this.iso8601(fundingDatetime)) },
+            { "fundingTimestamp", this.parse8601(fundingDatetime) },
             { "fundingDatetime", fundingDatetime },
             { "nextFundingRate", this.safeNumber(contract, "indicativeFundingRate") },
             { "nextFundingTimestamp", null },

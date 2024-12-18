@@ -686,6 +686,298 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+              "description": "spot open order with clientOrderId",
+              "method": "fetchOpenOrders",
+              "input": [
+                "LTC/USDT",
+                null,
+                null,
+                {
+                  "clientOrderId": "123"
+                }
+              ],
+              "httpResponse": {
+                "error": [],
+                "result": {
+                  "open": {
+                    "O2F2HY-QIPHF-4UCMSW": {
+                      "refid": null,
+                      "userref": null,
+                      "cl_ord_id": "123",
+                      "status": "open",
+                      "opentm": "1733920032.330449",
+                      "starttm": "0",
+                      "expiretm": "0",
+                      "descr": {
+                        "pair": "LTCUSDT",
+                        "type": "buy",
+                        "ordertype": "limit",
+                        "price": "50.00000",
+                        "price2": "0",
+                        "leverage": "none",
+                        "order": "buy 0.20000000 LTCUSDT @ limit 50.00000",
+                        "close": ""
+                      },
+                      "vol": "0.20000000",
+                      "vol_exec": "0.00000000",
+                      "cost": "0.000000",
+                      "fee": "0.000000",
+                      "price": "0.000000",
+                      "stopprice": "0.000000",
+                      "limitprice": "0.000000",
+                      "misc": "",
+                      "oflags": "fciq"
+                    }
+                  }
+                }
+              },
+              "parsedResponse": [
+                {
+                  "id": "O2F2HY-QIPHF-4UCMSW",
+                  "clientOrderId": "123",
+                  "info": {
+                    "id": "O2F2HY-QIPHF-4UCMSW",
+                    "refid": null,
+                    "userref": null,
+                    "cl_ord_id": "123",
+                    "status": "open",
+                    "opentm": "1733920032.330449",
+                    "starttm": "0",
+                    "expiretm": "0",
+                    "descr": {
+                      "pair": "LTCUSDT",
+                      "type": "buy",
+                      "ordertype": "limit",
+                      "price": "50.00000",
+                      "price2": "0",
+                      "leverage": "none",
+                      "order": "buy 0.20000000 LTCUSDT @ limit 50.00000",
+                      "close": ""
+                    },
+                    "vol": "0.20000000",
+                    "vol_exec": "0.00000000",
+                    "cost": "0.000000",
+                    "fee": "0.000000",
+                    "price": "0.000000",
+                    "stopprice": "0.000000",
+                    "limitprice": "0.000000",
+                    "misc": "",
+                    "oflags": "fciq"
+                  },
+                  "timestamp": 1733920032330,
+                  "datetime": "2024-12-11T12:27:12.330Z",
+                  "lastTradeTimestamp": null,
+                  "status": "open",
+                  "symbol": "LTC/USDT",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": 50,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "cost": 0,
+                  "amount": 0.2,
+                  "filled": 0,
+                  "average": null,
+                  "remaining": 0.2,
+                  "reduceOnly": null,
+                  "fee": {
+                    "cost": "0.000000",
+                    "rate": null,
+                    "currency": "USDT"
+                  },
+                  "trades": [],
+                  "fees": [
+                    {
+                      "cost": 0,
+                      "rate": null,
+                      "currency": "USDT"
+                    }
+                  ],
+                  "lastUpdateTimestamp": null
+                }
+              ]
+            }
+        ],
+        "fetchClosedOrders": [
+          {
+            "description": "spot closed orders with clientorderId",
+            "method": "fetchClosedOrders",
+            "input": [
+              "LTC/USDT",
+              null,
+              1,
+              {
+                "clientOrderId": "123"
+              }
+            ],
+            "httpResponse": {
+              "error": [],
+              "result": {
+                "closed": {
+                  "O2F2HY-QIPHF-4UCMSW": {
+                    "refid": null,
+                    "userref": null,
+                    "cl_ord_id": "123",
+                    "status": "canceled",
+                    "opentm": "1733920032.330449",
+                    "starttm": "0",
+                    "expiretm": "0",
+                    "descr": {
+                      "pair": "LTCUSDT",
+                      "type": "buy",
+                      "ordertype": "limit",
+                      "price": "50.00000",
+                      "price2": "0",
+                      "leverage": "none",
+                      "order": "buy 0.20000000 LTCUSDT @ limit 50.00000",
+                      "close": ""
+                    },
+                    "vol": "0.20000000",
+                    "vol_exec": "0.00000000",
+                    "cost": "0.000000",
+                    "fee": "0.000000",
+                    "price": "0.000000",
+                    "stopprice": "0.000000",
+                    "limitprice": "0.000000",
+                    "misc": "",
+                    "oflags": "fciq",
+                    "reason": "User requested",
+                    "closetm": "1733920121.745514"
+                  }
+                },
+                "count": "1"
+              }
+            },
+            "parsedResponse": [
+              {
+                "id": "O2F2HY-QIPHF-4UCMSW",
+                "clientOrderId": "123",
+                "info": {
+                  "id": "O2F2HY-QIPHF-4UCMSW",
+                  "refid": null,
+                  "userref": null,
+                  "cl_ord_id": "123",
+                  "status": "canceled",
+                  "opentm": "1733920032.330449",
+                  "starttm": "0",
+                  "expiretm": "0",
+                  "descr": {
+                    "pair": "LTCUSDT",
+                    "type": "buy",
+                    "ordertype": "limit",
+                    "price": "50.00000",
+                    "price2": "0",
+                    "leverage": "none",
+                    "order": "buy 0.20000000 LTCUSDT @ limit 50.00000",
+                    "close": ""
+                  },
+                  "vol": "0.20000000",
+                  "vol_exec": "0.00000000",
+                  "cost": "0.000000",
+                  "fee": "0.000000",
+                  "price": "0.000000",
+                  "stopprice": "0.000000",
+                  "limitprice": "0.000000",
+                  "misc": "",
+                  "oflags": "fciq",
+                  "reason": "User requested",
+                  "closetm": "1733920121.745514"
+                },
+                "timestamp": 1733920032330,
+                "datetime": "2024-12-11T12:27:12.330Z",
+                "lastTradeTimestamp": null,
+                "status": "canceled",
+                "symbol": "LTC/USDT",
+                "type": "limit",
+                "timeInForce": null,
+                "postOnly": false,
+                "side": "buy",
+                "price": 50,
+                "stopPrice": null,
+                "triggerPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null,
+                "cost": 0,
+                "amount": 0.2,
+                "filled": 0,
+                "average": null,
+                "remaining": 0.2,
+                "reduceOnly": null,
+                "fee": {
+                  "cost": "0.000000",
+                  "rate": null,
+                  "currency": "USDT"
+                },
+                "trades": [],
+                "fees": [
+                  {
+                    "cost": 0,
+                    "rate": null,
+                    "currency": "USDT"
+                  }
+                ],
+                "lastUpdateTimestamp": null
+              }
+            ]
+          }
+        ],
+        "cancelOrder": [
+            {
+                "description": "spot cancel order by client order id",
+                "method": "cancelOrder",
+                "input": [
+                  "O45M52-BFD55-YXKQOU",
+                  "BTC/USD",
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "count": "1"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "error": [],
+                    "result": {
+                      "count": "1"
+                    }
+                  },
+                  "fees": [],
+                  "id": null,
+                  "clientOrderId": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "symbol": null,
+                  "type": null,
+                  "side": null,
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "price": null,
+                  "amount": null,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "trades": [],
+                  "reduceOnly": null,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "status": null,
+                  "fee": null
+                }
             }
         ],
         "fetchOHLCV": [

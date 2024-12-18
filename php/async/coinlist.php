@@ -1599,7 +1599,7 @@ class coinlist extends Exchange {
                     $request['type'] = 'stop_limit';
                 }
             } elseif (($type === 'stop_market') || ($type === 'stop_limit') || ($type === 'take_market') || ($type === 'take_limit')) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
             }
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
             if ($clientOrderId !== null) {
@@ -1748,7 +1748,7 @@ class coinlist extends Exchange {
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stop_price');
+        $triggerPrice = $this->safe_string($order, 'stop_price');
         $average = $this->safe_string($order, 'average_fill_price'); // from documentation
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'size_filled');
@@ -1774,8 +1774,7 @@ class coinlist extends Exchange {
             'timeInForce' => 'GTC',
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => $amount,
             'cost' => null,
@@ -2184,7 +2183,7 @@ class coinlist extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
              */
             $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
             if ($traderId === null) {

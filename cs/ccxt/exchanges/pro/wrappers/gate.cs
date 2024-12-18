@@ -185,7 +185,7 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if the order to be cancelled is a trigger order
     /// </description>
@@ -241,7 +241,7 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if the order being fetched is a trigger order
     /// </description>

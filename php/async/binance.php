@@ -5217,8 +5217,8 @@ class binance extends Exchange {
             $uppercaseType = 'LIMIT_MAKER';
         }
         $request['type'] = $uppercaseType;
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        if ($stopPrice !== null) {
+        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+        if ($triggerPrice !== null) {
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {
@@ -5228,7 +5228,7 @@ class binance extends Exchange {
         $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
             } else {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
             }
@@ -5247,7 +5247,7 @@ class binance extends Exchange {
         $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order $id, 'RESULT' for full order or 'FULL' for order with fills
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
-        $stopPriceIsRequired = false;
+        $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
@@ -5272,11 +5272,11 @@ class binance extends Exchange {
             $timeInForceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
             $timeInForceIsRequired = true;
         } elseif ($uppercaseType === 'LIMIT_MAKER') {
@@ -5295,11 +5295,11 @@ class binance extends Exchange {
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null)) {
             $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if ($stopPriceIsRequired) {
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' editOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+        if ($triggerPriceIsRequired) {
+            if ($triggerPrice === null) {
+                throw new InvalidOrder($this->id . ' editOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
             } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel $request fails, the new order placement will not be attempted.
@@ -5969,7 +5969,7 @@ class binance extends Exchange {
             $type = 'limit';
         }
         $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $triggerPrice = $this->parse_number($this->omit_zero($stopPriceString));
         $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -5994,7 +5994,7 @@ class binance extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -6223,15 +6223,10 @@ class binance extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
-            // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            $params = $this->omit($params, 'reduceOnly');
-            if ($market['option']) {
-                $request['reduceOnly'] = $reduceOnly;
-            } else {
-                if ($reduceOnly) {
-                    $request['sideEffectType'] = 'AUTO_REPAY';
-                }
+        if ($reduceOnly) {
+            if ($marketType === 'margin' || (!$market['contract'] && ($marginMode !== null))) {
+                $params = $this->omit($params, 'reduceOnly');
+                $request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -6302,7 +6297,7 @@ class binance extends Exchange {
             $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' $stopPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    throw new InvalidOrder($this->id . ' $triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
                 } else {
                     throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
                 }
@@ -6352,7 +6347,7 @@ class binance extends Exchange {
         $closePosition = $this->safe_bool($params, 'closePosition', false);
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
-        $stopPriceIsRequired = false;
+        $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
         //
         // spot/margin
@@ -6401,14 +6396,14 @@ class binance extends Exchange {
             $timeInForceIsRequired = true;
             $quantityIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
             if ($market['linear'] || $market['inverse']) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
             $timeInForceIsRequired = true;
         } elseif ($uppercaseType === 'LIMIT_MAKER') {
@@ -6416,13 +6411,13 @@ class binance extends Exchange {
             $quantityIsRequired = true;
         } elseif ($uppercaseType === 'STOP') {
             $quantityIsRequired = true;
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
             $priceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
             if (!$closePosition) {
                 $quantityIsRequired = true;
             }
-            $stopPriceIsRequired = true;
+            $triggerPriceIsRequired = true;
         } elseif ($uppercaseType === 'TRAILING_STOP_MARKET') {
             if (!$closePosition) {
                 $quantityIsRequired = true;
@@ -6457,15 +6452,15 @@ class binance extends Exchange {
                 $request['price'] = $this->parse_to_numeric($price); // some options don't have the $precision available
             }
         }
-        if ($stopPriceIsRequired) {
+        if ($triggerPriceIsRequired) {
             if ($market['contract']) {
                 if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice extra param for a ' . $type . ' order');
                 }
             } else {
                 // check for delta $price
                 if ($trailingDelta === null && $stopPrice === null && $trailingPercent === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice, $trailingDelta or $trailingPercent param for a ' . $type . ' order');
                 }
             }
             if ($stopPrice !== null) {
@@ -6660,7 +6655,7 @@ class binance extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -6931,7 +6926,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account conditional orders
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -7241,7 +7236,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7274,7 +7269,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7307,7 +7302,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch $orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to fetch portfolio margin account stop or conditional $orders
+             * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -7342,7 +7337,7 @@ class binance extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to cancel a portfolio margin account conditional order
+             * @param {boolean} [$params->trigger] set to true if you would like to cancel a portfolio margin account conditional order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
@@ -7437,7 +7432,7 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
-             * @param {boolean} [$params->stop] set to true if you would like to cancel portfolio margin account conditional orders
+             * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -11539,7 +11534,7 @@ class binance extends Exchange {
              * @param {string} $id the identification number of the ledger entry
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -11589,13 +11584,13 @@ class binance extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, null, false));
             }
             $type = null;
             $subType = null;
@@ -12807,7 +12802,7 @@ class binance extends Exchange {
             //      ...
             //  )
             //
-            return $this->parse_open_interests($response, $market, $since, $limit);
+            return $this->parse_open_interests_history($response, $market, $since, $limit);
         }) ();
     }
 
@@ -12876,7 +12871,7 @@ class binance extends Exchange {
             //
             if ($market['option']) {
                 $symbol = $market['symbol'];
-                $result = $this->parse_open_interests($response, $market);
+                $result = $this->parse_open_interests_history($response, $market);
                 for ($i = 0; $i < count($result); $i++) {
                     $item = $result[$i];
                     if ($item['symbol'] === $symbol) {

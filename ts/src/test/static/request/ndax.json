@@ -160,6 +160,61 @@
                   "USDC"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order with no symbol",
+                "method": "fetchOrder",
+                "url": "https://api.ndax.io:8443/AP/GetOrderStatus?omsId=1&AccountId=187639&OrderId=23102257147",
+                "input": [
+                  "23102257147"
+                ]
+            },
+            {
+                "description": "Fetch order with a symbol",
+                "method": "fetchOrder",
+                "url": "https://api.ndax.io:8443/AP/GetOrderStatus?omsId=1&AccountId=187639&OrderId=23102257147",
+                "input": [
+                  "23102257147",
+                  "ADA/CAD"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch Orders",
+                "method": "fetchOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOrdersHistory?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch orders with a symbol, timestamp and limit",
+                "method": "fetchOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOrdersHistory?omsId=1&AccountId=187639&InstrumentId=78&StartTimeStamp=1733626703&Depth=3",
+                "input": [
+                  "ADA/CAD",
+                  1733626703456,
+                  3
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch Open Orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOpenOrders?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch open orders with a symbol, timestamp and limit",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ndax.io:8443/AP/GetOpenOrders?omsId=1&AccountId=187639",
+                "input": [
+                  "ADA/CAD",
+                  1733626703456,
+                  3
+                ]
+            }
         ]
     }
 }

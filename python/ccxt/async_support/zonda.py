@@ -505,7 +505,6 @@ class zonda(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -853,7 +852,7 @@ class zonda(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         balanceCurrencies = []
         if code is not None:
@@ -1400,7 +1399,7 @@ class zonda(Exchange, ImplicitAPI):
         response = None
         if isStopOrder:
             if not isStopLossPrice:
-                raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders')
+                raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders')
             request['stopRate'] = self.price_to_precision(symbol, stopLossPrice)
             response = await self.v1_01PrivatePostTradingStopOfferSymbol(self.extend(request, params))
         else:

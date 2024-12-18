@@ -1224,7 +1224,7 @@ class ndax extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
@@ -1361,7 +1361,7 @@ class ndax extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'Side'),
             'price' => $this->safe_string($order, 'Price'),
-            'stopPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
+            'triggerPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
             'cost' => $this->safe_string($order, 'GrossValueExecuted'),
             'amount' => $this->safe_string($order, 'OrigQuantity'),
             'filled' => $this->safe_string($order, 'QuantityExecuted'),

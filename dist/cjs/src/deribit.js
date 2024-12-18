@@ -1812,7 +1812,6 @@ class deribit extends deribit$1 {
         // injected in createOrder
         const trades = this.safeValue(order, 'trades');
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'time_in_force'));
-        const stopPrice = this.safeValue(order, 'stop_price');
         const postOnly = this.safeValue(order, 'post_only');
         return this.safeOrder({
             'info': order,
@@ -1827,8 +1826,7 @@ class deribit extends deribit$1 {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeValue(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,

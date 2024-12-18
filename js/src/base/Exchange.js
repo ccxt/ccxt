@@ -1427,6 +1427,7 @@ export default class Exchange {
                 'fetchOHLCV': undefined,
                 'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
+                'fetchOpenInterests': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
@@ -1822,31 +1823,25 @@ export default class Exchange {
         let wssProxy = undefined;
         let wsSocksProxy = undefined;
         // ws proxy
-        if (this.valueIsDefined(this.wsProxy)) {
+        const isWsProxyDefined = this.valueIsDefined(this.wsProxy);
+        const is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
+        if (isWsProxyDefined || is_ws_proxy_defined) {
             usedProxies.push('wsProxy');
-            wsProxy = this.wsProxy;
-        }
-        if (this.valueIsDefined(this.ws_proxy)) {
-            usedProxies.push('ws_proxy');
-            wsProxy = this.ws_proxy;
+            wsProxy = (isWsProxyDefined) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
-        if (this.valueIsDefined(this.wssProxy)) {
+        const isWssProxyDefined = this.valueIsDefined(this.wssProxy);
+        const is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
+        if (isWssProxyDefined || is_wss_proxy_defined) {
             usedProxies.push('wssProxy');
-            wssProxy = this.wssProxy;
-        }
-        if (this.valueIsDefined(this.wss_proxy)) {
-            usedProxies.push('wss_proxy');
-            wssProxy = this.wss_proxy;
+            wssProxy = (isWssProxyDefined) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
-        if (this.valueIsDefined(this.wsSocksProxy)) {
+        const isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
+        const is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
+        if (isWsSocksProxyDefined || is_ws_socks_proxy_defined) {
             usedProxies.push('wsSocksProxy');
-            wsSocksProxy = this.wsSocksProxy;
-        }
-        if (this.valueIsDefined(this.ws_socks_proxy)) {
-            usedProxies.push('ws_socks_proxy');
-            wsSocksProxy = this.ws_socks_proxy;
+            wsSocksProxy = (isWsSocksProxyDefined) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
         const length = usedProxies.length;
@@ -2266,6 +2261,9 @@ export default class Exchange {
     }
     async fetchOpenInterest(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
     }
     async signIn(params = {}) {
         throw new NotSupported(this.id + ' signIn() is not supported yet');
@@ -5509,52 +5507,52 @@ export default class Exchange {
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopOrder(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
             throw new NotSupported(this.id + ' createStopOrder() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
-    async createStopOrderWs(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrderWs']) {
             throw new NotSupported(this.id + ' createStopOrderWs() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'limit', side, amount, price, query);
     }
-    async createStopLimitOrderWs(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrderWs']) {
             throw new NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
     }
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
             throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
-    async createStopMarketOrderWs(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrderWs']) {
             throw new NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     safeCurrencyCode(currencyId, currency = undefined) {
@@ -5722,6 +5720,14 @@ export default class Exchange {
         }
         return result;
     }
+    parseOpenInterests(response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseOpenInterest(response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
     parseLongShortRatio(info, market = undefined) {
         throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -5831,7 +5837,7 @@ export default class Exchange {
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
     }
-    parseOpenInterests(response, market = undefined, since = undefined, limit = undefined) {
+    parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -6183,7 +6189,7 @@ export default class Exchange {
         }
         return [maxEntriesPerRequest, params];
     }
-    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
         let maxCalls = undefined;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6191,6 +6197,8 @@ export default class Exchange {
         let paginationDirection = undefined;
         [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
+        let removeRepeatedOption = removeRepeated;
+        [removeRepeatedOption, params] = this.handleOptionAndParams(params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result = [];
         let errors = 0;
@@ -6261,7 +6269,10 @@ export default class Exchange {
                 }
             }
         }
-        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        let uniqueResults = result;
+        if (removeRepeatedOption) {
+            uniqueResults = this.removeRepeatedElementsFromArray(result);
+        }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }

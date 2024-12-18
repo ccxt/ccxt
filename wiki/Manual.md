@@ -60,8 +60,11 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - <sub>[![Twitter](https://img.shields.io/twitter/follow/ccxt_official?style=social)](https://twitter.com/ccxt_official)</sub> Follow us on Twitter
 - <sub>[![Medium](https://img.shields.io/badge/read-our%20blog-black?logo=medium)](https://medium.com/@ccxt)</sub> Read our blog on Medium
 - <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub> Join our Discord
-- <sub>[![Telegram Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub> CCXT Channel on Telegram (important announcements)
 - <sub>[![Telegram Chat](https://img.shields.io/badge/CCXT-Chat-blue?logo=telegram)](https://t.me/ccxt_chat)</sub> CCXT Chat on Telegram (technical support)
+<a name="announcements" id="announcements"></a>
+- Announcement channels:
+- - <sub>[![Telegram](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub>
+- - <sub>[![Discord](https://img.shields.io/badge/CCXT-Channel-blue?logo=discord)](https://discord.com/channels/690203284119617602/1057748769690619984)</sub>
 
 
 # Exchanges
@@ -4603,16 +4606,17 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
 <!-- tabs:end -->
-Typically, it means to touch the price from **any direction**. However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+<a name="trigger-direction" id="trigger-direction"></a>
+Typically, exchange automatically determines `triggerPrice`'s direction (whether it is "above" or "below" current price), however, some exchanges require that you provide `triggerDirection` with either `ascending` or `descending` values:
 
 ```
 params = {
     'triggerPrice': 1700,
-    'triggerDirection': 'above', // order will be triggered when price goes upward and touches 1700
+    'triggerDirection': 'ascending', // order will be triggered when price goes upward and touches 1700
 }
 ```
 
-Note, you can also add `reduceOnly: true` param to the trigger order (with a possible `triggerDirection: 'above/below'` param), so it would act as "stop-loss" or "take-profit" order. However, for some exchanges we support "stop-loss" and "take-profit" trigger order types, which automatically involve `reduceOnly` and `triggerDirection` handling (see them below).
+Note, you can also add `reduceOnly: true` param to the trigger order (with a possible `triggerDirection: 'ascending/descending'` param), so it would act as "stop-loss" or "take-profit" order. However, for some exchanges we support "stop-loss" and "take-profit" trigger order types, which automatically involve `reduceOnly` and `triggerDirection` handling (see them below).
 
 ##### Stop Loss Orders
 
@@ -4854,6 +4858,8 @@ $params = {
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 <!-- tabs:end -->
+
+For exchanges, where it is not possible to use attached SL &TP, after submitting an entry order, you can immediatelly submit another order (even though position might not be open yet) with `triggerPrice` and `reduceOnly: true` params, so it can still act as a stoploss order for your upcoming position (note, this approach might not work for some exchanges).
 
 #### Trailing Orders
 
@@ -7163,7 +7169,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   ```php
   echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
   ```
-- Check the [Issues](https://github.com/ccxt/ccxt/issues) or [Announcements](https://discord.com/channels/690203284119617602/1057748769690619984) for recent updates.
+- Check the [Issues](https://github.com/ccxt/ccxt/issues) or [Announcements](#announcements) for recent updates.
 - Make sure you have not turned off [rate-limiter with `enableRateLimit: false`](#rate-limit) (If anyone has custom rate-limit solution built, ensure it does not misbehave).
 - If you use ccxt's proxy functionality, ensure it does not misbehave.
 - Turn `verbose = true` to get more detail about it!

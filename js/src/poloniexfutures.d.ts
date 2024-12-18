@@ -195,7 +195,7 @@ export default class poloniexfutures extends Exchange {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;

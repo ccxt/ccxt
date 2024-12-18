@@ -311,7 +311,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] price to trigger stop orders
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {bool} [params.postOnly] true or false

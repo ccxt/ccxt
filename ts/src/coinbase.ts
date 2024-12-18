@@ -376,6 +376,82 @@ export default class coinbase extends Exchange {
                 'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 3000,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 350,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+            },
         });
     }
 
@@ -2368,7 +2444,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -2839,10 +2915,10 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'side': side.toUpperCase (),
         };
-        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        const isStop = stopPrice !== undefined;
+        const isStop = triggerPrice !== undefined;
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2862,7 +2938,7 @@ export default class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
-                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_price': this.priceToPrecision (symbol, triggerPrice),
                             'stop_direction': stopDirection,
                             'end_time': endTime,
                         },
@@ -2872,29 +2948,29 @@ export default class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc': {
                             'base_size': this.amountToPrecision (symbol, amount),
                             'limit_price': this.priceToPrecision (symbol, price),
-                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_price': this.priceToPrecision (symbol, triggerPrice),
                             'stop_direction': stopDirection,
                         },
                     };
                 }
             } else if (isStopLoss || isTakeProfit) {
-                let triggerPrice = undefined;
+                let tpslPrice = undefined;
                 if (isStopLoss) {
                     if (stopDirection === undefined) {
                         stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    tpslPrice = this.priceToPrecision (symbol, stopLossPrice);
                 } else {
                     if (stopDirection === undefined) {
                         stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    tpslPrice = this.priceToPrecision (symbol, takeProfitPrice);
                 }
                 request['order_configuration'] = {
                     'stop_limit_stop_limit_gtc': {
                         'base_size': this.amountToPrecision (symbol, amount),
                         'limit_price': this.priceToPrecision (symbol, price),
-                        'stop_price': triggerPrice,
+                        'stop_price': tpslPrice,
                         'stop_direction': stopDirection,
                     },
                 };
@@ -3163,7 +3239,6 @@ export default class coinbase extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'side'),
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': this.safeString (order, 'filled_size'),

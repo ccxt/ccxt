@@ -719,7 +719,6 @@ export default class indodax extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': cost,
             'average': undefined,

@@ -2207,7 +2207,6 @@ public partial class digifinex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", this.safeNumber2(order, "amount", "size") },
             { "filled", this.safeNumber2(order, "executed_amount", "filled_qty") },
@@ -2760,7 +2759,7 @@ public partial class digifinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

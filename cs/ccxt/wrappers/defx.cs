@@ -338,12 +338,6 @@ public partial class defx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params.stop</term>
-    /// <description>
-    /// boolean : whether the order is a stop/algo order
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -636,7 +630,7 @@ public partial class defx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

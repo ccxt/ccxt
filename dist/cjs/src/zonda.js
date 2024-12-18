@@ -492,7 +492,6 @@ class zonda extends zonda$1 {
             'postOnly': postOnly,
             'side': this.safeStringLower(order, 'offerType'),
             'price': this.safeString(order, 'rate'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -849,7 +848,7 @@ class zonda extends zonda$1 {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const balanceCurrencies = [];
@@ -1415,7 +1414,7 @@ class zonda extends zonda$1 {
         let response = undefined;
         if (isStopOrder) {
             if (!isStopLossPrice) {
-                throw new errors.ExchangeError(this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
+                throw new errors.ExchangeError(this.id + ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders');
             }
             request['stopRate'] = this.priceToPrecision(symbol, stopLossPrice);
             response = await this.v1_01PrivatePostTradingStopOfferSymbol(this.extend(request, params));

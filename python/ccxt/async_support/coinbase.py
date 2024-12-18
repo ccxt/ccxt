@@ -385,6 +385,82 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD',  # needed to get fees for v3
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 3000,
+                        'daysBack': None,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 10000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 10000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 350,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'spot',
+                    },
+                    'inverse': {
+                        'extends': 'spot',
+                    },
+                },
+            },
         })
 
     async def fetch_time(self, params={}):
@@ -2289,7 +2365,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         paginate = False
@@ -2734,10 +2810,10 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'side': side.upper(),
         }
-        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
-        isStop = stopPrice is not None
+        isStop = triggerPrice is not None
         isStopLoss = stopLossPrice is not None
         isTakeProfit = takeProfitPrice is not None
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2755,7 +2831,7 @@ class coinbase(Exchange, ImplicitAPI):
                         'stop_limit_stop_limit_gtd': {
                             'base_size': self.amount_to_precision(symbol, amount),
                             'limit_price': self.price_to_precision(symbol, price),
-                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_price': self.price_to_precision(symbol, triggerPrice),
                             'stop_direction': stopDirection,
                             'end_time': endTime,
                         },
@@ -2765,25 +2841,25 @@ class coinbase(Exchange, ImplicitAPI):
                         'stop_limit_stop_limit_gtc': {
                             'base_size': self.amount_to_precision(symbol, amount),
                             'limit_price': self.price_to_precision(symbol, price),
-                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_price': self.price_to_precision(symbol, triggerPrice),
                             'stop_direction': stopDirection,
                         },
                     }
             elif isStopLoss or isTakeProfit:
-                triggerPrice = None
+                tpslPrice = None
                 if isStopLoss:
                     if stopDirection is None:
                         stopDirection = 'STOP_DIRECTION_STOP_UP' if (side == 'buy') else 'STOP_DIRECTION_STOP_DOWN'
-                    triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                    tpslPrice = self.price_to_precision(symbol, stopLossPrice)
                 else:
                     if stopDirection is None:
                         stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
-                    triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    tpslPrice = self.price_to_precision(symbol, takeProfitPrice)
                 request['order_configuration'] = {
                     'stop_limit_stop_limit_gtc': {
                         'base_size': self.amount_to_precision(symbol, amount),
                         'limit_price': self.price_to_precision(symbol, price),
-                        'stop_price': triggerPrice,
+                        'stop_price': tpslPrice,
                         'stop_direction': stopDirection,
                     },
                 }
@@ -3034,7 +3110,6 @@ class coinbase(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': self.safe_string(order, 'filled_size'),

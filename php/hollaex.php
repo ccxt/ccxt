@@ -1123,7 +1123,6 @@ class hollaex extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_string($order, 'stop');
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1142,8 +1141,7 @@ class hollaex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stop'),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => null,
@@ -1179,10 +1177,10 @@ class hollaex extends Exchange {
             'side' => $side,
             'size' => $this->normalize_number_if_needed($convertedAmount),
             'type' => $type,
-            // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
+            // 'stop' => floatval($this->price_to_precision($symbol, stopPrice)),
             // 'meta' => array(), // other options such
         );
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_bool($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
@@ -1191,8 +1189,8 @@ class hollaex extends Exchange {
             $convertedPrice = floatval($this->price_to_precision($symbol, $price));
             $request['price'] = $this->normalize_number_if_needed($convertedPrice);
         }
-        if ($stopPrice !== null) {
-            $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $stopPrice)));
+        if ($triggerPrice !== null) {
+            $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $triggerPrice)));
         }
         if ($postOnly) {
             $request['meta'] = array( 'post_only' => true );

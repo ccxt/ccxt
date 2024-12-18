@@ -1198,7 +1198,6 @@ class currencycom(Exchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1296,11 +1295,11 @@ class currencycom(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                if stopPrice is not None:
+                if triggerPrice is not None:
                     request['type'] = 'STOP'
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price'] = self.price_to_precision(symbol, triggerPrice)
         response = await self.privatePostV2Order(self.extend(request, params))
         #
         # limit
@@ -1668,7 +1667,7 @@ class currencycom(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         request: dict = {}

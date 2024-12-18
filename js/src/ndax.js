@@ -1221,7 +1221,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -1357,7 +1357,7 @@ export default class ndax extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'Side'),
             'price': this.safeString(order, 'Price'),
-            'stopPrice': this.parseNumber(this.omitZero(this.safeString(order, 'StopPrice'))),
+            'triggerPrice': this.parseNumber(this.omitZero(this.safeString(order, 'StopPrice'))),
             'cost': this.safeString(order, 'GrossValueExecuted'),
             'amount': this.safeString(order, 'OrigQuantity'),
             'filled': this.safeString(order, 'QuantityExecuted'),

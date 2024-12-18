@@ -517,6 +517,7 @@ public partial class kucoin : Exchange
                     { "400008", typeof(NotSupported) },
                     { "400100", typeof(InsufficientFunds) },
                     { "400200", typeof(InvalidOrder) },
+                    { "400330", typeof(InvalidOrder) },
                     { "400350", typeof(InvalidOrder) },
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
@@ -571,6 +572,8 @@ public partial class kucoin : Exchange
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 1 },
@@ -894,7 +897,7 @@ public partial class kucoin : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     /**
@@ -1105,6 +1108,10 @@ public partial class kucoin : Exchange
                 { "created", null },
                 { "info", market },
             });
+        }
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
         }
         return result;
     }
@@ -2131,7 +2138,7 @@ public partial class kucoin : Exchange
      * market orders --------------------------------------------------
      * @param {string} [params.funds] // Amount of quote currency to use
      * stop orders ----------------------------------------------------
-     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires stopPrice to be defined
+     * @param {string} [params.stop]  Either loss or entry, the default is loss. Requires triggerPrice to be defined
      * margin orders --------------------------------------------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
@@ -2532,7 +2539,7 @@ public partial class kucoin : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if cancelling a stop order
+     * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns Response from the exchange
@@ -2543,7 +2550,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2566,7 +2573,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2584,7 +2591,7 @@ public partial class kucoin : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(useSync))
@@ -2626,7 +2633,7 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *invalid for isolated margin* true if cancelling all stop orders
+     * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
      * @param {bool} [params.hf] false, // true for hf order
@@ -2637,7 +2644,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object stop = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool(parameters, "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2653,13 +2660,13 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(marginMode, null)))
         {
             ((IDictionary<string,object>)request)["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
-            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(stop)))
+            if (isTrue(isTrue(isEqual(marginMode, "isolated")) && isTrue(trigger)))
             {
                 throw new BadRequest ((string)add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrderCancel(this.extend(request, query));
         } else if (isTrue(hf))
@@ -2695,9 +2702,9 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2835,7 +2842,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {bool} [params.stop] True if fetching a stop order
+     * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2868,12 +2875,12 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @param {bool} [params.stop] true if fetching stop orders
+     * @param {bool} [params.trigger] true if fetching trigger orders
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
-     * @param {int} [params.currentPage] *stop orders only* current page
-     * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
+     * @param {int} [params.currentPage] *trigger orders only* current page
+     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2904,9 +2911,9 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
      * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
      * @param {string} id Order id
-     * @param {string} symbol not sent to exchange except for stop orders with clientOid, but used internally by CCXT to filter
+     * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
-     * @param {bool} [params.stop] true if fetching a stop order
+     * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2917,7 +2924,7 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object stop = this.safeBool2(parameters, "stop", "trigger", false);
+        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2940,7 +2947,7 @@ public partial class kucoin : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 if (isTrue(!isEqual(symbol, null)))
                 {
@@ -2964,7 +2971,7 @@ public partial class kucoin : Exchange
                 throw new InvalidOrder ((string)add(this.id, " fetchOrder() requires an order id")) ;
             }
             ((IDictionary<string,object>)request)["orderId"] = id;
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateGetStopOrderOrderId(this.extend(request, parameters));
             } else if (isTrue(hf))
@@ -3111,7 +3118,7 @@ public partial class kucoin : Exchange
         object feeCurrencyId = this.safeString(order, "feeCurrency");
         object cancelExist = this.safeBool(order, "cancelExist", false);
         object responseStop = this.safeString(order, "stop");
-        object stop = !isEqual(responseStop, null);
+        object trigger = !isEqual(responseStop, null);
         object stopTriggered = this.safeBool(order, "stopTriggered", false);
         object isActive = this.safeBool2(order, "isActive", "active");
         object responseStatus = this.safeString(order, "status");
@@ -3126,7 +3133,7 @@ public partial class kucoin : Exchange
                 status = "closed";
             }
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(responseStatus, "NEW")))
             {
@@ -3144,7 +3151,6 @@ public partial class kucoin : Exchange
         {
             status = "rejected";
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
@@ -3156,8 +3162,7 @@ public partial class kucoin : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "cost", this.safeString(order, "dealFunds") },
             { "filled", this.safeString(order, "dealSize") },
             { "remaining", null },
@@ -4466,7 +4471,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

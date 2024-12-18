@@ -4149,7 +4149,6 @@ class coincatch extends coincatch$1 {
             'amount': amount,
             'filled': this.safeString2(order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
-            'stopPrice': undefined,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -5076,7 +5075,7 @@ class coincatch extends coincatch$1 {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';
