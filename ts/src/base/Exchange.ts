@@ -4958,7 +4958,7 @@ export default class Exchange {
         let value = undefined;
         [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
         if (value !== undefined) {
-            // let's omit optionName2 too
+            // omit optionName2 too
             params = this.omit (params, optionName2);
             return [ value, params ];
         }
