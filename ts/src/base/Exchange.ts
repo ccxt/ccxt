@@ -6123,7 +6123,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' create_stop_order() requires a stopPrice argument');
         }
-        const query = this.extend (params, { 'stopPrice': triggerPrice });
+        const query = this.extend (params, { 'triggerPrice': triggerPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
