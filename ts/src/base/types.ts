@@ -433,6 +433,9 @@ export interface OpenInterest {
     timestamp?: number;
 }
 
+export interface OpenInterests extends Dictionary<OpenInterest> {
+}
+
 export interface Liquidation {
     baseValue?: number;
     datetime?: Str;

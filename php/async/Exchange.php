@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.30';
+$version = '4.4.41';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.30';
+    const VERSION = '4.4.41';
 
     public $browser;
     public $marketsLoading = null;
@@ -500,6 +500,7 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOHLCV' => null,
                 'fetchOHLCVWs' => null,
                 'fetchOpenInterest' => null,
+                'fetchOpenInterests' => null,
                 'fetchOpenInterestHistory' => null,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => null,
@@ -902,31 +903,25 @@ class Exchange extends \ccxt\Exchange {
         $wssProxy = null;
         $wsSocksProxy = null;
         // ws proxy
-        if ($this->value_is_defined($this->wsProxy)) {
+        $isWsProxyDefined = $this->value_is_defined($this->wsProxy);
+        $is_ws_proxy_defined = $this->value_is_defined($this->ws_proxy);
+        if ($isWsProxyDefined || $is_ws_proxy_defined) {
             $usedProxies[] = 'wsProxy';
-            $wsProxy = $this->wsProxy;
-        }
-        if ($this->value_is_defined($this->ws_proxy)) {
-            $usedProxies[] = 'ws_proxy';
-            $wsProxy = $this->ws_proxy;
+            $wsProxy = ($isWsProxyDefined) ? $this->wsProxy : $this->ws_proxy;
         }
         // wss proxy
-        if ($this->value_is_defined($this->wssProxy)) {
+        $isWssProxyDefined = $this->value_is_defined($this->wssProxy);
+        $is_wss_proxy_defined = $this->value_is_defined($this->wss_proxy);
+        if ($isWssProxyDefined || $is_wss_proxy_defined) {
             $usedProxies[] = 'wssProxy';
-            $wssProxy = $this->wssProxy;
-        }
-        if ($this->value_is_defined($this->wss_proxy)) {
-            $usedProxies[] = 'wss_proxy';
-            $wssProxy = $this->wss_proxy;
+            $wssProxy = ($isWssProxyDefined) ? $this->wssProxy : $this->wss_proxy;
         }
         // ws socks proxy
-        if ($this->value_is_defined($this->wsSocksProxy)) {
+        $isWsSocksProxyDefined = $this->value_is_defined($this->wsSocksProxy);
+        $is_ws_socks_proxy_defined = $this->value_is_defined($this->ws_socks_proxy);
+        if ($isWsSocksProxyDefined || $is_ws_socks_proxy_defined) {
             $usedProxies[] = 'wsSocksProxy';
-            $wsSocksProxy = $this->wsSocksProxy;
-        }
-        if ($this->value_is_defined($this->ws_socks_proxy)) {
-            $usedProxies[] = 'ws_socks_proxy';
-            $wsSocksProxy = $this->ws_socks_proxy;
+            $wsSocksProxy = ($isWsSocksProxyDefined) ? $this->wsSocksProxy : $this->ws_socks_proxy;
         }
         // check
         $length = count($usedProxies);
@@ -1029,7 +1024,7 @@ class Exchange extends \ccxt\Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -1043,6 +1038,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function set_sandbox_mode(bool $enabled) {
+        /**
+         * set the sandbox mode for the exchange
+         * @param {boolean} $enabled true to enable sandbox mode, false to disable it
+         */
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -1423,6 +1422,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterests() is not supported yet');
+    }
+
     public function sign_in($params = array ()) {
         throw new NotSupported($this->id . ' signIn() is not supported yet');
     }
@@ -1468,6 +1471,103 @@ class Exchange extends \ccxt\Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->features_generator();
+    }
+
+    public function features_generator() {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : array(
+        //             'createOrder' : array(...),
+        //             'fetchOrders' : array(...),
+        //         ),
+        //         'swap' => array(
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         ),
+        //         'future' => {
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot" => array(
+        //             "createOrder" => null,
+        //             "fetchBalance" => null,
+        //             ...
+        //         ),
+        //         "swap" => {
+        //             ...
+        //         }
+        //     }
+        //
+        if ($this->features === null) {
+            return;
+        }
+        // reconstruct
+        $initialFeatures = $this->features;
+        $this->features = array();
+        $unifiedMarketTypes = array( 'spot', 'swap', 'future', 'option' );
+        $subTypes = array( 'linear', 'inverse' );
+        // atm only support basic methods, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
+            $marketType = $unifiedMarketTypes[$i];
+            // if $marketType is not filled for this exchange, don't add that in `features`
+            if (!(is_array($initialFeatures) && array_key_exists($marketType, $initialFeatures))) {
+                $this->features[$marketType] = null;
+            } else {
+                if ($marketType === 'spot') {
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                } else {
+                    $this->features[$marketType] = array();
+                    for ($j = 0; $j < count($subTypes); $j++) {
+                        $subType = $subTypes[$j];
+                        $this->features[$marketType][$subType] = $this->features_mapper($initialFeatures, $marketType, $subType);
+                    }
+                }
+            }
+        }
+    }
+
+    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+        $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ($featuresObj === null) {
+            return null;
+        }
+        $extendsStr = $this->safe_string($featuresObj, 'extends');
+        if ($extendsStr !== null) {
+            $featuresObj = $this->omit($featuresObj, 'extends');
+            $extendObj = $this->features_mapper($initialFeatures, $extendsStr);
+            $featuresObj = $this->deep_extend($extendObj, $featuresObj);
+        }
+        //
+        // corrections
+        //
+        if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
+            $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if ($value !== null) {
+                $featuresObj['createOrder']['stopLoss'] = $value;
+                $featuresObj['createOrder']['takeProfit'] = $value;
+            }
+            // for spot, default 'hedged' to false
+            if ($marketType === 'spot') {
+                $featuresObj['createOrder']['hedged'] = false;
+            }
+            // default 'GTC' to true
+            $gtcValue = $this->safe_bool($featuresObj['createOrder']['timeInForce'], 'gtc');
+            if ($gtcValue === null) {
+                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            }
+        }
+        return $featuresObj;
     }
 
     public function orderbook_checksum_message(?string $symbol) {
@@ -2581,6 +2681,17 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function currency_ids(?array $codes = null) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->currency_id($codes[$i]);
+        }
+        return $result;
+    }
+
     public function markets_for_symbols(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
@@ -3024,6 +3135,17 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_headers($headers) {
         return $headers;
+    }
+
+    public function currency_id(string $code) {
+        $currency = $this->safe_dict($this->currencies, $code);
+        if ($currency === null) {
+            $currency = $this->safe_currency($code);
+        }
+        if ($currency !== null) {
+            return $currency['id'];
+        }
+        return $code;
     }
 
     public function market_id(string $symbol) {
@@ -5051,6 +5173,15 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function parse_open_interests($response, ?array $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_open_interest($response[$i], $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_long_short_ratio(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLongShortRatio() is not supported yet');
     }
@@ -5167,7 +5298,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests($response, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -5526,8 +5657,8 @@ class Exchange extends \ccxt\Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
-        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest, $removeRepeated) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
             $maxRetries = null;
@@ -5535,6 +5666,8 @@ class Exchange extends \ccxt\Exchange {
             $paginationDirection = null;
             list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
             $paginationTimestamp = null;
+            $removeRepeatedOption = $removeRepeated;
+            list($removeRepeatedOption, $params) = $this->handle_option_and_params($params, $method, 'removeRepeated', $removeRepeated);
             $calls = 0;
             $result = array();
             $errors = 0;
@@ -5603,7 +5736,10 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $result;
+            if ($removeRepeatedOption) {
+                $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
             return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
@@ -6149,38 +6285,55 @@ class Exchange extends \ccxt\Exchange {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
+                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                        unset($this->ohlcvs[$symbol][$timeframe]);
+                    }
                 }
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trades') {
-                    unset($this->trades[$symbol]);
+                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                        unset($this->trades[$symbol]);
+                    }
                 } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
+                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                        unset($this->orderbooks[$symbol]);
+                    }
                 } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
+                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                        unset($this->tickers[$symbol]);
+                    }
                 }
             }
         } else {
             if ($topic === 'myTrades') {
                 // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
+                // because in c# we need to use a different object (thread-safe dict)
                 $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
                 for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
+                    $key = $keys[$i];
+                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
+                        unset($this->myTrades[$key]);
+                    }
                 }
             } elseif ($topic === 'orders') {
                 $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
                 for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
+                    $orderSymbol = $orderSymbols[$i];
+                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
+                        unset($this->orders[$orderSymbol]);
+                    }
                 }
             } elseif ($topic === 'ticker') {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
-                    unset($this->tickers[$tickerSymbols[$i]]);
+                    $tickerSymbol = $tickerSymbols[$i];
+                    if (is_array($this->tickers) && array_key_exists($tickerSymbol, $this->tickers)) {
+                        unset($this->tickers[$tickerSymbol]);
+                    }
                 }
             }
         }

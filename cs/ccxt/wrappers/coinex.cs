@@ -581,6 +581,12 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
@@ -670,6 +676,12 @@ public partial class coinex
     /// <term>limit</term>
     /// <description>
     /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

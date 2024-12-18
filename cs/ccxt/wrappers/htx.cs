@@ -459,6 +459,12 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified ccxt market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -594,9 +600,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -705,9 +711,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -871,6 +877,8 @@ public partial class htx
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-an-order"/>  <br/>
     /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order"/>  <br/>
     /// <list type="table">
@@ -958,6 +966,12 @@ public partial class htx
     /// float : *contract only* the price to trigger a trailing order, default uses the price argument
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *contract only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1003,9 +1017,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *contract only* if the order is a stop trigger order or not
+    /// boolean : *contract only* if the order is a trigger trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -1040,9 +1054,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : *contract only* if the orders are stop trigger orders or not
+    /// bool : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -1071,9 +1085,9 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : *contract only* if the orders are stop trigger orders or not
+    /// boolean : *contract only* if the orders are trigger trigger orders or not
     /// </description>
     /// </item>
     /// <item>
@@ -1592,7 +1606,7 @@ public partial class htx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
