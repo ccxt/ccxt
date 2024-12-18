@@ -63,6 +63,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -85,6 +86,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
@@ -1036,7 +1038,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         until = self.safe_integer_2(params, 'until', 'endTime')

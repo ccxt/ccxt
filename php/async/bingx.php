@@ -55,6 +55,7 @@ class bingx extends Exchange {
                 'createTrailingAmountOrder' => true,
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -77,6 +78,7 @@ class bingx extends Exchange {
                 'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
@@ -1064,7 +1066,7 @@ class bingx extends Exchange {
             );
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if ($since !== null) {
-                $request['startTime'] = $since;
+                $request['startTime'] = max ($since - 1, 0);
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;

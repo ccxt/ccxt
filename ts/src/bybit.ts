@@ -6727,7 +6727,7 @@ export default class bybit extends Exchange {
         const data = this.addPaginationCursorToResult (response);
         const id = this.safeString (result, 'symbol');
         market = this.safeMarket (id, market, undefined, 'contract');
-        return this.parseOpenInterests (data, market, since, limit);
+        return this.parseOpenInterestsHistory (data, market, since, limit);
     }
 
     /**

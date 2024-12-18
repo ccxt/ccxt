@@ -484,7 +484,7 @@ public partial class mexc : Exchange
                 { "broker", "CCXT" },
             } },
             { "features", new Dictionary<string, object>() {
-                { "def", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -551,10 +551,10 @@ public partial class mexc : Exchange
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
-                    { "extends", "def" },
+                    { "extends", "default" },
                 } },
                 { "forDerivs", new Dictionary<string, object>() {
-                    { "extends", "def" },
+                    { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {

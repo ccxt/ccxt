@@ -675,7 +675,7 @@ class mexc extends mexc$1 {
                 'broker': 'CCXT',
             },
             'features': {
-                'def': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -743,10 +743,10 @@ class mexc extends mexc$1 {
                     },
                 },
                 'spot': {
-                    'extends': 'def',
+                    'extends': 'default',
                 },
                 'forDerivs': {
-                    'extends': 'def',
+                    'extends': 'default',
                     'createOrder': {
                         'triggerPrice': true,
                         'triggerPriceType': {

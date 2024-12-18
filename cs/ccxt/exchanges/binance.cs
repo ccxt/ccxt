@@ -5326,8 +5326,8 @@ public partial class binance : Exchange
             uppercaseType = "LIMIT_MAKER";
         }
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        object stopPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(uppercaseType, "MARKET")))
             {
@@ -5342,7 +5342,7 @@ public partial class binance : Exchange
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
             {
-                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
             } else
             {
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
@@ -5366,7 +5366,7 @@ public partial class binance : Exchange
         ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeValue(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         object timeInForceIsRequired = false;
         object priceIsRequired = false;
-        object stopPriceIsRequired = false;
+        object triggerPriceIsRequired = false;
         object quantityIsRequired = false;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
@@ -5399,12 +5399,12 @@ public partial class binance : Exchange
             quantityIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
@@ -5428,14 +5428,14 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = getValue(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (isTrue(stopPriceIsRequired))
+        if (isTrue(triggerPriceIsRequired))
         {
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " editOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder ((string)add(add(add(this.id, " editOrder() requires a triggerPrice extra param for a "), type), " order")) ;
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         ((IDictionary<string,object>)request)["cancelReplaceMode"] = "STOP_ON_FAILURE"; // If the cancel request fails, the new order placement will not be attempted.
@@ -6129,7 +6129,7 @@ public partial class binance : Exchange
             type = "limit";
         }
         object stopPriceString = this.safeString(order, "stopPrice");
-        object stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         object feeCost = this.safeNumber(order, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
@@ -6155,7 +6155,7 @@ public partial class binance : Exchange
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -6518,7 +6518,7 @@ public partial class binance : Exchange
             {
                 if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
                 {
-                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
                 } else
                 {
                     throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
@@ -6581,7 +6581,7 @@ public partial class binance : Exchange
         object closePosition = this.safeBool(parameters, "closePosition", false);
         object timeInForceIsRequired = false;
         object priceIsRequired = false;
-        object stopPriceIsRequired = false;
+        object triggerPriceIsRequired = false;
         object quantityIsRequired = false;
         //
         // spot/margin
@@ -6640,7 +6640,7 @@ public partial class binance : Exchange
             quantityIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (isTrue(isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse"))))
             {
@@ -6649,7 +6649,7 @@ public partial class binance : Exchange
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
@@ -6659,7 +6659,7 @@ public partial class binance : Exchange
         } else if (isTrue(isEqual(uppercaseType, "STOP")))
         {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_MARKET"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
@@ -6667,7 +6667,7 @@ public partial class binance : Exchange
             {
                 quantityIsRequired = true;
             }
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "TRAILING_STOP_MARKET")))
         {
             if (!isTrue(closePosition))
@@ -6714,20 +6714,20 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(price); // some options don't have the precision available
             }
         }
-        if (isTrue(stopPriceIsRequired))
+        if (isTrue(triggerPriceIsRequired))
         {
             if (isTrue(getValue(market, "contract")))
             {
                 if (isTrue(isEqual(stopPrice, null)))
                 {
-                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
                 }
             } else
             {
                 // check for delta price as well
                 if (isTrue(isTrue(isTrue(isEqual(trailingDelta, null)) && isTrue(isEqual(stopPrice, null))) && isTrue(isEqual(trailingPercent, null))))
                 {
-                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
+                    throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a "), type), " order")) ;
                 }
             }
             if (isTrue(!isEqual(stopPrice, null)))
@@ -12069,7 +12069,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters);
+            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, null, false);
         }
         object type = null;
         object subType = null;
@@ -13401,7 +13401,7 @@ public partial class binance : Exchange
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
 
     /**
@@ -13477,7 +13477,7 @@ public partial class binance : Exchange
         if (isTrue(getValue(market, "option")))
         {
             symbol = getValue(market, "symbol");
-            object result = this.parseOpenInterests(response, market);
+            object result = this.parseOpenInterestsHistory(response, market);
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object item = getValue(result, i);

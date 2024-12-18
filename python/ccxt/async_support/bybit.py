@@ -6370,7 +6370,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
         market = self.safe_market(id, market, None, 'contract')
-        return self.parse_open_interests(data, market, since, limit)
+        return self.parse_open_interests_history(data, market, since, limit)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """

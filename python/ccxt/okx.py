@@ -285,6 +285,7 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/public/rsi-back-testing': 1,
                         'asset/exchange-list': 5 / 3,
                         'finance/staking-defi/eth/apy-history': 5 / 3,
+                        'finance/staking-defi/sol/apy-history': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
                         'finance/fixed-loan/lending-offers': 10 / 3,
@@ -423,6 +424,8 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
                         'finance/staking-defi/eth/product-info': 3,
+                        'finance/staking-defi/sol/balance': 5 / 3,
+                        'finance/staking-defi/sol/purchase-redeem-history': 5 / 3,
                         # copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -557,6 +560,8 @@ class okx(Exchange, ImplicitAPI):
                         # eth staking
                         'finance/staking-defi/eth/purchase': 5,
                         'finance/staking-defi/eth/redeem': 5,
+                        'finance/staking-defi/sol/purchase': 5,
+                        'finance/staking-defi/sol/redeem': 5,
                         # copytrading
                         'copytrading/algo-order': 1,
                         'copytrading/close-subposition': 1,
@@ -7033,7 +7038,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_open_interests(data, None, since, limit)
+        return self.parse_open_interests_history(data, None, since, limit)
 
     def parse_open_interest(self, interest, market: Market = None):
         #

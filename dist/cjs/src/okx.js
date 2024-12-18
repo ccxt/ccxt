@@ -259,6 +259,7 @@ class okx extends okx$1 {
                         'tradingBot/public/rsi-back-testing': 1,
                         'asset/exchange-list': 5 / 3,
                         'finance/staking-defi/eth/apy-history': 5 / 3,
+                        'finance/staking-defi/sol/apy-history': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
                         'finance/fixed-loan/lending-offers': 10 / 3,
@@ -397,6 +398,8 @@ class okx extends okx$1 {
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
                         'finance/staking-defi/eth/product-info': 3,
+                        'finance/staking-defi/sol/balance': 5 / 3,
+                        'finance/staking-defi/sol/purchase-redeem-history': 5 / 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -531,6 +534,8 @@ class okx extends okx$1 {
                         // eth staking
                         'finance/staking-defi/eth/purchase': 5,
                         'finance/staking-defi/eth/redeem': 5,
+                        'finance/staking-defi/sol/purchase': 5,
+                        'finance/staking-defi/sol/redeem': 5,
                         // copytrading
                         'copytrading/algo-order': 1,
                         'copytrading/close-subposition': 1,
@@ -7395,7 +7400,7 @@ class okx extends okx$1 {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseOpenInterests(data, undefined, since, limit);
+        return this.parseOpenInterestsHistory(data, undefined, since, limit);
     }
     parseOpenInterest(interest, market = undefined) {
         //
