@@ -159,6 +159,8 @@ done
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
+npm run clean-removed-exchanges
+
 # check return types
 npm run validate-types ${REST_EXCHANGES[*]}
 
