@@ -1131,7 +1131,6 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
-        const stopPrice = this.safeString (order, 'trigger_price');
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         return this.safeOrder ({
             'id': orderId,
@@ -1148,8 +1147,7 @@ export default class paradex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString (order, 'trigger_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1218,7 +1216,7 @@ export default class paradex extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
@@ -1239,7 +1237,7 @@ export default class paradex extends Exchange {
             'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': this.amountToPrecision (symbol, amount),
         };
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -1262,13 +1260,13 @@ export default class paradex extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (isMarket) {
                 request['type'] = 'STOP_MARKET';
             } else {
                 request['type'] = 'STOP_LIMIT';
             }
-            request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         const account = await this.retrieveAccount ();
