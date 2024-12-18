@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.40';
+$version = '4.4.41';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.40';
+    const VERSION = '4.4.41';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2410,6 +2410,7 @@ class Exchange {
                 'fetchOHLCV' => null,
                 'fetchOHLCVWs' => null,
                 'fetchOpenInterest' => null,
+                'fetchOpenInterests' => null,
                 'fetchOpenInterestHistory' => null,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => null,
@@ -3319,6 +3320,10 @@ class Exchange {
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenInterests() is not supported yet');
     }
 
     public function sign_in($params = array ()) {
@@ -6928,6 +6933,15 @@ class Exchange {
         return $result;
     }
 
+    public function parse_open_interests($response, ?array $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_open_interest($response[$i], $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_long_short_ratio(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLongShortRatio() is not supported yet');
     }
@@ -7042,7 +7056,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests($response, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -7389,7 +7403,7 @@ class Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
         $maxCalls = null;
         list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
         $maxRetries = null;
@@ -7397,6 +7411,8 @@ class Exchange {
         $paginationDirection = null;
         list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
+        $removeRepeatedOption = $removeRepeated;
+        list($removeRepeatedOption, $params) = $this->handle_option_and_params($params, $method, 'removeRepeated', $removeRepeated);
         $calls = 0;
         $result = array();
         $errors = 0;
@@ -7465,7 +7481,10 @@ class Exchange {
                 }
             }
         }
-        $uniqueResults = $this->remove_repeated_elements_from_array($result);
+        $uniqueResults = $result;
+        if ($removeRepeatedOption) {
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+        }
         $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
         return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
     }

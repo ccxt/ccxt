@@ -689,7 +689,7 @@ class mexc(Exchange, ImplicitAPI):
                 'broker': 'CCXT',
             },
             'features': {
-                'def': {
+                'default': {
                     'sandbox': False,
                     'createOrder': {
                         'marginMode': True,
@@ -757,10 +757,10 @@ class mexc(Exchange, ImplicitAPI):
                     },
                 },
                 'spot': {
-                    'extends': 'def',
+                    'extends': 'default',
                 },
                 'forDerivs': {
-                    'extends': 'def',
+                    'extends': 'default',
                     'createOrder': {
                         'triggerPrice': True,
                         'triggerPriceType': {

@@ -3381,7 +3381,7 @@ class bitfinex extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_open_interests($response, $market, $since, $limit);
+        return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
     public function parse_open_interest($interest, ?array $market = null) {

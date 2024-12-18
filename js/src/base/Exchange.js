@@ -1427,6 +1427,7 @@ export default class Exchange {
                 'fetchOHLCV': undefined,
                 'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
+                'fetchOpenInterests': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
@@ -2260,6 +2261,9 @@ export default class Exchange {
     }
     async fetchOpenInterest(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
     }
     async signIn(params = {}) {
         throw new NotSupported(this.id + ' signIn() is not supported yet');
@@ -5716,6 +5720,14 @@ export default class Exchange {
         }
         return result;
     }
+    parseOpenInterests(response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseOpenInterest(response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
     parseLongShortRatio(info, market = undefined) {
         throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -5825,7 +5837,7 @@ export default class Exchange {
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
     }
-    parseOpenInterests(response, market = undefined, since = undefined, limit = undefined) {
+    parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -6177,7 +6189,7 @@ export default class Exchange {
         }
         return [maxEntriesPerRequest, params];
     }
-    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
         let maxCalls = undefined;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6185,6 +6197,8 @@ export default class Exchange {
         let paginationDirection = undefined;
         [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
+        let removeRepeatedOption = removeRepeated;
+        [removeRepeatedOption, params] = this.handleOptionAndParams(params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result = [];
         let errors = 0;
@@ -6255,7 +6269,10 @@ export default class Exchange {
                 }
             }
         }
-        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        let uniqueResults = result;
+        if (removeRepeatedOption) {
+            uniqueResults = this.removeRepeatedElementsFromArray(result);
+        }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }

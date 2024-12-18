@@ -8780,7 +8780,7 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data");
         object tick = this.safeList(data, "tick");
-        return this.parseOpenInterests(tick, market, since, limit);
+        return this.parseOpenInterestsHistory(tick, market, since, limit);
     }
 
     /**

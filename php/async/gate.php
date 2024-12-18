@@ -6977,7 +6977,7 @@ class gate extends Exchange {
             //        ...
             //    )
             //
-            return $this->parse_open_interests($response, $market, $since, $limit);
+            return $this->parse_open_interests_history($response, $market, $since, $limit);
         }) ();
     }
 

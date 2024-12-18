@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.40'
+__version__ = '4.4.41'
 
 # -----------------------------------------------------------------------------
 
@@ -1940,6 +1940,7 @@ class Exchange(object):
                 'fetchOHLCV': None,
                 'fetchOHLCVWs': None,
                 'fetchOpenInterest': None,
+                'fetchOpenInterests': None,
                 'fetchOpenInterestHistory': None,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': None,
@@ -2690,6 +2691,9 @@ class Exchange(object):
 
     def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
 
     def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
@@ -5639,6 +5643,13 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
+    def parse_open_interests(self, response, market: Market = None):
+        result = {}
+        for i in range(0, len(response)):
+            parsed = self.parse_open_interest(response[i], market)
+            result[parsed['symbol']] = parsed
+        return result
+
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
@@ -5733,7 +5744,7 @@ class Exchange(object):
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
-    def parse_open_interests(self, response, market=None, since: Int = None, limit: Int = None):
+    def parse_open_interests_history(self, response, market=None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -6029,7 +6040,7 @@ class Exchange(object):
             maxEntriesPerRequest = 1000  # default to 1000
         return [maxEntriesPerRequest, params]
 
-    def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None):
+    def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -6037,6 +6048,8 @@ class Exchange(object):
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
+        removeRepeatedOption = removeRepeated
+        removeRepeatedOption, params = self.handle_option_and_params(params, method, 'removeRepeated', removeRepeated)
         calls = 0
         result = []
         errors = 0
@@ -6090,7 +6103,9 @@ class Exchange(object):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        uniqueResults = self.remove_repeated_elements_from_array(result)
+        uniqueResults = result
+        if removeRepeatedOption:
+            uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 

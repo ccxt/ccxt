@@ -48,6 +48,7 @@ class bingx extends bingx$1 {
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -70,6 +71,7 @@ class bingx extends bingx$1 {
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -1037,7 +1039,7 @@ class bingx extends bingx$1 {
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.max(since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -7398,7 +7398,7 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_open_interests($data, null, $since, $limit);
+        return $this->parse_open_interests_history($data, null, $since, $limit);
     }
 
     public function parse_open_interest($interest, ?array $market = null) {

@@ -51,6 +51,7 @@ export default class bingx extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -73,6 +74,7 @@ export default class bingx extends Exchange {
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -1040,7 +1042,7 @@ export default class bingx extends Exchange {
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.max(since - 1, 0);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
