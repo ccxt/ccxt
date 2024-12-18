@@ -1173,11 +1173,11 @@ export default class coinsph extends Exchange {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1417,9 +1417,9 @@ export default class coinsph extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const trades = this.safeValue (order, 'fills', undefined);
-        let stopPrice = this.safeString (order, 'stopPrice');
-        if (Precise.stringEq (stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString (order, 'stopPrice');
+        if (Precise.stringEq (triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder ({
             'id': id,
@@ -1433,8 +1433,7 @@ export default class coinsph extends Exchange {
             'timeInForce': this.parseOrderTimeInForce (this.safeString (order, 'timeInForce')),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
             'price': this.safeString (order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString (order, 'origQty'),
             'cost': this.safeString (order, 'cummulativeQuoteQty'),

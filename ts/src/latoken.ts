@@ -1088,7 +1088,6 @@ export default class latoken extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'condition'));
-        const triggerPrice = this.safeString (order, 'stopPrice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1103,8 +1102,7 @@ export default class latoken extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString (order, 'stopPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
