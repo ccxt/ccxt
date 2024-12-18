@@ -45,6 +45,8 @@ jobs:
         with:
           name: js-files
           path: js/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
       - name: Live tests
         run: ./run-tests-simul.sh --js
 
