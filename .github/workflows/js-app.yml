@@ -30,12 +30,24 @@ jobs:
       - name: Response Tests
         run: npm run response-js
 
-
       - name: Upload Js Files
         uses: actions/upload-artifact@v4
         with:
           name: js-files
           path: js/
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+      - name: Live tests
+        run: ./run-tests-simul.sh --js
+
+
 
 
 
