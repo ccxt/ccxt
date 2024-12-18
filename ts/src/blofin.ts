@@ -280,10 +280,18 @@ export default class blofin extends Exchange {
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
@@ -1017,8 +1025,8 @@ export default class blofin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const accountType = this.safeString2 (params, 'accountType', 'type');
-        params = this.omit (params, [ 'accountType', 'type' ]);
+        let accountType = undefined;
+        [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type');
         const request: Dict = {
         };
         let response = undefined;
