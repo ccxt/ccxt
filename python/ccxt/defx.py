@@ -1156,7 +1156,7 @@ class defx(Exchange, ImplicitAPI):
             'type': orderType,
         }
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         isMarket = orderType == 'MARKET'
         isLimit = orderType == 'LIMIT'
         timeInForce = self.safe_string_upper(params, 'timeInForce')
@@ -1171,7 +1171,7 @@ class defx(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
-        if stopPrice is not None or takeProfitPrice is not None:
+        if triggerPrice is not None or takeProfitPrice is not None:
             request['workingType'] = 'MARK_PRICE'
             if takeProfitPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
@@ -1180,7 +1180,7 @@ class defx(Exchange, ImplicitAPI):
                 else:
                     request['type'] = 'TAKE_PROFIT_LIMIT'
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if isMarket:
                     request['type'] = 'STOP_MARKET'
                 else:
@@ -1267,12 +1267,12 @@ class defx(Exchange, ImplicitAPI):
         average = self.omit_zero(self.safe_string(order, 'avgPrice'))
         timeInForce = self.safe_string_lower(order, 'timeInForce')
         takeProfitPrice: Str = None
-        stopPrice: Str = None
+        triggerPrice: Str = None
         if orderType is not None:
             if orderType.find('take_profit') >= 0:
                 takeProfitPrice = self.safe_string(order, 'stopPrice')
             else:
-                stopPrice = self.safe_string(order, 'stopPrice')
+                triggerPrice = self.safe_string(order, 'stopPrice')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updatedAt'))
         return self.safe_order({
@@ -1290,8 +1290,7 @@ class defx(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': None,
             'average': average,

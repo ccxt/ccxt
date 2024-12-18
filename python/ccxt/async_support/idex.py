@@ -1098,7 +1098,6 @@ class idex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1163,11 +1162,12 @@ class idex(Exchange, ImplicitAPI):
             'takeProfit': 5,
             'takeProfitLimit': 6,
         }
-        stopPriceString = None
-        if (type == 'stopLossLimit') or (type == 'takeProfitLimit') or ('stopPrice' in params):
-            if not ('stopPrice' in params):
-                raise BadRequest(self.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders')
-            stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
+        triggerPrice = self.safe_string(params, 'triggerPrice', 'stopPrice')
+        triggerPriceString = None
+        if (type == 'stopLossLimit') or (type == 'takeProfitLimit'):
+            if triggerPrice is None:
+                raise BadRequest(self.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders')
+            triggerPriceString = self.price_to_precision(symbol, triggerPrice)
         limitTypeEnums: dict = {
             'limit': 1,
             'limitMaker': 2,
@@ -1245,7 +1245,7 @@ class idex(Exchange, ImplicitAPI):
             encodedPrice = self.encode(priceString)
             byteArray.append(encodedPrice)
         if type in stopLossTypeEnums:
-            encodedPrice = self.encode(stopPriceString or priceString)
+            encodedPrice = self.encode(triggerPriceString or priceString)
             byteArray.append(encodedPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1275,7 +1275,7 @@ class idex(Exchange, ImplicitAPI):
         if limitOrder:
             request['parameters']['price'] = priceString
         if type in stopLossTypeEnums:
-            request['parameters']['stopPrice'] = stopPriceString or priceString
+            request['parameters']['stopPrice'] = triggerPriceString or priceString
         if amountEnum == 0:
             request['parameters']['quantity'] = amountString
         else:

@@ -5262,7 +5262,6 @@ class htx extends htx$1 {
                 'currency': feeCurrency,
             };
         }
-        const stopPrice = this.safeString2(order, 'stop-price', 'trigger_price');
         const average = this.safeString(order, 'trade_avg_price');
         const trades = this.safeValue(order, 'trades');
         const reduceOnlyInteger = this.safeInteger(order, 'reduce_only');
@@ -5283,8 +5282,7 @@ class htx extends htx$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString2(order, 'stop-price', 'trigger_price'),
             'average': average,
             'cost': cost,
             'amount': amount,

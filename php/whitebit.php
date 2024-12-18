@@ -1302,8 +1302,8 @@ class whitebit extends Exchange {
         $marketType = $this->safe_string($market, 'type');
         $isLimitOrder = $type === 'limit';
         $isMarketOrder = $type === 'market';
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($triggerPrice !== null);
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
@@ -1316,7 +1316,7 @@ class whitebit extends Exchange {
         $useCollateralEndpoint = $marginMode !== null || $marketType === 'swap';
         $response = null;
         if ($isStopOrder) {
-            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1387,11 +1387,11 @@ class whitebit extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         }
         $isLimitOrder = $type === 'limit';
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'activation_price' ));
+        $isStopOrder = ($triggerPrice !== null);
         $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice' ));
         if ($isStopOrder) {
-            $request['activation_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['activation_price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($isLimitOrder) {
                 // stop limit order
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1784,7 +1784,7 @@ class whitebit extends Exchange {
             $clientOrderId = null;
         }
         $price = $this->safe_string($order, 'price');
-        $stopPrice = $this->safe_number($order, 'activation_price');
+        $triggerPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
         $orderType = $this->parse_order_type($type);
@@ -1820,8 +1820,7 @@ class whitebit extends Exchange {
             'side' => $side,
             'price' => $price,
             'type' => $orderType,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

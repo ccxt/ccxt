@@ -2012,7 +2012,6 @@ class coinex extends Exchange {
             'reduceOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'trigger_price'),
             'triggerPrice' => $this->safe_string($order, 'trigger_price'),
             'takeProfitPrice' => $this->safe_number($order, 'take_profit_price'),
             'stopLossPrice' => $this->safe_number($order, 'stop_loss_price'),
@@ -2055,7 +2054,7 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
@@ -2109,8 +2108,8 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                if ($stopPrice !== null) {
-                    $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+                if ($triggerPrice !== null) {
+                    $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                     $request['trigger_price_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
             }
@@ -2143,8 +2142,8 @@ class coinex extends Exchange {
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
-            if ($stopPrice !== null) {
-                $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($triggerPrice !== null) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
         $params = $this->omit($params, array( 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));

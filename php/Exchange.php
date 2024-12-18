@@ -6701,57 +6701,57 @@ class Exchange {
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
+    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         if (!$this->has['createStopOrder']) {
             throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
         }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
+        if ($triggerPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
+    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
         if (!$this->has['createStopOrderWs']) {
             throw new NotSupported($this->id . ' createStopOrderWs() is not supported yet');
         }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a $stopPrice argument');
+        if ($triggerPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a stopPrice argument');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
+    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
         if (!$this->has['createStopLimitOrder']) {
             throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
+    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
         if (!$this->has['createStopLimitOrderWs']) {
             throw new NotSupported($this->id . ' createStopLimitOrderWs() is not supported yet');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order_ws($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_market_order(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
+    public function create_stop_market_order(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
         if (!$this->has['createStopMarketOrder']) {
             throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 
-    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
+    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
         if (!$this->has['createStopMarketOrderWs']) {
             throw new NotSupported($this->id . ' createStopMarketOrderWs() is not supported yet');
         }
-        $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+        $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
         return $this->create_order_ws($symbol, 'market', $side, $amount, null, $query);
     }
 

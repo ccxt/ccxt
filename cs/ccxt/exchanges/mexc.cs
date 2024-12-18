@@ -2404,12 +2404,12 @@ public partial class mexc : Exchange
         {
             ((IDictionary<string,object>)request)["externalOid"] = clientOrderId;
         }
-        object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
-        if (isTrue(stopPrice))
+        if (isTrue(triggerPrice))
         {
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = this.safeInteger(parameters, "triggerType", 1);
             ((IDictionary<string,object>)request)["executeCycle"] = this.safeInteger(parameters, "executeCycle", 1);
             ((IDictionary<string,object>)request)["trend"] = this.safeInteger(parameters, "trend", 1);
@@ -3497,7 +3497,6 @@ public partial class mexc : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
             { "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
             { "average", this.safeNumber(order, "dealAvgPrice") },
             { "amount", this.safeNumber2(order, "origQty", "vol") },

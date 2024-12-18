@@ -267,7 +267,6 @@ class coincheck extends coincheck$1 {
             'status': status,
             'symbol': symbol,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'fee': undefined,

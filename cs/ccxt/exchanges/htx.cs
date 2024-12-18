@@ -5374,7 +5374,6 @@ public partial class htx : Exchange
                 { "currency", feeCurrency },
             };
         }
-        object stopPrice = this.safeString2(order, "stop-price", "trigger_price");
         object average = this.safeString(order, "trade_avg_price");
         object trades = this.safeValue(order, "trades");
         object reduceOnlyInteger = this.safeInteger(order, "reduce_only");
@@ -5396,8 +5395,7 @@ public partial class htx : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString2(order, "stop-price", "trigger_price") },
             { "average", average },
             { "cost", cost },
             { "amount", amount },

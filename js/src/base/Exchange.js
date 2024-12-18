@@ -5507,52 +5507,52 @@ export default class Exchange {
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopOrder(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
             throw new NotSupported(this.id + ' createStopOrder() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
-    async createStopOrderWs(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrderWs']) {
             throw new NotSupported(this.id + ' createStopOrderWs() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'limit', side, amount, price, query);
     }
-    async createStopLimitOrderWs(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrderWs']) {
             throw new NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
     }
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
             throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
-    async createStopMarketOrderWs(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrderWs']) {
             throw new NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     safeCurrencyCode(currencyId, currency = undefined) {

@@ -1530,7 +1530,7 @@ class exmo extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @param {string} [$params->timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
              * @param {boolean} [$params->postOnly] *spot only* true for post only orders
              * @param {float} [$params->cost] *spot only* *$market orders only* the $cost of the order in the quote currency for $market orders
@@ -2065,7 +2065,6 @@ class exmo extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'cost' => $cost,
             'amount' => $amount,

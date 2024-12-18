@@ -835,7 +835,6 @@ class oceanex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_value(order, 'side'),
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': average,
             'amount': amount,

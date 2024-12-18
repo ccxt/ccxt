@@ -2355,7 +2355,7 @@ class hitbtc extends Exchange {
                 $request['type'] = 'stopMarket';
             }
         } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
-            throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ExchangeError($this->id . ' createOrder() requires a $triggerPrice parameter for stop-loss and take-profit orders');
         }
         $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
         if ($marketType === 'swap') {
@@ -2470,7 +2470,6 @@ class hitbtc extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_value($order, 'trades');
-        $stopPrice = $this->safe_string($order, 'stop_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2494,8 +2493,7 @@ class hitbtc extends Exchange {
             'average' => $average,
             'trades' => $rawTrades,
             'fee' => null,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
         ), $market);

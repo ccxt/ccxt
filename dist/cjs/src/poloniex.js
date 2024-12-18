@@ -1149,7 +1149,6 @@ class poloniex extends poloniex$1 {
             };
         }
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const triggerPrice = this.safeString2(order, 'triggerPrice', 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1164,8 +1163,7 @@ class poloniex extends poloniex$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'stopPrice'),
             'cost': undefined,
             'average': this.safeString(order, 'avgPrice'),
             'amount': amount,

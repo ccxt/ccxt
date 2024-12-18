@@ -1153,7 +1153,6 @@ public partial class hollaex : Exchange
         object type = this.safeString(order, "type");
         object side = this.safeString(order, "side");
         object price = this.safeString(order, "price");
-        object stopPrice = this.safeString(order, "stop");
         object amount = this.safeString(order, "size");
         object filled = this.safeString(order, "filled");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
@@ -1172,8 +1171,7 @@ public partial class hollaex : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "stop") },
             { "amount", amount },
             { "filled", filled },
             { "remaining", null },
@@ -1212,7 +1210,7 @@ public partial class hollaex : Exchange
             { "size", this.normalizeNumberIfNeeded(convertedAmount) },
             { "type", type },
         };
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
         object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         object isMarketOrder = isEqual(type, "market");
@@ -1222,9 +1220,9 @@ public partial class hollaex : Exchange
             object convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
             ((IDictionary<string,object>)request)["price"] = this.normalizeNumberIfNeeded(convertedPrice);
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop"] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, stopPrice)));
+            ((IDictionary<string,object>)request)["stop"] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
         }
         if (isTrue(postOnly))
         {

@@ -1977,7 +1977,6 @@ class coinex(Exchange, ImplicitAPI):
             'reduceOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'trigger_price'),
             'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
@@ -2017,7 +2016,7 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         option = self.safe_string(params, 'option')
@@ -2062,8 +2061,8 @@ class coinex(Exchange, ImplicitAPI):
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-                if stopPrice is not None:
-                    request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+                if triggerPrice is not None:
+                    request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
                     request['trigger_price_type'] = self.safe_string(params, 'stop_type', 'latest_price')
         else:
             marginMode = None
@@ -2090,8 +2089,8 @@ class coinex(Exchange, ImplicitAPI):
                     request['amount'] = self.cost_to_precision(symbol, amount)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            if stopPrice is not None:
-                request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+            if triggerPrice is not None:
+                request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
         params = self.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 

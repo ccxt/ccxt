@@ -3625,7 +3625,6 @@ class hashkey extends hashkey$1 {
         if (feeCurrncyId === '') {
             feeCurrncyId = undefined;
         }
-        const triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         return this.safeOrder({
             'id': this.safeString(order, 'orderId'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
@@ -3643,8 +3642,7 @@ class hashkey extends hashkey$1 {
             'amount': this.omitZero(this.safeString(order, 'origQty')),
             'filled': this.safeString(order, 'executedQty'),
             'remaining': undefined,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.omitZero(this.safeString(order, 'stopPrice')),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'cost': this.omitZero(this.safeString2(order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),

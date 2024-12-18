@@ -2374,7 +2374,7 @@ class hitbtc extends hitbtc$1 {
             }
         }
         else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new errors.ExchangeError(this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
         if (marketType === 'swap') {
@@ -2487,7 +2487,6 @@ class hitbtc extends hitbtc$1 {
         const postOnly = this.safeValue(order, 'post_only');
         const timeInForce = this.safeString(order, 'time_in_force');
         const rawTrades = this.safeValue(order, 'trades');
-        const stopPrice = this.safeString(order, 'stop_price');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2511,8 +2510,7 @@ class hitbtc extends hitbtc$1 {
             'average': average,
             'trades': rawTrades,
             'fee': undefined,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);

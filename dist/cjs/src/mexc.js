@@ -2540,11 +2540,11 @@ class mexc extends mexc$1 {
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
-        if (stopPrice) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        if (triggerPrice) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
             request['trend'] = this.safeInteger(params, 'trend', 1);
@@ -3599,7 +3599,6 @@ class mexc extends mexc$1 {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
             'amount': this.safeNumber2(order, 'origQty', 'vol'),

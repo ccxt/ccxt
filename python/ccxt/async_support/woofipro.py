@@ -1162,7 +1162,7 @@ class woofipro(Exchange, ImplicitAPI):
         fee = self.safe_value_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
-        stopPrice = self.safe_number(order, 'triggerPrice')
+        triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice: Num = None
         stopLossPrice: Num = None
         childOrders = self.safe_value(order, 'childOrders')
@@ -1191,8 +1191,7 @@ class woofipro(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,
@@ -1260,11 +1259,11 @@ class woofipro(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': orderSide,
         }
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
-        isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1290,8 +1289,8 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        if stopPrice is not None:
-            request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+        if triggerPrice is not None:
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['algo_type'] = 'STOP'
         elif (stopLoss is not None) or (takeProfit is not None):
             request['algo_type'] = 'TP_SL'
@@ -1352,10 +1351,10 @@ class woofipro(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isConditional:
             response = await self.v1PrivatePostAlgoOrder(request)
@@ -1414,10 +1413,10 @@ class woofipro(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
-            stopPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
+            triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_value(orderParams, 'stopLoss')
             takeProfit = self.safe_value(orderParams, 'takeProfit')
-            isConditional = stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
+            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
             if isConditional:
                 raise NotSupported(self.id + 'createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
@@ -1471,10 +1470,10 @@ class woofipro(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': id,
         }
-        stopPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
-        if stopPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isConditional = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        isConditional = (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         orderQtyKey = 'quantity' if isConditional else 'order_quantity'
         priceKey = 'price' if isConditional else 'order_price'
         if price is not None:

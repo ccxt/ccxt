@@ -3156,7 +3156,6 @@ class kucoin extends kucoin$1 {
         if (responseStatus === 'fail') {
             status = 'rejected';
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
@@ -3168,8 +3167,7 @@ class kucoin extends kucoin$1 {
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'cost': this.safeString(order, 'dealFunds'),
             'filled': this.safeString(order, 'dealSize'),
             'remaining': undefined,

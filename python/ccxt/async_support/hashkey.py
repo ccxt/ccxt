@@ -3477,7 +3477,6 @@ class hashkey(Exchange, ImplicitAPI):
         feeCurrncyId = self.safe_string(order, 'feeCoin')
         if feeCurrncyId == '':
             feeCurrncyId = None
-        triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -3495,8 +3494,7 @@ class hashkey(Exchange, ImplicitAPI):
             'amount': self.omit_zero(self.safe_string(order, 'origQty')),
             'filled': self.safe_string(order, 'executedQty'),
             'remaining': None,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.omit_zero(self.safe_string(order, 'stopPrice')),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'cost': self.omit_zero(self.safe_string_2(order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),

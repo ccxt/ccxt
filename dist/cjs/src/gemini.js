@@ -1344,7 +1344,6 @@ class gemini extends gemini$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': average,
             'cost': undefined,
@@ -1478,13 +1477,13 @@ class gemini extends gemini$1 {
         };
         type = this.safeString(params, 'type', type);
         params = this.omit(params, 'type');
-        const rawStopPrice = this.safeString2(params, 'stop_price', 'stopPrice');
+        const triggerPrice = this.safeStringN(params, ['stop_price', 'stopPrice']);
         params = this.omit(params, ['stop_price', 'stopPrice', 'type']);
         if (type === 'stopLimit') {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
         }
-        if (rawStopPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(symbol, rawStopPrice);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             request['type'] = 'exchange stop limit';
         }
         else {

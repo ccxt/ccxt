@@ -1298,7 +1298,7 @@ class wavesexchange extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of $base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] The $price at which a stop order is triggered at
+         * @param {float} [$params->triggerPrice] The $price at which a stop order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->check_required_dependencies();
@@ -1309,8 +1309,8 @@ class wavesexchange extends Exchange {
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
         $isMarketOrder = ($type === 'market');
-        $stopPrice = $this->safe_float_2($params, 'triggerPrice', 'stopPrice');
-        $isStopOrder = ($stopPrice !== null);
+        $triggerPrice = $this->safe_float_2($params, 'triggerPrice', 'stopPrice');
+        $isStopOrder = ($triggerPrice !== null);
         if (($isMarketOrder) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
         }
@@ -1415,7 +1415,7 @@ class wavesexchange extends Exchange {
                 'c' => array(
                     't' => 'sp',
                     'v' => array(
-                        'p' => $this->to_real_symbol_price($symbol, $stopPrice),
+                        'p' => $this->to_real_symbol_price($symbol, $triggerPrice),
                     ),
                 ),
             );
@@ -1812,7 +1812,6 @@ class wavesexchange extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,

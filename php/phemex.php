@@ -2261,7 +2261,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -2276,8 +2276,7 @@ class phemex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2427,7 +2426,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
+        $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
         $postOnly = ($timeInForce === 'PO');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $execInst = $this->safe_string($order, 'execInst');
@@ -2464,8 +2463,7 @@ class phemex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfit,
             'stopLossPrice' => $stopLoss,
             'amount' => $amount,
@@ -2851,12 +2849,12 @@ class phemex extends Exchange {
                 $request['baseQtyEV'] = $this->to_ev($amount, $market);
             }
         }
-        $stopPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
-        if ($stopPrice !== null) {
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+        if ($triggerPrice !== null) {
             if ($isUSDTSettled) {
-                $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPxRp'] = $this->price_to_precision($symbol, $triggerPrice);
             } else {
-                $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+                $request['stopPxEp'] = $this->to_ep($triggerPrice, $market);
             }
         }
         $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));

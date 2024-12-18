@@ -1418,7 +1418,6 @@ class ascendex extends ascendex$1 {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,

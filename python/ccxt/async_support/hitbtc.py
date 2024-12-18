@@ -2254,7 +2254,7 @@ class hitbtc(Exchange, ImplicitAPI):
             elif type == 'market':
                 request['type'] = 'stopMarket'
         elif (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
-            raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
+            raise ExchangeError(self.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders')
         params = self.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly'])
         if marketType == 'swap':
             # set default margin mode to cross
@@ -2363,7 +2363,6 @@ class hitbtc(Exchange, ImplicitAPI):
         postOnly = self.safe_value(order, 'post_only')
         timeInForce = self.safe_string(order, 'time_in_force')
         rawTrades = self.safe_value(order, 'trades')
-        stopPrice = self.safe_string(order, 'stop_price')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2387,8 +2386,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'average': average,
             'trades': rawTrades,
             'fee': None,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'takeProfitPrice': None,
             'stopLossPrice': None,
         }, market)

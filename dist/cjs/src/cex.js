@@ -1087,7 +1087,7 @@ class cex extends cex$1 {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': this.safeNumber(order, 'averagePrice'),

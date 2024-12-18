@@ -978,7 +978,7 @@ export default class woo extends Exchange {
         if (marginMode !== undefined) {
             request['margin_mode'] = this.encodeMarginMode(marginMode);
         }
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
@@ -988,7 +988,7 @@ export default class woo extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isConditional = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1058,9 +1058,9 @@ export default class woo extends Exchange {
                 request['callbackRate'] = convertedTrailingPercent;
             }
         }
-        else if (stopPrice !== undefined) {
+        else if (triggerPrice !== undefined) {
             if (algoType !== 'TRAILING_STOP') {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
                 request['algoType'] = 'STOP';
             }
         }
@@ -1185,9 +1185,9 @@ export default class woo extends Exchange {
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
-        if (stopPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
@@ -1208,7 +1208,7 @@ export default class woo extends Exchange {
             }
         }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
-        const isConditional = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1645,7 +1645,7 @@ export default class woo extends Exchange {
         const fee = this.safeNumber2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue(order, 'Transactions');
-        const stopPrice = this.safeNumber(order, 'triggerPrice');
+        const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
         const childOrders = this.safeValue(order, 'childOrders');
@@ -1676,8 +1676,7 @@ export default class woo extends Exchange {
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,

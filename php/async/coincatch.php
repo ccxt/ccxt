@@ -4193,7 +4193,6 @@ class coincatch extends Exchange {
             'amount' => $amount,
             'filled' => $this->safe_string_2($order, 'fillQuantity', 'filledQty'),
             'remaining' => null,
-            'stopPrice' => null,
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,

@@ -1978,7 +1978,6 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeString(details, "side") },
             { "price", price },
-            { "stopPrice", this.safeString(details, "triggerPrice") },
             { "triggerPrice", this.safeString(details, "triggerPrice") },
             { "amount", amount },
             { "cost", cost },

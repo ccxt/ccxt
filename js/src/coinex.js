@@ -2007,7 +2007,6 @@ export default class coinex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'trigger_price'),
             'triggerPrice': this.safeString(order, 'trigger_price'),
             'takeProfitPrice': this.safeNumber(order, 'take_profit_price'),
             'stopLossPrice': this.safeNumber(order, 'stop_loss_price'),
@@ -2048,7 +2047,7 @@ export default class coinex extends Exchange {
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
-        const stopPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const option = this.safeString(params, 'option');
@@ -2107,8 +2106,8 @@ export default class coinex extends Exchange {
             }
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
-                if (stopPrice !== undefined) {
-                    request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+                if (triggerPrice !== undefined) {
+                    request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
                     request['trigger_price_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
             }
@@ -2146,8 +2145,8 @@ export default class coinex extends Exchange {
             else {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
-            if (stopPrice !== undefined) {
-                request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+            if (triggerPrice !== undefined) {
+                request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         params = this.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);

@@ -3557,7 +3557,6 @@ public partial class hashkey : Exchange
         {
             feeCurrncyId = null;
         }
-        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", this.safeString(order, "clientOrderId") },
@@ -3575,8 +3574,7 @@ public partial class hashkey : Exchange
             { "amount", this.omitZero(this.safeString(order, "origQty")) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },

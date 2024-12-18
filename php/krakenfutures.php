@@ -1889,7 +1889,6 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
-            'stopPrice' => $this->safe_string($details, 'triggerPrice'),
             'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
             'amount' => $amount,
             'cost' => $cost,

@@ -3637,7 +3637,6 @@ class hashkey extends Exchange {
         if ($feeCurrncyId === '') {
             $feeCurrncyId = null;
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
@@ -3655,8 +3654,7 @@ class hashkey extends Exchange {
             'amount' => $this->omit_zero($this->safe_string($order, 'origQty')),
             'filled' => $this->safe_string($order, 'executedQty'),
             'remaining' => null,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->omit_zero($this->safe_string($order, 'stopPrice')),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'cost' => $this->omit_zero($this->safe_string_2($order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),

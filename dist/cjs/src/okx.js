@@ -3845,7 +3845,6 @@ class okx extends okx$1 {
         }
         const stopLossPrice = this.safeNumber2(order, 'slTriggerPx', 'slOrdPx');
         const takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
-        const stopPrice = this.safeNumberN(order, ['triggerPx', 'moveTriggerPx']);
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         let reduceOnly = false;
         if (reduceOnly !== undefined) {
@@ -3867,8 +3866,7 @@ class okx extends okx$1 {
             'price': price,
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumberN(order, ['triggerPx', 'moveTriggerPx']),
             'average': average,
             'cost': cost,
             'amount': amount,

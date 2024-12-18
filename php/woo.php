@@ -955,9 +955,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -982,7 +982,7 @@ class woo extends Exchange {
         if ($marginMode !== null) {
             $request['margin_mode'] = $this->encode_margin_mode($marginMode);
         }
-        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
@@ -992,7 +992,7 @@ class woo extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-        $isConditional = $isTrailing || $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1055,9 +1055,9 @@ class woo extends Exchange {
                 $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
                 $request['callbackRate'] = $convertedTrailingPercent;
             }
-        } elseif ($stopPrice !== null) {
+        } elseif ($triggerPrice !== null) {
             if ($algoType !== 'TRAILING_STOP') {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['algoType'] = 'STOP';
             }
         } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
@@ -1182,9 +1182,9 @@ class woo extends Exchange {
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
-        if ($stopPrice !== null) {
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+        if ($triggerPrice !== null) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
@@ -1204,7 +1204,7 @@ class woo extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $isConditional = $isTrailing || ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
         if ($isByClientOrder) {
             $request['client_order_id'] = $clientOrderIdExchangeSpecific;
@@ -1638,7 +1638,7 @@ class woo extends Exchange {
         $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
+        $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
         $childOrders = $this->safe_value($order, 'childOrders');
@@ -1669,8 +1669,7 @@ class woo extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => $average,

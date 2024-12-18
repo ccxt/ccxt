@@ -1091,7 +1091,6 @@ public partial class onetrading : Exchange
         object side = this.safeStringLower(rawOrder, "side");
         object type = this.safeStringLower(rawOrder, "type");
         object timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        object stopPrice = this.safeNumber(rawOrder, "trigger_price");
         object postOnly = this.safeValue(rawOrder, "is_post_only");
         object rawTrades = this.safeValue(order, "trades", new List<object>() {});
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1107,8 +1106,7 @@ public partial class onetrading : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(rawOrder, "trigger_price") },
             { "amount", amount },
             { "cost", null },
             { "average", null },
