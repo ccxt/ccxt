@@ -561,6 +561,20 @@ export default class coinex extends Exchange {
                         'limit': 1000,
                     },
                 },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                    },
+                }
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
