@@ -637,6 +637,8 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
+                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 1,
@@ -1054,7 +1056,7 @@ class kucoin extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_time($params = array ()) {
@@ -1297,6 +1299,9 @@ class kucoin extends Exchange {
                 'created' => null,
                 'info' => $market,
             );
+        }
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
         }
         return $result;
     }

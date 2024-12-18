@@ -4174,6 +4174,8 @@ class xt(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
         interval = self.safe_string(contract, 'collectionInternal')
+        if interval is not None:
+            interval = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -4192,7 +4194,7 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': interval + 'h',
+            'interval': interval,
         }
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

@@ -4352,6 +4352,9 @@ class xt extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
         $interval = $this->safe_string($contract, 'collectionInternal');
+        if ($interval !== null) {
+            $interval = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4370,7 +4373,7 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $interval . 'h',
+            'interval' => $interval,
         );
     }
 

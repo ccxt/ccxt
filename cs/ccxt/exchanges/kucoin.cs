@@ -572,6 +572,8 @@ public partial class kucoin : Exchange
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "webApiEnable", true },
                     { "webApiRetries", 1 },
@@ -895,7 +897,7 @@ public partial class kucoin : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     /**
@@ -1106,6 +1108,10 @@ public partial class kucoin : Exchange
                 { "created", null },
                 { "info", market },
             });
+        }
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
         }
         return result;
     }

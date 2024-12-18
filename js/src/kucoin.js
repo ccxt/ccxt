@@ -643,6 +643,8 @@ export default class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchCurrencies': {
                     'webApiEnable': true,
                     'webApiRetries': 1,
@@ -1059,7 +1061,7 @@ export default class kucoin extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     /**
      * @method
@@ -1299,6 +1301,9 @@ export default class kucoin extends Exchange {
                 'created': undefined,
                 'info': market,
             });
+        }
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
         }
         return result;
     }

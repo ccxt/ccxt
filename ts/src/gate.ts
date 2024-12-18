@@ -6863,7 +6863,7 @@ export default class gate extends Exchange {
         //        ...
         //    ]
         //
-        return this.parseOpenInterests (response, market, since, limit);
+        return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {

@@ -4149,19 +4149,23 @@ class phemex extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.000001);
+        $markEp = $this->from_ep($this->safe_string($contract, 'markEp'), $market);
+        $indexEp = $this->from_ep($this->safe_string($contract, 'indexEp'), $market);
+        $fundingRateEr = $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market);
+        $nextFundingRateEr = $this->from_er($this->safe_string($contract, 'predFundingRateEr'), $market);
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->from_ep($this->safe_string_2($contract, 'markEp', 'markPriceRp'), $market),
-            'indexPrice' => $this->from_ep($this->safe_string_2($contract, 'indexEp', 'indexPriceRp'), $market),
+            'markPrice' => $this->safe_number($contract, 'markPriceRp', $markEp),
+            'indexPrice' => $this->safe_number($contract, 'indexPriceRp', $indexEp),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market),
+            'fundingRate' => $this->safe_number($contract, 'fundingRateRr', $fundingRateEr),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->from_er($this->safe_string_2($contract, 'predFundingRateEr', 'predFundingRateRr'), $market),
+            'nextFundingRate' => $this->safe_number($contract, 'predFundingRateRr', $nextFundingRateEr),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,

@@ -1865,7 +1865,7 @@ class bitmex extends bitmex$1 {
             postOnly = (execInst === 'ParticipateDoNotInitiate');
         }
         const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
-        const stopPrice = this.safeNumber(order, 'stopPx');
+        const triggerPrice = this.safeNumber(order, 'stopPx');
         const remaining = this.safeString(order, 'leavesQty');
         return this.safeOrder({
             'info': order,
@@ -1880,8 +1880,7 @@ class bitmex extends bitmex$1 {
             'postOnly': postOnly,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2035,7 +2034,7 @@ class bitmex extends bitmex$1 {
             else {
                 if (triggerPrice === undefined) {
                     // if exchange specific trigger types were provided
-                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
+                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type');
                 }
                 request['stopPx'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2629,7 +2628,7 @@ class bitmex extends bitmex$1 {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': this.parseToNumeric(this.iso8601(fundingDatetime)),
+            'fundingTimestamp': this.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,

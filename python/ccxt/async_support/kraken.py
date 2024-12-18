@@ -1621,6 +1621,37 @@ class kraken(Exchange, ImplicitAPI):
         #      }
         #  }
         #
+        # fetchOpenOrders
+        #
+        #      {
+        #         "refid": null,
+        #         "userref": null,
+        #         "cl_ord_id": "1234",
+        #         "status": "open",
+        #         "opentm": 1733815269.370054,
+        #         "starttm": 0,
+        #         "expiretm": 0,
+        #         "descr": {
+        #             "pair": "XBTUSD",
+        #             "type": "buy",
+        #             "ordertype": "limit",
+        #             "price": "70000.0",
+        #             "price2": "0",
+        #             "leverage": "none",
+        #             "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        #             "close": ""
+        #         },
+        #         "vol": "0.00010000",
+        #         "vol_exec": "0.00000000",
+        #         "cost": "0.00000",
+        #         "fee": "0.00000",
+        #         "price": "0.00000",
+        #         "stopprice": "0.00000",
+        #         "limitprice": "0.00000",
+        #         "misc": "",
+        #         "oflags": "fciq"
+        #     }
+        #
         description = self.safe_dict(order, 'descr', {})
         orderDescriptionObj = self.safe_dict(order, 'descr')  # can be null
         orderDescription = None
@@ -1694,7 +1725,8 @@ class kraken(Exchange, ImplicitAPI):
         if (id is None) or (id.startswith('[')):
             txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
-        clientOrderId = self.safe_string(order, 'userref')
+        userref = self.safe_string(order, 'userref')
+        clientOrderId = self.safe_string(order, 'cl_ord_id', userref)
         rawTrades = self.safe_value(order, 'trades', [])
         trades = []
         for i in range(0, len(rawTrades)):
@@ -1888,10 +1920,10 @@ class kraken(Exchange, ImplicitAPI):
         request: dict = {
             'txid': id,
         }
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cl_ord_id')
         if clientOrderId is not None:
             request['cl_ord_id'] = clientOrderId
-            params = self.omit(params, 'clientOrderId')
+            params = self.omit(params, ['clientOrderId', 'cl_ord_id'])
             request = self.omit(request, 'txid')
         isMarket = (type == 'market')
         postOnly = None
@@ -2158,20 +2190,27 @@ class kraken(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+        https://docs.kraken.com/api/docs/rest-api/cancel-order
 
         :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.clientOrderId]: the orders client order id
+        :param int [params.userref]: the orders user reference id
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         response = None
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)
+        requestId = self.safe_value(params, 'userref', id)  # string or integer
+        params = self.omit(params, 'userref')
         request: dict = {
-            'txid': clientOrderId,  # order id or userref
+            'txid': requestId,  # order id or userref
         }
-        params = self.omit(params, ['userref', 'clientOrderId'])
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cl_ord_id')
+        if clientOrderId is not None:
+            request['cl_ord_id'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'cl_ord_id'])
+            request = self.omit(request, 'txid')
         try:
             response = await self.privatePostCancelOrder(self.extend(request, params))
             #
@@ -2278,55 +2317,108 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
+        https://docs.kraken.com/api/docs/rest-api/get-open-orders
 
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the orders client order id
+        :param int [params.userref]: the orders user reference id
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        query = params
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        userref = self.safe_integer(params, 'userref')
+        if userref is not None:
+            request['userref'] = userref
+            params = self.omit(params, 'userref')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
-            request['userref'] = clientOrderId
-            query = self.omit(params, ['userref', 'clientOrderId'])
-        response = await self.privatePostOpenOrders(self.extend(request, query))
+            request['cl_ord_id'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+        response = await self.privatePostOpenOrders(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "open": {
+        #                 "O45M52-BFD5S-YXKQOU": {
+        #                     "refid": null,
+        #                     "userref": null,
+        #                     "cl_ord_id": "1234",
+        #                     "status": "open",
+        #                     "opentm": 1733815269.370054,
+        #                     "starttm": 0,
+        #                     "expiretm": 0,
+        #                     "descr": {
+        #                         "pair": "XBTUSD",
+        #                         "type": "buy",
+        #                         "ordertype": "limit",
+        #                         "price": "70000.0",
+        #                         "price2": "0",
+        #                         "leverage": "none",
+        #                         "order": "buy 0.00010000 XBTUSD @ limit 70000.0",
+        #                         "close": ""
+        #                     },
+        #                     "vol": "0.00010000",
+        #                     "vol_exec": "0.00000000",
+        #                     "cost": "0.00000",
+        #                     "fee": "0.00000",
+        #                     "price": "0.00000",
+        #                     "stopprice": "0.00000",
+        #                     "limitprice": "0.00000",
+        #                     "misc": "",
+        #                     "oflags": "fciq"
+        #                 }
+        #             }
+        #         }
+        #     }
+        #
         market = None
         if symbol is not None:
             market = self.market(symbol)
         result = self.safe_dict(response, 'result', {})
-        orders = self.safe_dict(result, 'open', {})
+        open = self.safe_dict(result, 'open', {})
+        orders = []
+        orderIds = list(open.keys())
+        for i in range(0, len(orderIds)):
+            id = orderIds[i]
+            item = open[id]
+            orders.append(self.extend({'id': id}, item))
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+        https://docs.kraken.com/api/docs/rest-api/get-closed-orders
 
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
+        :param str [params.clientOrderId]: the orders client order id
+        :param int [params.userref]: the orders user reference id
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        query = params
-        clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
+        userref = self.safe_integer(params, 'userref')
+        if userref is not None:
+            request['userref'] = userref
+            params = self.omit(params, 'userref')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
-            request['userref'] = clientOrderId
-            query = self.omit(params, ['userref', 'clientOrderId'])
+            request['cl_ord_id'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
         request, params = self.handle_until_option('end', request, params)
-        response = await self.privatePostClosedOrders(self.extend(request, query))
+        response = await self.privatePostClosedOrders(self.extend(request, params))
         #
         #     {
         #         "error":[],
@@ -2370,7 +2462,13 @@ class kraken(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         result = self.safe_dict(response, 'result', {})
-        orders = self.safe_dict(result, 'closed', {})
+        closed = self.safe_dict(result, 'closed', {})
+        orders = []
+        orderIds = list(closed.keys())
+        for i in range(0, len(orderIds)):
+            id = orderIds[i]
+            item = closed[id]
+            orders.append(self.extend({'id': id}, item))
         return self.parse_orders(orders, market, since, limit)
 
     def parse_transaction_status(self, status: Str):

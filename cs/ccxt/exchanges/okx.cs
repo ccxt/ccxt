@@ -247,6 +247,7 @@ public partial class okx : Exchange
                         { "tradingBot/public/rsi-back-testing", 1 },
                         { "asset/exchange-list", divide(5, 3) },
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
+                        { "finance/staking-defi/sol/apy-history", divide(5, 3) },
                         { "finance/savings/lending-rate-summary", divide(5, 3) },
                         { "finance/savings/lending-rate-history", divide(5, 3) },
                         { "finance/fixed-loan/lending-offers", divide(10, 3) },
@@ -374,6 +375,8 @@ public partial class okx : Exchange
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
                         { "finance/staking-defi/eth/product-info", 3 },
+                        { "finance/staking-defi/sol/balance", divide(5, 3) },
+                        { "finance/staking-defi/sol/purchase-redeem-history", divide(5, 3) },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
@@ -496,6 +499,8 @@ public partial class okx : Exchange
                         { "finance/staking-defi/cancel", 3 },
                         { "finance/staking-defi/eth/purchase", 5 },
                         { "finance/staking-defi/eth/redeem", 5 },
+                        { "finance/staking-defi/sol/purchase", 5 },
+                        { "finance/staking-defi/sol/redeem", 5 },
                         { "copytrading/algo-order", 1 },
                         { "copytrading/close-subposition", 1 },
                         { "copytrading/set-instruments", 4 },
@@ -7759,7 +7764,7 @@ public partial class okx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOpenInterests(data, null, since, limit);
+        return this.parseOpenInterestsHistory(data, null, since, limit);
     }
 
     public override object parseOpenInterest(object interest, object market = null)

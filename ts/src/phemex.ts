@@ -4113,19 +4113,23 @@ export default class phemex extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
+        const markEp = this.fromEp (this.safeString (contract, 'markEp'), market);
+        const indexEp = this.fromEp (this.safeString (contract, 'indexEp'), market);
+        const fundingRateEr = this.fromEr (this.safeString (contract, 'fundingRateEr'), market);
+        const nextFundingRateEr = this.fromEr (this.safeString (contract, 'predFundingRateEr'), market);
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.fromEp (this.safeString2 (contract, 'markEp', 'markPriceRp'), market),
-            'indexPrice': this.fromEp (this.safeString2 (contract, 'indexEp', 'indexPriceRp'), market),
+            'markPrice': this.safeNumber (contract, 'markPriceRp', markEp),
+            'indexPrice': this.safeNumber (contract, 'indexPriceRp', indexEp),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
+            'fundingRate': this.safeNumber (contract, 'fundingRateRr', fundingRateEr),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.fromEr (this.safeString2 (contract, 'predFundingRateEr', 'predFundingRateRr'), market),
+            'nextFundingRate': this.safeNumber (contract, 'predFundingRateRr', nextFundingRateEr),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,

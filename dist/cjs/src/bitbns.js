@@ -564,7 +564,6 @@ class bitbns extends bitbns$1 {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'rate'),
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': this.safeString(order, 'btc'),
             'cost': undefined,
