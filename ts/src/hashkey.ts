@@ -3209,11 +3209,6 @@ export default class hashkey extends Exchange {
             if (orderId !== undefined) {
                 request['orderId'] = orderId;
             }
-            let side: Str = undefined;
-            [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
-            if (side !== undefined) {
-                request['side'] = side.toUpperCase ();
-            }
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
             //
             //     [
