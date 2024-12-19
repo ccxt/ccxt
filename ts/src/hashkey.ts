@@ -381,29 +381,14 @@ export default class hashkey extends Exchange {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 500,
+                        'limit': 1000,
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOrders': {
-                        'marginMode': false,
-                        'limit': 500,
-                        'daysBack': undefined,
-                        'untilDays': 1000000,
-                        'trigger': false,
-                        'trailing': false,
-                    },
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': 500,
-                        'daysBackClosed': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 1000000,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
-                        'limit': 10000,
+                        'limit': 1000,
                     },
                 },
                 'spot': {
