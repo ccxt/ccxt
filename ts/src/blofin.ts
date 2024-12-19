@@ -905,7 +905,8 @@ export default class blofin extends Exchange {
     }
 
     parseBalanceByType (type, response) {
-        if (type === 'funding') {
+        const data = this.safeList (response, 'data');
+        if (Array.isArray (data)) {
             return this.parseFundingBalance (response);
         } else {
             return this.parseBalance (response);
