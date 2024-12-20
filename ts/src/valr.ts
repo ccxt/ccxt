@@ -10,17 +10,22 @@ import type {
     Currency,
     DepositAddress,
     Dict,
+    FundingRate,
+    FundingRates,
     int,
     Int,
     LedgerEntry,
     Market,
     Num,
+    OpenInterest,
     Order,
     OrderBook,
     OrderRequest,
     OrderSide,
     OrderType,
+    Position,
     Str,
+    Strings,
     Ticker,
     Tickers,
     Trade,
@@ -133,7 +138,7 @@ export default class valr extends Exchange {
                 'fetchFundingLimits': false,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': true,
                 'fetchGreeks': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchIsolatedBorrowRate': undefined,
@@ -173,8 +178,8 @@ export default class valr extends Exchange {
                 'fetchPermissions': true,
                 'fetchPosition': undefined,
                 'fetchPositionMode': undefined,
-                'fetchPositions': undefined,
-                'fetchPositionsForSymbol': undefined,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
@@ -242,9 +247,9 @@ export default class valr extends Exchange {
                         '{pair}/markprice/buckets',
                         '{pair}/trades', // fetchTrades
                         'futures/funding/history', // TODO fetchFundingRateHistory
+                        'futures/info', // fetchFundingRates
                         'time', // fetchTime
                         'status', // fetchStatus
-                        'futures/info', // TODO fetchFundingRates
                     ],
                 },
                 'private': {
@@ -294,13 +299,16 @@ export default class valr extends Exchange {
                         'staking/history',
                         'margin/status', // TODO fetchLeverages
                         'margin/account/status',
-                        'positions/open',
+                        'positions/open', // fetchPositions & fetchPositionsForSymbol
                         'positions/closed/summary',
                         'positions/closed',
                         'positions/history',
                         'positions/funding/history',
                         'borrows/{currency}/history', // fetchBorrowInterest
                         'loans/rates', // fetchCrossBorrowRates
+                        'loans/open',
+                        'loans/credit-history',
+                        'loans/update-history',
                     ],
                     'post': [
                         'account/subaccount',
@@ -312,18 +320,25 @@ export default class valr extends Exchange {
                         'simple/{pair}/order', // TODO createConvertTrade
                         'pay',
                         'orders/conditionals',
+                        'orders/conditionals/:currencyPair/history',
+                        'orders/conditionals/conditional/{pair}/orderid/{id}',
                         'orders/limit', // createOrder
                         'orders/market', // createOrder
                         'orders/stop/limit',
                         'batch/orders', // TODO createOrders
                         'staking/stake',
                         'staking/un-stake',
+                        'loans',
                     ],
                     'put': [
                         'account/subaccount',
                         'pay/transactionid/{id}/reverse',
                         'orders/modify', // editOrder
+                        'orders/conditionals/modify',
                         'margin/account/status',
+                        'loans/increase',
+                        'loans/rate',
+                        'loans/unlock',
                     ],
                     'delete': [
                         'account/subaccount',
@@ -333,6 +348,7 @@ export default class valr extends Exchange {
                         'orders/{pair}', // cancelAllOrders
                         'orders/conditionals/',
                         'orders/conditionals/{pair}',
+                        'loans/unlock',
                     ],
                 },
                 'privateV2': {
@@ -2229,6 +2245,134 @@ export default class valr extends Exchange {
             'toAccount': toAccountId ? toAccountId['id'] : toAccount,
             'status': 'ok',
             'info': transfer,
+        };
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        /**
+         * @method
+         * @name exchange#fetchOpenInterest
+         * @see https://docs.valr.com/#459c7c67-3c0f-494e-851b-2fd83cbff2da
+         * @description fetches information on open interest
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [open intrest structure]{@link https://docs.ccxt.com/#/README?id=open-interest-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetFuturesInfo (params);
+        const result = this.parseOpenInterests (response, symbol);
+        return this.filterBySymbol (result, symbol);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+        throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        /**
+         * @method
+         * @name exchange#fetchFundingRates
+         * @description fetches information on the next funding rate
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/README?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetFuturesInfo (params);
+        const result = this.parseFundingRates (response);
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+        // {'currencyPair': 'BTCZARPERP',
+        //     'estimatedFundingRate': '-0.00002',
+        //     'openInterest': '3.3416',
+        //     'nextFundingRun': '1729886400000',
+        //     'nextPnlRun': '1729886400000'}
+        const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingRun');
+        return {
+            'symbol': this.safeSymbol (this.safeString (contract, 'currencyPair')),
+            'info': contract,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingRate': this.safeNumber (contract, 'estimatedFundingRate'),
+            'interval': '1h',
+        };
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @param {object} [params.skip] number of items to skip from list
+         * @param {object} [params.limit] number of items to limit from list
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        const queryParams = {
+            'currencyPair': this.marketId (symbol),
+        };
+        return this.fetchPositions (this.extend (queryParams, params));
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.privateGetPositionsOpen (params);
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        // {
+        //     "pair": "BTCUSDTPERP",
+        //     "side": "buy",
+        //     "quantity": "0.0013",
+        //     "realisedPnl": "15.22299935",
+        //     "totalSessionEntryQuantity": "0.0013",
+        //     "totalSessionValue": "54.2438",
+        //     "sessionAverageEntryPrice": "41726",
+        //     "averageEntryPrice": "30001",
+        //     "unrealisedPnl": "0.2613",
+        //     "updatedAt": "2023-12-05T12:00:00.317Z",
+        //     "createdAt": "2023-11-14T19:41:44.936Z",
+        //     "positionId": "237a9503-b32b-5f40-28a9-03fe7ad510d4"
+        //   },
+        const timestamp = this.parseDate (this.safeString (position, 'createdAt'));
+        const side = this.safeString (position, 'side');
+        let positionSide = undefined;
+        if (side === 'buy') {
+            positionSide = 'long';
+        } else if (side === 'sell') {
+            positionSide = 'short';
+        }
+        return {
+            'symbol': this.safeSymbol (this.safeString (position, 'pair')),
+            'id': this.safeString (position, 'positionId'),
+            'info': position,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.safeNumber (position, 'quantity'),
+            'contractSize': this.safeNumber (position, 'totalSessionValue'),
+            'side': positionSide,
+            // notional?: number;
+            // leverage?: number;
+            'unrealizedPnl': this.safeNumber (position, 'unrealisedPnl'),
+            'realizedPnl': this.safeNumber (position, 'realisedPnl'),
+            // collateral?: number;
+            'entryPrice': this.safeNumber (position, 'averageEntryPrice'),
+            // markPrice?: number;
+            // liquidationPrice?: number;
+            // marginMode?: Str;
+            // hedged?: boolean;
+            // maintenanceMargin?: number;
+            // maintenanceMarginPercentage?: number;
+            // initialMargin?: number;
+            // initialMarginPercentage?: number;
+            // marginRatio?: number;
+            // lastUpdateTimestamp?: number;
+            // lastPrice?: number;
+            // stopLossPrice?: number;
+            // takeProfitPrice?: number;
+            // percentage?: number;
         };
     }
 
