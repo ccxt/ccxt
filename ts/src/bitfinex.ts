@@ -3279,7 +3279,8 @@ export default class bitfinex extends Exchange {
      * @method
      * @name bitfinex#fetchOpenInterests
      * @description Retrieves the open interest for a list of symbols
-     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
