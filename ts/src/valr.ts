@@ -1528,6 +1528,7 @@ export default class valr extends Exchange {
             'timestamp': timestamp,
             'datetime': this.safeString (trade, 'tradedAt'),
             'id': this.safeString (trade, 'id'),
+            'clientOrderId': this.safeString (trade, 'customerOrderId'),
             'order': this.safeString (trade, 'orderId'),
             'symbol': symbol,
             'type': (takerOrMaker === 'taker') ? 'market' : 'limit',

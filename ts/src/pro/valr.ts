@@ -626,7 +626,8 @@ export default class valr extends valrRest {
         //       "tradedAt": "2019-04-25T20:36:53.426Z",
         //       "side": "buy",
         //       "orderId":"d5a81b99-fabf-4be1-bc7c-1a00d476089d",
-        //       "id":"7a2b5560-5a71-4640-9e4b-d659ed26278a"
+        //       "id":"7a2b5560-5a71-4640-9e4b-d659ed26278a",
+        //       "customerOrderId": "Settlement-4610371000075637001"
         //     }
         //   }
         const marketId = this.safeString (message, 'currencyPairSymbol');
@@ -655,6 +656,7 @@ export default class valr extends valrRest {
             'timestamp': timestamp,
             'datetime': this.safeString (tradeMessage, 'tradedAt'),
             'id': this.safeString (tradeMessage, 'id'),
+            'clientOrderId': this.safeString (tradeMessage, 'customerOrderId'),
             'order': this.safeString (tradeMessage, 'orderId'),
             'symbol': symbol,
             'side': this.safeString (tradeMessage, 'side'),
