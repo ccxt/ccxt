@@ -10,7 +10,6 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
     const now = exchange.milliseconds ();
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
-        // for public trades, ensure it's only taker (or undefined)
         testSharedMethods.assertInArray (exchange, skippedProperties, method, trades[i], 'takerOrMaker', [ 'taker', undefined ]);
     }
     if (!('timestamp' in skippedProperties)) {
