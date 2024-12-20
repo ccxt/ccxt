@@ -1076,7 +1076,7 @@ export default class woo extends Exchange {
             };
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
-                const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossPrice = this.safeNumber (stopLoss, 'triggerPrice', stopLoss);
                 const stopLossOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1087,7 +1087,7 @@ export default class woo extends Exchange {
                 outterOrder['childOrders'].push (stopLossOrder);
             }
             if (takeProfit !== undefined) {
-                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', takeProfit);
                 const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
