@@ -1483,7 +1483,6 @@ public partial class ascendex : Exchange
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },

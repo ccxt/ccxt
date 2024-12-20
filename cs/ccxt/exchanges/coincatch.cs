@@ -4406,7 +4406,6 @@ public partial class coincatch : Exchange
             { "amount", amount },
             { "filled", this.safeString2(order, "fillQuantity", "filledQty") },
             { "remaining", null },
-            { "stopPrice", null },
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },

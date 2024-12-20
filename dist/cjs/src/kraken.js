@@ -1894,7 +1894,6 @@ class kraken extends kraken$1 {
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,

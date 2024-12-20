@@ -1361,7 +1361,7 @@ class ndax extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'Side'),
             'price' => $this->safe_string($order, 'Price'),
-            'stopPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
+            'triggerPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
             'cost' => $this->safe_string($order, 'GrossValueExecuted'),
             'amount' => $this->safe_string($order, 'OrigQuantity'),
             'filled' => $this->safe_string($order, 'QuantityExecuted'),

@@ -1167,7 +1167,6 @@ export default class probit extends Exchange {
             'side': side,
             'status': status,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'filled': filled,

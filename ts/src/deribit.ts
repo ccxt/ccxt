@@ -1825,7 +1825,6 @@ export default class deribit extends Exchange {
         // injected in createOrder
         const trades = this.safeValue (order, 'trades');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
         return this.safeOrder ({
             'info': order,
@@ -1840,8 +1839,7 @@ export default class deribit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeValue (order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,

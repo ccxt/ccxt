@@ -1413,7 +1413,6 @@ public partial class gemini : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "average", average },
             { "cost", null },
@@ -1558,15 +1557,15 @@ public partial class gemini : Exchange
         };
         type = this.safeString(parameters, "type", type);
         parameters = this.omit(parameters, "type");
-        object rawStopPrice = this.safeString2(parameters, "stop_price", "stopPrice");
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stop_price", "stopPrice"});
         parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "type"});
         if (isTrue(isEqual(type, "stopLimit")))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPrice parameter or a stop_price parameter for "), type), " orders")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
         }
-        if (isTrue(!isEqual(rawStopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, rawStopPrice);
+            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["type"] = "exchange stop limit";
         } else
         {

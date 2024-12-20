@@ -1109,7 +1109,6 @@ export default class hollaex extends Exchange {
         const type = this.safeString(order, 'type');
         const side = this.safeString(order, 'side');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stop');
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filled');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -1128,8 +1127,7 @@ export default class hollaex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
@@ -1167,7 +1165,7 @@ export default class hollaex extends Exchange {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
         const meta = this.safeValue(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
@@ -1176,8 +1174,8 @@ export default class hollaex extends Exchange {
             const convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
             request['price'] = this.normalizeNumberIfNeeded(convertedPrice);
         }
-        if (stopPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, stopPrice)));
+        if (triggerPrice !== undefined) {
+            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
         }
         if (postOnly) {
             request['meta'] = { 'post_only': true };

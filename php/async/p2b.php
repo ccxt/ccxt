@@ -1241,7 +1241,7 @@ class p2b extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'amount'),
             'cost' => null,
             'average' => null,

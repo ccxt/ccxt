@@ -3151,7 +3151,6 @@ public partial class kucoin : Exchange
         {
             status = "rejected";
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"id", "orderId", "newOrderId", "cancelledOrderId"}) },
@@ -3163,8 +3162,7 @@ public partial class kucoin : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "cost", this.safeString(order, "dealFunds") },
             { "filled", this.safeString(order, "dealSize") },
             { "remaining", null },

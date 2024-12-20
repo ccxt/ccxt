@@ -1613,8 +1613,6 @@ public partial class tokocrypto : Exchange
             timeInForce = "PO";
         }
         object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
-        object stopPriceString = this.safeString(order, "stopPrice");
-        object stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1629,8 +1627,7 @@ public partial class tokocrypto : Exchange
             { "reduceOnly", this.safeValue(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))) },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -1684,8 +1681,8 @@ public partial class tokocrypto : Exchange
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
         object initialUppercaseType = ((string)type).ToUpper();
         object uppercaseType = initialUppercaseType;
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
             if (isTrue(isEqual(uppercaseType, "MARKET")))
@@ -1701,7 +1698,7 @@ public partial class tokocrypto : Exchange
         {
             if (isTrue(!isEqual(initialUppercaseType, uppercaseType)))
             {
-                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " stopPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
+                throw new InvalidOrder ((string)add(add(add(add(add(this.id, " triggerPrice parameter is not allowed for "), symbol), " "), type), " orders")) ;
             } else
             {
                 throw new InvalidOrder ((string)add(add(add(add(add(this.id, " "), type), " is not a valid order type for the "), symbol), " market")) ;
@@ -1744,7 +1741,7 @@ public partial class tokocrypto : Exchange
         }
         // additional required fields depending on the order type
         object priceIsRequired = false;
-        object stopPriceIsRequired = false;
+        object triggerPriceIsRequired = false;
         object quantityIsRequired = false;
         //
         // spot/margin
@@ -1798,7 +1795,7 @@ public partial class tokocrypto : Exchange
             quantityIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
         {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (isTrue(isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse"))))
             {
@@ -1807,7 +1804,7 @@ public partial class tokocrypto : Exchange
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
         {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "LIMIT_MAKER")))
         {
@@ -1826,14 +1823,14 @@ public partial class tokocrypto : Exchange
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(stopPriceIsRequired))
+        if (isTrue(triggerPriceIsRequired))
         {
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice extra param for a "), type), " order")) ;
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         object response = await this.privatePostOpenV1Orders(this.extend(request, parameters));

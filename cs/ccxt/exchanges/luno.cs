@@ -454,7 +454,6 @@ public partial class luno : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "filled", filled },

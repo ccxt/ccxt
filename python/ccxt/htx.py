@@ -4969,7 +4969,6 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        stopPrice = self.safe_string_2(order, 'stop-price', 'trigger_price')
         average = self.safe_string(order, 'trade_avg_price')
         trades = self.safe_value(order, 'trades')
         reduceOnlyInteger = self.safe_integer(order, 'reduce_only')
@@ -4989,8 +4988,7 @@ class htx(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string_2(order, 'stop-price', 'trigger_price'),
             'average': average,
             'cost': cost,
             'amount': amount,

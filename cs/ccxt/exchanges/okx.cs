@@ -4011,7 +4011,6 @@ public partial class okx : Exchange
         }
         object stopLossPrice = this.safeNumber2(order, "slTriggerPx", "slOrdPx");
         object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
-        object stopPrice = this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"});
         object reduceOnlyRaw = this.safeString(order, "reduceOnly");
         object reduceOnly = false;
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -4034,8 +4033,7 @@ public partial class okx : Exchange
             { "price", price },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"}) },
             { "average", average },
             { "cost", cost },
             { "amount", amount },

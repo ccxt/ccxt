@@ -1253,7 +1253,6 @@ public partial class currencycom : Exchange
             { "timeInForce", timeInForce },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1359,12 +1358,12 @@ public partial class currencycom : Exchange
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             } else if (isTrue(isEqual(type, "market")))
             {
-                object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+                object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-                if (isTrue(!isEqual(stopPrice, null)))
+                if (isTrue(!isEqual(triggerPrice, null)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "STOP";
-                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, stopPrice);
+                    ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, triggerPrice);
                 }
             }
         }

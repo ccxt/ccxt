@@ -1836,7 +1836,6 @@ class kraken(Exchange, ImplicitAPI):
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,

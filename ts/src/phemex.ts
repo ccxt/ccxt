@@ -2274,7 +2274,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
+        const triggerPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -2289,8 +2289,7 @@ export default class phemex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2440,7 +2439,7 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
+        const triggerPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
@@ -2477,8 +2476,7 @@ export default class phemex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfit,
             'stopLossPrice': stopLoss,
             'amount': amount,
@@ -2864,12 +2862,12 @@ export default class phemex extends Exchange {
                 request['baseQtyEV'] = this.toEv (amount, market);
             }
         }
-        const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
             if (isUSDTSettled) {
-                request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPxRp'] = this.priceToPrecision (symbol, triggerPrice);
             } else {
-                request['stopPxEp'] = this.toEp (stopPrice, market);
+                request['stopPxEp'] = this.toEp (triggerPrice, market);
             }
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);

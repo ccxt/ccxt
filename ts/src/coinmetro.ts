@@ -1250,10 +1250,10 @@ export default class coinmetro extends Exchange {
             params = this.omit (params, 'timeInForce');
             request['timeInForce'] = this.encodeOrderTimeInForce (timeInForce);
         }
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
             params = this.omit (params, [ 'triggerPrice' ]);
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         const userData = this.safeValue (params, 'userData', {});
         const comment = this.safeString2 (params, 'clientOrderId', 'comment');
@@ -1783,7 +1783,6 @@ export default class coinmetro extends Exchange {
         }
         const trades = this.safeValue (order, 'fills', []);
         const userData = this.safeValue (order, 'userData', {});
-        const triggerPrice = this.safeString (order, 'stopPrice');
         const clientOrderId = this.safeString (userData, 'comment');
         const takeProfitPrice = this.safeString (userData, 'takeProfit');
         const stopLossPrice = this.safeString (userData, 'stopLoss');
@@ -1799,7 +1798,7 @@ export default class coinmetro extends Exchange {
             'timeInForce': this.parseOrderTimeInForce (this.safeInteger (order, 'timeInForce')),
             'side': side,
             'price': price,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString (order, 'stopPrice'),
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': undefined,

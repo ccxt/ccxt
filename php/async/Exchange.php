@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.41';
+$version = '4.4.42';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.41';
+    const VERSION = '4.4.42';
 
     public $browser;
     public $marketsLoading = null;
@@ -3720,10 +3720,15 @@ class Exchange extends \ccxt\Exchange {
 
     public function handle_option_and_params_2(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
         $value = null;
-        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1, $defaultValue);
+        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1);
+        if ($value !== null) {
+            // omit $optionName2 too from $params
+            $params = $this->omit($params, $optionName2);
+            return array( $value, $params );
+        }
         // if still null, try $optionName2
         $value2 = null;
-        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $value);
+        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $defaultValue);
         return array( $value2, $params );
     }
 
@@ -4929,68 +4934,68 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopOrder']) {
                 throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
             }
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopPrice = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopOrderWs']) {
                 throw new NotSupported($this->id . ' createStopOrderWs() is not supported yet');
             }
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a $stopPrice argument');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a stopPrice argument');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_limit_order(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopLimitOrder']) {
                 throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, 'limit', $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
+    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
             if (!$this->has['createStopLimitOrderWs']) {
                 throw new NotSupported($this->id . ' createStopLimitOrderWs() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'limit', $side, $amount, $price, $query));
         }) ();
     }
 
-    public function create_stop_market_order(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
+    public function create_stop_market_order(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
             if (!$this->has['createStopMarketOrder']) {
                 throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order($symbol, 'market', $side, $amount, null, $query));
         }) ();
     }
 
-    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $stopPrice, $params = array ()) {
-        return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
+    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $triggerPrice, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
             if (!$this->has['createStopMarketOrderWs']) {
                 throw new NotSupported($this->id . ' createStopMarketOrderWs() is not supported yet');
             }
-            $query = $this->extend($params, array( 'stopPrice' => $stopPrice ));
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
     }

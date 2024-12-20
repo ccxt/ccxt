@@ -161,7 +161,7 @@ export default class blofin extends Exchange {
                     'rest': 'https://openapi.blofin.com',
                 },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -281,10 +281,18 @@ export default class blofin extends Exchange {
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
@@ -882,8 +890,9 @@ export default class blofin extends Exchange {
         const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
     }
-    parseBalanceByType(type, response) {
-        if (type) {
+    parseBalanceByType(response) {
+        const data = this.safeList(response, 'data');
+        if ((data !== undefined) && Array.isArray(data)) {
             return this.parseFundingBalance(response);
         }
         else {
@@ -1001,11 +1010,11 @@ export default class blofin extends Exchange {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const accountType = this.safeString2(params, 'accountType', 'type');
-        params = this.omit(params, ['accountType', 'type']);
+        let accountType = undefined;
+        [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
         let response = undefined;
-        if (accountType !== undefined) {
+        if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
             request['accountType'] = parsedAccountType;
@@ -1014,7 +1023,7 @@ export default class blofin extends Exchange {
         else {
             response = await this.privateGetAccountBalance(this.extend(request, params));
         }
-        return this.parseBalanceByType(accountType, response);
+        return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);

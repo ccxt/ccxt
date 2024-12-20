@@ -2207,7 +2207,6 @@ public partial class digifinex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", this.safeNumber2(order, "amount", "size") },
             { "filled", this.safeNumber2(order, "executed_amount", "filled_qty") },

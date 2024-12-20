@@ -4148,7 +4148,7 @@ class gate extends Exchange {
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
+             * @param {float} [$params->triggerPrice] The $price at which a $trigger order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
              * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
@@ -4978,7 +4978,6 @@ class gate extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => Precise::string_abs($amount),

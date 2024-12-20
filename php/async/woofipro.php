@@ -302,6 +302,88 @@ class woofipro extends Exchange {
                 'brokerId' => 'CCXT',
                 'verifyingContractAddress' => '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo by triggerPrice
+                        'takeProfitPrice' => false, // todo by triggerPrice
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true,
+                        // exchange specific
+                        // 'iceberg' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implementation needs unification
+                        'triggerPriceType' => null,
+                        'attachedStopLossTakeProfit' => array(
+                            // todo => implementation needs unification
+                            'triggerPriceType' => null,
+                            'limitPrice' => false,
+                        ),
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -1216,7 +1298,7 @@ class woofipro extends Exchange {
         $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
+        $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
         $childOrders = $this->safe_value($order, 'childOrders');
@@ -1247,8 +1329,7 @@ class woofipro extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => $average,
@@ -1321,11 +1402,11 @@ class woofipro extends Exchange {
             'symbol' => $market['id'],
             'side' => $orderSide,
         );
-        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1357,8 +1438,8 @@ class woofipro extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        if ($stopPrice !== null) {
-            $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($triggerPrice !== null) {
+            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['algo_type'] = 'STOP';
         } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
             $request['algo_type'] = 'TP_SL';
@@ -1412,9 +1493,9 @@ class woofipro extends Exchange {
              * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
+             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
              * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
+             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -1424,10 +1505,10 @@ class woofipro extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
             $response = null;
             if ($isConditional) {
                 $response = Async\await($this->v1PrivatePostAlgoOrder ($request));
@@ -1490,10 +1571,10 @@ class woofipro extends Exchange {
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
-                $stopPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
+                $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
                 $stopLoss = $this->safe_value($orderParams, 'stopLoss');
                 $takeProfit = $this->safe_value($orderParams, 'takeProfit');
-                $isConditional = $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
+                $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
                 if ($isConditional) {
                     throw new NotSupported($this->id . 'createOrders() only support non-stop order');
                 }
@@ -1552,11 +1633,11 @@ class woofipro extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $stopPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
-            if ($stopPrice !== null) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+            if ($triggerPrice !== null) {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
-            $isConditional = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+            $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
             $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
             $priceKey = $isConditional ? 'price' : 'order_price';
             if ($price !== null) {

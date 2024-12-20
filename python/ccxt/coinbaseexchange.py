@@ -1042,7 +1042,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         side = self.safe_string(order, 'side')
         timeInForce = self.safe_string(order, 'time_in_force')
         postOnly = self.safe_value(order, 'post_only')
-        stopPrice = self.safe_number(order, 'stop_price')
+        triggerPrice = self.safe_number(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
         return self.safe_order({
             'id': id,
@@ -1058,8 +1058,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1224,9 +1223,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
-        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
-        if stopPrice is not None:
-            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
         if timeInForce is not None:
             request['time_in_force'] = timeInForce

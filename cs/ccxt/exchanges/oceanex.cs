@@ -905,7 +905,6 @@ public partial class oceanex : Exchange
             { "postOnly", null },
             { "side", this.safeValue(order, "side") },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "average", average },
             { "amount", amount },

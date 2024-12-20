@@ -1531,7 +1531,7 @@ export default class coinlist extends Exchange {
             }
         }
         else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
-            throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
@@ -1675,7 +1675,7 @@ export default class coinlist extends Exchange {
         const type = this.parseOrderType(this.safeString(order, 'type'));
         const side = this.safeString(order, 'side');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stop_price');
+        const triggerPrice = this.safeString(order, 'stop_price');
         const average = this.safeString(order, 'average_fill_price'); // from documentation
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'size_filled');
@@ -1701,8 +1701,7 @@ export default class coinlist extends Exchange {
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
             'amount': amount,
             'cost': undefined,

@@ -1767,7 +1767,6 @@ class deribit(Exchange, ImplicitAPI):
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
         return self.safe_order({
             'info': order,
@@ -1782,8 +1781,7 @@ class deribit(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_value(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,

@@ -1105,12 +1105,12 @@ export default class Exchange {
     createPostOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createReduceOnlyOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopPrice?: Num, params?: {}): Promise<Order>;
-    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, stopPrice?: Num, params?: {}): Promise<Order>;
-    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, stopPrice: number, params?: {}): Promise<Order>;
-    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, stopPrice: number, params?: {}): Promise<Order>;
-    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, stopPrice: number, params?: {}): Promise<Order>;
-    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, stopPrice: number, params?: {}): Promise<Order>;
+    createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
+    createStopLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopMarketOrder(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
+    createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     safeCurrencyCode(currencyId: Str, currency?: Currency): string;
     filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;

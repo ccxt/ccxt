@@ -1025,38 +1025,38 @@ public partial class Exchange
         var res = await this.createReduceOnlyOrderWs(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? stopPrice2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? triggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var stopPrice = stopPrice2 == 0 ? null : (object)stopPrice2;
-        var res = await this.createStopOrder(symbol, type, side, amount, price, stopPrice, parameters);
+        var triggerPrice = triggerPrice2 == 0 ? null : (object)triggerPrice2;
+        var res = await this.createStopOrder(symbol, type, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? stopPrice2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? triggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
-        var stopPrice = stopPrice2 == 0 ? null : (object)stopPrice2;
-        var res = await this.createStopOrderWs(symbol, type, side, amount, price, stopPrice, parameters);
+        var triggerPrice = triggerPrice2 == 0 ? null : (object)triggerPrice2;
+        var res = await this.createStopOrderWs(symbol, type, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopLimitOrder(string symbol, string side, double amount, double price, double stopPrice, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopLimitOrder(string symbol, string side, double amount, double price, double triggerPrice, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createStopLimitOrder(symbol, side, amount, price, stopPrice, parameters);
+        var res = await this.createStopLimitOrder(symbol, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopLimitOrderWs(string symbol, string side, double amount, double price, double stopPrice, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopLimitOrderWs(string symbol, string side, double amount, double price, double triggerPrice, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createStopLimitOrderWs(symbol, side, amount, price, stopPrice, parameters);
+        var res = await this.createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopMarketOrder(string symbol, string side, double amount, double stopPrice, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopMarketOrder(string symbol, string side, double amount, double triggerPrice, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createStopMarketOrder(symbol, side, amount, stopPrice, parameters);
+        var res = await this.createStopMarketOrder(symbol, side, amount, triggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopMarketOrderWs(string symbol, string side, double amount, double stopPrice, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopMarketOrderWs(string symbol, string side, double amount, double triggerPrice, Dictionary<string, object> parameters = null)
     {
-        var res = await this.createStopMarketOrderWs(symbol, side, amount, stopPrice, parameters);
+        var res = await this.createStopMarketOrderWs(symbol, side, amount, triggerPrice, parameters);
         return new Order(res);
     }
     public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
