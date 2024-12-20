@@ -739,6 +739,53 @@
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003503\",\"price_type\":1,\"executive_price\":\"71000\",\"type\":\"limit\",\"trigger_price\":\"70500\"}"
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "isolated fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api-cloud.bitmart.com/spot/v1/margin/isolated/borrow_record?symbol=BTC_USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history with a symbol and limit argument",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/funding-rate-history?symbol=BTCUSDT&limit=2",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  2
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger with code and limit arguments",
+                "method": "fetchLedger",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/transaction-history?flow_type=0&page_size=1",
+                "input": [
+                  "USDT",
+                  null,
+                  1
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with symbol and limit arguments",
+                "method": "fetchFundingHistory",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/transaction-history?flow_type=3&symbol=LTCUSDT&page_size=1",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ]
+            }
         ]
     }
 }

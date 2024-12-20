@@ -8,7 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -26,7 +28,7 @@ class alpaca extends Exchange {
             'hostname' => 'alpaca.markets',
             'pro' => true,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b',
                 'www' => 'https://alpaca.markets',
                 'api' => array(
                     'broker' => 'https://broker-api.{hostname}',
@@ -36,7 +38,7 @@ class alpaca extends Exchange {
                 'test' => array(
                     'broker' => 'https://broker-api.sandbox.{hostname}',
                     'trader' => 'https://paper-api.{hostname}',
-                    'market' => 'https://data.sandbox.{hostname}',
+                    'market' => 'https://data.{hostname}',
                 ),
                 'doc' => 'https://alpaca.markets/docs/',
                 'fees' => 'https://docs.alpaca.markets/docs/crypto-fees',
@@ -53,14 +55,17 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
-                'fetchBalance' => false,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => false,
-                'fetchDeposits' => false,
-                'fetchDepositsWithdrawals' => false,
+                'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -68,7 +73,7 @@ class alpaca extends Exchange {
                 'fetchL1OrderBook' => true,
                 'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
@@ -83,8 +88,8 @@ class alpaca extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchStatus' => false,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -92,12 +97,12 @@ class alpaca extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'api' => array(
                 'broker' => array(
@@ -123,14 +128,18 @@ class alpaca extends Exchange {
                             'v2/assets/{symbol_or_asset_id}',
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
+                            'v2/wallets',
+                            'v2/wallets/transfers',
                         ),
                         'post' => array(
                             'v2/orders',
                             'v2/watchlists',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
+                            'v2/wallets/transfers',
                         ),
                         'put' => array(
+                            'v2/orders/{order_id}',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
                         ),
@@ -306,7 +315,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
+             *
              * @see https://docs.alpaca.markets/reference/get-v2-$assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -435,8 +446,10 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.alpaca.markets/reference/cryptotrades
              * @see https://docs.alpaca.markets/reference/cryptolatesttrades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -511,7 +524,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -575,8 +590,10 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.alpaca.markets/reference/cryptobars
              * @see https://docs.alpaca.markets/reference/cryptolatestbars
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -690,11 +707,159 @@ class alpaca extends Exchange {
         );
     }
 
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
+             * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->loc] crypto location, default => us
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
+            return $this->safe_dict($tickers, $symbol);
+        }) ();
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
+             * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             *
+             * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->loc] crypto location, default => us
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $loc = $this->safe_string($params, 'loc', 'us');
+            $ids = $this->market_ids($symbols);
+            $request = array(
+                'symbols' => implode(',', $ids),
+                'loc' => $loc,
+            );
+            $params = $this->omit($params, 'loc');
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocSnapshots ($this->extend($request, $params)));
+            //
+            //     {
+            //         "snapshots" => {
+            //             "BTC/USD" => {
+            //                 "dailyBar" => array(
+            //                     "c" => 69403.554,
+            //                     "h" => 69609.6515,
+            //                     "l" => 69013.26,
+            //                     "n" => 9,
+            //                     "o" => 69536.7,
+            //                     "t" => "2024-11-01T05:00:00Z",
+            //                     "v" => 0.210809181,
+            //                     "vw" => 69327.655393908
+            //                 ),
+            //                 "latestQuote" => array(
+            //                     "ap" => 69424.19,
+            //                     "as" => 0.68149,
+            //                     "bp" => 69366.086,
+            //                     "bs" => 0.68312,
+            //                     "t" => "2024-11-01T08:31:41.880246926Z"
+            //                 ),
+            //                 "latestTrade" => array(
+            //                     "i" => 5272941104897543146,
+            //                     "p" => 69416.9,
+            //                     "s" => 0.014017324,
+            //                     "t" => "2024-11-01T08:14:28.245088803Z",
+            //                     "tks" => "B"
+            //                 ),
+            //                 "minuteBar" => array(
+            //                     "c" => 69403.554,
+            //                     "h" => 69403.554,
+            //                     "l" => 69399.125,
+            //                     "n" => 0,
+            //                     "o" => 69399.125,
+            //                     "t" => "2024-11-01T08:30:00Z",
+            //                     "v" => 0,
+            //                     "vw" => 0
+            //                 ),
+            //                 "prevDailyBar" => array(
+            //                     "c" => 69515.1415,
+            //                     "h" => 72668.837,
+            //                     "l" => 68796.85,
+            //                     "n" => 129,
+            //                     "o" => 72258.9,
+            //                     "t" => "2024-10-31T05:00:00Z",
+            //                     "v" => 2.217683307,
+            //                     "vw" => 70782.6811608144
+            //                 }
+            //             ),
+            //         }
+            //     }
+            //
+            $results = array();
+            $snapshots = $this->safe_dict($response, 'snapshots', array());
+            $marketIds = is_array($snapshots) ? array_keys($snapshots) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $entry = $this->safe_dict($snapshots, $marketId);
+                $dailyBar = $this->safe_dict($entry, 'dailyBar', array());
+                $prevDailyBar = $this->safe_dict($entry, 'prevDailyBar', array());
+                $latestQuote = $this->safe_dict($entry, 'latestQuote', array());
+                $latestTrade = $this->safe_dict($entry, 'latestTrade', array());
+                $datetime = $this->safe_string($latestQuote, 't');
+                $ticker = $this->safe_ticker(array(
+                    'info' => $entry,
+                    'symbol' => $market['symbol'],
+                    'timestamp' => $this->parse8601($datetime),
+                    'datetime' => $datetime,
+                    'high' => $this->safe_string($dailyBar, 'h'),
+                    'low' => $this->safe_string($dailyBar, 'l'),
+                    'bid' => $this->safe_string($latestQuote, 'bp'),
+                    'bidVolume' => $this->safe_string($latestQuote, 'bs'),
+                    'ask' => $this->safe_string($latestQuote, 'ap'),
+                    'askVolume' => $this->safe_string($latestQuote, 'as'),
+                    'vwap' => $this->safe_string($dailyBar, 'vw'),
+                    'open' => $this->safe_string($dailyBar, 'o'),
+                    'close' => $this->safe_string($dailyBar, 'c'),
+                    'last' => $this->safe_string($latestTrade, 'p'),
+                    'previousClose' => $this->safe_string($prevDailyBar, 'c'),
+                    'change' => null,
+                    'percentage' => null,
+                    'average' => null,
+                    'baseVolume' => $this->safe_string($dailyBar, 'v'),
+                    'quoteVolume' => $this->safe_string($dailyBar, 'n'),
+                ), $market);
+                $results[] = $ticker;
+            }
+            return $this->filter_by_array($results, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function generate_client_order_id($params) {
+        $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
+        $uuid = $this->uuid();
+        $parts = explode('-', $uuid);
+        $random_id = implode('', $parts);
+        $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
+        return $clientOrderId;
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://docs.alpaca.markets/reference/postorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market', 'limit' or 'stop_limit'
              * @param {string} $side 'buy' or 'sell'
@@ -730,13 +895,7 @@ class alpaca extends Exchange {
             $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
             $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
-            $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
-            $uuid = $this->uuid();
-            $parts = explode('-', $uuid);
-            $random_id = implode('', $parts);
-            $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
-            $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
-            $request['client_order_id'] = $clientOrderId;
+            $request['client_order_id'] = $this->generate_client_order_id($params);
             $params = $this->omit($params, array( 'clientOrderId' ));
             $order = Async\await($this->traderPrivatePostV2Orders ($this->extend($request, $params)));
             //
@@ -783,7 +942,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -807,7 +968,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a market
+             *
              * @see https://docs.alpaca.markets/reference/deleteallorders
+             *
              * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -830,7 +993,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getorderbyorderid
+             *
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -851,7 +1016,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -928,7 +1095,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -947,7 +1116,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -959,6 +1130,56 @@ class alpaca extends Exchange {
                 'status' => 'closed',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+        }) ();
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             *
+             * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+             *
+             * @param {string} $id order $id
+             * @param {string} [$symbol] unified $symbol of the $market to create an order in
+             * @param {string} [$type] 'market', 'limit' or 'stop_limit'
+             * @param {string} [$side] 'buy' or 'sell'
+             * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+             * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->triggerPrice] the $price to trigger a stop order
+             * @param {string} [$params->timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+             * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($amount !== null) {
+                $request['qty'] = $this->amount_to_precision($symbol, $amount);
+            }
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                $params = $this->omit($params, 'triggerPrice');
+            }
+            if ($price !== null) {
+                $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $timeInForce = null;
+            list($timeInForce, $params) = $this->handle_option_and_params_2($params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+            if ($timeInForce !== null) {
+                $request['time_in_force'] = $timeInForce;
+            }
+            $request['client_order_id'] = $this->generate_client_order_id($params);
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $response = Async\await($this->traderPrivatePatchV2OrdersOrderId ($this->extend($request, $params)));
+            return $this->parse_order($response, $market);
         }) ();
     }
 
@@ -1036,7 +1257,6 @@ class alpaca extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_number($order, 'limit_price'),
-            'stopPrice' => $this->safe_number($order, 'stop_price'),
             'triggerPrice' => $this->safe_number($order, 'stop_price'),
             'cost' => null,
             'average' => $this->safe_number($order, 'filled_avg_price'),
@@ -1068,7 +1288,62 @@ class alpaca extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             *
+             * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+             *
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch trades for
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'activity_type' => 'FILL',
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($since !== null) {
+                $request['after'] = $since;
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
+            $response = Async\await($this->traderPrivateGetV2AccountActivitiesActivityType ($this->extend($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+            //             "activity_type" => "FILL",
+            //             "transaction_time" => "2022-12-28T12:19:29.579352Z",
+            //             "type" => "fill",
+            //             "price" => "67.31",
+            //             "qty" => "0.07",
+            //             "side" => "sell",
+            //             "symbol" => "LTC/USD",
+            //             "leaves_qty" => "0",
+            //             "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+            //             "cum_qty" => "0.07",
+            //             "order_status" => "filled",
+            //             "swap_rate" => "1"
+            //         ),
+            //     )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        // fetchTrades
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1079,25 +1354,44 @@ class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        $marketId = $this->safe_string($trade, 'S');
+        // fetchMyTrades
+        //
+        //     array(
+        //         "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type" => "FILL",
+        //         "transaction_time" => "2022-12-28T12:19:29.579352Z",
+        //         "type" => "fill",
+        //         "price" => "67.31",
+        //         "qty" => "0.07",
+        //         "side" => "sell",
+        //         "symbol" => "LTC/USD",
+        //         "leaves_qty" => "0",
+        //         "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty" => "0.07",
+        //         "order_status" => "filled",
+        //         "swap_rate" => "1"
+        //     ),
+        //
+        $marketId = $this->safe_string_2($trade, 'S', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $datetime = $this->safe_string($trade, 't');
+        $datetime = $this->safe_string_2($trade, 't', 'transaction_time');
         $timestamp = $this->parse8601($datetime);
         $alpacaSide = $this->safe_string($trade, 'tks');
+        $side = $this->safe_string($trade, 'side');
         if ($alpacaSide === 'B') {
             $side = 'buy';
         } elseif ($alpacaSide === 'S') {
             $side = 'sell';
         }
-        $priceString = $this->safe_string($trade, 'p');
-        $amountString = $this->safe_string($trade, 's');
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 's', 'qty');
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $this->safe_string($trade, 'i'),
+            'id' => $this->safe_string_2($trade, 'i', 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => null,
+            'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $side,
             'takerOrMaker' => 'taker',
@@ -1106,6 +1400,337 @@ class alpaca extends Exchange {
             'cost' => null,
             'fee' => null,
         ), $market);
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             *
+             * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+             *
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+            );
+            $response = Async\await($this->traderPrivateGetV2Wallets ($this->extend($request, $params)));
+            //
+            //     {
+            //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+            //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+            //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+            //     }
+            //
+            return $this->parse_deposit_address($response, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+        //
+        //     {
+        //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        $parsedCurrency = null;
+        if ($currency !== null) {
+            $parsedCurrency = $currency['id'];
+        }
+        return array(
+            'info' => $depositAddress,
+            'currency' => $parsedCurrency,
+            'network' => null,
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => null,
+        );
+    }
+
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             *
+             * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+             *
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag a memo for the transaction
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            if ($tag) {
+                $address = $address . ':' . $tag;
+            }
+            $request = array(
+                'asset' => $currency['id'],
+                'address' => $address,
+                'amount' => $this->number_to_string($amount),
+            );
+            $response = Async\await($this->traderPrivatePostV2WalletsTransfers ($this->extend($request, $params)));
+            //
+            //     {
+            //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+            //         "tx_hash" => null,
+            //         "direction" => "OUTGOING",
+            //         "amount" => "20",
+            //         "usd_value" => "19.99856",
+            //         "chain" => "ETH",
+            //         "asset" => "USDT",
+            //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+            //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
+            //         "status" => "PROCESSING",
+            //         "created_at" => "2024-11-07T02:39:01.775495Z",
+            //         "network_fee" => "4",
+            //         "fees" => "0.1"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
+    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+        return Async\async(function () use ($type, $code, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $response = Async\await($this->traderPrivateGetV2WalletsTransfers ($params));
+            //
+            //     {
+            //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+            //         "tx_hash" => null,
+            //         "direction" => "OUTGOING",
+            //         "amount" => "20",
+            //         "usd_value" => "19.99856",
+            //         "chain" => "ETH",
+            //         "asset" => "USDT",
+            //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+            //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
+            //         "status" => "PROCESSING",
+            //         "created_at" => "2024-11-07T02:39:01.775495Z",
+            //         "network_fee" => "4",
+            //         "fees" => "0.1"
+            //     }
+            //
+            $results = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $direction = $this->safe_string($entry, 'direction');
+                if ($direction === $type) {
+                    $results[] = $entry;
+                } elseif ($type === 'BOTH') {
+                    $results[] = $entry;
+                }
+            }
+            return $this->parse_transactions($results, $currency, $since, $limit, $params);
+        }) ();
+    }
+
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             *
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
+             * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            return Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             *
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
+             * @param {string} [$code] unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for
+             * @param {int} [$limit] the maximum number of deposit structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            return Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             *
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
+             * @param {string} [$code] unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            return Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash" => null,
+        //         "direction" => "OUTGOING",
+        //         "amount" => "20",
+        //         "usd_value" => "19.99856",
+        //         "chain" => "ETH",
+        //         "asset" => "USDT",
+        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status" => "PROCESSING",
+        //         "created_at" => "2024-11-07T02:39:01.775495Z",
+        //         "network_fee" => "4",
+        //         "fees" => "0.1"
+        //     }
+        //
+        $datetime = $this->safe_string($transaction, 'created_at');
+        $currencyId = $this->safe_string($transaction, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $fees = $this->safe_string($transaction, 'fees');
+        $networkFee = $this->safe_string($transaction, 'network_fee');
+        $totalFee = Precise::string_add($fees, $networkFee);
+        $fee = array(
+            'cost' => $this->parse_number($totalFee),
+            'currency' => $code,
+        );
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'tx_hash'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'network' => $this->safe_string($transaction, 'chain'),
+            'address' => $this->safe_string($transaction, 'to_address'),
+            'addressTo' => $this->safe_string($transaction, 'to_address'),
+            'addressFrom' => $this->safe_string($transaction, 'from_address'),
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'direction')),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'updated' => null,
+            'fee' => $fee,
+            'comment' => null,
+            'internal' => null,
+        );
+    }
+
+    public function parse_transaction_status(?string $status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+            'FAILED' => 'failed',
+            'COMPLETE' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type($type) {
+        $types = array(
+            'INCOMING' => 'deposit',
+            'OUTGOING' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://docs.alpaca.markets/reference/getaccount-1
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->traderPrivateGetV2Account ($params));
+            //
+            //     {
+            //         "id" => "43a01bde-4eb1-64fssc26adb5",
+            //         "admin_configurations" => array(
+            //             "allow_instant_ach" => true,
+            //             "max_margin_multiplier" => "4"
+            //         ),
+            //         "user_configurations" => array(
+            //             "fractional_trading" => true,
+            //             "max_margin_multiplier" => "4"
+            //         ),
+            //         "account_number" => "744873727",
+            //         "status" => "ACTIVE",
+            //         "crypto_status" => "ACTIVE",
+            //         "currency" => "USD",
+            //         "buying_power" => "5.92",
+            //         "regt_buying_power" => "5.92",
+            //         "daytrading_buying_power" => "0",
+            //         "effective_buying_power" => "5.92",
+            //         "non_marginable_buying_power" => "5.92",
+            //         "bod_dtbp" => "0",
+            //         "cash" => "5.92",
+            //         "accrued_fees" => "0",
+            //         "portfolio_value" => "48.6",
+            //         "pattern_day_trader" => false,
+            //         "trading_blocked" => false,
+            //         "transfers_blocked" => false,
+            //         "account_blocked" => false,
+            //         "created_at" => "2022-06-13T14:59:18.318096Z",
+            //         "trade_suspended_by_user" => false,
+            //         "multiplier" => "1",
+            //         "shorting_enabled" => false,
+            //         "equity" => "48.6",
+            //         "last_equity" => "48.8014266",
+            //         "long_market_value" => "42.68",
+            //         "short_market_value" => "0",
+            //         "position_market_value" => "42.68",
+            //         "initial_margin" => "0",
+            //         "maintenance_margin" => "0",
+            //         "last_maintenance_margin" => "0",
+            //         "sma" => "5.92",
+            //         "daytrade_count" => 0,
+            //         "balance_asof" => "2024-12-10",
+            //         "crypto_tier" => 1,
+            //         "intraday_adjustments" => "0",
+            //         "pending_reg_taf_fees" => "0"
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
+    }
+
+    public function parse_balance($response): array {
+        $result = array( 'info' => $response );
+        $account = $this->account();
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $account['free'] = $this->safe_string($response, 'cash');
+        $account['total'] = $this->safe_string($response, 'equity');
+        $result[$code] = $account;
+        return $this->safe_balance($result);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

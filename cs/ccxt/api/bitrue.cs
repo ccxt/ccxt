@@ -336,19 +336,19 @@ public partial class bitrue : Exchange
         return await this.callAsync ("dapiV2PrivatePostFuturesTransfer",parameters);
     }
 
-    public async Task<object> openPrivatePostPoseidonApiV1ListenKey (object parameters = null)
+    public async Task<object> openV1PrivatePostPoseidonApiV1ListenKey (object parameters = null)
     {
-        return await this.callAsync ("openPrivatePostPoseidonApiV1ListenKey",parameters);
+        return await this.callAsync ("openV1PrivatePostPoseidonApiV1ListenKey",parameters);
     }
 
-    public async Task<object> openPrivatePutPoseidonApiV1ListenKeyListenKey (object parameters = null)
+    public async Task<object> openV1PrivatePutPoseidonApiV1ListenKeyListenKey (object parameters = null)
     {
-        return await this.callAsync ("openPrivatePutPoseidonApiV1ListenKeyListenKey",parameters);
+        return await this.callAsync ("openV1PrivatePutPoseidonApiV1ListenKeyListenKey",parameters);
     }
 
-    public async Task<object> openPrivateDeletePoseidonApiV1ListenKeyListenKey (object parameters = null)
+    public async Task<object> openV1PrivateDeletePoseidonApiV1ListenKeyListenKey (object parameters = null)
     {
-        return await this.callAsync ("openPrivateDeletePoseidonApiV1ListenKeyListenKey",parameters);
+        return await this.callAsync ("openV1PrivateDeletePoseidonApiV1ListenKeyListenKey",parameters);
     }
 
 }

@@ -468,6 +468,12 @@ public partial class hashkey
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -483,12 +489,6 @@ public partial class hashkey
     /// <term>params.platform</term>
     /// <description>
     /// string : the platform to withdraw to (hashkey, HashKey HK)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -601,7 +601,7 @@ public partial class hashkey
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1024,6 +1024,12 @@ public partial class hashkey
     /// <term>symbol</term>
     /// <description>
     /// string : unified market symbol (not used by hashkey)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

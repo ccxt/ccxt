@@ -944,27 +944,27 @@ public struct IsolatedBorrowRates
 
 public struct BorrowInterest
 {
-    public string? account;
+    public Dictionary<string, object> info;
+    public string? symbol;
     public string? currency;
     public double? interest;
     public double? interestRate;
     public double? amountBorrowed;
+    public string? marginMode;
     public Int64? timestamp;
     public string? datetime;
-    public string? marginMode;
-    public Dictionary<string, object> info;
 
     public BorrowInterest(object borrowInterest)
     {
-        account = Exchange.SafeString(borrowInterest, "account");
+        info = Helper.GetInfo(borrowInterest);
+        symbol = Exchange.SafeString(borrowInterest, "symbol");
         currency = Exchange.SafeString(borrowInterest, "currency");
         interest = Exchange.SafeFloat(borrowInterest, "interest");
         interestRate = Exchange.SafeFloat(borrowInterest, "interestRate");
         amountBorrowed = Exchange.SafeFloat(borrowInterest, "amountBorrowed");
+        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
         timestamp = Exchange.SafeInteger(borrowInterest, "timestamp");
         datetime = Exchange.SafeString(borrowInterest, "datetime");
-        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
-        info = Helper.GetInfo(borrowInterest);
     }
 }
 
@@ -1005,6 +1005,45 @@ public struct Liquidation
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
         info = Helper.GetInfo(openInterest);
+    }
+}
+
+public struct OpenInterests
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, OpenInterest> openInterests;
+
+    public OpenInterests(object fr2)
+    {
+        var rates = (Dictionary<string, object>)fr2;
+
+        info = Helper.GetInfo(rates);
+        this.openInterests = new Dictionary<string, OpenInterest>();
+        foreach (var rate in rates)
+        {
+            if (rate.Key != "info")
+                this.openInterests.Add(rate.Key, new OpenInterest(rate.Value));
+        }
+    }
+
+    // Indexer
+    public OpenInterest this[string key]
+    {
+        get
+        {
+            if (openInterests.ContainsKey(key))
+            {
+                return openInterests[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the OpenInterests.");
+            }
+        }
+        set
+        {
+            openInterests[key] = value;
+        }
     }
 }
 
@@ -1051,23 +1090,23 @@ public struct FundingRate
 public struct FundingRates
 {
     public Dictionary<string, object> info;
-    public Dictionary<string, Ticker> fundingRates;
+    public Dictionary<string, FundingRate> fundingRates;
 
     public FundingRates(object fr2)
     {
         var rates = (Dictionary<string, object>)fr2;
 
         info = Helper.GetInfo(rates);
-        this.fundingRates = new Dictionary<string, Ticker>();
+        this.fundingRates = new Dictionary<string, FundingRate>();
         foreach (var rate in rates)
         {
             if (rate.Key != "info")
-                this.fundingRates.Add(rate.Key, new Ticker(rate.Value));
+                this.fundingRates.Add(rate.Key, new FundingRate(rate.Value));
         }
     }
 
     // Indexer
-    public Ticker this[string key]
+    public FundingRate this[string key]
     {
         get
         {
@@ -1216,6 +1255,7 @@ public struct Position
 public struct LeverageTier
 {
     public Int64? tier;
+    public string? symbol;
     public string? currency;
     public double? minNotional;
     public double? maxNotional;
@@ -1226,6 +1266,7 @@ public struct LeverageTier
     public LeverageTier(object leverageTier)
     {
         tier = Exchange.SafeInteger(leverageTier, "tier");
+        symbol = Exchange.SafeString(leverageTier, "symbol");
         currency = Exchange.SafeString(leverageTier, "currency");
         minNotional = Exchange.SafeFloat(leverageTier, "minNotional");
         maxNotional = Exchange.SafeFloat(leverageTier, "maxNotional");

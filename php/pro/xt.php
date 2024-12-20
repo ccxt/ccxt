@@ -59,8 +59,10 @@ class xt extends \ccxt\async\xt {
              * @ignore
              * required for private endpoints
              * @param {string} $isContract true for contract trades
+             *
              * @see https://doc.xt.com/#websocket_privategetToken
              * @see https://doc.xt.com/#futures_user_websocket_v2base
+             *
              * @return {string} listen key / access $token
              */
             $this->check_required_credentials();
@@ -149,8 +151,10 @@ class xt extends \ccxt\async\xt {
             /**
              * @ignore
              * Connects to a websocket channel
+             *
              * @see https://doc.xt.com/#websocket_privaterequestFormat
              * @see https://doc.xt.com/#futures_market_websocket_v2base
+             *
              * @$param {string} $name name of the channel
              * @$param {string} $access public or private
              * @$param {string} $methodName the $name of the CCXT class method
@@ -198,9 +202,11 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://doc.xt.com/#websocket_publictickerRealTime
              * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
              * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -220,9 +226,11 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://doc.xt.com/#websocket_publicallTicker
              * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
              * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+             *
              * @param {string} [$symbols] unified $market $symbols
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -248,8 +256,10 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://doc.xt.com/#websocket_publicsymbolKline
              * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
              * @param {int} [$since] not used by xt watchOHLCV
@@ -272,8 +282,10 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://doc.xt.com/#websocket_publicdealRecord
              * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -295,10 +307,12 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://doc.xt.com/#websocket_publiclimitDepth
              * @see https://doc.xt.com/#websocket_publicincreDepth
              * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
              * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] not used by xt watchOrderBook
              * @param {array} $params extra parameters specific to the xt api endpoint
@@ -322,8 +336,10 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://doc.xt.com/#websocket_privateorderChange
              * @see https://doc.xt.com/#futures_user_websocket_v2order
+             *
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] not used by xt watchOrders
              * @param {int} [$limit] the maximum number of $orders to return
@@ -348,8 +364,10 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://doc.xt.com/#websocket_privateorderDeal
              * @see https://doc.xt.com/#futures_user_websocket_v2trade
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -374,8 +392,10 @@ class xt extends \ccxt\async\xt {
         return Async\async(function () use ($params) {
             /**
              * watches information on multiple orders made by the user
+             *
              * @see https://doc.xt.com/#websocket_privatebalanceChange
              * @see https://doc.xt.com/#futures_user_websocket_v2balance
+             *
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
              */

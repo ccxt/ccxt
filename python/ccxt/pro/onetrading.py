@@ -83,7 +83,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -140,7 +142,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -164,7 +168,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches price tickers, a statistical calculation with the information for all markets or those specified.
         :param str symbols: unified symbols of the markets to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -256,7 +262,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -295,7 +303,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -401,7 +411,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -997,7 +1009,9 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://developers.bitpanda.com/exchange/#candlesticks-channel
+
+        https://developers.bitpanda.com/exchange/#candlesticks-channel
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents

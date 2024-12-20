@@ -228,7 +228,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://doc.novadax.com/en-US/#get-current-system-time
+
+        https://doc.novadax.com/en-US/#get-current-system-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -245,7 +247,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for novadax
-        :see: https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
+
+        https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -380,7 +384,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair
+
+        https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -415,7 +421,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
+
+        https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -454,7 +462,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://doc.novadax.com/en-US/#get-market-depth
+
+        https://doc.novadax.com/en-US/#get-market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -571,7 +581,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://doc.novadax.com/en-US/#get-recent-trades
+
+        https://doc.novadax.com/en-US/#get-recent-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -603,7 +615,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://doc.novadax.com/en-US/#get-kline-data
+
+        https://doc.novadax.com/en-US/#get-kline-data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -697,7 +711,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://doc.novadax.com/en-US/#get-account-balance
+
+        https://doc.novadax.com/en-US/#get-account-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -722,7 +738,9 @@ class novadax(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://doc.novadax.com/en-US/#order-introduction
+
+        https://doc.novadax.com/en-US/#order-introduction
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -745,8 +763,8 @@ class novadax(Exchange, ImplicitAPI):
             # "stopPrice": self.price_to_precision(symbol, stopPrice),
             # "accountId": "...",  # subaccount id, optional
         }
-        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice is None:
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice is None:
             if (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'STOP_MARKET'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders')
         else:
@@ -756,7 +774,7 @@ class novadax(Exchange, ImplicitAPI):
                 uppercaseType = 'STOP_MARKET'
             defaultOperator = 'LTE' if (uppercaseSide == 'BUY') else 'GTE'
             request['operator'] = self.safe_string(params, 'operator', defaultOperator)
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, ['triggerPrice', 'stopPrice'])
         if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
@@ -814,7 +832,9 @@ class novadax(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://doc.novadax.com/en-US/#cancel-an-order
+
+        https://doc.novadax.com/en-US/#cancel-an-order
+
         :param str id: order id
         :param str symbol: not used by novadax cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -840,7 +860,10 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://doc.novadax.com/en-US/#get-order-details
+
+        https://doc.novadax.com/en-US/#get-order-details
+
+        :param str id: order id
         :param str symbol: not used by novadax fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -877,7 +900,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://doc.novadax.com/en-US/#get-order-history
+
+        https://doc.novadax.com/en-US/#get-order-history
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -932,7 +957,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://doc.novadax.com/en-US/#get-order-history
+
+        https://doc.novadax.com/en-US/#get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -947,7 +974,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://doc.novadax.com/en-US/#get-order-history
+
+        https://doc.novadax.com/en-US/#get-order-history
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -962,7 +991,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://doc.novadax.com/en-US/#get-order-match-details
+
+        https://doc.novadax.com/en-US/#get-order-match-details
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1061,7 +1092,6 @@ class novadax(Exchange, ImplicitAPI):
             }
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -1075,8 +1105,7 @@ class novadax(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1090,7 +1119,9 @@ class novadax(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://doc.novadax.com/en-US/#get-sub-account-transfer
+
+        https://doc.novadax.com/en-US/#get-sub-account-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -1157,10 +1188,12 @@ class novadax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://doc.novadax.com/en-US/#send-cryptocurrencies
+
+        https://doc.novadax.com/en-US/#send-cryptocurrencies
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1191,7 +1224,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://doc.novadax.com/en-US/#get-sub-account-list
+
+        https://doc.novadax.com/en-US/#get-sub-account-list
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -1227,7 +1262,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
+        https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1242,7 +1279,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
+        https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1257,7 +1296,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
+        https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1390,7 +1431,9 @@ class novadax(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://doc.novadax.com/en-US/#get-order-history
+
+        https://doc.novadax.com/en-US/#get-order-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
