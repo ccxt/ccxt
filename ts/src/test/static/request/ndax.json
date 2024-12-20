@@ -158,9 +158,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
                 "input": [
-                  "ADA/CAD",
-                  1733626906108,
-                  2
+                  "ADA/CAD"
                 ],
                 "output": "{\"omsId\":1,\"AccountId\":187639,\"IntrumentId\":\"78\"}"
             }
