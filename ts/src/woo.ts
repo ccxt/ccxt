@@ -1910,7 +1910,7 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        const request: Dict = {};
+        let request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1919,6 +1919,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
+        [ request, params ] = this.handleUntilOption ('end_t', request, params);
         if (limit !== undefined) {
             request['size'] = limit;
         } else {
