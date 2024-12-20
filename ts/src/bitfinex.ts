@@ -460,7 +460,9 @@ export default class bitfinex extends Exchange {
                     'extends': 'default',
                 },
                 'swap': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
                 'future': {
