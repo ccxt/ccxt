@@ -904,9 +904,9 @@ export default class blofin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    parseBalanceByType (type, response) {
+    parseBalanceByType (response) {
         const data = this.safeList (response, 'data');
-        if (Array.isArray (data)) {
+        if ((data !== undefined) && Array.isArray (data)) {
             return this.parseFundingBalance (response);
         } else {
             return this.parseBalance (response);
@@ -1039,7 +1039,7 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetAccountBalance (this.extend (request, params));
         }
-        return this.parseBalanceByType (accountType, response);
+        return this.parseBalanceByType (response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
