@@ -365,12 +365,10 @@ export default class woofipro extends Exchange {
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
-                        'triggerPriceType': {
-                            'last': true,
-                            'mark': true,
-                            'index': false,
-                        },
+                        // todo: implementation needs unification
+                        'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': {
+                            // todo: implementation needs unification
                             'triggerPriceType': undefined,
                             'limit': false,
                         },
