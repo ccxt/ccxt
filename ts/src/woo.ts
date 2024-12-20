@@ -1087,7 +1087,7 @@ export default class woo extends Exchange {
                 outterOrder['childOrders'].push (stopLossOrder);
             }
             if (takeProfit !== undefined) {
-                const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', takeProfit);
+                const takeProfitPrice = this.safeNumber (takeProfit, 'triggerPrice', takeProfit);
                 const takeProfitOrder: Dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
