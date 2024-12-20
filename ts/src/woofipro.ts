@@ -370,7 +370,7 @@ export default class woofipro extends Exchange {
                         'attachedStopLossTakeProfit': {
                             // todo: implementation needs unification
                             'triggerPriceType': undefined,
-                            'limit': false,
+                            'limitPrice': false,
                         },
                     },
                 },
