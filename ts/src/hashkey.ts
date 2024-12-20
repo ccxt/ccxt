@@ -370,9 +370,9 @@ export default class hashkey extends Exchange {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 500,
-                        'daysBack': undefined,
-                        'untilDays': 1000000,
+                        'limit': 1000,
+                        'daysBack': 30,
+                        'untilDays': 30,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -393,6 +393,27 @@ export default class hashkey extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'selfTradePrevention': true,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': true,
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {},
