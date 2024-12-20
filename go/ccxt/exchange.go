@@ -157,8 +157,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
-	// this.Id = this.id
-	//this.itf = itf
+	// this.Id = this.id333
+	// this.itf = itf
 	this.initializeProperties(extendedProperties)
 	this.InitRestRateLimiter()
 	this.AfterConstruct()
@@ -224,7 +224,8 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		var currencies interface{} = nil
 		var defaultParams = map[string]interface{}{}
 		// func (this *Exchange) Describe()
-		if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
+		hasFetchCurrencies := this.Has["fetchCurrencies"]
+		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
 		markets := <-this.callInternal("fetchMarkets", defaultParams)
