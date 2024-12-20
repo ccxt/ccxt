@@ -5256,6 +5256,10 @@ public partial class bingx : Exchange
             }
             if (isTrue(getValue(market, "spot")))
             {
+                if (isTrue(!isEqual(limit, null)))
+                {
+                    ((IDictionary<string,object>)request)["limit"] = limit; // default 500, maximum 1000
+                }
                 response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, parameters));
                 object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 fills = this.safeList(data, "fills", new List<object>() {});

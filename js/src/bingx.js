@@ -5601,6 +5601,9 @@ export default class bingx extends Exchange {
                 request['endTs'] = now;
             }
             if (market['spot']) {
+                if (limit !== undefined) {
+                    request['limit'] = limit; // default 500, maximum 1000
+                }
                 response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, params));
                 const data = this.safeDict(response, 'data', {});
                 fills = this.safeList(data, 'fills', []);

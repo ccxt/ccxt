@@ -5684,6 +5684,9 @@ class bingx extends Exchange {
                     $request['endTs'] = $now;
                 }
                 if ($market['spot']) {
+                    if ($limit !== null) {
+                        $request['limit'] = $limit; // default 500, maximum 1000
+                    }
                     $response = Async\await($this->spotV1PrivateGetTradeMyTrades ($this->extend($request, $params)));
                     $data = $this->safe_dict($response, 'data', array());
                     $fills = $this->safe_list($data, 'fills', array());

@@ -5345,6 +5345,8 @@ class bingx(Exchange, ImplicitAPI):
             elif market['swap']:
                 request['endTs'] = now
             if market['spot']:
+                if limit is not None:
+                    request['limit'] = limit  # default 500, maximum 1000
                 response = await self.spotV1PrivateGetTradeMyTrades(self.extend(request, params))
                 data = self.safe_dict(response, 'data', {})
                 fills = self.safe_list(data, 'fills', [])

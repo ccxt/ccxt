@@ -101,6 +101,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -418,6 +419,75 @@ class bitfinex(Exchange, ImplicitAPI):
                 },
                 'networksById': {
                     'TETHERUSE': 'ERC20',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,  # todo: unify
+                        # todo: leverage unify
+                    },
+                    'createOrders': {
+                        'max': 75,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 2500,
+                        'daysBack': None,
+                        'untilDays': 100000,  # todo: implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'exceptions': {
@@ -3116,6 +3186,58 @@ class bitfinex(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://docs.bitfinex.com/reference/rest-public-derivatives-status
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = ['ALL']
+        if symbols is not None:
+            marketIds = self.market_ids(symbols)
+        request: dict = {
+            'keys': ','.join(marketIds),
+        }
+        response = await self.publicGetStatusDeriv(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             "tXRPF0:USTF0",  # market id
+        #             1706256986000,   # millisecond timestamp
+        #             null,
+        #             0.512705,        # derivative mid price
+        #             0.512395,        # underlying spot mid price
+        #             null,
+        #             37671483.04,     # insurance fund balance
+        #             null,
+        #             1706284800000,   # timestamp of next funding
+        #             0.00002353,      # accrued funding for next period
+        #             317,             # next funding step
+        #             null,
+        #             0,               # current funding
+        #             null,
+        #             null,
+        #             0.5123016,       # mark price
+        #             null,
+        #             null,
+        #             2233562.03115,   # open interest in contracts
+        #             null,
+        #             null,
+        #             null,
+        #             0.0005,          # average spread without funding payment
+        #             0.0025           # funding payment cap
+        #         ]
+        #     ]
+        #
+        result = self.parse_open_interests(response)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """

@@ -596,6 +596,8 @@ public partial class binance : Exchange
                         { "portfolio/bnb-transfer", 150 },
                         { "portfolio/repay-futures-switch", 150 },
                         { "portfolio/repay-futures-negative-balance", 150 },
+                        { "portfolio/mint", 20 },
+                        { "portfolio/redeem", 20 },
                         { "lending/auto-invest/plan/add", 0.1 },
                         { "lending/auto-invest/plan/edit", 0.1 },
                         { "lending/auto-invest/plan/edit-status", 0.1 },
@@ -999,6 +1001,7 @@ public partial class binance : Exchange
                         { "block/order/orders", 5 },
                         { "block/order/execute", 5 },
                         { "block/user-trades", 5 },
+                        { "blockTrades", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 1 },

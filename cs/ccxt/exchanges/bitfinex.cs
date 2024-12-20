@@ -74,6 +74,7 @@ public partial class bitfinex : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", true },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -347,6 +348,74 @@ public partial class bitfinex : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TETHERUSE", "ERC20" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 75 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 2500 },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 10000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -3499,6 +3568,63 @@ public partial class bitfinex : Exchange
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
         };
+    }
+
+    /**
+     * @method
+     * @name bitfinex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object marketIds = new List<object>() {"ALL"};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            marketIds = this.marketIds(symbols);
+        }
+        object request = new Dictionary<string, object>() {
+            { "keys", String.Join(",", ((IList<object>)marketIds).ToArray()) },
+        };
+        object response = await this.publicGetStatusDeriv(this.extend(request, parameters));
+        //
+        //     [
+        //         [
+        //             "tXRPF0:USTF0",  // market id
+        //             1706256986000,   // millisecond timestamp
+        //             null,
+        //             0.512705,        // derivative mid price
+        //             0.512395,        // underlying spot mid price
+        //             null,
+        //             37671483.04,     // insurance fund balance
+        //             null,
+        //             1706284800000,   // timestamp of next funding
+        //             0.00002353,      // accrued funding for next period
+        //             317,             // next funding step
+        //             null,
+        //             0,               // current funding
+        //             null,
+        //             null,
+        //             0.5123016,       // mark price
+        //             null,
+        //             null,
+        //             2233562.03115,   // open interest in contracts
+        //             null,
+        //             null,
+        //             null,
+        //             0.0005,          // average spread without funding payment
+        //             0.0025           // funding payment cap
+        //         ]
+        //     ]
+        //
+        object result = this.parseOpenInterests(response);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     /**
