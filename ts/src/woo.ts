@@ -333,7 +333,7 @@ export default class woo extends Exchange {
                             'PO': true,
                             'GTD': true,
                         },
-                        'hedged': false, // true for swap
+                        'hedged': false,
                         'trailing': true,
                         // exchange specific params:
                         // 'iceberg': true,
@@ -342,41 +342,60 @@ export default class woo extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 3000,
-                        'daysBack': undefined,
+                        'limit': 500,
+                        'daysBack': 90,
                         'untilDays': 10000,
                     },
                     'fetchOrder': {
                         'marginMode': false,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'trigger': false,
-                        'trailing': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': true,
                     },
                     'fetchOrders': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': 500,
                         'daysBack': undefined,
-                        'untilDays': 10000,
-                        'trigger': false,
-                        'trailing': false,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': true,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
-                        'limit': undefined,
+                        'limit': 500,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
-                        'untilDays': 10000,
-                        'trigger': false,
-                        'trailing': false,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': true,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forSwap': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'hedged': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {},
@@ -1962,7 +1981,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.woox.io/#get-trades
+     * @see https://docs.woox.io/#get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
