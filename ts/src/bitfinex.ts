@@ -3282,7 +3282,7 @@ export default class bitfinex extends Exchange {
      * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
      * @param {string[]} [symbols] a list of unified CCXT market symbols
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
