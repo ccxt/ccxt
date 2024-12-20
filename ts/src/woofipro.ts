@@ -359,6 +359,33 @@ export default class woofipro extends Exchange {
                         'limit': 1000,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'limit': false,
+                        },
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
