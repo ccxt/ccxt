@@ -2241,6 +2241,7 @@ class Transpiler {
         let [ phpAsync, php, python3 ] = ['', '', '']
         // let ren = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
         const fileImports = transpilerResult[0].imports
+
         if (transpilerResult.length == 3) { // all langs were transpiled
             phpAsync =  transpilerResult[0].content
             php = transpilerResult[1].content
@@ -2946,10 +2947,13 @@ if (isMainEntry(import.meta.url)) {
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
-    if (process.argv.includes ('--php')) {
+
+    const phpOnly = process.argv.includes ('--php');
+    if (phpOnly) {
         transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
     }
-    if (process.argv.includes ('--python')) {
+    const pyOnly = process.argv.includes ('--python');
+    if (pyOnly) {
         transpiler.buildPHP = false
     }
 
@@ -2961,7 +2965,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force, transpiler.buildPython, transpiler.buildPHP)
+        parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
