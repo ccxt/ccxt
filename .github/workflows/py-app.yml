@@ -59,6 +59,6 @@ jobs:
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Install python dependencies
-        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
+        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil # to do cache dependencies
       - name: Live tests
         run: ./run-tests-simul.sh --python-async
