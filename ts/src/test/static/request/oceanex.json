@@ -12,6 +12,26 @@
                 "input": []
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch Closed Orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.oceanex.pro/v1/orders/filter?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7Im1hcmtldCI6ImJ0Y3VzZHQiLCJzdGF0ZXMiOlsiZG9uZSIsImNhbmNlbCJdLCJuZWVkX3ByaWNlIjoiVHJ1ZSJ9fQ.Mr28VCcF-X3p3ZfmPRgldMcQilhAFC_osQFHyIAGMEhrSFFlb6DQHY5sXCgovPkPOCBLfuDWBIIwdEKTZY1WtE5drwdjRHIs8n_qL4hIDvg5eRVQ0-j0ChOcUalPcoHb9yt5T7oMSS_3um1IMPg-pxcJs6NeR10dwzAxdF3KQaA5XVRONeL4XpPFnSf-US7PgdfEyxQJOqxlphVhqNyfthYiNJEwvILqJNF00bJmGyK1PQeyuBDqfDbsj1d5cZ4hxj1lMi5QeEyVN6kM02fT8KKWxlV9m1-999O4gH4wNGdHHgmaP_s_Nyv7Azn-6mdtkamwVL1rXEPiIRA_EfMFTg",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Closed Orders with timestamp and limit",
+                "method": "fetchClosedOrders",
+                "url": "https://api.oceanex.pro/v1/orders/filter?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7Im1hcmtldCI6ImJ0Y3VzZHQiLCJzdGF0ZXMiOlsiZG9uZSIsImNhbmNlbCJdLCJuZWVkX3ByaWNlIjoiVHJ1ZSIsImxpbWl0IjozfX0.isrIAG2sednEFppFQfJK5SwssmIS3BwjB5ANjbO7JAy1uBswC5xZQ7-z2vxjX2TFixtDXhAZwDg5nFFae_1JWtR3SgRucCBYNFXAu5mN9SMysjkxK_Q5Unnpi_kJFkRVjypp41_TPNGgZZj_F-AeUZpsiZE7M3KCPjV34BNrBWEf-EBkTh8hje0fjORq9W01wNbhr3JgF5N38WkSrevtDNiB6HldRa299eLBLPmEb9b8CDgz7jnIVQTaudd5TGIchWNDyT2sKTinVSfkdAVe7H-9wlRRx794xwGV4a-1UefVUwgUl9UDIK0-MEtgeTokK6dASbefTSITvrOtAf4sHA",
+                "input": [
+                  "BTC/USDT",
+                  1717632000000,
+                  3
+                ]
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
                 "description": "Fetch Deposit Addresses By Network",
@@ -30,6 +50,25 @@
                 "input": [
                   "BTC/USDT"
                 ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch Tickers with symbols",
+                "method": "fetchTickers",
+                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=btcusdt&markets[]=ethusdt&",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "Fetch Tickers with no arguments",
+                "method": "fetchTickers",
+                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=aaveusdt&markets[]=adausdt&markets[]=b3trvet&markets[]=bchusdt&markets[]=btcusdt&markets[]=dogeusdt&markets[]=ethusdt&markets[]=haibtc&markets[]=linkusdt&markets[]=ltcusdt&markets[]=mkrusdt&markets[]=ocevet&markets[]=shabtc&markets[]=shausdt&markets[]=shavet&markets[]=usdcusdt&markets[]=vetusdt&markets[]=vthousdt&markets[]=vthovet&markets[]=xrpusdt&",
+                "input": []
             }
         ]
     }
