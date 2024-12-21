@@ -14,7 +14,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Check tsc version
