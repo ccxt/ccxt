@@ -22,7 +22,7 @@ class hyperliquid extends hyperliquid$1 {
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
-            'certified': false,
+            'certified': true,
             'pro': true,
             'dex': true,
             'has': {
