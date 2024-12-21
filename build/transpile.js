@@ -1318,8 +1318,12 @@ class Transpiler {
                 (phpAsyncFolder && (tsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (tsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
-                log.cyan ('Transpiling from', filename.yellow)
-
+                if (buildPHP && buildPython) {
+                    log.cyan ('Transpiling from', filename.yellow)
+                } else {
+                    const lang = (buildPHP) ? '[PHP]' : '[Python]'
+                    log.cyan ('Transpiling from', filename.yellow, "to".cyan, lang.yellow )
+                }
 
                 let languagesFolders = [];
 
