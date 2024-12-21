@@ -54,5 +54,7 @@ jobs:
         with:
           name: py-files
           path: python/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
       - name: Live tests
         run: ./run-tests-simul.sh ---python-async
