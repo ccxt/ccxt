@@ -30,8 +30,8 @@ const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
-let buildPython = true;
-let buildPHP = true;
+// let buildPython = true;
+// let buildPHP = true;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -55,6 +55,8 @@ if (platform === 'win32') {
 }
 class Transpiler {
 
+    buildPython = true;
+    buildPHP = true;
 
     baseMethodsList = null;
 
@@ -1153,7 +1155,7 @@ class Transpiler {
         let python3Body = ''
         let python2Body = ''
 
-        if (buildPython) {
+        if (this.buildPython) {
             python3Body = this.transpileJavaScriptToPython3 (args)
             // remove await from Python sync body (transpile Python async → Python sync)
             python2Body = this.transpilePython3ToPython2 (python3Body)
@@ -1162,7 +1164,7 @@ class Transpiler {
         let phpAsyncBody  = ''
         let phpBody = ''
 
-        if (buildPHP) {
+        if (this.buildPHP) {
             // transpile JS → Async PHP
             phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
             // transpile JS -> Sync PHP
@@ -1264,10 +1266,10 @@ class Transpiler {
         const sync = false
         const async = true
         const result = {
-            python2:      buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
-            python3:      buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
-            php:          buildPHP ? this.createPHPClass    (className, baseClass, php,      methodNames, sync) : '',
-            phpAsync:     buildPHP ? this.createPHPClass    (className, baseClass, phpAsync, methodNames, async) : '',
+            python2:      this.buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
+            python3:      this.buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
+            php:          this.buildPHP ? this.createPHPClass    (className, baseClass, php,      methodNames, sync) : '',
+            phpAsync:     this.buildPHP ? this.createPHPClass    (className, baseClass, phpAsync, methodNames, async) : '',
             className,
             baseClass,
         }
@@ -1318,21 +1320,21 @@ class Transpiler {
                 (phpAsyncFolder && (tsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (tsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
-                if (buildPHP && buildPython) {
+                if (this.buildPHP && this.buildPython) {
                     log.cyan ('Transpiling from', filename.yellow)
                 } else {
-                    const lang = (buildPHP) ? '[PHP]' : '[Python]'
+                    const lang = (this.buildPHP) ? '[PHP]' : '[Python]'
                     log.cyan ('Transpiling from', filename.yellow, "to".cyan, lang.yellow )
                 }
 
                 let languagesFolders = [];
 
-                if (buildPython) {
+                if (this.buildPython) {
                     languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
                     languagesFolders = languagesFolders.concat([ [python3Folder, pythonFilename, python3] ])
                 }
 
-                if (buildPHP) {
+                if (this.buildPHP) {
                     languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
                     languagesFolders = languagesFolders.concat([ [phpAsyncFolder, phpFilename, phpAsync] ])
                 }
@@ -1598,7 +1600,7 @@ class Transpiler {
                 return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
-            if (buildPHP) {
+            if (this.buildPHP) {
                 // add $ to each argument name in PHP method signature
                 const phpTypes = {
                     'any': 'mixed',
@@ -1673,7 +1675,7 @@ class Transpiler {
 
             let pythonArgs = ''
 
-            if (buildPython) {
+            if (this.buildPython) {
                 // remove excessive spacing from argument defaults in Python method signature
                 pythonArgs = args.map (x => {
                     if (x.includes (':')) {
@@ -1703,7 +1705,7 @@ class Transpiler {
             // transpile everything
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
-            if (buildPython) {
+            if (this.buildPython) {
                 // compile the final Python code for the method signature
                 let pythonReturnType = ''
                 if (syncReturnType) {
@@ -1722,7 +1724,7 @@ class Transpiler {
                 python3.push (python3Body);
             }
 
-            if (buildPHP) {
+            if (this.buildPHP) {
                 // compile signature + body for PHP
                 php.push ('');
                 php.push (syncPhpSignature);
@@ -1767,7 +1769,7 @@ class Transpiler {
             // trim away sync methods from python async
             // since it already inherits those methods
             const python3Async = []
-            if (buildPython) {
+            if (this.buildPython) {
                 python3.forEach ((line, i, arr) => {
                     if (line.match (/^\s+async def/)) {
                         python3Async.push ('')
@@ -1785,14 +1787,14 @@ class Transpiler {
             const phpFile = './php/Exchange.php'
             const phpAsyncFile = './php/async/Exchange.php'
 
-            if (buildPython) {
+            if (this.buildPython) {
                 log.magenta ('→', python2File.yellow)
                 replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
                 log.magenta ('→', python3File.yellow)
                 replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
             }
 
-            if (buildPHP) {
+            if (this.buildPHP) {
                 log.magenta ('→', phpFile.yellow)
                 replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
                 log.magenta ('→', phpAsyncFile.yellow)
@@ -1877,7 +1879,7 @@ class Transpiler {
         }
 
         // Python -------------------------------------------------------------
-        if (buildPython) {
+        if (this.buildPython) {
             function pythonDeclareErrorClass (name, parent, classes) {
                 classes.push (name)
                 return [
@@ -1911,7 +1913,7 @@ class Transpiler {
 
         // PHP ----------------------------------------------------------------
 
-        if (buildPHP) {
+        if (this.buildPHP) {
             function phpMakeErrorClassFile (name, parent) {
 
                 const useClause = "\nuse " + parent + ";\n"
@@ -2028,12 +2030,12 @@ class Transpiler {
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
-        if (buildPython) {
+        if (this.buildPython) {
             log.magenta ('→', pyFile.yellow)
             overwriteSafe (pyFile, python)
         }
 
-        if (buildPHP) {
+        if (this.buildPHP) {
             log.magenta ('→', phpFile.yellow)
             overwriteSafe (phpFile, php)
 
@@ -2215,7 +2217,7 @@ class Transpiler {
             //     async: true
             // }
         ]
-        if (buildPHP) {
+        if (this.buildPHP) {
             fileConfig = [
                 {
                     language: "php",
@@ -2227,7 +2229,7 @@ class Transpiler {
                 },
             ]
         }
-        if (buildPython) {
+        if (this.buildPython) {
             fileConfig = fileConfig.concat([
                 {
                     language: "python",
@@ -2251,7 +2253,7 @@ class Transpiler {
         }
 
         // ########### PYTHON ###########
-        if (buildPython) {
+        if (this.buildPython) {
             python3 = python3.
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
@@ -2277,7 +2279,7 @@ class Transpiler {
 
 
         // ########### PHP ###########
-        if (buildPHP) {
+        if (this.buildPHP) {
             const phpReform = (cont) => {
                 // add exceptions
                 let exceptions = '';
@@ -2360,23 +2362,23 @@ class Transpiler {
             // },
         ]
 
-        if (buildPHP) {
+        if (this.buildPHP) {
             fileConfig.push({"language": "php", "async": true})
             fileConfig.push({"language": "php", "async": false})
         }
 
 
-        if (buildPython) {
+        if (this.buildPython) {
             fileConfig.push({"language": "python", "async": false})
             fileConfig.push({"language": "python", "async": true})
         }
 
         if (tests.base) {
             fileConfig = []
-            if (buildPHP) {
+            if (this.buildPHP) {
                 fileConfig.push({ language: "php", async: false})
             }
-            if (buildPython) {
+            if (this.buildPython) {
                 fileConfig.push({ language: "python", async: false})
             }
         }
@@ -2452,15 +2454,15 @@ class Transpiler {
             let pythonAsync = ''
             let pythonSync = ''
 
-            if (buildPHP && buildPython) {
+            if (this.buildPHP && this.buildPython) {
                 phpAsync = phpFixes(result[0].content);
                 phpSync = phpFixes(result[1].content);
                 pythonSync = pyFixes (result[2].content, true);
                 pythonAsync = pyFixes (result[3].content);
-            } else if (buildPHP) {
+            } else if (this.buildPHP) {
                 phpAsync = phpFixes(result[0].content);
                 phpSync = phpFixes(result[1].content);
-            } else if (buildPython) {
+            } else if (this.buildPython) {
                 pythonAsync = pyFixes(result[1].content);
                 pythonSync = pyFixes(result[0].content);
             }
@@ -2610,14 +2612,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                if (test.phpFileAsync && buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                if (test.pyFileAsync && buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                if (test.phpFileSync && buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                if (test.pyFileSync && buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
@@ -2857,12 +2859,12 @@ class Transpiler {
             force = true; // when transpiling single exchange, we always force
         }
         if (!transpilingSingleExchange && !child) {
-            if (buildPython) {
+            if (this.buildPython) {
                 createFolderRecursively (python2Folder)
                 createFolderRecursively (python3Folder)
             }
 
-            if (buildPHP) {
+            if (this.buildPHP) {
                 createFolderRecursively (phpFolder)
                 createFolderRecursively (phpAsyncFolder)
             }
@@ -2945,10 +2947,10 @@ if (isMainEntry(import.meta.url)) {
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     if (process.argv.includes ('--php')) {
-        buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
+        transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
     }
     if (process.argv.includes ('--python')) {
-        buildPHP = false
+        transpiler.buildPHP = false
     }
 
     if (!child && !multiprocess) {
@@ -2959,7 +2961,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force, buildPython, buildPHP)
+        parallelizeTranspiling (exchangeIds, undefined, force, transpiler.buildPython, transpiler.buildPHP)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
