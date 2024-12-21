@@ -7,13 +7,13 @@ import path from 'path'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { promisify } from 'util'
-import errors from "../js/src/base/errors.js"
-import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
-import Exchange from '../js/src/base/Exchange.js'
+import errors from "../ts/src/base/errors.js"
+import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
+import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import errorHierarchy from '../js/src/base/errorHierarchy.js'
+import errorHierarchy from '../ts/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
 import { fork } from 'child_process'
