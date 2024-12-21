@@ -2897,7 +2897,7 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined, force = false, pythonOnly = false, phpOnly = false) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false, python = false, php = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
@@ -2905,10 +2905,10 @@ function parallelizeTranspiling (exchanges, processes = undefined, force = false
     if (force) {
         args.push ('--force')
     }
-    if (pythonOnly) {
+    if (python) {
         args.push('--python')
     }
-    if (phpOnly) {
+    if (php) {
         args.push('--php')
     }
     for (let i = 0; i < processesNum; i ++) {
@@ -2959,7 +2959,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force)
+        parallelizeTranspiling (exchangeIds, undefined, force, buildPython, buildPHP)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
