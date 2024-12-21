@@ -75,6 +75,7 @@ class hitbtc extends hitbtc$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -2374,7 +2375,7 @@ class hitbtc extends hitbtc$1 {
             }
         }
         else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new errors.ExchangeError(this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
         if (marketType === 'swap') {
@@ -2487,7 +2488,6 @@ class hitbtc extends hitbtc$1 {
         const postOnly = this.safeValue(order, 'post_only');
         const timeInForce = this.safeString(order, 'time_in_force');
         const rawTrades = this.safeValue(order, 'trades');
-        const stopPrice = this.safeString(order, 'stop_price');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2511,8 +2511,7 @@ class hitbtc extends hitbtc$1 {
             'average': average,
             'trades': rawTrades,
             'fee': undefined,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);
@@ -3113,13 +3112,58 @@ class hitbtc extends hitbtc$1 {
         const datetime = this.safeString(interest, 'timestamp');
         const value = this.safeNumber(interest, 'open_interest');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol(undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'info': interest,
         }, market);
+    }
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        symbols = this.marketSymbols(symbols);
+        let marketIds = undefined;
+        if (symbols !== undefined) {
+            marketIds = this.marketIds(symbols);
+            request['symbols'] = marketIds.join(',');
+        }
+        const response = await this.publicGetPublicFuturesInfo(this.extend(request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        const results = [];
+        const markets = Object.keys(response);
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = markets[i];
+            const marketInner = this.safeMarket(marketId);
+            results.push(this.parseOpenInterest(response[marketId], marketInner));
+        }
+        return this.filterByArray(results, 'symbol', symbols);
     }
     /**
      * @method

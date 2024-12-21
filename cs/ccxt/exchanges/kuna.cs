@@ -1119,7 +1119,6 @@ public partial class kuna : Exchange
         //
         object marketId = this.safeString(order, "pair");
         object datetime = this.safeString(order, "createdAt");
-        object triggerPrice = this.safeString(order, "stopPrice");
         object side = this.safeString(order, "side");
         if (isTrue(isEqual(side, "Bid")))
         {
@@ -1143,8 +1142,7 @@ public partial class kuna : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "amount", this.safeString(order, "quantity") },
             { "filled", this.safeString(order, "executedQuantity") },
             { "remaining", null },

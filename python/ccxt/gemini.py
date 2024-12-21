@@ -1300,7 +1300,6 @@ class gemini(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': average,
             'cost': None,
@@ -1431,12 +1430,12 @@ class gemini(Exchange, ImplicitAPI):
         }
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
-        rawStopPrice = self.safe_string_2(params, 'stop_price', 'stopPrice')
+        triggerPrice = self.safe_string_n(params, ['stop_price', 'stopPrice'])
         params = self.omit(params, ['stop_price', 'stopPrice', 'type'])
         if type == 'stopLimit':
-            raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders')
-        if rawStopPrice is not None:
-            request['stop_price'] = self.price_to_precision(symbol, rawStopPrice)
+            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders')
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
             request['type'] = 'exchange stop limit'
         else:
             # No options can be applied to stop-limit orders at self time.

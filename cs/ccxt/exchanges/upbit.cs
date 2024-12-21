@@ -1616,7 +1616,6 @@ public partial class upbit : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", this.parseNumber(cost) },
             { "average", this.parseNumber(average) },

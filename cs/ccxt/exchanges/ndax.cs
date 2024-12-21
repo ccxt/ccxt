@@ -1415,7 +1415,7 @@ public partial class ndax : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "Side") },
             { "price", this.safeString(order, "Price") },
-            { "stopPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
+            { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
             { "cost", this.safeString(order, "GrossValueExecuted") },
             { "amount", this.safeString(order, "OrigQuantity") },
             { "filled", this.safeString(order, "QuantityExecuted") },

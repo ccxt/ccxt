@@ -1221,12 +1221,12 @@ public partial class coinsph : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue(isEqual(orderType, "STOP_LOSS")) || isTrue(isEqual(orderType, "STOP_LOSS_LIMIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT_LIMIT"))))
         {
-            object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(isEqual(stopPrice, null)))
+            object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(isEqual(triggerPrice, null)))
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         ((IDictionary<string,object>)request)["newOrderRespType"] = newOrderRespType;
         parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1489,10 +1489,10 @@ public partial class coinsph : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills", null);
-        object stopPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(stopPrice, "0")))
+        object triggerPrice = this.safeString(order, "stopPrice");
+        if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
-            stopPrice = null;
+            triggerPrice = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1506,8 +1506,7 @@ public partial class coinsph : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", null },
             { "amount", this.safeString(order, "origQty") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },

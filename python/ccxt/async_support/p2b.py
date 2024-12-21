@@ -1174,7 +1174,7 @@ class p2b(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'amount'),
             'cost': None,
             'average': None,

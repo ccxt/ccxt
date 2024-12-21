@@ -1264,8 +1264,8 @@ public partial class whitebit : Exchange
         object marketType = this.safeString(market, "type");
         object isLimitOrder = isEqual(type, "limit");
         object isMarketOrder = isEqual(type, "market");
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
-        object isStopOrder = (!isEqual(stopPrice, null));
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
+        object isStopOrder = (!isEqual(triggerPrice, null));
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -1283,7 +1283,7 @@ public partial class whitebit : Exchange
         object response = null;
         if (isTrue(isStopOrder))
         {
-            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isLimitOrder))
             {
                 // stop limit order
@@ -1372,12 +1372,12 @@ public partial class whitebit : Exchange
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         }
         object isLimitOrder = isEqual(type, "limit");
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
-        object isStopOrder = (!isEqual(stopPrice, null));
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
+        object isStopOrder = (!isEqual(triggerPrice, null));
         parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "triggerPrice", "stopPrice"});
         if (isTrue(isStopOrder))
         {
-            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isLimitOrder))
             {
                 // stop limit order
@@ -1824,7 +1824,7 @@ public partial class whitebit : Exchange
             clientOrderId = null;
         }
         object price = this.safeString(order, "price");
-        object stopPrice = this.safeNumber(order, "activation_price");
+        object triggerPrice = this.safeNumber(order, "activation_price");
         object orderId = this.safeString2(order, "orderId", "id");
         object type = this.safeString(order, "type");
         object orderType = this.parseOrderType(type);
@@ -1863,8 +1863,7 @@ public partial class whitebit : Exchange
             { "side", side },
             { "price", price },
             { "type", orderType },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "filled", filled },
             { "remaining", remaining },

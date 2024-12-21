@@ -1214,7 +1214,7 @@ class defx extends Exchange {
                 'type' => $orderType,
             );
             $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-            $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+            $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
             $isMarket = $orderType === 'MARKET';
             $isLimit = $orderType === 'LIMIT';
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -1233,7 +1233,7 @@ class defx extends Exchange {
             if ($clientOrderId !== null) {
                 $request['newClientOrderId'] = $clientOrderId;
             }
-            if ($stopPrice !== null || $takeProfitPrice !== null) {
+            if ($triggerPrice !== null || $takeProfitPrice !== null) {
                 $request['workingType'] = 'MARK_PRICE';
                 if ($takeProfitPrice !== null) {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
@@ -1243,7 +1243,7 @@ class defx extends Exchange {
                         $request['type'] = 'TAKE_PROFIT_LIMIT';
                     }
                 } else {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     if ($isMarket) {
                         $request['type'] = 'STOP_MARKET';
                     } else {
@@ -1338,12 +1338,12 @@ class defx extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $timeInForce = $this->safe_string_lower($order, 'timeInForce');
         $takeProfitPrice = null;
-        $stopPrice = null;
+        $triggerPrice = null;
         if ($orderType !== null) {
             if (mb_strpos($orderType, 'take_profit') !== false) {
                 $takeProfitPrice = $this->safe_string($order, 'stopPrice');
             } else {
-                $stopPrice = $this->safe_string($order, 'stopPrice');
+                $triggerPrice = $this->safe_string($order, 'stopPrice');
             }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
@@ -1363,8 +1363,7 @@ class defx extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => null,
             'average' => $average,

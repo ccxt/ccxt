@@ -143,7 +143,7 @@ public partial class krakenfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -212,7 +212,7 @@ public partial class krakenfutures
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

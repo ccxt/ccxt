@@ -930,7 +930,6 @@ public partial class coinmate : Exchange
         object marketId = this.safeString(order, "currencyPair");
         object symbol = this.safeSymbol(marketId, market, "_");
         object clientOrderId = this.safeString(order, "clientOrderId");
-        object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -943,8 +942,7 @@ public partial class coinmate : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", priceString },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "amount", amountString },
             { "cost", null },
             { "average", averageString },

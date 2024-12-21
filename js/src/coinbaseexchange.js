@@ -1064,7 +1064,7 @@ export default class coinbaseexchange extends Exchange {
         const side = this.safeString(order, 'side');
         const timeInForce = this.safeString(order, 'time_in_force');
         const postOnly = this.safeValue(order, 'post_only');
-        const stopPrice = this.safeNumber(order, 'stop_price');
+        const triggerPrice = this.safeNumber(order, 'stop_price');
         const clientOrderId = this.safeString(order, 'client_oid');
         return this.safeOrder({
             'id': id,
@@ -1080,8 +1080,7 @@ export default class coinbaseexchange extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1257,9 +1256,9 @@ export default class coinbaseexchange extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
-        if (stopPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(symbol, stopPrice);
+        const triggerPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const timeInForce = this.safeString2(params, 'timeInForce', 'time_in_force');
         if (timeInForce !== undefined) {

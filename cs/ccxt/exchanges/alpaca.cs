@@ -1176,7 +1176,6 @@ public partial class alpaca : Exchange
             { "postOnly", null },
             { "side", this.safeString(order, "side") },
             { "price", this.safeNumber(order, "limit_price") },
-            { "stopPrice", this.safeNumber(order, "stop_price") },
             { "triggerPrice", this.safeNumber(order, "stop_price") },
             { "cost", null },
             { "average", this.safeNumber(order, "filled_avg_price") },

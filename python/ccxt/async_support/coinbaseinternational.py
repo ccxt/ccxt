@@ -1630,7 +1630,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
         :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: price to trigger stop orders
+        :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: price to trigger stop orders
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param bool [params.postOnly]: True or False
@@ -1642,7 +1642,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         typeId = type.upper()
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
         clientOrderId = clientOrderIdprefix + '-' + self.uuid()
         clientOrderId = clientOrderId[0:17]
@@ -1652,12 +1652,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'instrument': market['id'],
             'size': self.amount_to_precision(market['symbol'], amount),
         }
-        if stopPrice is not None:
+        if triggerPrice is not None:
             if type == 'limit':
                 typeId = 'STOP_LIMIT'
             else:
                 typeId = 'STOP'
-            request['stop_price'] = stopPrice
+            request['stop_price'] = triggerPrice
         request['type'] = typeId
         if type == 'limit':
             if price is None:
@@ -1751,7 +1751,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'stop_price'),
             'triggerPrice': self.safe_string(order, 'stop_price'),
             'amount': self.safe_string(order, 'size'),
             'filled': self.safe_string(order, 'exec_qty'),
@@ -1885,9 +1884,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['size'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
-        if stopPrice is not None:
-            request['stop_price'] = stopPrice
+        triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        if triggerPrice is not None:
+            request['stop_price'] = triggerPrice
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             raise BadRequest(self.id + ' editOrder() requires a clientOrderId parameter')

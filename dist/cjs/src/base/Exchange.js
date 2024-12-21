@@ -1444,6 +1444,7 @@ class Exchange {
                 'fetchOHLCV': undefined,
                 'fetchOHLCVWs': undefined,
                 'fetchOpenInterest': undefined,
+                'fetchOpenInterests': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
@@ -2277,6 +2278,9 @@ class Exchange {
     }
     async fetchOpenInterest(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
     }
     async signIn(params = {}) {
         throw new errors.NotSupported(this.id + ' signIn() is not supported yet');
@@ -4462,10 +4466,15 @@ class Exchange {
     }
     handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         let value = undefined;
-        [value, params] = this.handleOptionAndParams(params, methodName1, optionName1, defaultValue);
+        [value, params] = this.handleOptionAndParams(params, methodName1, optionName1);
+        if (value !== undefined) {
+            // omit optionName2 too from params
+            params = this.omit(params, optionName2);
+            return [value, params];
+        }
         // if still undefined, try optionName2
         let value2 = undefined;
-        [value2, params] = this.handleOptionAndParams(params, methodName1, optionName2, value);
+        [value2, params] = this.handleOptionAndParams(params, methodName1, optionName2, defaultValue);
         return [value2, params];
     }
     handleOption(methodName, optionName, defaultValue = undefined) {
@@ -5520,52 +5529,52 @@ class Exchange {
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopOrder(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrder']) {
             throw new errors.NotSupported(this.id + ' createStopOrder() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
-    async createStopOrderWs(symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+    async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
         if (!this.has['createStopOrderWs']) {
             throw new errors.NotSupported(this.id + ' createStopOrderWs() is not supported yet');
         }
-        if (stopPrice === undefined) {
+        if (triggerPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createStopOrderWs() requires a stopPrice argument');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new errors.NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'limit', side, amount, price, query);
     }
-    async createStopLimitOrderWs(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
         if (!this.has['createStopLimitOrderWs']) {
             throw new errors.NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'limit', side, amount, price, query);
     }
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
             throw new errors.NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
-    async createStopMarketOrderWs(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
         if (!this.has['createStopMarketOrderWs']) {
             throw new errors.NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     safeCurrencyCode(currencyId, currency = undefined) {
@@ -5733,6 +5742,14 @@ class Exchange {
         }
         return result;
     }
+    parseOpenInterests(response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseOpenInterest(response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
     parseLongShortRatio(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -5842,7 +5859,7 @@ class Exchange {
     parseOpenInterest(interest, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOpenInterest () is not supported yet');
     }
-    parseOpenInterests(response, market = undefined, since = undefined, limit = undefined) {
+    parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -6194,7 +6211,7 @@ class Exchange {
         }
         return [maxEntriesPerRequest, params];
     }
-    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
         let maxCalls = undefined;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6202,6 +6219,8 @@ class Exchange {
         let paginationDirection = undefined;
         [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
+        let removeRepeatedOption = removeRepeated;
+        [removeRepeatedOption, params] = this.handleOptionAndParams(params, method, 'removeRepeated', removeRepeated);
         let calls = 0;
         let result = [];
         let errors$1 = 0;
@@ -6272,7 +6291,10 @@ class Exchange {
                 }
             }
         }
-        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        let uniqueResults = result;
+        if (removeRepeatedOption) {
+            uniqueResults = this.removeRepeatedElementsFromArray(result);
+        }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }

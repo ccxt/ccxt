@@ -1560,7 +1560,6 @@ class upbit extends upbit$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': this.parseNumber(cost),
             'average': this.parseNumber(average),
