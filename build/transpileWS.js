@@ -242,10 +242,10 @@ class CCXTProTranspiler extends Transpiler {
         }
             // createFolderRecursively (python2Folder)
         if (!transpilingSingleExchange) {
-            if (buildPython) {
+            if (this.buildPython) {
                 createFolderRecursively (python3Folder)
             }
-            if (buildPHP) {
+            if (this.buildPHP) {
                 createFolderRecursively (phpAsyncFolder)
             }
         }
@@ -309,10 +309,10 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
     if (process.argv.includes ('--php')) {
-        buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
+        transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
     }
     if (process.argv.includes ('--python')) {
-        buildPHP = false
+        transpiler.buildPHP = false
     }
     if (!child && !multiprocess) {
         log.bright.green ('isForceTranspile', force)
@@ -321,7 +321,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         transpiler.transpileWsTests ()
     }
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws, undefined, force, buildPython, buildPHP)
+        parallelizeTranspiling (exchanges.ws, undefined, force, transpiler.buildPython, transpiler.buildPHP)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
