@@ -156,7 +156,8 @@
     "commonjs-test": "node ./utils/test-commonjs.cjs",
     "package-test": "./utils/package-test.sh",
     "test-freshness": "tsx ./utils/test-freshness.ts",
-    "benchmark": "tsx examples/ts/benchmark.ts"
+    "benchmark": "tsx examples/ts/benchmark.ts",
+    "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
