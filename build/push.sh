@@ -65,7 +65,7 @@ git remote remove origin
 echo "before adding origin" # debug
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
 echo "before cleaning tags" # debug
-tsx build/cleanup-old-tags.ts --limit
+npm run cleanup-old-tags --limit
 echo "after cleaning tags" # debug
 git push origin --tags HEAD:master
 echo "after pushing tags" # debug
