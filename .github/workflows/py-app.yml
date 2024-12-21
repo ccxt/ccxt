@@ -58,5 +58,7 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: Install python dependencies
+        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
       - name: Live tests
         run: ./run-tests-simul.sh --python-async
