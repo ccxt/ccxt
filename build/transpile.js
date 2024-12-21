@@ -1877,65 +1877,69 @@ class Transpiler {
         }
 
         // Python -------------------------------------------------------------
+        if (buildPython) {
+            function pythonDeclareErrorClass (name, parent, classes) {
+                classes.push (name)
+                return [
+                    'class ' + name + '(' + parent + '):',
+                    '    pass',
+                    '',
+                    '',
+                ].join ('\n');
+            }
 
-        function pythonDeclareErrorClass (name, parent, classes) {
-            classes.push (name)
-            return [
-                'class ' + name + '(' + parent + '):',
+            const pythonBaseError = [
+                'class BaseError(Exception):',
                 '    pass',
                 '',
                 '',
             ].join ('\n');
-        }
 
-        const pythonBaseError = [
-            'class BaseError(Exception):',
-            '    pass',
-            '',
-            '',
-        ].join ('\n');
+            const quote = (s) => "'" + s + "'" // helper to add quotes around class names
+            const pythonExports = [ 'error_hierarchy', 'BaseError' ]
+            const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
+            const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
+            const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
-        const quote = (s) => "'" + s + "'" // helper to add quotes around class names
-        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
-        const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
-        const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
-        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
+            const pythonFilename = './python/ccxt/base/errors.py'
+            if (fs.existsSync (pythonFilename)) {
+                log.bright.cyan (message, pythonFilename.yellow)
+                fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+            }
 
-        const pythonFilename = './python/ccxt/base/errors.py'
-        if (fs.existsSync (pythonFilename)) {
-            log.bright.cyan (message, pythonFilename.yellow)
-            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
         }
 
         // PHP ----------------------------------------------------------------
 
-        function phpMakeErrorClassFile (name, parent) {
+        if (buildPHP) {
+            function phpMakeErrorClassFile (name, parent) {
 
-            const useClause = "\nuse " + parent + ";\n"
-            const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
+                const useClause = "\nuse " + parent + ";\n"
+                const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
 
-            const phpBody = [
-                '<?php',
-                '',
-                'namespace ccxt;',
-                (parent === 'Exception') ? useClause : requireClause,
-                'class ' + name + ' extends ' + parent + ' {};',
-                '',
-            ].join ("\n")
-            const phpFilename = './php/' + name + '.php'
-            log.bright.cyan (message, phpFilename.yellow)
-            fs.writeFileSync (phpFilename, phpBody)
-            return "require_once PATH_TO_CCXT . '" + name + ".php';"
-        }
+                const phpBody = [
+                    '<?php',
+                    '',
+                    'namespace ccxt;',
+                    (parent === 'Exception') ? useClause : requireClause,
+                    'class ' + name + ' extends ' + parent + ' {};',
+                    '',
+                ].join ("\n")
+                const phpFilename = './php/' + name + '.php'
+                log.bright.cyan (message, phpFilename.yellow)
+                fs.writeFileSync (phpFilename, phpBody)
+                return "require_once PATH_TO_CCXT . '" + name + ".php';"
+            }
 
-        const phpFilename ='./ccxt.php'
+            const phpFilename ='./ccxt.php'
 
-        if (fs.existsSync (phpFilename)) {
-            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
-            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-            log.bright.cyan (message, phpFilename.yellow)
-            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+            if (fs.existsSync (phpFilename)) {
+                const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+                const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+                log.bright.cyan (message, phpFilename.yellow)
+                const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+                replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+            }
         }
     }
 
