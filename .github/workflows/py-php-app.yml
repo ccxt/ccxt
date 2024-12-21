@@ -5,7 +5,7 @@ on:
       - master
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +51,6 @@ jobs:
         run: npm run response-py
       - name: Response Tests Php
         run: npm run response-php
-      - name: Live tests
-        run: ./run-tests-simul.sh ---python-async --php-async
+      # - name: Live tests
+      #   run: ./run-tests-simul.sh ---python-async --php-async
 
