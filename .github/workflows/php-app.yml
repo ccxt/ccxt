@@ -1,4 +1,4 @@
-name: Python/Php
+name: PHP
 on:
   pull_request:
     branches:
@@ -15,8 +15,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-      - name: Install python dependencies
-        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Check tsc version
@@ -26,31 +24,43 @@ jobs:
       - name: export exchanges
         run: npm run export-exchanges
       - name: Generate implicit API
-        run: npm run emitAPI -- --python --php
-      - name: Transpile Python/PHP
-        run: npm run force-transpile-fast
+        run: npm run emitAPI -- --php
+      - name: Transpile PHP
+        run: npm run force-transpile-fast-php
       - name: Post-transpile (syntax check)
-        run: npm run post-transpile
-      - name: Run Base Rest Tests Python
-        run: npm run test-base-rest-py
-      - name: Run Base WS Tests Python
-        run: npm run test-base-ws-py
+        run: npm run check-php-syntax
       - name: Run Base Rest Tests PHP
         run: npm run test-base-rest-php
       - name: Run Base WS Tests Php
         run: npm run test-base-ws-php
-      - name: Run Id Tests Python
-        run: npm run id-tests-py
       - name: Run Id Tests Php
         run: npm run id-tests-php
-      - name: Request tests Python
-        run: npm run request-py
       - name: Request tests Php
         run: npm run request-php
-      - name: Response Tests Python
-        run: npm run response-py
       - name: Response Tests Php
         run: npm run response-php
+
+      - name: Upload PHP Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-files
+          path: php/
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download PHP Files
+        uses: actions/download-artifact@v4
+        with:
+          name: php-files
+          path: php/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Live tests
+        run: ./run-tests-simul.sh --js
+
       # - name: Live tests
       #   run: ./run-tests-simul.sh ---python-async --php-async
 

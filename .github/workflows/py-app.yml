@@ -1,0 +1,58 @@
+name: Python
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+      - name: Install python dependencies
+        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Check tsc version
+        run: tsc --version
+      - name: Install tsx
+        run: npm install -g tsx
+      - name: export exchanges
+        run: npm run export-exchanges
+      - name: Generate implicit API
+        run: npm run emitAPI -- --python
+      - name: Transpile Python/PHP
+        run: npm run force-transpile-fast-py
+      - name: Post-transpile (syntax check)
+        run: npm run check-python-syntax
+      - name: Run Base Rest Tests Python
+        run: npm run test-base-rest-py
+      - name: Run Base WS Tests Python
+        run: npm run test-base-ws-py
+      - name: Run Id Tests Python
+        run: npm run id-tests-py
+      - name: Request tests Python
+        run: npm run request-py
+      - name: Response Tests Python
+        run: npm run response-py
+
+      - name: Upload Python Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: py-files
+          path: python/
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Python Files
+        uses: actions/download-artifact@v4
+        with:
+          name: py-files
+          path: python/
+      - name: Live tests
+        run: ./run-tests-simul.sh ---python-async
