@@ -59,4 +59,4 @@ jobs:
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests
-        run: ./run-tests-simul.sh ---python-async
+        run: ./run-tests-simul.sh --python-async
