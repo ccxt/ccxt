@@ -7,13 +7,13 @@ import path from 'path'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { promisify } from 'util'
-import errors from "../js/src/base/errors.js"
-import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
-import Exchange from '../js/src/base/Exchange.js'
+import errors from "../ts/src/base/errors.js"
+import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
+import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import errorHierarchy from '../js/src/base/errorHierarchy.js'
+import errorHierarchy from '../ts/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
 import { fork } from 'child_process'
@@ -2241,6 +2241,7 @@ class Transpiler {
         let [ phpAsync, php, python3 ] = ['', '', '']
         // let ren = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
         const fileImports = transpilerResult[0].imports
+
         if (transpilerResult.length == 3) { // all langs were transpiled
             phpAsync =  transpilerResult[0].content
             php = transpilerResult[1].content
@@ -2946,10 +2947,13 @@ if (isMainEntry(import.meta.url)) {
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
-    if (process.argv.includes ('--php')) {
+
+    const phpOnly = process.argv.includes ('--php');
+    if (phpOnly) {
         transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
     }
-    if (process.argv.includes ('--python')) {
+    const pyOnly = process.argv.includes ('--python');
+    if (pyOnly) {
         transpiler.buildPHP = false
     }
 
@@ -2961,7 +2965,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force, transpiler.buildPython, transpiler.buildPHP)
+        parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
