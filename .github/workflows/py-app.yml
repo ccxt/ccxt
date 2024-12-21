@@ -56,5 +56,7 @@ jobs:
           path: python/
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
       - name: Live tests
         run: ./run-tests-simul.sh ---python-async
