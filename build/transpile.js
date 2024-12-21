@@ -2024,11 +2024,16 @@ class Transpiler {
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
+        if (buildPython) {
+            log.magenta ('→', pyFile.yellow)
+            overwriteSafe (pyFile, python)
+        }
 
-        overwriteSafe (pyFile, python)
-        overwriteSafe (phpFile, php)
+        if (buildPHP) {
+            log.magenta ('→', phpFile.yellow)
+            overwriteSafe (phpFile, php)
+
+        }
     }
 
     // ============================================================================
@@ -2193,24 +2198,57 @@ class Transpiler {
         };
         const transpiler = new astTranspiler(parserConfig);
         let fileConfig = [
-            {
-                language: "php",
-                async: true
-            },
-            {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: true
-            }
+            // {
+            //     language: "php",
+            //     async: true
+            // },
+            // {
+            //     language: "php",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: true
+            // }
         ]
+        if (buildPHP) {
+            fileConfig = [
+                {
+                    language: "php",
+                    async: true
+                },
+                {
+                    language: "php",
+                    async: false
+                },
+            ]
+        }
+        if (buildPython) {
+            fileConfig = fileConfig.concat([
+                {
+                    language: "python",
+                    async: true
+                }
+            ])
+        }
         const transpilerResult = transpiler.transpileDifferentLanguages(fileConfig, mainContent);
-        let [ phpAsync, php, python3 ] = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
+        let [ phpAsync, php, python3 ] = ['', '', '']
+        // let ren = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
+        const fileImports = transpilerResult[0].imports
+        if (transpilerResult.length == 3) { // all langs were transpiled
+            phpAsync =  transpilerResult[0].content
+            php = transpilerResult[1].content
+            python3 = transpilerResult[2].content
+        } else if (transpilerResult.length == 2) { // only  php
+            phpAsync =  transpilerResult[0].content
+            php = transpilerResult[1].content
+        } else { // only python
+            python3 = transpilerResult[0].content
+        }
 
         // ########### PYTHON ###########
-        python3 = python3.
+        if (buildPython) {
+            python3 = python3.
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
@@ -2219,46 +2257,49 @@ class Transpiler {
             replace(/\.wallet_address/g, '.walletAddress').
             replace(/\.private_key/g, '.privateKey').
             replace(/\.api_key/g, '.apiKey');
-        
-        let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
-        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
-        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
-        let newPython = impHelper + python3;
-        newPython = snakeCaseFunctions (newPython);
-        overwriteSafe (files.pyFileAsync, newPython);
-        this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
-        // remove 4 extra newlines
-        let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
-        existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteSafe (files.pyFileSync, existingPythonWN);
+
+            let pythonImports = fileImports.filter(x=>x.path.includes('./tests.helpers.js'));
+            pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
+            const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
+            let newPython = impHelper + python3;
+            newPython = snakeCaseFunctions (newPython);
+            overwriteSafe (files.pyFileAsync, newPython);
+            this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
+            // remove 4 extra newlines
+            let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
+            existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
+            overwriteSafe (files.pyFileSync, existingPythonWN);
+        }
 
 
         // ########### PHP ###########
-        const phpReform = (cont) => {
-            // add exceptions
-            let exceptions = '';
-            for (const eType of Object.keys(errors)) {
-                if (cont.includes (' ' + eType)) {
-                    exceptions += `use ccxt\\${eType};\n`;
+        if (buildPHP) {
+            const phpReform = (cont) => {
+                // add exceptions
+                let exceptions = '';
+                for (const eType of Object.keys(errors)) {
+                    if (cont.includes (' ' + eType)) {
+                        exceptions += `use ccxt\\${eType};\n`;
+                    }
                 }
+                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+                let newContent = head + cont;
+                newContent = newContent.
+                    replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                    replace(/\->wallet_address/g, '->walletAddress').
+                    replace(/\->private_key/g, '->privateKey').
+                    replace(/\->api_key/g, '->apiKey').
+                    replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
+                newContent = snakeCaseFunctions (newContent);
+                newContent = this.phpReplaceException (newContent);
+                return newContent;
             }
-            let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
-            let newContent = head + cont;
-            newContent = newContent.
-                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-                replace(/\->wallet_address/g, '->walletAddress').
-                replace(/\->private_key/g, '->privateKey').
-                replace(/\->api_key/g, '->apiKey').
-                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
-            newContent = snakeCaseFunctions (newContent);
-            newContent = this.phpReplaceException (newContent);
-            return newContent;
+            let bodyPhpAsync = phpReform (phpAsync);
+            overwriteSafe (files.phpFileAsync, bodyPhpAsync);
+            let bodyPhpSync = phpReform (php);
+            bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
+            overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
-        let bodyPhpAsync = phpReform (phpAsync);
-        overwriteSafe (files.phpFileAsync, bodyPhpAsync);
-        let bodyPhpSync = phpReform (php);
-        bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
-        overwriteSafe (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -2297,25 +2338,43 @@ class Transpiler {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
         let fileConfig = [
-            {
-                language: "php",
-                async: true
-            },
-            {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: false
-            },
-            {
-                language: "python",
-                async: true
-            },
+            // {
+            //     language: "php",
+            //     async: true
+            // },
+            // {
+            //     language: "php",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: true
+            // },
         ]
+
+        if (buildPHP) {
+            fileConfig.push({"language": "php", "async": true})
+            fileConfig.push({"language": "php", "async": false})
+        }
+
+
+        if (buildPython) {
+            fileConfig.push({"language": "python", "async": false})
+            fileConfig.push({"language": "python", "async": true})
+        }
+
         if (tests.base) {
-            fileConfig = [{ language: "php", async: false}, { language: "python", async: false}]
+            fileConfig = []
+            if (buildPHP) {
+                fileConfig.push({ language: "php", async: false})
+            }
+            if (buildPython) {
+                fileConfig.push({ language: "python", async: false})
+            }
         }
         const parserConfig = {
             'verbose': false,
@@ -2381,10 +2440,27 @@ class Transpiler {
             const result = flatResult[i];
             const test = tests[i];
             const isWs = test.tsFile.includes('ts/src/pro/');
-            let phpAsync = phpFixes(result[0].content);
-            let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content, true);
-            let pythonAsync = pyFixes (result[3].content);
+
+            // handle different usecases regarding the conditional transpilation
+            let phpAsync = ''
+            let phpSync = ''
+
+            let pythonAsync = ''
+            let pythonSync = ''
+
+            if (buildPHP && buildPython) {
+                phpAsync = phpFixes(result[0].content);
+                phpSync = phpFixes(result[1].content);
+                pythonSync = pyFixes (result[2].content, true);
+                pythonAsync = pyFixes (result[3].content);
+            } else if (buildPHP) {
+                phpAsync = phpFixes(result[0].content);
+                phpSync = phpFixes(result[1].content);
+            } else if (buildPython) {
+                pythonAsync = pyFixes(result[1].content);
+                pythonSync = pyFixes(result[0].content);
+            }
+
             const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
@@ -2530,14 +2606,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                if (test.phpFileAsync) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                if (test.pyFileAsync) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync && buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync && buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                if (test.phpFileSync) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync && buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                if (test.pyFileSync) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync && buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
