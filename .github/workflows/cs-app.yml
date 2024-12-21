@@ -48,6 +48,8 @@ jobs:
         with:
           name: cs-files
           path: cs/
+      - name: Export exchanges
+        run: npm run export-exchanges
       - name: Build solution
         run: npm run buildCS
       - name: Live tests

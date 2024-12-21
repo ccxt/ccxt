@@ -23,6 +23,8 @@ jobs:
         run: npm install -g tsx
       - name: export exchanges
         run: npm run export-exchanges
+      - name: Composer install
+        run: composer install
       - name: Generate implicit API
         run: npm run emitAPI -- --php
       - name: Transpile PHP
@@ -58,6 +60,10 @@ jobs:
           path: php/
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Composer install
+        run: composer install
       - name: Live tests
         run: ./run-tests-simul.sh --php-async
 
