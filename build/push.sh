@@ -62,7 +62,7 @@ if [ "$SHOULD_TAG" = "true" ]; then
 fi
 git remote remove origin
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
-node build/cleanup-old-tags --limit
+tsx build/cleanup-old-tags.ts --limit
 git push origin --tags HEAD:master
 if [ "$SHOULD_TAG" = "true" ]; then
     echo "Creating github release..."
