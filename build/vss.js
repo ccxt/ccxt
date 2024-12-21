@@ -26,12 +26,13 @@ if (platform === 'win32') {
         __dirname = __dirname.substring(1)
     }
 }
+const logsEnabled = !process.env.DISABLE_EXTRA_BUILD_LOGS;
 
 //-----------------------------------------------------------------------------
 
 function vss (filename, template, version, global = false) {
     const flag = global ? 'g' : ''
-    log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
+    if (logsEnabled) log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
     const content = fs.readFileSync (filename, 'utf8')
     const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
                                         .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), flag)

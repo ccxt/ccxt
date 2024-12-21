@@ -14,6 +14,8 @@ import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
 
+const logsEnabled = !process.env.DISABLE_EXTRA_BUILD_LOGS;
+
 const { keys, values, entries, fromEntries } = Object
 
 ansi.nice
@@ -31,7 +33,7 @@ function cloneGitHubWiki (gitWikiPath) {
 // ----------------------------------------------------------------------------
 
 function logExportExchanges (filename, regex, replacement) {
-    log.bright.cyan ('Exporting exchanges →', filename.yellow)
+    if (logsEnabled) log.bright.cyan ('Exporting exchanges →', filename.yellow)
     replaceInFile (filename, regex, replacement)
 }
 

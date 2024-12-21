@@ -108,9 +108,16 @@ build_and_test_all () {
 ### CHECK IF THIS IS A PR ###
 # for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
 if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
-
   echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
+fi
+
+# only if this is travis build, and not master commit, set ENV var to disable extra logs
+export DISABLE_EXTRA_BUILD_LOGS=$IS_TRAVIS
+if [[ "$DISABLE_EXTRA_BUILD_LOGS" = "TRUE" ]]; then
+  echo "Disabling extra build logs"
+  echo "export DISABLE_EXTRA_BUILD_LOGS=\"true\"" >> ~/.bashrc
+  source ~/.bashrc
 fi
 
 ##### DETECT CHANGES #####
@@ -198,7 +205,11 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
 fi
 
 # build dotnet project
-npm run buildCS
+if [[ -n "$DISABLE_EXTRA_BUILD_LOGS" ]]; then
+  npm run buildCS -- -- -- -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
+else
+  npm run buildCS
+fi;
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base

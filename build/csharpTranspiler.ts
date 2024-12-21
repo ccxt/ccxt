@@ -23,6 +23,8 @@ const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+const logsEnabled = !process.env.DISABLE_EXTRA_BUILD_LOGS;
+
 function overwriteFileAndFolder (path, content) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -634,7 +636,7 @@ class NewTranspiler {
             '}',
             classes
         ].join('\n')
-        log.magenta ('→', (path as any).yellow)
+        if (logsEnabled) log.magenta ('→', (path as any).yellow)
 
         overwriteFileAndFolder (path, file);
     }
@@ -699,13 +701,13 @@ class NewTranspiler {
         const csharpBodyIntellisense = '\nnamespace ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpBaseError + '\n' + csharpErrors.join ('\n') + '\n'
         const csharpFile = ""
         if (fs.existsSync (ERRORS_FILE)) {
-            log.bright.cyan (message, (ERRORS_FILE as any).yellow)
+            if (logsEnabled) log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             // const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
             // replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
             overwriteFileAndFolder (ERRORS_FILE, csharpBodyIntellisense)
         }
 
-        log.bright.cyan (message, (ERRORS_FILE as any).yellow)
+        if (logsEnabled) log.bright.cyan (message, (ERRORS_FILE as any).yellow)
 
     }
 
@@ -1011,7 +1013,7 @@ class NewTranspiler {
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
+        if (logsEnabled) log.magenta ('Transpiling from', (jsFile as any).yellow)
 
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
@@ -1040,7 +1042,7 @@ class NewTranspiler {
             '}',
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        if (logsEnabled) log.magenta ('→', (csharpFile as any).yellow)
 
         overwriteFileAndFolder (csharpFile, file);
     }
@@ -1051,7 +1053,7 @@ class NewTranspiler {
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const csharpFile = `${outDir}/Ws/test.cache.cs`;
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
+        if (logsEnabled) log.magenta ('Transpiling from', (jsFile as any).yellow)
 
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
@@ -1080,7 +1082,7 @@ class NewTranspiler {
             '}',
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        if (logsEnabled) log.magenta ('→', (csharpFile as any).yellow)
 
         overwriteFileAndFolder (csharpFile, file);
     }
@@ -1092,7 +1094,7 @@ class NewTranspiler {
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/test.cryptography.cs`;
 
-        log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
+        if (logsEnabled) log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
@@ -1117,7 +1119,7 @@ class NewTranspiler {
             '}',
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        if (logsEnabled) log.magenta ('→', (csharpFile as any).yellow)
 
         overwriteFileAndFolder (csharpFile, file);
     }
@@ -1195,7 +1197,7 @@ class NewTranspiler {
 
             const csharpFile = `${outDir}/${testName}.cs`;
 
-            log.magenta ('Transpiling from', (tsFile as any).yellow)
+            if (logsEnabled) log.magenta ('Transpiling from', (tsFile as any).yellow)
 
             const csharp = this.transpiler.transpileCSharpByPath(tsFile);
             let content = csharp.content;
@@ -1220,7 +1222,7 @@ class NewTranspiler {
                 '}',
             ].join('\n')
 
-            log.magenta ('→', (csharpFile as any).yellow)
+            if (logsEnabled) log.magenta ('→', (csharpFile as any).yellow)
 
             overwriteFileAndFolder (csharpFile, file);
         } 
@@ -1231,7 +1233,7 @@ class NewTranspiler {
     }
 
     transpileMainTest(files) {
-        log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
+        if (logsEnabled) log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [
