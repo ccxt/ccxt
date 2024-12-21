@@ -30,6 +30,9 @@ const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
+let buildPython = true;
+let buildPHP = true;
+
 let __dirname = new URL('.', import.meta.url).pathname;
 
 function overwriteSafe (path, content) {
@@ -1147,16 +1150,24 @@ class Transpiler {
     transpileJavaScriptToPythonAndPHP (args) {
 
         // transpile JS → Python 3
-        let python3Body = this.transpileJavaScriptToPython3 (args)
+        let python3Body = ''
+        let python2Body = ''
 
-        // remove await from Python sync body (transpile Python async → Python sync)
-        let python2Body = this.transpilePython3ToPython2 (python3Body)
+        if (buildPython) {
+            python3Body = this.transpileJavaScriptToPython3 (args)
+            // remove await from Python sync body (transpile Python async → Python sync)
+            python2Body = this.transpilePython3ToPython2 (python3Body)
+        }
 
-        // transpile JS → Async PHP
-        let phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+        let phpAsyncBody  = ''
+        let phpBody = ''
 
-        // transpile JS -> Sync PHP
-        let phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
+        if (buildPHP) {
+            // transpile JS → Async PHP
+            phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+            // transpile JS -> Sync PHP
+            phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
+        }
 
         return { python3Body, python2Body, phpBody, phpAsyncBody }
     }
@@ -1253,10 +1264,10 @@ class Transpiler {
         const sync = false
         const async = true
         const result = {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
+            python2:      buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
+            python3:      buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
+            php:          buildPHP ? this.createPHPClass    (className, baseClass, php,      methodNames, sync) : '',
+            phpAsync:     buildPHP ? this.createPHPClass    (className, baseClass, phpAsync, methodNames, async) : '',
             className,
             baseClass,
         }
@@ -1309,12 +1320,26 @@ class Transpiler {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
-                ;[
-                    [ python2Folder, pythonFilename, python2 ],
-                    [ python3Folder, pythonFilename, python3 ],
-                    [ phpFolder, phpFilename, php ],
-                    [ phpAsyncFolder, phpFilename, phpAsync ],
-                ].forEach (([ folder, filename, code ]) => {
+
+                let languagesFolders = [];
+
+                if (buildPython) {
+                    languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    languagesFolders = languagesFolders.concat([ [python3Folder, pythonFilename, python3] ])
+                }
+
+                if (buildPHP) {
+                    languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    languagesFolders = languagesFolders.concat([ [phpAsyncFolder, phpFilename, phpAsync] ])
+                }
+
+                // ;[
+                //     // [ python2Folder, pythonFilename, python2 ],
+                //     // [ python3Folder, pythonFilename, python3 ],
+                //     [ phpFolder, phpFilename, php ],
+                //     [ phpAsyncFolder, phpFilename, phpAsync ],
+                // ].
+                languagesFolders.forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteSafe (qualifiedPath, code)
@@ -1538,79 +1563,18 @@ class Transpiler {
             // get names of all method arguments for later substitutions
             let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
 
-            // add $ to each argument name in PHP method signature
-            const phpTypes = {
-                'any': 'mixed',
-                'string': 'string',
-                'MarketType': 'string',
-                'SubType': 'string',
-                'Str': '?string',
-                'Num': '?float',
-                'Strings': '?array',
-                'number': 'float',
-                'boolean': 'bool',
-                'IndexType': 'int|string',
-                'Int': '?int',
-                'OrderType': 'string',
-                'OrderSide': 'string',
-                'Dictionary<any>': 'array',
-                'Dict': 'array',
-            }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
-            let phpArgs = args.map (x => {
-                const parts = x.split (':')
-                if (parts.length === 1) {
-                    return '$' + x
-                } else {
-                    let variable = parts[0]
-                    const secondPart = parts[1].split ('=')
-                    let nullable = false
-                    let endpart = ''
-                    if (secondPart.length === 2) {
-                        const trimmed = secondPart[1].trim ()
-                        nullable = trimmed === 'undefined'
-                        endpart = ' = ' + trimmed
-                    }
-                    nullable = nullable || variable.slice (-1) === '?'
-                    variable = variable.replace (/\?$/, '')
-                    const type = secondPart[0].trim ()
-                    const phpType = phpTypes[type] ?? type
-                    let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
-                    if (resolveType === 'object[]') {
-                        resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
-                    }
-                    // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
-                    return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
-                }
-            }).join (', ').trim ()
-                .replace (/undefined/g, 'null')
-                .replace (/\{\}/g, 'array ()')
-            phpArgs = phpArgs.length ? (phpArgs) : ''
-            let syncPhpReturnType = ''
-            let asyncPhpReturnType = ''
+            let phpArgs = ''
+            let syncPhpSignature = ''
+            let asyncPhpSignature = ''
             let promiseReturnTypeMatch = null
             let syncReturnType = null
+
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType === 'Currencies') {
-                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
-                } else if (syncReturnType.match (phpArrayRegex)) {
-                    syncPhpReturnType = ': array'
-                } else {
-                    syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
-                }
-                if (promiseReturnTypeMatch) {
-                    asyncPhpReturnType = ': PromiseInterface'
-                } else {
-                    asyncPhpReturnType = syncPhpReturnType
-                }
             }
-            const syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
-            const asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
 
-            // remove excessive spacing from argument defaults in Python method signature
+            // python helpers
             const pythonTypes = {
                 'string': 'str',
                 'number': 'float',
@@ -1622,7 +1586,6 @@ class Transpiler {
                 'Dict': 'dict'
             }
             const unwrapLists = (type) => {
-                const output = []
                 let count = 0
                 while (type.slice (-2) == '[]') {
                     type = type.slice (0, -2)
@@ -1630,25 +1593,105 @@ class Transpiler {
                 }
                 return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
-            let pythonArgs = args.map (x => {
-                if (x.includes (':')) {
-                    const parts = x.split(':')
-                    let typeParts = parts[1].trim ().split (' ')
-                    const type = typeParts[0]
-                    typeParts[0] = ''
-                    let variable = parts[0]
-                    // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
-                    variable = variable.replace (/\?$/, '')
-                    const rawType = unwrapLists (type)
-                    return variable + ': ' + rawType + typeParts.join (' ')
-                } else {
-                    return x.replace (' = ', '=')
+
+            if (buildPHP) {
+                // add $ to each argument name in PHP method signature
+                const phpTypes = {
+                    'any': 'mixed',
+                    'string': 'string',
+                    'MarketType': 'string',
+                    'SubType': 'string',
+                    'Str': '?string',
+                    'Num': '?float',
+                    'Strings': '?array',
+                    'number': 'float',
+                    'boolean': 'bool',
+                    'IndexType': 'int|string',
+                    'Int': '?int',
+                    'OrderType': 'string',
+                    'OrderSide': 'string',
+                    'Dictionary<any>': 'array',
+                    'Dict': 'array',
                 }
-            })
-            .join (', ')
-            .replace (/undefined/g, 'None')
-            .replace (/false/g, 'False')
-            .replace (/true/g, 'True')
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
+
+                phpArgs = args.map (x => {
+                    const parts = x.split (':')
+                    if (parts.length === 1) {
+                        return '$' + x
+                    } else {
+                        let variable = parts[0]
+                        const secondPart = parts[1].split ('=')
+                        let nullable = false
+                        let endpart = ''
+                        if (secondPart.length === 2) {
+                            const trimmed = secondPart[1].trim ()
+                            nullable = trimmed === 'undefined'
+                            endpart = ' = ' + trimmed
+                        }
+                        nullable = nullable || variable.slice (-1) === '?'
+                        variable = variable.replace (/\?$/, '')
+                        const type = secondPart[0].trim ()
+                        const phpType = phpTypes[type] ?? type
+                        let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
+                        if (resolveType === 'object[]') {
+                            resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
+                        }
+                        // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                        const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
+                        return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
+                    }
+                }).join (', ').trim ()
+                    .replace (/undefined/g, 'null')
+                    .replace (/\{\}/g, 'array ()')
+                phpArgs = phpArgs.length ? (phpArgs) : ''
+                let syncPhpReturnType = ''
+                let asyncPhpReturnType = ''
+                if (returnType) {
+                    // promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
+                    // syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                    if (syncReturnType === 'Currencies') {
+                        syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                    } else if (syncReturnType.match (phpArrayRegex)) {
+                        syncPhpReturnType = ': array'
+                    } else {
+                        syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
+                    }
+                    if (promiseReturnTypeMatch) {
+                        asyncPhpReturnType = ': PromiseInterface'
+                    } else {
+                        asyncPhpReturnType = syncPhpReturnType
+                    }
+                }
+                syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
+                asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
+            }
+
+            let pythonArgs = ''
+
+            if (buildPython) {
+                // remove excessive spacing from argument defaults in Python method signature
+                pythonArgs = args.map (x => {
+                    if (x.includes (':')) {
+                        const parts = x.split(':')
+                        let typeParts = parts[1].trim ().split (' ')
+                        const type = typeParts[0]
+                        typeParts[0] = ''
+                        let variable = parts[0]
+                        // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                        variable = variable.replace (/\?$/, '')
+                        const rawType = unwrapLists (type)
+                        return variable + ': ' + rawType + typeParts.join (' ')
+                    } else {
+                        return x.replace (' = ', '=')
+                    }
+                })
+                .join (', ')
+                .replace (/undefined/g, 'None')
+                .replace (/false/g, 'False')
+                .replace (/true/g, 'True')
+            }
+
             // method body without the signature (first line)
             // and without the closing bracket (last line)
             let js = lines.slice (1, -1).join ("\n")
@@ -1656,33 +1699,37 @@ class Transpiler {
             // transpile everything
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
-            // compile the final Python code for the method signature
-            let pythonReturnType = ''
-            if (syncReturnType) {
-                pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+            if (buildPython) {
+                // compile the final Python code for the method signature
+                let pythonReturnType = ''
+                if (syncReturnType) {
+                    pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+                }
+                let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
+
+                // compile signature + body for Python sync
+                python2.push ('');
+                python2.push ('    ' + pythonString);
+                python2.push (python2Body);
+
+                // compile signature + body for Python async
+                python3.push ('');
+                python3.push ('    ' + keyword + pythonString);
+                python3.push (python3Body);
             }
-            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
-            // compile signature + body for Python sync
-            python2.push ('');
-            python2.push ('    ' + pythonString);
-            python2.push (python2Body);
+            if (buildPHP) {
+                // compile signature + body for PHP
+                php.push ('');
+                php.push (syncPhpSignature);
+                php.push (phpBody);
+                php.push ('    ' + '}')
 
-            // compile signature + body for Python async
-            python3.push ('');
-            python3.push ('    ' + keyword + pythonString);
-            python3.push (python3Body);
-
-            // compile signature + body for PHP
-            php.push ('');
-            php.push (syncPhpSignature);
-            php.push (phpBody);
-            php.push ('    ' + '}')
-
-            phpAsync.push ('');
-            phpAsync.push (asyncPhpSignature);
-            phpAsync.push (phpAsyncBody);
-            phpAsync.push ('    ' + '}')
+                phpAsync.push ('');
+                phpAsync.push (asyncPhpSignature);
+                phpAsync.push (phpAsyncBody);
+                phpAsync.push ('    ' + '}')
+            }
         }
 
         return {
@@ -1716,13 +1763,16 @@ class Transpiler {
             // trim away sync methods from python async
             // since it already inherits those methods
             const python3Async = []
-            python3.forEach ((line, i, arr) => {
-                if (line.match (/^\s+async def/)) {
-                    python3Async.push ('')
-                    python3Async.push (line)
-                    python3Async.push (arr[i+1])
-                }
-            })
+            if (buildPython) {
+                python3.forEach ((line, i, arr) => {
+                    if (line.match (/^\s+async def/)) {
+                        python3Async.push ('')
+                        python3Async.push (line)
+                        python3Async.push (arr[i+1])
+                    }
+                })
+            }
+
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
@@ -1730,14 +1780,20 @@ class Transpiler {
             const python3File = './python/ccxt/async_support/base/exchange.py'
             const phpFile = './php/Exchange.php'
             const phpAsyncFile = './php/async/Exchange.php'
-            log.magenta ('→', python2File.yellow)
-            replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
-            log.magenta ('→', python3File.yellow)
-            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
-            log.magenta ('→', phpFile.yellow)
-            replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
-            log.magenta ('→', phpAsyncFile.yellow)
-            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+
+            if (buildPython) {
+                log.magenta ('→', python2File.yellow)
+                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+                log.magenta ('→', python3File.yellow)
+                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
+            }
+
+            if (buildPHP) {
+                log.magenta ('→', phpFile.yellow)
+                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+                log.magenta ('→', phpAsyncFile.yellow)
+                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+            }
         }
     }
 
@@ -2717,10 +2773,15 @@ class Transpiler {
             force = true; // when transpiling single exchange, we always force
         }
         if (!transpilingSingleExchange && !child) {
-            createFolderRecursively (python2Folder)
-            createFolderRecursively (python3Folder)
-            createFolderRecursively (phpFolder)
-            createFolderRecursively (phpAsyncFolder)
+            if (buildPython) {
+                createFolderRecursively (python2Folder)
+                createFolderRecursively (python3Folder)
+            }
+
+            if (buildPHP) {
+                createFolderRecursively (phpFolder)
+                createFolderRecursively (phpAsyncFolder)
+            }
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
@@ -2752,13 +2813,19 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false, pythonOnly = false, phpOnly = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
     const args = [];
     if (force) {
         args.push ('--force')
+    }
+    if (pythonOnly) {
+        args.push('--python')
+    }
+    if (phpOnly) {
+        args.push('--php')
     }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
@@ -2793,6 +2860,13 @@ if (isMainEntry(import.meta.url)) {
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    if (process.argv.includes ('--php')) {
+        buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
+    }
+    if (process.argv.includes ('--python')) {
+        buildPHP = false
+    }
+
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
