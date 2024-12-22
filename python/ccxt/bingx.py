@@ -63,6 +63,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -85,6 +86,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
@@ -397,9 +399,23 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'uid': 1,
                                 'apiKey/query': 2,
+                                'account/apiPermissions': 5,
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 1,
+                            },
+                        },
+                    },
+                    'transfer': {
+                        'v1': {
+                            'private': {
+                                'get': {
+                                    'subAccount/asset/transferHistory': 1,
+                                },
+                                'post': {
+                                    'subAccount/transferAsset/supportCoins': 1,
+                                    'subAccount/transferAsset': 1,
+                                },
                             },
                         },
                     },
@@ -1036,7 +1052,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         if since is not None:
-            request['startTime'] = since
+            request['startTime'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
         until = self.safe_integer_2(params, 'until', 'endTime')
@@ -5342,6 +5358,8 @@ class bingx(Exchange, ImplicitAPI):
             elif market['swap']:
                 request['endTs'] = now
             if market['spot']:
+                if limit is not None:
+                    request['limit'] = limit  # default 500, maximum 1000
                 response = self.spotV1PrivateGetTradeMyTrades(self.extend(request, params))
                 data = self.safe_dict(response, 'data', {})
                 fills = self.safe_list(data, 'fills', [])
@@ -6140,13 +6158,17 @@ class bingx(Exchange, ImplicitAPI):
         if isSandbox and (type != 'swap'):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
-        if type == 'spot' and version == 'v3':
-            url += '/api'
-        else:
-            url += '/' + type
-        url += '/' + version + '/'
         path = self.implode_params(path, params)
-        url += path
+        if version == 'transfer':
+            type = 'account/transfer'
+            version = section[2]
+            access = section[3]
+        if path != 'account/apiPermissions':
+            if type == 'spot' and version == 'v3':
+                url += '/api'
+            else:
+                url += '/' + type
+        url += '/' + version + '/' + path
         params = self.omit(params, self.extract_params(path))
         params['timestamp'] = self.nonce()
         params = self.keysort(params)
@@ -6155,7 +6177,7 @@ class bingx(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()
-            isJsonContentType = ((type == 'subAccount') and (method == 'POST'))
+            isJsonContentType = (((type == 'subAccount') or (type == 'account/transfer')) and (method == 'POST'))
             parsedParams = self.parse_params(params)
             signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
             headers = {

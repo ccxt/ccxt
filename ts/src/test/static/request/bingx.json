@@ -1239,7 +1239,7 @@
             {
                 "description": "Fetch mark ohlcv",
                 "method": "fetchMarkOHLCV",
-                "url": "https://open-api.bingx.com/openApi/swap/v1/market/markPriceKlines?interval=1h&startTime=5&symbol=BTC-USDT&timestamp=1706521154506",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/market/markPriceKlines?interval=1h&startTime=4&symbol=BTC-USDT&timestamp=1706521154506",
                 "input": [
                     "BTC/USDT:USDT",
                     "1h",

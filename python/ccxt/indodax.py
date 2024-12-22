@@ -713,7 +713,6 @@ class indodax(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': cost,
             'average': None,

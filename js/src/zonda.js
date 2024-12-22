@@ -495,7 +495,6 @@ export default class zonda extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower(order, 'offerType'),
             'price': this.safeString(order, 'rate'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1418,7 +1417,7 @@ export default class zonda extends Exchange {
         let response = undefined;
         if (isStopOrder) {
             if (!isStopLossPrice) {
-                throw new ExchangeError(this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
+                throw new ExchangeError(this.id + ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders');
             }
             request['stopRate'] = this.priceToPrecision(symbol, stopLossPrice);
             response = await this.v1_01PrivatePostTradingStopOfferSymbol(this.extend(request, params));

@@ -6828,7 +6828,7 @@ class bybit extends Exchange {
             $data = $this->add_pagination_cursor_to_result($response);
             $id = $this->safe_string($result, 'symbol');
             $market = $this->safe_market($id, $market, null, 'contract');
-            return $this->parse_open_interests($data, $market, $since, $limit);
+            return $this->parse_open_interests_history($data, $market, $since, $limit);
         }) ();
     }
 

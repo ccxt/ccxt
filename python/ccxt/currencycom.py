@@ -1198,7 +1198,6 @@ class currencycom(Exchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1296,11 +1295,11 @@ class currencycom(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                if stopPrice is not None:
+                if triggerPrice is not None:
                     request['type'] = 'STOP'
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price'] = self.price_to_precision(symbol, triggerPrice)
         response = self.privatePostV2Order(self.extend(request, params))
         #
         # limit

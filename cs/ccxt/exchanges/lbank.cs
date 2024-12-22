@@ -1737,7 +1737,6 @@ public partial class lbank : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", costString },
             { "amount", amountString },

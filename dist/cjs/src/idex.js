@@ -1120,7 +1120,6 @@ class idex extends idex$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1185,12 +1184,13 @@ class idex extends idex$1 {
             'takeProfit': 5,
             'takeProfitLimit': 6,
         };
-        let stopPriceString = undefined;
-        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
-            if (!('stopPrice' in params)) {
-                throw new errors.BadRequest(this.id + ' createOrder() stopPrice is a required parameter for ' + type + 'orders');
+        const triggerPrice = this.safeString(params, 'triggerPrice', 'stopPrice');
+        let triggerPriceString = undefined;
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
+            if (triggerPrice === undefined) {
+                throw new errors.BadRequest(this.id + ' createOrder() triggerPrice is a required parameter for ' + type + 'orders');
             }
-            stopPriceString = this.priceToPrecision(symbol, params['stopPrice']);
+            triggerPriceString = this.priceToPrecision(symbol, triggerPrice);
         }
         const limitTypeEnums = {
             'limit': 1,
@@ -1280,7 +1280,7 @@ class idex extends idex$1 {
             byteArray.push(encodedPrice);
         }
         if (type in stopLossTypeEnums) {
-            const encodedPrice = this.encode(stopPriceString || priceString);
+            const encodedPrice = this.encode(triggerPriceString || priceString);
             byteArray.push(encodedPrice);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -1314,7 +1314,7 @@ class idex extends idex$1 {
             request['parameters']['price'] = priceString;
         }
         if (type in stopLossTypeEnums) {
-            request['parameters']['stopPrice'] = stopPriceString || priceString;
+            request['parameters']['stopPrice'] = triggerPriceString || priceString;
         }
         if (amountEnum === 0) {
             request['parameters']['quantity'] = amountString;

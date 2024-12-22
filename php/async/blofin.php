@@ -161,7 +161,7 @@ class blofin extends Exchange {
                     'rest' => 'https://openapi.blofin.com',
                 ),
                 'referral' => array(
-                    'url' => 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url' => 'https://blofin.com/register?referral_code=f79EsS',
                     'discount' => 0.05,
                 ),
                 'www' => 'https://www.blofin.com',
@@ -281,10 +281,18 @@ class blofin extends Exchange {
                 'brokerId' => 'ec6dd3a7dd982d0b',
                 'accountsByType' => array(
                     'swap' => 'futures',
+                    'funding' => 'funding',
                     'future' => 'futures',
+                    'copy_trading' => 'copy_trading',
+                    'earn' => 'earn',
+                    'spot' => 'spot',
                 ),
                 'accountsById' => array(
+                    'funding' => 'funding',
                     'futures' => 'swap',
+                    'copy_trading' => 'copy_trading',
+                    'earn' => 'earn',
+                    'spot' => 'spot',
                 ),
                 'sandboxMode' => false,
                 'defaultNetwork' => 'ERC20',
@@ -915,8 +923,9 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_balance_by_type($type, $response) {
-        if ($type) {
+    public function parse_balance_by_type($response) {
+        $data = $this->safe_list($response, 'data');
+        if (($data !== null) && gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);
@@ -1037,12 +1046,12 @@ class blofin extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $accountType = $this->safe_string_2($params, 'accountType', 'type');
-            $params = $this->omit($params, array( 'accountType', 'type' ));
+            $accountType = null;
+            list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
             $request = array(
             );
             $response = null;
-            if ($accountType !== null) {
+            if ($accountType !== null && $accountType !== 'swap') {
                 $options = $this->safe_dict($this->options, 'accountsByType', array());
                 $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
                 $request['accountType'] = $parsedAccountType;
@@ -1050,7 +1059,7 @@ class blofin extends Exchange {
             } else {
                 $response = Async\await($this->privateGetAccountBalance ($this->extend($request, $params)));
             }
-            return $this->parse_balance_by_type($accountType, $response);
+            return $this->parse_balance_by_type($response);
         }) ();
     }
 

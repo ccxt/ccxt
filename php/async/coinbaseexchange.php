@@ -1101,7 +1101,7 @@ class coinbaseexchange extends Exchange {
         $side = $this->safe_string($order, 'side');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $postOnly = $this->safe_value($order, 'post_only');
-        $stopPrice = $this->safe_number($order, 'stop_price');
+        $triggerPrice = $this->safe_number($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
         return $this->safe_order(array(
             'id' => $id,
@@ -1117,8 +1117,7 @@ class coinbaseexchange extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1308,9 +1307,9 @@ class coinbaseexchange extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_oid'] = $clientOrderId;
             }
-            $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-            if ($stopPrice !== null) {
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
             if ($timeInForce !== null) {

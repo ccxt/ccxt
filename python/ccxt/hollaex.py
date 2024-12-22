@@ -1098,7 +1098,6 @@ class hollaex(Exchange, ImplicitAPI):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_string(order, 'stop')
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -1117,8 +1116,7 @@ class hollaex(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': None,
@@ -1156,7 +1154,7 @@ class hollaex(Exchange, ImplicitAPI):
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such
         }
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
         exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
@@ -1164,8 +1162,8 @@ class hollaex(Exchange, ImplicitAPI):
         if not isMarketOrder:
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
-        if stopPrice is not None:
-            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
+        if triggerPrice is not None:
+            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, triggerPrice)))
         if postOnly:
             request['meta'] = {'post_only': True}
         params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])

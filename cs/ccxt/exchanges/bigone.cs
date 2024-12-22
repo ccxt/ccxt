@@ -1345,7 +1345,6 @@ public partial class bigone : Exchange
             { "postOnly", this.safeBool(order, "post_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },

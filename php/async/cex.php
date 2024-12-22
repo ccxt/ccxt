@@ -1144,7 +1144,7 @@ class cex extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $requestedBase,
             'cost' => $executedQuote,
             'average' => $this->safe_number($order, 'averagePrice'),

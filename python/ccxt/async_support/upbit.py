@@ -1513,7 +1513,6 @@ class upbit(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': self.parse_number(cost),
             'average': self.parse_number(average),

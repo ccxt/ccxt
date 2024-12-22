@@ -1243,6 +1243,7 @@ class bitget extends bitget$1 {
                     '41103': errors.InvalidOrder,
                     '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
+                    '43001': errors.OrderNotFound,
                     '43012': errors.InsufficientFunds,
                     '43025': errors.InvalidOrder,
                     '43115': errors.OnMaintenance,

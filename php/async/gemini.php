@@ -1386,7 +1386,6 @@ class gemini extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'average' => $average,
             'cost' => null,
@@ -1528,13 +1527,13 @@ class gemini extends Exchange {
             );
             $type = $this->safe_string($params, 'type', $type);
             $params = $this->omit($params, 'type');
-            $rawStopPrice = $this->safe_string_2($params, 'stop_price', 'stopPrice');
+            $triggerPrice = $this->safe_string_n($params, array( 'stop_price', 'stopPrice' ));
             $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'type' ));
             if ($type === 'stopLimit') {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' . $type . ' orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
             }
-            if ($rawStopPrice !== null) {
-                $request['stop_price'] = $this->price_to_precision($symbol, $rawStopPrice);
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['type'] = 'exchange stop limit';
             } else {
                 // No $options can be applied to stop-limit orders at this time.

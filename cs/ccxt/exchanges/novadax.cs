@@ -774,8 +774,8 @@ public partial class novadax : Exchange
             { "symbol", getValue(market, "id") },
             { "side", uppercaseSide },
         };
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(isEqual(stopPrice, null)))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(isEqual(triggerPrice, null)))
         {
             if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_MARKET")))))
             {
@@ -792,7 +792,7 @@ public partial class novadax : Exchange
             }
             object defaultOperator = ((bool) isTrue((isEqual(uppercaseSide, "BUY")))) ? "LTE" : "GTE";
             ((IDictionary<string,object>)request)["operator"] = this.safeString(parameters, "operator", defaultOperator);
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
         }
         if (isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))))
@@ -1150,7 +1150,6 @@ public partial class novadax : Exchange
         }
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market, "_");
-        object stopPrice = this.safeNumber(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -1164,8 +1163,7 @@ public partial class novadax : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "amount", amount },
             { "cost", cost },
             { "average", average },

@@ -32,6 +32,7 @@ interface Exchange {
     publicGetContractPublicDepth (params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicOpenInterest (params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicFundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetContractPublicFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetContractPublicKline (params?: {}): Promise<implicitReturnType>;
     publicGetAccountV1Currencies (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountV1TransferList (params?: {}): Promise<implicitReturnType>;
@@ -71,6 +72,7 @@ interface Exchange {
     privateGetContractPrivatePositionRisk (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAffilateRebateList (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAffilateTradeList (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateTransactionHistory (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub (params?: {}): Promise<implicitReturnType>;

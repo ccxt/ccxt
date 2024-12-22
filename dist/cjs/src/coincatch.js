@@ -4149,7 +4149,6 @@ class coincatch extends coincatch$1 {
             'amount': amount,
             'filled': this.safeString2(order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
-            'stopPrice': undefined,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,

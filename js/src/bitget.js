@@ -1246,6 +1246,7 @@ export default class bitget extends Exchange {
                     '41103': InvalidOrder,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
+                    '43001': OrderNotFound,
                     '43012': InsufficientFunds,
                     '43025': InvalidOrder,
                     '43115': OnMaintenance,

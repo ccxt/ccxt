@@ -1161,7 +1161,6 @@ class poloniex extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $triggerPrice = $this->safe_string_2($order, 'triggerPrice', 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1176,8 +1175,7 @@ class poloniex extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string_2($order, 'triggerPrice', 'stopPrice'),
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,

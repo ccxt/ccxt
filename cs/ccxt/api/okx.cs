@@ -341,6 +341,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetFinanceStakingDefiEthApyHistory",parameters);
     }
 
+    public async Task<object> publicGetFinanceStakingDefiSolApyHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceStakingDefiSolApyHistory",parameters);
+    }
+
     public async Task<object> publicGetFinanceSavingsLendingRateSummary (object parameters = null)
     {
         return await this.callAsync ("publicGetFinanceSavingsLendingRateSummary",parameters);
@@ -956,6 +961,16 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetFinanceStakingDefiEthProductInfo",parameters);
     }
 
+    public async Task<object> privateGetFinanceStakingDefiSolBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceStakingDefiSolBalance",parameters);
+    }
+
+    public async Task<object> privateGetFinanceStakingDefiSolPurchaseRedeemHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceStakingDefiSolPurchaseRedeemHistory",parameters);
+    }
+
     public async Task<object> privateGetCopytradingCurrentSubpositions (object parameters = null)
     {
         return await this.callAsync ("privateGetCopytradingCurrentSubpositions",parameters);
@@ -1554,6 +1569,16 @@ public partial class okx : Exchange
     public async Task<object> privatePostFinanceStakingDefiEthRedeem (object parameters = null)
     {
         return await this.callAsync ("privatePostFinanceStakingDefiEthRedeem",parameters);
+    }
+
+    public async Task<object> privatePostFinanceStakingDefiSolPurchase (object parameters = null)
+    {
+        return await this.callAsync ("privatePostFinanceStakingDefiSolPurchase",parameters);
+    }
+
+    public async Task<object> privatePostFinanceStakingDefiSolRedeem (object parameters = null)
+    {
+        return await this.callAsync ("privatePostFinanceStakingDefiSolRedeem",parameters);
     }
 
     public async Task<object> privatePostCopytradingAlgoOrder (object parameters = null)

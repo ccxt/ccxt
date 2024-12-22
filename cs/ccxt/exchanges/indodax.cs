@@ -735,7 +735,6 @@ public partial class indodax : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", cost },
             { "average", null },

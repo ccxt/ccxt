@@ -1257,7 +1257,6 @@ class alpaca extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string($order, 'side'),
             'price' => $this->safe_number($order, 'limit_price'),
-            'stopPrice' => $this->safe_number($order, 'stop_price'),
             'triggerPrice' => $this->safe_number($order, 'stop_price'),
             'cost' => null,
             'average' => $this->safe_number($order, 'filled_avg_price'),
