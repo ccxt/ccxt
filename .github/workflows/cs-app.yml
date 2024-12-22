@@ -48,6 +48,8 @@ jobs:
         with:
           name: cs-files
           path: cs/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Build solution
