@@ -369,6 +369,8 @@ export default class coinbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
@@ -1284,6 +1286,9 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3 (params);
@@ -4914,6 +4919,10 @@ export default class coinbase extends Exchange {
         return token;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
@@ -4982,7 +4991,7 @@ export default class coinbase extends Exchange {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
-                    const timestampString = this.seconds ().toString ();
+                    const timestampString = this.nonce ().toString ();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                     headers = {
