@@ -236,8 +236,6 @@ export default class gate extends Exchange {
                         },
                     },
                     'options': {
-                        'timeDifference': 0, // the difference between system clock and exchange clock
-                        'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                         'get': {
                             'underlyings': 1,
                             'expirations': 1,
@@ -649,6 +647,8 @@ export default class gate extends Exchange {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'unifiedAccount': undefined,
                 'createOrder': {
