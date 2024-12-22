@@ -171,7 +171,13 @@ class BigInteger {
     }
     
     public function pow($x) {
-        return new BigInteger(gmp_pow($this->value, (new BigInteger($x))->toNumber()), true);
+        // try fix base and exponent overflow
+        try {
+            $res = gmp_pow(num: $this->value, exponent:(new BigInteger($x))->toNumber());
+        } catch (\Throwable $_) {
+            $res = bcpow(gmp_strval($this->value), (new BigInteger($x))->toNumber());
+        }
+        return new BigInteger($res, true);
     }
     
     public function powMod($x, $n) {
