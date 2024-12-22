@@ -1115,6 +1115,8 @@ export default class okx extends Exchange {
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -1494,6 +1496,10 @@ export default class okx extends Exchange {
         return result;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1503,6 +1509,9 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const types = this.safeList (this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
@@ -6161,7 +6170,7 @@ export default class okx extends Exchange {
                     }
                 }
             }
-            const timestamp = this.iso8601 (this.milliseconds ());
+            const timestamp = this.iso8601 (this.nonce ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
                 'OK-ACCESS-PASSPHRASE': this.password,
