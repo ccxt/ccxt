@@ -166,7 +166,7 @@ echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
-  tsx build/transpile.ts $exchange --force --child
+  npm run transpileRest -- $exchange --force --child
   npm run transpileCsSingle -- $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
@@ -174,7 +174,7 @@ done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
-  tsx build/transpileWS.ts $exchange --force --child
+  npm run transpileWs -- $exchange --force --child
   npm run transpileCsSingle -- $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
