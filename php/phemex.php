@@ -3639,13 +3639,15 @@ class phemex extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USD is the default
          * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $subType = null;
-        $code = $this->safe_string($params, 'currency');
+        $code = $this->safe_string_2($params, 'currency', 'code', 'USD');
+        $params = $this->omit($params, array( 'currency', 'code' ));
         $settle = null;
         $market = null;
         $firstSymbol = $this->safe_string($symbols, 0);
@@ -3654,16 +3656,16 @@ class phemex extends Exchange {
             $settle = $market['settle'];
             $code = $market['settle'];
         } else {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USD');
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $code);
         }
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
         $isUSDTSettled = $settle === 'USDT';
         if ($isUSDTSettled) {
             $code = 'USDT';
+        } elseif ($settle === 'BTC') {
+            $code = 'BTC';
         } elseif ($code === null) {
             $code = ($subType === 'linear') ? 'USD' : 'BTC';
-        } else {
-            $params = $this->omit($params, 'code');
         }
         $currency = $this->currency($code);
         $request = array(
