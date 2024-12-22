@@ -14,7 +14,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.2'
+          php-version: '8.2'
       - name: Check PHP version
         run: php -v
       - name: Install npm dependencies
