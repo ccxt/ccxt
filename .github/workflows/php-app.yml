@@ -17,6 +17,8 @@ jobs:
           php-version: '8.2'
       - name: Check PHP version
         run: php -v
+      - name: Check PHP configuration
+        run: php -m && php --ini
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Check tsc version
