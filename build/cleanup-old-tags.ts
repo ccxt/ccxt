@@ -1,11 +1,10 @@
 
 import { execSync } from 'child_process';
 import log  from 'ololog';
-import ccxt from '../js/ccxt.js';
+import ccxt from '../ts/ccxt.js';
 import { isMainEntry } from './transpile.js';
 const { values }   = Object
 import assert from 'assert';
-import * as url from 'node:url';
 
 const { groupBy } = ccxt;
 log.noLocate();

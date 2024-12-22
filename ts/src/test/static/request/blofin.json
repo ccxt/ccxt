@@ -400,7 +400,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://openapi.blofin.com/api/v1/asset/balances?accountType=futures",
+                "url": "https://openapi.blofin.com/api/v1/account/balance",
                 "input": []
             }
         ],

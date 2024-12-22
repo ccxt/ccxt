@@ -13,7 +13,7 @@ public partial class hyperliquid : Exchange
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "rateLimit", 50 },
-            { "certified", false },
+            { "certified", true },
             { "pro", true },
             { "dex", true },
             { "has", new Dictionary<string, object>() {

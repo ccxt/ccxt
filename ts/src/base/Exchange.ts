@@ -4956,10 +4956,15 @@ export default class Exchange {
 
     handleOptionAndParams2 (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue = undefined) {
         let value = undefined;
-        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1, defaultValue);
+        [ value, params ] = this.handleOptionAndParams (params, methodName1, optionName1);
+        if (value !== undefined) {
+            // omit optionName2 too from params
+            params = this.omit (params, optionName2);
+            return [ value, params ];
+        }
         // if still undefined, try optionName2
         let value2 = undefined;
-        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, value);
+        [ value2, params ] = this.handleOptionAndParams (params, methodName1, optionName2, defaultValue);
         return [ value2, params ];
     }
 

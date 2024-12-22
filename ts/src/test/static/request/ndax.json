@@ -145,6 +145,24 @@
                 "output": "{\"omsId\":1,\"ClOrderId\":27}"
               }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel All Orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
+                "input": [],
+                "output": "{\"omsId\":1,\"AccountId\":187639}"
+            },
+            {
+                "description": "Cancel All Orders with symbol since and limit",
+                "method": "cancelAllOrders",
+                "url": "https://api.ndax.io:8443/AP/CancelAllOrders",
+                "input": [
+                  "ADA/CAD"
+                ],
+                "output": "{\"omsId\":1,\"AccountId\":187639,\"IntrumentId\":\"78\"}"
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "Fetch Deposits",
@@ -213,6 +231,24 @@
                   "ADA/CAD",
                   1733626703456,
                   3
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch My Trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.ndax.io:8443/AP/GetTradesHistory?omsId=1&AccountId=187639",
+                "input": []
+            },
+            {
+                "description": "Fetch My Trades with Symbol since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.ndax.io:8443/AP/GetTradesHistory?omsId=1&AccountId=187639&InstrumentId=78&StartTimeStamp=1733626906&Depth=2",
+                "input": [
+                  "ADA/CAD",
+                  1733626906108,
+                  2
                 ]
             }
         ]

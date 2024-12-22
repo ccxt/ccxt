@@ -339,6 +339,84 @@ export default class hashkey extends Exchange {
                 },
                 'defaultNetwork': 'ERC20',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        // exchange-supported features
+                        // 'marketBuyRequiresPrice': false,
+                        // 'marketBuyByCost': false,
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 30,
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'selfTradePrevention': true,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': true,
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -560,12 +638,7 @@ export default class hashkey extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        let symbol = undefined;
         const request = {};
-        [symbol, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'symbol');
-        if (symbol !== undefined) {
-            request['symbol'] = symbol;
-        }
         const response = await this.publicGetApiV1ExchangeInfo(this.extend(request, params));
         //
         //     {
@@ -1250,11 +1323,6 @@ export default class hashkey extends Exchange {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
-            let clientOrderId = undefined;
-            [clientOrderId, params] = this.handleOptionAndParams(params, methodName, 'clientOrderId');
-            if (clientOrderId !== undefined) {
-                request['clientOrderId'] = clientOrderId;
-            }
             if (accountId !== undefined) {
                 request['accountId'] = accountId;
             }
@@ -1614,11 +1682,6 @@ export default class hashkey extends Exchange {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {};
-        let symbol = undefined;
-        [symbol, params] = this.handleOptionAndParams(params, 'fetchLastPrices', 'symbol');
-        if (symbol !== undefined) {
-            request['symbol'] = symbol;
-        }
         const response = await this.publicGetQuoteV1TickerPrice(this.extend(request, params));
         //
         //     [
@@ -1677,11 +1740,6 @@ export default class hashkey extends Exchange {
             return this.parseSwapBalance(balance);
         }
         else if (marketType === 'spot') {
-            let accountId = undefined;
-            [accountId, params] = this.handleOptionAndParams(params, methodName, 'accountId');
-            if (accountId !== undefined) {
-                request['accountId'] = accountId;
-            }
             const response = await this.privateGetApiV1Account(this.extend(request, params));
             //
             //     {
@@ -1961,20 +2019,10 @@ export default class hashkey extends Exchange {
         if (tag !== undefined) {
             request['addressExt'] = tag;
         }
-        let clientOrderId = undefined;
-        [clientOrderId, params] = this.handleOptionAndParams(params, 'withdraw', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode !== undefined) {
             request['chainType'] = this.networkCodeToId(networkCode);
-        }
-        let platform = undefined;
-        [platform, params] = this.handleOptionAndParams(params, 'withdraw', 'platform');
-        if (platform !== undefined) {
-            request['platform'] = platform;
         }
         const response = await this.privatePostApiV1AccountWithdraw(this.extend(request, params));
         //
@@ -2119,16 +2167,6 @@ export default class hashkey extends Exchange {
             'fromAccountId': fromAccount,
             'toAccountId': toAccount,
         };
-        let clientOrderId = undefined;
-        [clientOrderId, params] = this.handleOptionAndParams(params, 'transfer', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        }
-        let remark = undefined;
-        [remark, params] = this.handleOptionAndParams(params, 'transfer', 'remark');
-        if (remark !== undefined) {
-            request['remark'] = remark;
-        }
         const response = await this.privatePostApiV1AccountAssetTransfer(this.extend(request, params));
         //
         //     {
@@ -3031,11 +3069,6 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
             }
-            let accountId = undefined;
-            [accountId, params] = this.handleOptionAndParams(params, methodName, 'accountId');
-            if (accountId !== undefined) {
-                request['accountId'] = accountId;
-            }
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
             //
             //     {
@@ -3182,16 +3215,6 @@ export default class hashkey extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            let orderId = undefined;
-            [orderId, params] = this.handleOptionAndParams(params, methodName, 'orderId');
-            if (orderId !== undefined) {
-                request['orderId'] = orderId;
-            }
-            let side = undefined;
-            [side, params] = this.handleOptionAndParams(params, methodName, 'side');
-            if (side !== undefined) {
-                request['side'] = side.toUpperCase();
-            }
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
             //
             //     [
@@ -3261,11 +3284,6 @@ export default class hashkey extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        let fromOrderId = undefined;
-        [fromOrderId, params] = this.handleOptionAndParams(params, methodName, 'fromOrderId');
-        if (fromOrderId !== undefined) {
-            request['fromOrderId'] = fromOrderId;
         }
         let response = undefined;
         let accountId = undefined;
@@ -3372,16 +3390,6 @@ export default class hashkey extends Exchange {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
-            let orderId = undefined;
-            [orderId, params] = this.handleOptionAndParams(params, methodName, 'orderId');
-            if (orderId !== undefined) {
-                request['orderId'] = orderId;
-            }
-            let side = undefined;
-            [side, params] = this.handleOptionAndParams(params, methodName, 'side');
-            if (side !== undefined) {
-                request['side'] = side.toUpperCase();
-            }
             if (accountId !== undefined) {
                 request['accountId'] = accountId;
             }
@@ -3428,11 +3436,6 @@ export default class hashkey extends Exchange {
             }
             else {
                 request['type'] = 'LIMIT';
-            }
-            let fromOrderId = undefined;
-            [fromOrderId, params] = this.handleOptionAndParams(params, methodName, 'fromOrderId');
-            if (fromOrderId !== undefined) {
-                request['fromOrderId'] = fromOrderId;
             }
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
@@ -3891,11 +3894,6 @@ export default class hashkey extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let side = undefined;
-        [side, params] = this.handleOptionAndParams(params, methodName, 'side');
-        if (side !== undefined) {
-            request['side'] = side.toUpperCase();
-        }
         const response = await this.privateGetApiV1FuturesPositions(this.extend(request, params));
         //
         //     [

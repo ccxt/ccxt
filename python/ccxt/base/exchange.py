@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.41'
+__version__ = '4.4.42'
 
 # -----------------------------------------------------------------------------
 
@@ -4550,10 +4550,14 @@ class Exchange(object):
 
     def handle_option_and_params_2(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):
         value = None
-        value, params = self.handle_option_and_params(params, methodName1, optionName1, defaultValue)
+        value, params = self.handle_option_and_params(params, methodName1, optionName1)
+        if value is not None:
+            # omit optionName2 too from params
+            params = self.omit(params, optionName2)
+            return [value, params]
         # if still None, try optionName2
         value2 = None
-        value2, params = self.handle_option_and_params(params, methodName1, optionName2, value)
+        value2, params = self.handle_option_and_params(params, methodName1, optionName2, defaultValue)
         return [value2, params]
 
     def handle_option(self, methodName: str, optionName: str, defaultValue=None):
