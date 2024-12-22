@@ -528,7 +528,7 @@ export default class bitmart extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'ERC20': 'ERC20',
