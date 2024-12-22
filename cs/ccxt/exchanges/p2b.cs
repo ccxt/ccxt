@@ -1236,7 +1236,7 @@ public partial class p2b : Exchange
             { "postOnly", null },
             { "side", this.safeString(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "amount", this.safeString(order, "amount") },
             { "cost", null },
             { "average", null },

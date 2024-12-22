@@ -1219,7 +1219,7 @@ public partial class defx : Exchange
             { "type", orderType },
         };
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        object stopPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
+        object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object isMarket = isEqual(orderType, "MARKET");
         object isLimit = isEqual(orderType, "LIMIT");
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
@@ -1243,7 +1243,7 @@ public partial class defx : Exchange
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(stopPrice, null)) || isTrue(!isEqual(takeProfitPrice, null))))
+        if (isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(takeProfitPrice, null))))
         {
             ((IDictionary<string,object>)request)["workingType"] = "MARK_PRICE";
             if (isTrue(!isEqual(takeProfitPrice, null)))
@@ -1258,7 +1258,7 @@ public partial class defx : Exchange
                 }
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 if (isTrue(isMarket))
                 {
                     ((IDictionary<string,object>)request)["type"] = "STOP_MARKET";
@@ -1358,7 +1358,7 @@ public partial class defx : Exchange
         object average = this.omitZero(this.safeString(order, "avgPrice"));
         object timeInForce = this.safeStringLower(order, "timeInForce");
         object takeProfitPrice = null;
-        object stopPrice = null;
+        object triggerPrice = null;
         if (isTrue(!isEqual(orderType, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(orderType, "take_profit"), 0)))
@@ -1366,7 +1366,7 @@ public partial class defx : Exchange
                 takeProfitPrice = this.safeString(order, "stopPrice");
             } else
             {
-                stopPrice = this.safeString(order, "stopPrice");
+                triggerPrice = this.safeString(order, "stopPrice");
             }
         }
         object timestamp = this.parse8601(this.safeString(order, "createdAt"));
@@ -1386,8 +1386,7 @@ public partial class defx : Exchange
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", null },
             { "average", average },

@@ -561,7 +561,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'quantity'),
             'cost': None,
             'average': None,

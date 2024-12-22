@@ -67,6 +67,7 @@ interface Exchange {
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiSolApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceFixedLoanLendingOffers(params?: {}): Promise<implicitReturnType>;
@@ -190,6 +191,8 @@ interface Exchange {
     privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthProductInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;
@@ -310,6 +313,8 @@ interface Exchange {
     privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthRedeem(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolPurchase(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments(params?: {}): Promise<implicitReturnType>;

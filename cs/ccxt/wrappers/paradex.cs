@@ -260,7 +260,7 @@ public partial class paradex
     /// <item>
     /// <term>params.stopPrice</term>
     /// <description>
-    /// float : The price a trigger order is triggered at
+    /// float : alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -81,12 +81,13 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': True,
                 'fetchDepositWithdrawFees': False,
-                'fetchFundingHistory': None,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIsolatedBorrowRate': True,
                 'fetchIsolatedBorrowRates': True,
+                'fetchLedger': True,
                 'fetchLiquidations': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -173,6 +174,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
+                        'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6,  # should be 5 but errors
                         'account/v1/currencies': 30,
                     },
@@ -223,6 +225,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/position-risk': 10,
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
+                        'contract/private/transaction-history': 10,
                     },
                     'post': {
                         # sub-account endpoints
@@ -4375,6 +4378,62 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding rate prices
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of funding rate structures to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetContractPublicFundingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "funding_rate": "0.000091412174",
+        #                     "funding_time": "1734336000000"
+        #                 },
+        #             ]
+        #         },
+        #         "trace": "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        result = self.safe_list(data, 'list', [])
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbolInner = self.safe_symbol(marketId, market, '-', 'swap')
+            timestamp = self.safe_integer(entry, 'funding_time')
+            rates.append({
+                'info': entry,
+                'symbol': symbolInner,
+                'fundingRate': self.safe_number(entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
@@ -4787,6 +4846,188 @@ class bitmart(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' editOrder() only supports trigger, stop loss and take profit orders')
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
+
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+
+        :param str [code]: unified currency code
+        :param int [since]: timestamp in ms of the earliest ledger entry
+        :param int [limit]: max number of ledger entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest ledger entry
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/#/?id=ledger>`
+        """
+        await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        request: dict = {}
+        request, params = self.handle_until_option('end_time', request, params)
+        transactionsRequest = self.fetch_transactions_request(0, None, since, limit, params)
+        response = await self.privateGetContractPrivateTransactionHistory(transactionsRequest)
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "time": "1734422402121",
+        #                 "type": "Funding Fee",
+        #                 "amount": "-0.00008253",
+        #                 "asset": "USDT",
+        #                 "symbol": "LTCUSDT",
+        #                 "tran_id": "1734422402121",
+        #                 "flow_type": 3
+        #             },
+        #         ],
+        #         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_ledger(data, currency, since, limit)
+
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
+        #
+        #     {
+        #         "time": "1734422402121",
+        #         "type": "Funding Fee",
+        #         "amount": "-0.00008253",
+        #         "asset": "USDT",
+        #         "symbol": "LTCUSDT",
+        #         "tran_id": "1734422402121",
+        #         "flow_type": 3
+        #     }
+        #
+        amount = self.safe_string(item, 'amount')
+        direction = None
+        if Precise.string_le(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_mul('-1', amount)
+        else:
+            direction = 'in'
+        currencyId = self.safe_string(item, 'asset')
+        timestamp = self.safe_integer(item, 'time')
+        type = self.safe_string(item, 'type')
+        return self.safe_ledger_entry({
+            'info': item,
+            'id': self.safe_string(item, 'tran_id'),
+            'direction': direction,
+            'account': None,
+            'referenceAccount': None,
+            'referenceId': self.safe_string(item, 'tradeId'),
+            'type': self.parse_ledger_entry_type(type),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+        }, currency)
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType: dict = {
+            'Commission Fee': 'fee',
+            'Funding Fee': 'fee',
+            'Realized PNL': 'trade',
+            'Transfer': 'transfer',
+            'Liquidation Clearance': 'settlement',
+        }
+        return self.safe_string(ledgerType, type, type)
+
+    def fetch_transactions_request(self, flowType: Int = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        request: dict = {}
+        if flowType is not None:
+            request['flow_type'] = flowType
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        request, params = self.handle_until_option('end_time', request, params)
+        return self.extend(request, params)
+
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the starting timestamp in milliseconds
+        :param int [limit]: the number of entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch funding history for
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request: dict = {}
+        request, params = self.handle_until_option('end_time', request, params)
+        transactionsRequest = self.fetch_transactions_request(3, symbol, since, limit, params)
+        response = await self.privateGetContractPrivateTransactionHistory(transactionsRequest)
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "time": "1734422402121",
+        #                 "type": "Funding Fee",
+        #                 "amount": "-0.00008253",
+        #                 "asset": "USDT",
+        #                 "symbol": "LTCUSDT",
+        #                 "tran_id": "1734422402121",
+        #                 "flow_type": 3
+        #             },
+        #         ],
+        #         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_histories(data, market, since, limit)
+
+    def parse_funding_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "time": "1734422402121",
+        #         "type": "Funding Fee",
+        #         "amount": "-0.00008253",
+        #         "asset": "USDT",
+        #         "symbol": "LTCUSDT",
+        #         "tran_id": "1734422402121",
+        #         "flow_type": 3
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        currencyId = self.safe_string(contract, 'asset')
+        timestamp = self.safe_integer(contract, 'time')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(contract, 'tran_id'),
+            'amount': self.safe_number(contract, 'amount'),
+        }
+
+    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+        result = []
+        for i in range(0, len(contracts)):
+            contract = contracts[i]
+            result.append(self.parse_funding_history(contract, market))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
 
     def nonce(self):
         return self.milliseconds()

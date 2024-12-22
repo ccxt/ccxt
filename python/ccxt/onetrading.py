@@ -1083,7 +1083,6 @@ class onetrading(Exchange, ImplicitAPI):
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
-        stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
         return self.safe_order({
@@ -1099,8 +1098,7 @@ class onetrading(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(rawOrder, 'trigger_price'),
             'amount': amount,
             'cost': None,
             'average': None,

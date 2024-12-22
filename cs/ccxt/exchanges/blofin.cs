@@ -151,7 +151,7 @@ public partial class blofin : Exchange
                     { "rest", "https://openapi.blofin.com" },
                 } },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://blofin.com/register?referral_code=jBd8U1" },
+                    { "url", "https://blofin.com/register?referral_code=f79EsS" },
                     { "discount", 0.05 },
                 } },
                 { "www", "https://www.blofin.com" },
@@ -271,10 +271,18 @@ public partial class blofin : Exchange
                 { "brokerId", "ec6dd3a7dd982d0b" },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "swap", "futures" },
+                    { "funding", "funding" },
                     { "future", "futures" },
+                    { "copy_trading", "copy_trading" },
+                    { "earn", "earn" },
+                    { "spot", "spot" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
+                    { "funding", "funding" },
                     { "futures", "swap" },
+                    { "copy_trading", "copy_trading" },
+                    { "earn", "earn" },
+                    { "spot", "spot" },
                 } },
                 { "sandboxMode", false },
                 { "defaultNetwork", "ERC20" },
@@ -924,9 +932,10 @@ public partial class blofin : Exchange
         return this.parseFundingRate(entry, market);
     }
 
-    public virtual object parseBalanceByType(object type, object response)
+    public virtual object parseBalanceByType(object response)
     {
-        if (isTrue(type))
+        object data = this.safeList(response, "data");
+        if (isTrue(isTrue((!isEqual(data, null))) && isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             return this.parseFundingBalance(response);
         } else
@@ -1060,11 +1069,13 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountType = this.safeString2(parameters, "accountType", "type");
-        parameters = this.omit(parameters, new List<object>() {"accountType", "type"});
+        object accountType = null;
+        var accountTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(!isEqual(accountType, null)))
+        if (isTrue(isTrue(!isEqual(accountType, null)) && isTrue(!isEqual(accountType, "swap"))))
         {
             object options = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
             object parsedAccountType = this.safeString(options, accountType, accountType);
@@ -1074,7 +1085,7 @@ public partial class blofin : Exchange
         {
             response = await this.privateGetAccountBalance(this.extend(request, parameters));
         }
-        return this.parseBalanceByType(accountType, response);
+        return this.parseBalanceByType(response);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)

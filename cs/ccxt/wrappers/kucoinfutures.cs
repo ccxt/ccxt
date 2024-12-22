@@ -380,13 +380,13 @@ public partial class kucoinfutures
     /// <item>
     /// <term>params.takeProfit</term>
     /// <description>
-    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopLoss</term>
     /// <description>
-    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
     /// </description>
     /// </item>
     /// <item>
@@ -452,13 +452,19 @@ public partial class kucoinfutures
     /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// string : 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
+    /// string : 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPriceType</term>
+    /// <description>
+    /// string : "last", "mark", "index" - defaults to "mark"
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.stopPriceType</term>
     /// <description>
-    /// string :  TP, IP or MP, defaults to MP: Mark Price
+    /// string : exchange-specific alternative for triggerPriceType: TP, IP or MP
     /// </description>
     /// </item>
     /// <item>

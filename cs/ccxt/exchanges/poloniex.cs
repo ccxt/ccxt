@@ -1188,7 +1188,6 @@ public partial class poloniex : Exchange
             };
         }
         object clientOrderId = this.safeString(order, "clientOrderId");
-        object triggerPrice = this.safeString2(order, "triggerPrice", "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1203,8 +1202,7 @@ public partial class poloniex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "stopPrice") },
             { "cost", null },
             { "average", this.safeString(order, "avgPrice") },
             { "amount", amount },

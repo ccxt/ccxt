@@ -3907,7 +3907,6 @@ class coincatch(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': self.safe_string_2(order, 'fillQuantity', 'filledQty'),
             'remaining': None,
-            'stopPrice': None,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,

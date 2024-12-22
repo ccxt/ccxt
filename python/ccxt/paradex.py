@@ -1093,7 +1093,6 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
-        stopPrice = self.safe_string(order, 'trigger_price')
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         return self.safe_order({
             'id': orderId,
@@ -1110,8 +1109,7 @@ class paradex(Exchange, ImplicitAPI):
             'reduceOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'average': average,
@@ -1174,7 +1172,7 @@ class paradex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price a trigger order is triggered at
+        :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
         :param bool [params.postOnly]: True or False
@@ -1194,7 +1192,7 @@ class paradex(Exchange, ImplicitAPI):
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': self.amount_to_precision(symbol, amount),
         }
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1212,12 +1210,12 @@ class paradex(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-        if stopPrice is not None:
+        if triggerPrice is not None:
             if isMarket:
                 request['type'] = 'STOP_MARKET'
             else:
                 request['type'] = 'STOP_LIMIT'
-            request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice'])
         account = self.retrieve_account()
         now = self.nonce()

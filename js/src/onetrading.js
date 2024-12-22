@@ -1088,7 +1088,6 @@ export default class onetrading extends Exchange {
         const side = this.safeStringLower(rawOrder, 'side');
         const type = this.safeStringLower(rawOrder, 'type');
         const timeInForce = this.parseTimeInForce(this.safeString(rawOrder, 'time_in_force'));
-        const stopPrice = this.safeNumber(rawOrder, 'trigger_price');
         const postOnly = this.safeValue(rawOrder, 'is_post_only');
         const rawTrades = this.safeValue(order, 'trades', []);
         return this.safeOrder({
@@ -1104,8 +1103,7 @@ export default class onetrading extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(rawOrder, 'trigger_price'),
             'amount': amount,
             'cost': undefined,
             'average': undefined,

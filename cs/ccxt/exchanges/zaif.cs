@@ -563,7 +563,6 @@ public partial class zaif : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "amount", amount },

@@ -773,6 +773,154 @@
                     ]
                 ]
             }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "linear swap fetch open interest with a symbols argument",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": [
+                  [
+                    "tBTCF0:USTF0",
+                    1734662629000,
+                    null,
+                    97476.706489175,
+                    97519.5,
+                    null,
+                    51864420.17887856,
+                    null,
+                    1734681600000,
+                    -0.00016584,
+                    3159,
+                    null,
+                    0,
+                    null,
+                    null,
+                    97518.2378,
+                    null,
+                    null,
+                    4630.92461247,
+                    null,
+                    null,
+                    null,
+                    0.0005,
+                    0.0025
+                  ]
+                ],
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": 4630.92461247,
+                    "openInterestValue": null,
+                    "timestamp": 1734662629000,
+                    "datetime": "2024-12-20T02:43:49.000Z",
+                    "info": [
+                      "tBTCF0:USTF0",
+                      1734662629000,
+                      null,
+                      97476.706489175,
+                      97519.5,
+                      null,
+                      51864420.17887856,
+                      null,
+                      1734681600000,
+                      -0.00016584,
+                      3159,
+                      null,
+                      0,
+                      null,
+                      null,
+                      97518.2378,
+                      null,
+                      null,
+                      4630.92461247,
+                      null,
+                      null,
+                      null,
+                      0.0005,
+                      0.0025
+                    ],
+                    "baseVolume": null,
+                    "quoteVolume": null
+                  }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch the open interest of a swap trading pair",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                  [
+                    "tBTCF0:USTF0",
+                    1734662744000,
+                    null,
+                    97440.41881457,
+                    97490.5,
+                    null,
+                    51864420.17887856,
+                    null,
+                    1734681600000,
+                    -0.00016761,
+                    3196,
+                    null,
+                    0,
+                    null,
+                    null,
+                    97491.9302,
+                    null,
+                    null,
+                    4631.58206116,
+                    null,
+                    null,
+                    null,
+                    0.0005,
+                    0.0025
+                  ]
+                ],
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "openInterestAmount": 4631.58206116,
+                  "openInterestValue": null,
+                  "timestamp": 1734662744000,
+                  "datetime": "2024-12-20T02:45:44.000Z",
+                  "info": [
+                    "tBTCF0:USTF0",
+                    1734662744000,
+                    null,
+                    97440.41881457,
+                    97490.5,
+                    null,
+                    51864420.17887856,
+                    null,
+                    1734681600000,
+                    -0.00016761,
+                    3196,
+                    null,
+                    0,
+                    null,
+                    null,
+                    97491.9302,
+                    null,
+                    null,
+                    4631.58206116,
+                    null,
+                    null,
+                    null,
+                    0.0005,
+                    0.0025
+                  ],
+                  "baseVolume": null,
+                  "quoteVolume": null
+                }
+            }
         ]
     }
 }

@@ -1695,7 +1695,7 @@ class coinbaseinternational extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->stopPrice] $price to trigger stop orders
+         * @param {float} [$params->stopPrice] alias for $triggerPrice
          * @param {float} [$params->triggerPrice] $price to trigger stop orders
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {bool} [$params->postOnly] true or false
@@ -1707,7 +1707,7 @@ class coinbaseinternational extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $typeId = strtoupper($type);
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $clientOrderIdprefix = $this->safe_string($this->options, 'brokerId', 'nfqkvdjp');
         $clientOrderId = $clientOrderIdprefix . '-' . $this->uuid();
         $clientOrderId = mb_substr($clientOrderId, 0, 17 - 0);
@@ -1717,13 +1717,13 @@ class coinbaseinternational extends Exchange {
             'instrument' => $market['id'],
             'size' => $this->amount_to_precision($market['symbol'], $amount),
         );
-        if ($stopPrice !== null) {
+        if ($triggerPrice !== null) {
             if ($type === 'limit') {
                 $typeId = 'STOP_LIMIT';
             } else {
                 $typeId = 'STOP';
             }
-            $request['stop_price'] = $stopPrice;
+            $request['stop_price'] = $triggerPrice;
         }
         $request['type'] = $typeId;
         if ($type === 'limit') {
@@ -1826,7 +1826,6 @@ class coinbaseinternational extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $this->safe_string($order, 'size'),
             'filled' => $this->safe_string($order, 'exec_qty'),
@@ -1971,9 +1970,9 @@ class coinbaseinternational extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-        if ($stopPrice !== null) {
-            $request['stop_price'] = $stopPrice;
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $triggerPrice;
         }
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {

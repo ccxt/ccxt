@@ -635,6 +635,18 @@
                 "output": "{\"symbol\":\"tBTCUST\",\"amount\":\"0.0001\",\"price\":\"41000\",\"price_aux_limit\":\"40000\",\"type\":\"EXCHANGE STOP LIMIT\"}"
             }
         ],
+        "fetchOpenInterests": [
+            {
+                "description": "linear swap fetch open interest with a symbols argument",
+                "method": "fetchOpenInterests",
+                "url": "https://api-pub.bitfinex.com/v2/status/deriv?keys=tBTCF0%3AUSTF0",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+              }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "Fetch the open interest of a swap trading pair",
