@@ -293,6 +293,77 @@ public partial class hashkey : Exchange
                 } },
                 { "defaultNetwork", "ERC20" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 30 },
+                        { "untilDays", 30 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPrice", true },
+                        { "selfTradePrevention", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "trigger", true },
+                        { "limit", 500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -523,15 +594,7 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbol = null;
         object request = new Dictionary<string, object>() {};
-        var symbolparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "symbol");
-        symbol = ((IList<object>)symbolparametersVariable)[0];
-        parameters = ((IList<object>)symbolparametersVariable)[1];
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            ((IDictionary<string,object>)request)["symbol"] = symbol;
-        }
         object response = await this.publicGetApiV1ExchangeInfo(this.extend(request, parameters));
         //
         //     {
@@ -1257,14 +1320,6 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
-            object clientOrderId = null;
-            var clientOrderIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "clientOrderId");
-            clientOrderId = ((IList<object>)clientOrderIdparametersVariable)[0];
-            parameters = ((IList<object>)clientOrderIdparametersVariable)[1];
-            if (isTrue(!isEqual(clientOrderId, null)))
-            {
-                ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-            }
             if (isTrue(!isEqual(accountId, null)))
             {
                 ((IDictionary<string,object>)request)["accountId"] = accountId;
@@ -1604,14 +1659,6 @@ public partial class hashkey : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
-        object symbol = null;
-        var symbolparametersVariable = this.handleOptionAndParams(parameters, "fetchLastPrices", "symbol");
-        symbol = ((IList<object>)symbolparametersVariable)[0];
-        parameters = ((IList<object>)symbolparametersVariable)[1];
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            ((IDictionary<string,object>)request)["symbol"] = symbol;
-        }
         object response = await this.publicGetQuoteV1TickerPrice(this.extend(request, parameters));
         //
         //     [
@@ -1678,14 +1725,6 @@ public partial class hashkey : Exchange
             return this.parseSwapBalance(balance);
         } else if (isTrue(isEqual(marketType, "spot")))
         {
-            object accountId = null;
-            var accountIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((IList<object>)accountIdparametersVariable)[0];
-            parameters = ((IList<object>)accountIdparametersVariable)[1];
-            if (isTrue(!isEqual(accountId, null)))
-            {
-                ((IDictionary<string,object>)request)["accountId"] = accountId;
-            }
             object response = await this.privateGetApiV1Account(this.extend(request, parameters));
             //
             //     {
@@ -2007,14 +2046,6 @@ public partial class hashkey : Exchange
         {
             ((IDictionary<string,object>)request)["addressExt"] = tag;
         }
-        object clientOrderId = null;
-        var clientOrderIdparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "clientOrderId");
-        clientOrderId = ((IList<object>)clientOrderIdparametersVariable)[0];
-        parameters = ((IList<object>)clientOrderIdparametersVariable)[1];
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
@@ -2022,14 +2053,6 @@ public partial class hashkey : Exchange
         if (isTrue(!isEqual(networkCode, null)))
         {
             ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
-        }
-        object platform = null;
-        var platformparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "platform");
-        platform = ((IList<object>)platformparametersVariable)[0];
-        parameters = ((IList<object>)platformparametersVariable)[1];
-        if (isTrue(!isEqual(platform, null)))
-        {
-            ((IDictionary<string,object>)request)["platform"] = platform;
         }
         object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //
@@ -2185,22 +2208,6 @@ public partial class hashkey : Exchange
             { "fromAccountId", fromAccount },
             { "toAccountId", toAccount },
         };
-        object clientOrderId = null;
-        var clientOrderIdparametersVariable = this.handleOptionAndParams(parameters, "transfer", "clientOrderId");
-        clientOrderId = ((IList<object>)clientOrderIdparametersVariable)[0];
-        parameters = ((IList<object>)clientOrderIdparametersVariable)[1];
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-        }
-        object remark = null;
-        var remarkparametersVariable = this.handleOptionAndParams(parameters, "transfer", "remark");
-        remark = ((IList<object>)remarkparametersVariable)[0];
-        parameters = ((IList<object>)remarkparametersVariable)[1];
-        if (isTrue(!isEqual(remark, null)))
-        {
-            ((IDictionary<string,object>)request)["remark"] = remark;
-        }
         object response = await this.privatePostApiV1AccountAssetTransfer(this.extend(request, parameters));
         //
         //     {
@@ -3041,14 +3048,6 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)request)["origClientOrderId"] = clientOrderId;
             }
-            object accountId = null;
-            var accountIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "accountId");
-            accountId = ((IList<object>)accountIdparametersVariable)[0];
-            parameters = ((IList<object>)accountIdparametersVariable)[1];
-            if (isTrue(!isEqual(accountId, null)))
-            {
-                ((IDictionary<string,object>)request)["accountId"] = accountId;
-            }
             response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
         } else if (isTrue(isEqual(marketType, "swap")))
         {
@@ -3165,22 +3164,6 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            object orderId = null;
-            var orderIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "orderId");
-            orderId = ((IList<object>)orderIdparametersVariable)[0];
-            parameters = ((IList<object>)orderIdparametersVariable)[1];
-            if (isTrue(!isEqual(orderId, null)))
-            {
-                ((IDictionary<string,object>)request)["orderId"] = orderId;
-            }
-            object side = null;
-            var sideparametersVariable = this.handleOptionAndParams(parameters, methodName, "side");
-            side = ((IList<object>)sideparametersVariable)[0];
-            parameters = ((IList<object>)sideparametersVariable)[1];
-            if (isTrue(!isEqual(side, null)))
-            {
-                ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
-            }
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters));
         }
         return this.parseOrders(response, market, since, limit);
@@ -3232,14 +3215,6 @@ public partial class hashkey : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
-        }
-        object fromOrderId = null;
-        var fromOrderIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "fromOrderId");
-        fromOrderId = ((IList<object>)fromOrderIdparametersVariable)[0];
-        parameters = ((IList<object>)fromOrderIdparametersVariable)[1];
-        if (isTrue(!isEqual(fromOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["fromOrderId"] = fromOrderId;
         }
         object response = null;
         object accountId = null;
@@ -3321,22 +3296,6 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
-            object orderId = null;
-            var orderIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "orderId");
-            orderId = ((IList<object>)orderIdparametersVariable)[0];
-            parameters = ((IList<object>)orderIdparametersVariable)[1];
-            if (isTrue(!isEqual(orderId, null)))
-            {
-                ((IDictionary<string,object>)request)["orderId"] = orderId;
-            }
-            object side = null;
-            var sideparametersVariable = this.handleOptionAndParams(parameters, methodName, "side");
-            side = ((IList<object>)sideparametersVariable)[0];
-            parameters = ((IList<object>)sideparametersVariable)[1];
-            if (isTrue(!isEqual(side, null)))
-            {
-                ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
-            }
             if (isTrue(!isEqual(accountId, null)))
             {
                 ((IDictionary<string,object>)request)["accountId"] = accountId;
@@ -3359,14 +3318,6 @@ public partial class hashkey : Exchange
             } else
             {
                 ((IDictionary<string,object>)request)["type"] = "LIMIT";
-            }
-            object fromOrderId = null;
-            var fromOrderIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "fromOrderId");
-            fromOrderId = ((IList<object>)fromOrderIdparametersVariable)[0];
-            parameters = ((IList<object>)fromOrderIdparametersVariable)[1];
-            if (isTrue(!isEqual(fromOrderId, null)))
-            {
-                ((IDictionary<string,object>)request)["fromOrderId"] = fromOrderId;
             }
             if (isTrue(!isEqual(accountId, null)))
             {
@@ -3858,14 +3809,6 @@ public partial class hashkey : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object side = null;
-        var sideparametersVariable = this.handleOptionAndParams(parameters, methodName, "side");
-        side = ((IList<object>)sideparametersVariable)[0];
-        parameters = ((IList<object>)sideparametersVariable)[1];
-        if (isTrue(!isEqual(side, null)))
-        {
-            ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
-        }
         object response = await this.privateGetApiV1FuturesPositions(this.extend(request, parameters));
         //
         //     [

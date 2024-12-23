@@ -361,6 +361,84 @@ class hashkey(Exchange, ImplicitAPI):
                 },
                 'defaultNetwork': 'ERC20',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'marketBuyRequiresPrice': False,
+                        # 'marketBuyByCost': False,
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 30,
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'selfTradePrevention': True,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': True,
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -582,11 +660,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.symbol]: the id of the market to fetch
         :returns dict[]: an array of objects representing market data
         """
-        symbol: Str = None
         request: dict = {}
-        symbol, params = self.handle_option_and_params(params, 'fetchMarkets', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = await self.publicGetApiV1ExchangeInfo(self.extend(request, params))
         #
         #     {
@@ -1254,10 +1328,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            clientOrderId: Str = None
-            clientOrderId, params = self.handle_option_and_params(params, methodName, 'clientOrderId')
-            if clientOrderId is not None:
-                request['clientOrderId'] = clientOrderId
             if accountId is not None:
                 request['accountId'] = accountId
             response = await self.privateGetApiV1AccountTrades(self.extend(request, params))
@@ -1601,10 +1671,6 @@ class hashkey(Exchange, ImplicitAPI):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {}
-        symbol: Str = None
-        symbol, params = self.handle_option_and_params(params, 'fetchLastPrices', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = await self.publicGetQuoteV1TickerPrice(self.extend(request, params))
         #
         #     [
@@ -1662,10 +1728,6 @@ class hashkey(Exchange, ImplicitAPI):
             balance = self.safe_dict(response, 0, {})
             return self.parse_swap_balance(balance)
         elif marketType == 'spot':
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = await self.privateGetApiV1Account(self.extend(request, params))
             #
             #     {
@@ -1931,18 +1993,10 @@ class hashkey(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressExt'] = tag
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'withdraw', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chainType'] = self.network_code_to_id(networkCode)
-        platform: Str = None
-        platform, params = self.handle_option_and_params(params, 'withdraw', 'platform')
-        if platform is not None:
-            request['platform'] = platform
         response = await self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         #     {
@@ -2081,14 +2135,6 @@ class hashkey(Exchange, ImplicitAPI):
             'fromAccountId': fromAccount,
             'toAccountId': toAccount,
         }
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'transfer', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
-        remark: Str = None
-        remark, params = self.handle_option_and_params(params, 'transfer', 'remark')
-        if remark is not None:
-            request['remark'] = remark
         response = await self.privatePostApiV1AccountAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -2926,10 +2972,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = await self.privateGetApiV1SpotOrder(self.extend(request, params))
             #
             #     {
@@ -3065,14 +3107,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             response = await self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
             #     [
@@ -3138,10 +3172,6 @@ class hashkey(Exchange, ImplicitAPI):
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
-        fromOrderId: Str = None
-        fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-        if fromOrderId is not None:
-            request['fromOrderId'] = fromOrderId
         response = None
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
@@ -3240,14 +3270,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             if accountId is not None:
                 request['accountId'] = accountId
             response = await self.privateGetApiV1SpotTradeOrders(self.extend(request, params))
@@ -3290,10 +3312,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
-            fromOrderId: Str = None
-            fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-            if fromOrderId is not None:
-                request['fromOrderId'] = fromOrderId
             if accountId is not None:
                 request['subAccountId'] = accountId
                 response = await self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, params))
@@ -3728,10 +3746,6 @@ class hashkey(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        side: Str = None
-        side, params = self.handle_option_and_params(params, methodName, 'side')
-        if side is not None:
-            request['side'] = side.upper()
         response = await self.privateGetApiV1FuturesPositions(self.extend(request, params))
         #
         #     [

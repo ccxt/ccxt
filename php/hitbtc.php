@@ -74,6 +74,7 @@ class hitbtc extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -3098,13 +3099,59 @@ class hitbtc extends Exchange {
         $datetime = $this->safe_string($interest, 'timestamp');
         $value = $this->safe_number($interest, 'open_interest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://api.hitbtc.com/#futures-info
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $symbols = $this->market_symbols($symbols);
+        $marketIds = null;
+        if ($symbols !== null) {
+            $marketIds = $this->market_ids($symbols);
+            $request['symbols'] = implode(',', $marketIds);
+        }
+        $response = $this->publicGetPublicFuturesInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "BTCUSDT_PERP" => {
+        //             "contract_type" => "perpetual",
+        //             "mark_price" => "97291.83",
+        //             "index_price" => "97298.61",
+        //             "funding_rate" => "-0.000183473092423284",
+        //             "open_interest" => "94.1503",
+        //             "next_funding_time" => "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate" => "-0.00027495203277752",
+        //             "premium_index" => "-0.000789474900583786",
+        //             "avg_premium_index" => "-0.000683473092423284",
+        //             "interest_rate" => "0.0001",
+        //             "timestamp" => "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        $results = array();
+        $markets = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $marketId = $markets[$i];
+            $marketInner = $this->safe_market($marketId);
+            $results[] = $this->parse_open_interest($response[$marketId], $marketInner);
+        }
+        return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

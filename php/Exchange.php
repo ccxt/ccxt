@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.41';
+$version = '4.4.42';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.41';
+    const VERSION = '4.4.42';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -419,6 +419,7 @@ class Exchange {
         'lykke',
         'mercado',
         'mexc',
+        'myokx',
         'ndax',
         'novadax',
         'oceanex',
@@ -5580,10 +5581,15 @@ class Exchange {
 
     public function handle_option_and_params_2(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null) {
         $value = null;
-        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1, $defaultValue);
+        list($value, $params) = $this->handle_option_and_params($params, $methodName1, $optionName1);
+        if ($value !== null) {
+            // omit $optionName2 too from $params
+            $params = $this->omit($params, $optionName2);
+            return array( $value, $params );
+        }
         // if still null, try $optionName2
         $value2 = null;
-        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $value);
+        list($value2, $params) = $this->handle_option_and_params($params, $methodName1, $optionName2, $defaultValue);
         return array( $value2, $params );
     }
 

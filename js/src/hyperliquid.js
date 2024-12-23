@@ -25,7 +25,7 @@ export default class hyperliquid extends Exchange {
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
-            'certified': false,
+            'certified': true,
             'pro': true,
             'dex': true,
             'has': {

@@ -264,6 +264,78 @@ class krakenfutures extends Exchange {
                     'method' => 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 100,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => null,
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'timeframes' => array(
                 '1m' => '1m',
                 '5m' => '5m',
@@ -1052,7 +1124,7 @@ class krakenfutures extends Exchange {
             /**
              * Create an order on the exchange
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
              *
              * @param {string} $symbol unified $market $symbol
              * @param {string} $type 'limit' or 'market'
@@ -1115,7 +1187,7 @@ class krakenfutures extends Exchange {
             /**
              * create a list of trade $orders
              *
-             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+             * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1958,6 +2030,7 @@ class krakenfutures extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
+            // todo => lastFillTime => $this->iso8601(end)
             $response = Async\await($this->privateGetFills ($params));
             //
             //    {

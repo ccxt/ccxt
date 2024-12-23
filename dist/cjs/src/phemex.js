@@ -3681,6 +3681,7 @@ class phemex extends phemex$1 {
      * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USD is the default
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
@@ -3688,7 +3689,8 @@ class phemex extends phemex$1 {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         let subType = undefined;
-        let code = this.safeString(params, 'currency');
+        let code = this.safeString2(params, 'currency', 'code', 'USD');
+        params = this.omit(params, ['currency', 'code']);
         let settle = undefined;
         let market = undefined;
         const firstSymbol = this.safeString(symbols, 0);
@@ -3698,18 +3700,18 @@ class phemex extends phemex$1 {
             code = market['settle'];
         }
         else {
-            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', 'USD');
+            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', code);
         }
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params);
         const isUSDTSettled = settle === 'USDT';
         if (isUSDTSettled) {
             code = 'USDT';
         }
+        else if (settle === 'BTC') {
+            code = 'BTC';
+        }
         else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
-        }
-        else {
-            params = this.omit(params, 'code');
         }
         const currency = this.currency(code);
         const request = {

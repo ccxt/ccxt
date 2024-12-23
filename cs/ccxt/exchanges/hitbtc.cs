@@ -67,6 +67,7 @@ public partial class hitbtc : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -3171,13 +3172,63 @@ public partial class hitbtc : Exchange
         object datetime = this.safeString(interest, "timestamp");
         object value = this.safeNumber(interest, "open_interest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(null, market) },
             { "openInterestAmount", null },
             { "openInterestValue", value },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "info", interest },
         }, market);
+    }
+
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        symbols = this.marketSymbols(symbols);
+        object marketIds = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            marketIds = this.marketIds(symbols);
+            ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+        }
+        object response = await this.publicGetPublicFuturesInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        object results = new List<object>() {};
+        object markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(markets, i);
+            object marketInner = this.safeMarket(marketId);
+            ((IList<object>)results).Add(this.parseOpenInterest(getValue(response, marketId), marketInner));
+        }
+        return this.filterByArray(results, "symbol", symbols);
     }
 
     /**
