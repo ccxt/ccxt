@@ -316,17 +316,14 @@ export default class gemini extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo: unify
-                        // todo: leverage unify
+                        'trailing': false,
                     },
-                    'createOrders': {
-                        'max': 75,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 2500,
+                        'limit': 500,
                         'daysBack': undefined,
-                        'untilDays': 100000, // todo: implement
+                        'untilDays': undefined,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -340,17 +337,9 @@ export default class gemini extends Exchange {
                         'trailing': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': undefined,
-                        'daysBackClosed': undefined,
-                        'daysBackCanceled': undefined,
-                        'untilDays': 100000,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchClosedOrders': undefined, // todo: implement 
                     'fetchOHLCV': {
-                        'limit': 10000,
+                        'limit': undefined,
                     },
                 },
             },
