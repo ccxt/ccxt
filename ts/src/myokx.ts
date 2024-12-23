@@ -9,10 +9,10 @@ export default class myokx extends okx {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'myokx',
-            'name': 'MyOKX',
+            'name': 'MyOKX (EEA)',
             'certified': false,
             'pro': true,
-            'hostname': 'www.eea.okx.com',
+            'hostname': 'eea.okx.com',
         });
     }
 }
