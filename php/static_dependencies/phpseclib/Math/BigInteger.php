@@ -3564,7 +3564,6 @@ class BigInteger
         return ($x - ($x % $y)) / $y;
     }
 
-    
     public function gmp_pow($a, $b) {
         try {
             return gmp_pow($a, $b);

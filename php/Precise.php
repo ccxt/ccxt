@@ -30,7 +30,7 @@ class Precise {
         try {
             return gmp_pow($a, $b);
         } catch (\Throwable $_) {
-            return bcpow(gmp_strval($a), $b);
+            return bcpow(gmp_strval($a), gmp_strval($b));
         }
     }
 
