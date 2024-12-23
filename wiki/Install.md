@@ -185,7 +185,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 7.0+).
+The autoloadable version of ccxt can be installed with [**Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+).
 
 It can also be installed from the source code: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/php)
 
@@ -195,14 +195,14 @@ It requires common PHP modules:
 - mbstring (using UTF-8 is highly recommended)
 - PCRE
 - iconv
-- gmp (this is a built-in extension as of PHP 7.2+)
+- gmp
 
 ```php
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.2+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+The library supports concurrent asynchronous mode using tools from [ReactPHP](https://reactphp.org/) in PHP 8.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### .net/C#
 
