@@ -464,7 +464,7 @@ In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). 
 
 ```php
 // PHP
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
