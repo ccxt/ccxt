@@ -1557,8 +1557,8 @@ public partial class gemini : Exchange
         };
         type = this.safeString(parameters, "type", type);
         parameters = this.omit(parameters, "type");
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stop_price", "stopPrice"});
-        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "type"});
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
         if (isTrue(isEqual(type, "stopLimit")))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
