@@ -102,7 +102,7 @@ function findRemovedExchanges () {
                 const id = file.split('.')[0];
                 if (!allowedFiles.includes (id)) {
                     exited = true;
-                    console.log (ext, restOrWs, 'File needs to be removed:', id, '(if you think this is a mistake, add it to the allowedFiles array in ' + block2.path + ')');
+                    console.log (ext, `[${restOrWs}]`, block2.path, id, '| File needs to be removed (if you think this is a mistake, add it to the allowedFiles array in build/remove-delisted-exchange-files.js)');
                 }
             }
         }

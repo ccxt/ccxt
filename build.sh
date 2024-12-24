@@ -58,6 +58,7 @@ function run_tests {
 }
 
 build_and_test_all () {
+  npm run clean-removed-exchanges
   npm run force-build
   if [ "$IS_TRAVIS" = "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
@@ -159,10 +160,10 @@ done
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
-npm run clean-removed-exchanges
-
 # check return types
 npm run validate-types ${REST_EXCHANGES[*]}
+
+npm run clean-removed-exchanges
 
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
