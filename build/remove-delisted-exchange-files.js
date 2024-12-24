@@ -48,6 +48,14 @@ const exchangeDirs = {
             'path': './python/ccxt/',
             'excluded': ['pro', 'abstract', 'async_support', 'base', 'static_dependencies', 'test', '__init__', '__pycache__'],
         },
+        'restAbstract': {
+            'path': './python/ccxt/abstract/',
+            'excluded': ['__init__', '__pycache__'],
+        },
+        'async': {
+            'path': './python/ccxt/async_support/',
+            'excluded': ['__init__', '__pycache__'],
+        },
         'ws': {
             'path': './python/ccxt/pro/',
             'excluded': ['test', 'BaseProExchange', '__init__', '__pycache__'],
@@ -57,6 +65,18 @@ const exchangeDirs = {
         'rest': {
             'path': './php/',
             'excluded': ['abstract', 'async', 'InvalidOperation', 'ProxyError', 'static_dependencies', 'test', 'Precise', 'pro', 'Exchange'],
+        },
+        'abstract': {
+            'path': './php/abstract/',
+            'excluded': [],
+        },
+        'restAsync': {
+            'path': './php/async/',
+            'excluded': ['abstract', 'async', 'InvalidOperation', 'ProxyError', 'static_dependencies', 'test', 'Precise', 'pro', 'Exchange'],
+        },
+        'abstractAsync': {
+            'path': './php/async/abstract/',
+            'excluded': [],
         },
         'ws': {
             'path': './php/pro/',
@@ -102,7 +122,7 @@ function findRemovedExchanges () {
                 const id = file.split('.')[0];
                 if (!allowedFiles.includes (id)) {
                     exited = true;
-                    console.log (ext, `[${restOrWs}]`, block2.path, id, '| File needs to be removed (if you think this is a mistake, add it to the allowedFiles array in build/remove-delisted-exchange-files.js)');
+                    console.log (block2.path + id, ext, `| [${restOrWs}] File needs to be removed (if you think this's a mistake, add it to the allowedFiles array in build/remove-delisted-exchange-files.js)`);
                 }
             }
         }
