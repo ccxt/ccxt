@@ -514,6 +514,92 @@ class coinex(Exchange, ImplicitAPI):
                     # CSC, AE, BASE, AIPG, AKASH, POLKADOTASSETHUB ?, ALEO, STX, ALGO, ALPH, BLAST, AR, ARCH, ARDR, ARK, ARRR, MANTA, NTRN, LUNA, AURORA, AVAIL, ASC20, AVA, AYA, AZERO, BAN, BAND, BB, RUNES, BEAM, BELLSCOIN, BITCI, NEAR, AGORIC, BLOCX, BNC, BOBA, BRISE, KRC20, CANTO, CAPS, CCD, CELO, CFX, CHI, CKB, CLORE, CLV, CORE, CSPR, CTXC, DAG, DCR, DERO, DESO, DEFI, DGB, DNX, DOCK, DOGECHAIN, DYDX, DYMENSION, EGLD, ELA, ELF, ENJIN, EOSIO, ERG, ETN_SC, EVMOS, EWC, SGB, FACT, FB, FET, FIO, FIRO, NEO3, FLOW, FLARE, FLUX, LINEA, FREN, FSN, FB_BRC20, GLMR, GRIN, GRS, HACASH, HBAR, HERB, HIVE, MAPO, HMND, HNS, ZKSYNC, HTR, HUAHUA, MERLIN, ICP, ICX, INJ, IOST, IOTA, IOTX, IRIS, IRON, ONE, JOYSTREAM, KAI, KAR, KAS, KAVA, KCN, KDA, KLAY, KLY, KMD, KSM, KUB, KUJIRA, LAT, LBC, LUNC, LUKSO, MARS, METIS, MINA, MANTLE, MOB, MODE, MONA, MOVR, MTL, NEOX, NEXA, NIBI, NIMIQ, NMC, ONOMY, NRG, WAVES, NULS, OAS, OCTA, OLT, ONT, OORT, ORAI, OSMO, P3D, COMPOSABLE, PIVX, RON, POKT, POLYMESH, PRE_MARKET, PYI, QKC, QTUM, QUBIC, RSK, ROSE, ROUTE, RTM, THORCHAIN, RVN, RADIANT, SAGA, SALVIUM, SATOX, SC, SCP, _NULL, SCRT, SDN, RGBPP, SELF, SMH, SPACE, STARGAZE, STC, STEEM, STRATISEVM, STRD, STARKNET, SXP, SYS, TAIKO, TAO, TARA, TENET, THETA, TT, VENOM, VECHAIN, TOMO, VITE, VLX, VSYS, VTC, WAN, WAXP, WEMIX, XCH, XDC, XEC, XELIS, NEM, XHV, XLM, XNA, NANO, XPLA, XPR, XPRT, XRD, XTZ, XVG, XYM, ZANO, ZEC, ZEN, ZEPH, ZETA
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'marketBuyRequiresPrice': True,
+                        # 'marketBuyByCost': True,
+                        # 'selfTradePrevention': True,
+                        # 'iceberg': True,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
@@ -1978,7 +2064,6 @@ class coinex(Exchange, ImplicitAPI):
             'reduceOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'trigger_price'),
             'triggerPrice': self.safe_string(order, 'trigger_price'),
             'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
@@ -2018,7 +2103,7 @@ class coinex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         option = self.safe_string(params, 'option')
@@ -2063,8 +2148,8 @@ class coinex(Exchange, ImplicitAPI):
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-                if stopPrice is not None:
-                    request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+                if triggerPrice is not None:
+                    request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
                     request['trigger_price_type'] = self.safe_string(params, 'stop_type', 'latest_price')
         else:
             marginMode = None
@@ -2091,8 +2176,8 @@ class coinex(Exchange, ImplicitAPI):
                     request['amount'] = self.cost_to_precision(symbol, amount)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            if stopPrice is not None:
-                request['trigger_price'] = self.price_to_precision(symbol, stopPrice)
+            if triggerPrice is not None:
+                request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
         params = self.omit(params, ['reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         return self.extend(request, params)
 

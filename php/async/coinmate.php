@@ -991,7 +991,6 @@ class coinmate extends Exchange {
         $marketId = $this->safe_string($order, 'currencyPair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1004,8 +1003,7 @@ class coinmate extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $priceString,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $amountString,
             'cost' => null,
             'average' => $averageString,

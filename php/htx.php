@@ -5176,7 +5176,6 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $stopPrice = $this->safe_string_2($order, 'stop-price', 'trigger_price');
         $average = $this->safe_string($order, 'trade_avg_price');
         $trades = $this->safe_value($order, 'trades');
         $reduceOnlyInteger = $this->safe_integer($order, 'reduce_only');
@@ -5197,8 +5196,7 @@ class htx extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string_2($order, 'stop-price', 'trigger_price'),
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -8440,7 +8438,7 @@ class htx extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $tick = $this->safe_list($data, 'tick');
-        return $this->parse_open_interests($tick, $market, $since, $limit);
+        return $this->parse_open_interests_history($tick, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

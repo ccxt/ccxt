@@ -3050,10 +3050,10 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
         };
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        object isStop = !isEqual(stopPrice, null);
+        object isStop = !isEqual(triggerPrice, null);
         object isStopLoss = !isEqual(stopLossPrice, null);
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object timeInForce = this.safeString(parameters, "timeInForce");
@@ -3078,7 +3078,7 @@ public partial class coinbase : Exchange
                         { "stop_limit_stop_limit_gtd", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
-                            { "stop_price", this.priceToPrecision(symbol, stopPrice) },
+                            { "stop_price", this.priceToPrecision(symbol, triggerPrice) },
                             { "stop_direction", stopDirection },
                             { "end_time", endTime },
                         } },
@@ -3089,34 +3089,34 @@ public partial class coinbase : Exchange
                         { "stop_limit_stop_limit_gtc", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
-                            { "stop_price", this.priceToPrecision(symbol, stopPrice) },
+                            { "stop_price", this.priceToPrecision(symbol, triggerPrice) },
                             { "stop_direction", stopDirection },
                         } },
                     };
                 }
             } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
             {
-                object triggerPrice = null;
+                object tpslPrice = null;
                 if (isTrue(isStopLoss))
                 {
                     if (isTrue(isEqual(stopDirection, null)))
                     {
                         stopDirection = ((bool) isTrue((isEqual(side, "buy")))) ? "STOP_DIRECTION_STOP_UP" : "STOP_DIRECTION_STOP_DOWN";
                     }
-                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    tpslPrice = this.priceToPrecision(symbol, stopLossPrice);
                 } else
                 {
                     if (isTrue(isEqual(stopDirection, null)))
                     {
                         stopDirection = ((bool) isTrue((isEqual(side, "buy")))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
                     }
-                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    tpslPrice = this.priceToPrecision(symbol, takeProfitPrice);
                 }
                 ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
                     { "stop_limit_stop_limit_gtc", new Dictionary<string, object>() {
                         { "base_size", this.amountToPrecision(symbol, amount) },
                         { "limit_price", this.priceToPrecision(symbol, price) },
-                        { "stop_price", triggerPrice },
+                        { "stop_price", tpslPrice },
                         { "stop_direction", stopDirection },
                     } },
                 };
@@ -3418,7 +3418,6 @@ public partial class coinbase : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "filled", this.safeString(order, "filled_size") },

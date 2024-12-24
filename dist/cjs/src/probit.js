@@ -1164,7 +1164,6 @@ class probit extends probit$1 {
             'side': side,
             'status': status,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'filled': filled,

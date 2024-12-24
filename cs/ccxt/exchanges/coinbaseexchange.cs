@@ -1058,7 +1058,7 @@ public partial class coinbaseexchange : Exchange
         object side = this.safeString(order, "side");
         object timeInForce = this.safeString(order, "time_in_force");
         object postOnly = this.safeValue(order, "post_only");
-        object stopPrice = this.safeNumber(order, "stop_price");
+        object triggerPrice = this.safeNumber(order, "stop_price");
         object clientOrderId = this.safeString(order, "client_oid");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1074,8 +1074,7 @@ public partial class coinbaseexchange : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "cost", cost },
             { "amount", amount },
             { "filled", filled },
@@ -1264,10 +1263,10 @@ public partial class coinbaseexchange : Exchange
         {
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
         }
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
         if (isTrue(!isEqual(timeInForce, null)))

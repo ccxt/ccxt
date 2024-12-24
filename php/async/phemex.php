@@ -2286,7 +2286,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -2301,8 +2301,7 @@ class phemex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2452,7 +2451,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
+        $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
         $postOnly = ($timeInForce === 'PO');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $execInst = $this->safe_string($order, 'execInst');
@@ -2489,8 +2488,7 @@ class phemex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfit,
             'stopLossPrice' => $stopLoss,
             'amount' => $amount,
@@ -2879,12 +2877,12 @@ class phemex extends Exchange {
                     $request['baseQtyEV'] = $this->to_ev($amount, $market);
                 }
             }
-            $stopPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
-            if ($stopPrice !== null) {
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+            if ($triggerPrice !== null) {
                 if ($isUSDTSettled) {
-                    $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPxRp'] = $this->price_to_precision($symbol, $triggerPrice);
                 } else {
-                    $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+                    $request['stopPxEp'] = $this->to_ep($triggerPrice, $market);
                 }
             }
             $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
@@ -3691,13 +3689,15 @@ class phemex extends Exchange {
              *
              * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USD is the default
              * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $subType = null;
-            $code = $this->safe_string($params, 'currency');
+            $code = $this->safe_string_2($params, 'currency', 'code', 'USD');
+            $params = $this->omit($params, array( 'currency', 'code' ));
             $settle = null;
             $market = null;
             $firstSymbol = $this->safe_string($symbols, 0);
@@ -3706,16 +3706,16 @@ class phemex extends Exchange {
                 $settle = $market['settle'];
                 $code = $market['settle'];
             } else {
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USD');
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $code);
             }
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
             $isUSDTSettled = $settle === 'USDT';
             if ($isUSDTSettled) {
                 $code = 'USDT';
+            } elseif ($settle === 'BTC') {
+                $code = 'BTC';
             } elseif ($code === null) {
                 $code = ($subType === 'linear') ? 'USD' : 'BTC';
-            } else {
-                $params = $this->omit($params, 'code');
             }
             $currency = $this->currency($code);
             $request = array(

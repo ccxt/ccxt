@@ -1563,7 +1563,6 @@ export default class upbit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': this.parseNumber(cost),
             'average': this.parseNumber(average),

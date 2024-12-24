@@ -386,6 +386,67 @@ public partial class kraken : Exchange
                     { "Celestia", "TIA" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 720 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -1028,7 +1089,7 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
+     * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1946,7 +2007,6 @@ public partial class kraken : Exchange
             { "postOnly", isPostOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
@@ -2406,7 +2466,7 @@ public partial class kraken : Exchange
      * @method
      * @name kraken#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+     * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve

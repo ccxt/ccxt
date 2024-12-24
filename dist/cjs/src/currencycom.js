@@ -1206,7 +1206,6 @@ class currencycom extends currencycom$1 {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1308,11 +1307,11 @@ class currencycom extends currencycom$1 {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
             else if (type === 'market') {
-                const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+                const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                if (stopPrice !== undefined) {
+                if (triggerPrice !== undefined) {
                     request['type'] = 'STOP';
-                    request['price'] = this.priceToPrecision(symbol, stopPrice);
+                    request['price'] = this.priceToPrecision(symbol, triggerPrice);
                 }
             }
         }

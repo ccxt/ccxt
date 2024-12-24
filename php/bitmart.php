@@ -59,12 +59,13 @@ class bitmart extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => false,
-                'fetchFundingHistory' => null,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIsolatedBorrowRate' => true,
                 'fetchIsolatedBorrowRates' => true,
+                'fetchLedger' => true,
                 'fetchLiquidations' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -5079,6 +5080,203 @@ class bitmart extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry
+         * @param {int} [$limit] max number of ledger entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=ledger ledger structures~
+         */
+        $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $request = array();
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        $transactionsRequest = $this->fetch_transactions_request(0, null, $since, $limit, $params);
+        $response = $this->privateGetContractPrivateTransactionHistory ($transactionsRequest);
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             array(
+        //                 "time" => "1734422402121",
+        //                 "type" => "Funding Fee",
+        //                 "amount" => "-0.00008253",
+        //                 "asset" => "USDT",
+        //                 "symbol" => "LTCUSDT",
+        //                 "tran_id" => "1734422402121",
+        //                 "flow_type" => 3
+        //             ),
+        //         ),
+        //         "trace" => "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        //
+        //     {
+        //         "time" => "1734422402121",
+        //         "type" => "Funding Fee",
+        //         "amount" => "-0.00008253",
+        //         "asset" => "USDT",
+        //         "symbol" => "LTCUSDT",
+        //         "tran_id" => "1734422402121",
+        //         "flow_type" => 3
+        //     }
+        //
+        $amount = $this->safe_string($item, 'amount');
+        $direction = null;
+        if (Precise::string_le($amount, '0')) {
+            $direction = 'out';
+            $amount = Precise::string_mul('-1', $amount);
+        } else {
+            $direction = 'in';
+        }
+        $currencyId = $this->safe_string($item, 'asset');
+        $timestamp = $this->safe_integer($item, 'time');
+        $type = $this->safe_string($item, 'type');
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
+            'id' => $this->safe_string($item, 'tran_id'),
+            'direction' => $direction,
+            'account' => null,
+            'referenceAccount' => null,
+            'referenceId' => $this->safe_string($item, 'tradeId'),
+            'type' => $this->parse_ledger_entry_type($type),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => null,
+            'status' => null,
+            'fee' => null,
+        ), $currency);
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $ledgerType = array(
+            'Commission Fee' => 'fee',
+            'Funding Fee' => 'fee',
+            'Realized PNL' => 'trade',
+            'Transfer' => 'transfer',
+            'Liquidation Clearance' => 'settlement',
+        );
+        return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function fetch_transactions_request(?int $flowType = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        $request = array();
+        if ($flowType !== null) {
+            $request['flow_type'] = $flowType;
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        return $this->extend($request, $params);
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         *
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the starting timestamp in milliseconds
+         * @param {int} [$limit] the number of entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch funding history for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array();
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        $transactionsRequest = $this->fetch_transactions_request(3, $symbol, $since, $limit, $params);
+        $response = $this->privateGetContractPrivateTransactionHistory ($transactionsRequest);
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             array(
+        //                 "time" => "1734422402121",
+        //                 "type" => "Funding Fee",
+        //                 "amount" => "-0.00008253",
+        //                 "asset" => "USDT",
+        //                 "symbol" => "LTCUSDT",
+        //                 "tran_id" => "1734422402121",
+        //                 "flow_type" => 3
+        //             ),
+        //         ),
+        //         "trace" => "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_funding_histories($data, $market, $since, $limit);
+    }
+
+    public function parse_funding_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "time" => "1734422402121",
+        //         "type" => "Funding Fee",
+        //         "amount" => "-0.00008253",
+        //         "asset" => "USDT",
+        //         "symbol" => "LTCUSDT",
+        //         "tran_id" => "1734422402121",
+        //         "flow_type" => 3
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $currencyId = $this->safe_string($contract, 'asset');
+        $timestamp = $this->safe_integer($contract, 'time');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($contract, 'tran_id'),
+            'amount' => $this->safe_number($contract, 'amount'),
+        );
+    }
+
+    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+        $result = array();
+        for ($i = 0; $i < count($contracts); $i++) {
+            $contract = $contracts[$i];
+            $result[] = $this->parse_funding_history($contract, $market);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
     public function nonce() {

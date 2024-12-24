@@ -1025,6 +1025,106 @@
               }
             ]
           }
+        ],
+        "fetchLedger": [
+          {
+            "description": "fetch ledger with code and limit arguments",
+            "method": "fetchLedger",
+            "input": [
+              "USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "1000",
+              "message": "Ok",
+              "data": [
+                {
+                  "time": "1734422402121",
+                  "type": "Funding Fee",
+                  "amount": "-0.00008253",
+                  "asset": "USDT",
+                  "symbol": "LTCUSDT",
+                  "tran_id": "1734422402121",
+                  "flow_type": "3"
+                }
+              ],
+              "trace": "4cd11f83c71e4ed3b9b844790f07241e.64.17344258801524265"
+            },
+            "parsedResponse": [
+              {
+                "id": "1734422402121",
+                "timestamp": 1734422402121,
+                "datetime": "2024-12-17T08:00:02.121Z",
+                "direction": "out",
+                "account": null,
+                "referenceId": null,
+                "referenceAccount": null,
+                "type": "fee",
+                "currency": "USDT",
+                "amount": 0.00008253,
+                "before": null,
+                "after": null,
+                "status": null,
+                "fee": null,
+                "info": {
+                  "time": "1734422402121",
+                  "type": "Funding Fee",
+                  "amount": "-0.00008253",
+                  "asset": "USDT",
+                  "symbol": "LTCUSDT",
+                  "tran_id": "1734422402121",
+                  "flow_type": "3"
+                }
+              }
+            ]
+          }
+        ],
+        "fetchFundingHistory": [
+          {
+            "description": "fetch funding history with symbol and limit arguments",
+            "method": "fetchFundingHistory",
+            "input": [
+              "LTC/USDT:USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "1000",
+              "message": "Ok",
+              "data": [
+                {
+                  "time": "1734422402121",
+                  "type": "Funding Fee",
+                  "amount": "-0.00008253",
+                  "asset": "USDT",
+                  "symbol": "LTCUSDT",
+                  "tran_id": "1734422402121",
+                  "flow_type": "3"
+                }
+              ],
+              "trace": "d73d949bbd8645f6a40c8fc7f5ae6738.71.17344259302117885"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "time": "1734422402121",
+                  "type": "Funding Fee",
+                  "amount": "-0.00008253",
+                  "asset": "USDT",
+                  "symbol": "LTCUSDT",
+                  "tran_id": "1734422402121",
+                  "flow_type": "3"
+                },
+                "symbol": "LTC/USDT:USDT",
+                "code": "USDT",
+                "timestamp": 1734422402121,
+                "datetime": "2024-12-17T08:00:02.121Z",
+                "id": "1734422402121",
+                "amount": -0.00008253
+              }
+            ]
+          }
         ]
     }
 }

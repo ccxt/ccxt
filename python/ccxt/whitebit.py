@@ -1275,8 +1275,8 @@ class whitebit(Exchange, ImplicitAPI):
         marketType = self.safe_string(market, 'type')
         isLimitOrder = type == 'limit'
         isMarketOrder = type == 'market'
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
-        isStopOrder = (stopPrice is not None)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (triggerPrice is not None)
         postOnly = self.is_post_only(isMarketOrder, False, params)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
@@ -1287,7 +1287,7 @@ class whitebit(Exchange, ImplicitAPI):
         useCollateralEndpoint = marginMode is not None or marketType == 'swap'
         response = None
         if isStopOrder:
-            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+            request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 # stop limit order
                 request['price'] = self.price_to_precision(symbol, price)
@@ -1347,11 +1347,11 @@ class whitebit(Exchange, ImplicitAPI):
             # Update clientOrderId of the order
             request['clientOrderId'] = clientOrderId
         isLimitOrder = type == 'limit'
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
-        isStopOrder = (stopPrice is not None)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        isStopOrder = (triggerPrice is not None)
         params = self.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice'])
         if isStopOrder:
-            request['activation_price'] = self.price_to_precision(symbol, stopPrice)
+            request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
             if isLimitOrder:
                 # stop limit order
                 request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1714,7 +1714,7 @@ class whitebit(Exchange, ImplicitAPI):
         if clientOrderId == '':
             clientOrderId = None
         price = self.safe_string(order, 'price')
-        stopPrice = self.safe_number(order, 'activation_price')
+        triggerPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
         type = self.safe_string(order, 'type')
         orderType = self.parse_order_type(type)
@@ -1747,8 +1747,7 @@ class whitebit(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
             'type': orderType,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

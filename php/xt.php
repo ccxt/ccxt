@@ -2292,7 +2292,8 @@ class xt extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
          * @param {string} [$params->entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's $side
          * @param {string} [$params->triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-         * @param {float} [$params->stopPrice] $price to trigger a stop order
+         * @param {float} [$params->triggerPrice] $price to trigger a stop order
+         * @param {float} [$params->stopPrice] alias for triggerPrice
          * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
          * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
@@ -3458,7 +3459,7 @@ class xt extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower_2($order, 'side', 'orderSide'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'stopLoss' => $this->safe_number($order, 'triggerStopPrice'),
             'takeProfit' => $this->safe_number($order, 'triggerProfitPrice'),
             'amount' => $amount,

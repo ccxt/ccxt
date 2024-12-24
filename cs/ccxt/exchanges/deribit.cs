@@ -1899,7 +1899,6 @@ public partial class deribit : Exchange
         // injected in createOrder
         object trades = this.safeValue(order, "trades");
         object timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
-        object stopPrice = this.safeValue(order, "stop_price");
         object postOnly = this.safeValue(order, "post_only");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1914,8 +1913,7 @@ public partial class deribit : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", priceString },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeValue(order, "stop_price") },
             { "amount", amount },
             { "cost", cost },
             { "average", averageString },

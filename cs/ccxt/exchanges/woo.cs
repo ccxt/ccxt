@@ -294,6 +294,89 @@ public partial class woo : Exchange
                 } },
                 { "brokerId", "bc830de7-50f3-460b-9ee0-f430f83f9dad" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", false },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 90 },
+                        { "untilDays", 10000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forSwap", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "hedged", true },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forSwap" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -1018,7 +1101,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["margin_mode"] = this.encodeMarginMode(marginMode);
         }
-        object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object algoType = this.safeString(parameters, "algoType");
@@ -1028,7 +1111,7 @@ public partial class woo : Exchange
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-        object isConditional = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(stopPrice, null))) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(triggerPrice, null))) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -1108,11 +1191,11 @@ public partial class woo : Exchange
                 object convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                 ((IDictionary<string,object>)request)["callbackRate"] = convertedTrailingPercent;
             }
-        } else if (isTrue(!isEqual(stopPrice, null)))
+        } else if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(!isEqual(algoType, "TRAILING_STOP")))
             {
-                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 ((IDictionary<string,object>)request)["algoType"] = "STOP";
             }
         } else if (isTrue(isTrue((!isEqual(stopLoss, null))) || isTrue((!isEqual(takeProfit, null)))))
@@ -1245,10 +1328,10 @@ public partial class woo : Exchange
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
@@ -1272,7 +1355,7 @@ public partial class woo : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
-        object isConditional = isTrue(isTrue(isTrailing) || isTrue((!isEqual(stopPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrailing) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
         if (isTrue(isByClientOrder))
         {
@@ -1756,7 +1839,7 @@ public partial class woo : Exchange
         object fee = this.safeNumber2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
-        object stopPrice = this.safeNumber(order, "triggerPrice");
+        object triggerPrice = this.safeNumber(order, "triggerPrice");
         object takeProfitPrice = null;
         object stopLossPrice = null;
         object childOrders = this.safeValue(order, "childOrders");
@@ -1789,8 +1872,7 @@ public partial class woo : Exchange
             { "reduceOnly", this.safeBool(order, "reduce_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "average", average },
@@ -1978,7 +2060,7 @@ public partial class woo : Exchange
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.woox.io/#get-trades
+     * @see https://docs.woox.io/#get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2009,6 +2091,9 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
+        var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["size"] = limit;

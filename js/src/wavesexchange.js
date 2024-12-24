@@ -1295,7 +1295,7 @@ export default class wavesexchange extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a stop order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1307,8 +1307,8 @@ export default class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId(market['baseId']);
         const priceAsset = this.getAssetId(market['quoteId']);
         const isMarketOrder = (type === 'market');
-        const stopPrice = this.safeFloat2(params, 'triggerPrice', 'stopPrice');
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeFloat2(params, 'triggerPrice', 'stopPrice');
+        const isStopOrder = (triggerPrice !== undefined);
         if ((isMarketOrder) && (price === undefined)) {
             throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
@@ -1415,7 +1415,7 @@ export default class wavesexchange extends Exchange {
                 'c': {
                     't': 'sp',
                     'v': {
-                        'p': this.toRealSymbolPrice(symbol, stopPrice),
+                        'p': this.toRealSymbolPrice(symbol, triggerPrice),
                     },
                 },
             };
@@ -1813,7 +1813,6 @@ export default class wavesexchange extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,

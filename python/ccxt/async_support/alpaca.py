@@ -1189,7 +1189,6 @@ class alpaca(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string(order, 'side'),
             'price': self.safe_number(order, 'limit_price'),
-            'stopPrice': self.safe_number(order, 'stop_price'),
             'triggerPrice': self.safe_number(order, 'stop_price'),
             'cost': None,
             'average': self.safe_number(order, 'filled_avg_price'),

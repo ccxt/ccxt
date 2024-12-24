@@ -502,7 +502,6 @@ class zonda extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1447,7 +1446,7 @@ class zonda extends Exchange {
             $response = null;
             if ($isStopOrder) {
                 if (!$isStopLossPrice) {
-                    throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
+                    throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-$market orders');
                 }
                 $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
                 $response = Async\await($this->v1_01PrivatePostTradingStopOfferSymbol ($this->extend($request, $params)));

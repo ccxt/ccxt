@@ -7217,7 +7217,7 @@ public partial class bybit : Exchange
         object data = this.addPaginationCursorToResult(response);
         object id = this.safeString(result, "symbol");
         market = this.safeMarket(id, market, null, "contract");
-        return this.parseOpenInterests(data, market, since, limit);
+        return this.parseOpenInterestsHistory(data, market, since, limit);
     }
 
     /**

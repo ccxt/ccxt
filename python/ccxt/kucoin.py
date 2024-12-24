@@ -3042,7 +3042,6 @@ class kucoin(Exchange, ImplicitAPI):
             status = 'canceled'
         if responseStatus == 'fail':
             status = 'rejected'
-        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
@@ -3054,8 +3053,7 @@ class kucoin(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'side'),
             'amount': self.safe_string(order, 'size'),
             'price': self.safe_string(order, 'price'),  # price is zero for market order, omitZero is called in safeOrder2
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'cost': self.safe_string(order, 'dealFunds'),
             'filled': self.safe_string(order, 'dealSize'),
             'remaining': None,

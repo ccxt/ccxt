@@ -1091,7 +1091,6 @@ class kuna(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'pair')
         datetime = self.safe_string(order, 'createdAt')
-        triggerPrice = self.safe_string(order, 'stopPrice')
         side = self.safe_string(order, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -1112,8 +1111,7 @@ class kuna(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'amount': self.safe_string(order, 'quantity'),
             'filled': self.safe_string(order, 'executedQuantity'),
             'remaining': None,

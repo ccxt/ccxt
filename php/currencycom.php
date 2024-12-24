@@ -1219,7 +1219,6 @@ class currencycom extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1324,11 +1323,11 @@ class currencycom extends Exchange {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
             } elseif ($type === 'market') {
-                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                if ($stopPrice !== null) {
+                if ($triggerPrice !== null) {
                     $request['type'] = 'STOP';
-                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
             }
         }

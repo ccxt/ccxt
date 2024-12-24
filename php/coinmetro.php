@@ -1246,10 +1246,10 @@ class coinmetro extends Exchange {
             $params = $this->omit($params, 'timeInForce');
             $request['timeInForce'] = $this->encode_order_time_in_force($timeInForce);
         }
-        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        if ($stopPrice !== null) {
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice !== null) {
             $params = $this->omit($params, array( 'triggerPrice' ));
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $userData = $this->safe_value($params, 'userData', array());
         $comment = $this->safe_string_2($params, 'clientOrderId', 'comment');
@@ -1779,7 +1779,6 @@ class coinmetro extends Exchange {
         }
         $trades = $this->safe_value($order, 'fills', array());
         $userData = $this->safe_value($order, 'userData', array());
-        $triggerPrice = $this->safe_string($order, 'stopPrice');
         $clientOrderId = $this->safe_string($userData, 'comment');
         $takeProfitPrice = $this->safe_string($userData, 'takeProfit');
         $stopLossPrice = $this->safe_string($userData, 'stopLoss');
@@ -1795,7 +1794,7 @@ class coinmetro extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_integer($order, 'timeInForce')),
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => null,

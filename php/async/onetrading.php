@@ -1129,7 +1129,6 @@ class onetrading extends Exchange {
         $side = $this->safe_string_lower($rawOrder, 'side');
         $type = $this->safe_string_lower($rawOrder, 'type');
         $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
-        $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
         return $this->safe_order(array(
@@ -1145,8 +1144,7 @@ class onetrading extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($rawOrder, 'trigger_price'),
             'amount' => $amount,
             'cost' => null,
             'average' => null,

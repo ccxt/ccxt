@@ -1143,7 +1143,6 @@ class poloniex(Exchange, ImplicitAPI):
                 'currency': feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        triggerPrice = self.safe_string_2(order, 'triggerPrice', 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1158,8 +1157,7 @@ class poloniex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string_2(order, 'triggerPrice', 'stopPrice'),
             'cost': None,
             'average': self.safe_string(order, 'avgPrice'),
             'amount': amount,

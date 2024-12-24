@@ -148,7 +148,7 @@ export default class paradex extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false

@@ -445,6 +445,67 @@ class kraken(Exchange, ImplicitAPI):
                     'Celestia': 'TIA',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,  # todo
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 720,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -1008,7 +1069,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
+        https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1775,7 +1836,6 @@ class kraken(Exchange, ImplicitAPI):
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -2123,7 +2183,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+        https://docs.kraken.com/api/docs/rest-api/get-trade-history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for

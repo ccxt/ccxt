@@ -1209,7 +1209,6 @@ export default class currencycom extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1311,11 +1310,11 @@ export default class currencycom extends Exchange {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
             else if (type === 'market') {
-                const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+                const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                if (stopPrice !== undefined) {
+                if (triggerPrice !== undefined) {
                     request['type'] = 'STOP';
-                    request['price'] = this.priceToPrecision(symbol, stopPrice);
+                    request['price'] = this.priceToPrecision(symbol, triggerPrice);
                 }
             }
         }

@@ -908,7 +908,6 @@ public partial class coinone : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "average", this.safeString(order, "averageExecutedPrice") },

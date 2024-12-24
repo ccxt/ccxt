@@ -93,6 +93,7 @@ class vertex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -1329,15 +1330,73 @@ class vertex(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        value = self.safe_number(interest, 'open_interest_usd')
+        marketId = self.safe_string(interest, 'ticker_id')
         return self.safe_open_interest({
-            'symbol': market['symbol'],
-            'openInterestAmount': None,
-            'openInterestValue': value,
+            'symbol': self.safe_symbol(marketId, market),
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': self.safe_number(interest, 'open_interest_usd'),
             'timestamp': None,
             'datetime': None,
             'info': interest,
         }, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v2ArchiveGetContracts(params)
+        #
+        #     {
+        #         "ADA-PERP_USDC": {
+        #             "ticker_id": "ADA-PERP_USDC",
+        #             "base_currency": "ADA-PERP",
+        #             "quote_currency": "USDC",
+        #             "last_price": 0.85506,
+        #             "base_volume": 1241320.0,
+        #             "quote_volume": 1122670.9080057142,
+        #             "product_type": "perpetual",
+        #             "contract_price": 0.8558601432685385,
+        #             "contract_price_currency": "USD",
+        #             "open_interest": 104040.0,
+        #             "open_interest_usd": 89043.68930565874,
+        #             "index_price": 0.8561952606869176,
+        #             "mark_price": 0.856293781088936,
+        #             "funding_rate": 0.000116153806226841,
+        #             "next_funding_rate_timestamp": 1734685200,
+        #             "price_change_percent_24h": -12.274325340321374
+        #         },
+        #     }
+        #
+        parsedSymbols = []
+        results = []
+        markets = list(response.keys())
+        if symbols is None:
+            symbols = []
+            for y in range(0, len(markets)):
+                tickerId = markets[y]
+                parsedTickerId = tickerId.split('-')
+                currentSymbol = parsedTickerId[0] + '/USDC:USDC'
+                if not self.in_array(currentSymbol, symbols):
+                    symbols.append(currentSymbol)
+        for i in range(0, len(markets)):
+            marketId = markets[i]
+            marketInner = self.safe_market(marketId)
+            openInterest = self.safe_dict(response, marketId, {})
+            for j in range(0, len(symbols)):
+                market = self.market(symbols[j])
+                tickerId = market['base'] + '_USDC'
+                if marketInner['marketId'] == tickerId:
+                    parsedSymbols.append(market['symbol'])
+                    results.append(self.parse_open_interest(openInterest, market))
+        return self.filter_by_array(results, 'symbol', parsedSymbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """

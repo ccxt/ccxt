@@ -3149,7 +3149,6 @@ class kucoin extends Exchange {
         if ($responseStatus === 'fail') {
             $status = 'rejected';
         }
-        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'id', 'orderId', 'newOrderId', 'cancelledOrderId' )),
@@ -3161,8 +3160,7 @@ class kucoin extends Exchange {
             'side' => $this->safe_string($order, 'side'),
             'amount' => $this->safe_string($order, 'size'),
             'price' => $this->safe_string($order, 'price'), // price is zero for $market $order, omitZero is called in safeOrder2
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'cost' => $this->safe_string($order, 'dealFunds'),
             'filled' => $this->safe_string($order, 'dealSize'),
             'remaining' => null,

@@ -496,6 +496,92 @@ class coinex extends Exchange {
                     // CSC, AE, BASE, AIPG, AKASH, POLKADOTASSETHUB ?, ALEO, STX, ALGO, ALPH, BLAST, AR, ARCH, ARDR, ARK, ARRR, MANTA, NTRN, LUNA, AURORA, AVAIL, ASC20, AVA, AYA, AZERO, BAN, BAND, BB, RUNES, BEAM, BELLSCOIN, BITCI, NEAR, AGORIC, BLOCX, BNC, BOBA, BRISE, KRC20, CANTO, CAPS, CCD, CELO, CFX, CHI, CKB, CLORE, CLV, CORE, CSPR, CTXC, DAG, DCR, DERO, DESO, DEFI, DGB, DNX, DOCK, DOGECHAIN, DYDX, DYMENSION, EGLD, ELA, ELF, ENJIN, EOSIO, ERG, ETN_SC, EVMOS, EWC, SGB, FACT, FB, FET, FIO, FIRO, NEO3, FLOW, FLARE, FLUX, LINEA, FREN, FSN, FB_BRC20, GLMR, GRIN, GRS, HACASH, HBAR, HERB, HIVE, MAPO, HMND, HNS, ZKSYNC, HTR, HUAHUA, MERLIN, ICP, ICX, INJ, IOST, IOTA, IOTX, IRIS, IRON, ONE, JOYSTREAM, KAI, KAR, KAS, KAVA, KCN, KDA, KLAY, KLY, KMD, KSM, KUB, KUJIRA, LAT, LBC, LUNC, LUKSO, MARS, METIS, MINA, MANTLE, MOB, MODE, MONA, MOVR, MTL, NEOX, NEXA, NIBI, NIMIQ, NMC, ONOMY, NRG, WAVES, NULS, OAS, OCTA, OLT, ONT, OORT, ORAI, OSMO, P3D, COMPOSABLE, PIVX, RON, POKT, POLYMESH, PRE_MARKET, PYI, QKC, QTUM, QUBIC, RSK, ROSE, ROUTE, RTM, THORCHAIN, RVN, RADIANT, SAGA, SALVIUM, SATOX, SC, SCP, _NULL, SCRT, SDN, RGBPP, SELF, SMH, SPACE, STARGAZE, STC, STEEM, STRATISEVM, STRD, STARKNET, SXP, SYS, TAIKO, TAO, TARA, TENET, THETA, TT, VENOM, VECHAIN, TOMO, VITE, VLX, VSYS, VTC, WAN, WAXP, WEMIX, XCH, XDC, XEC, XELIS, NEM, XHV, XLM, XNA, NANO, XPLA, XPR, XPRT, XRD, XTZ, XVG, XYM, ZANO, ZEC, ZEN, ZEPH, ZETA
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        // exchange-supported features
+                        // 'marketBuyRequiresPrice' => true,
+                        // 'marketBuyByCost' => true,
+                        // 'selfTradePrevention' => true,
+                        // 'iceberg' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 5,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'spot',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
             ),
@@ -2012,7 +2098,6 @@ class coinex extends Exchange {
             'reduceOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $this->safe_string($order, 'trigger_price'),
             'triggerPrice' => $this->safe_string($order, 'trigger_price'),
             'takeProfitPrice' => $this->safe_number($order, 'take_profit_price'),
             'stopLossPrice' => $this->safe_number($order, 'stop_loss_price'),
@@ -2055,7 +2140,7 @@ class coinex extends Exchange {
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
@@ -2109,8 +2194,8 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                if ($stopPrice !== null) {
-                    $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+                if ($triggerPrice !== null) {
+                    $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                     $request['trigger_price_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
             }
@@ -2143,8 +2228,8 @@ class coinex extends Exchange {
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
-            if ($stopPrice !== null) {
-                $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($triggerPrice !== null) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             }
         }
         $params = $this->omit($params, array( 'reduceOnly', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));

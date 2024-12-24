@@ -1415,7 +1415,7 @@ class exmo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
         :param boolean [params.postOnly]: *spot only* True for post only orders
         :param float [params.cost]: *spot only* *market orders only* the cost of the order in the quote currency for market orders
@@ -1904,7 +1904,6 @@ class exmo(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
