@@ -69,6 +69,6 @@ jobs:
       - name: Build tests
         run: go build ./go/tests/main.go
       - name: Live tests
-        run: ./run-tests-simul.sh --go
+        run: node run-tests --go
 
 
