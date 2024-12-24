@@ -765,10 +765,6 @@ export default class mexc extends Exchange {
                         'hedged': true,
                         'leverage': true, // todo
                         'marketBuyByCost': false,
-                        'marketBuyRequiresPrice': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
-                        'iceberg': false,
                     },
                     'createOrders': undefined, // todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
