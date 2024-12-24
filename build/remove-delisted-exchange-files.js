@@ -33,6 +33,14 @@ const exchangeDirs = {
         'ws': {
             'path': './cs/ccxt/exchanges/pro/',
             'excluded': ['wrappers', 'BaseProExchange'],
+        },
+        'api': {
+            'path': './cs/ccxt/api/',
+            'excluded': [],
+        },
+        'wrappers': {
+            'path': './cs/ccxt/wrappers/',
+            'excluded': [],
         }
     },
     'py': {
