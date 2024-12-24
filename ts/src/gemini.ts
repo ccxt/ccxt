@@ -337,7 +337,7 @@ export default class gemini extends Exchange {
                         'trailing': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined, // todo: implement 
+                    'fetchClosedOrders': undefined, // todo: implement
                     'fetchOHLCV': {
                         'limit': undefined,
                     },
