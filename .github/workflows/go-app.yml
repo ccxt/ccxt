@@ -41,7 +41,28 @@ jobs:
         run: npm run request-go
       - name: Response Tests
         run: npm run response-go
+
+      - name: Upload Go Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-files
+          path: go/
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Go Files
+        uses: actions/download-artifact@v4
+        with:
+          name: go-files
+          path: go/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
       - name: Live tests
-        run: npm run live-tests -- --go
+        run: ./run-tests-simul.sh --go
 
 
