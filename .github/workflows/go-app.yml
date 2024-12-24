@@ -62,6 +62,12 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: Install dependencies
+        run: go get ./go/ccxt
+      - name: Build
+        run: go build ./go/ccxt
+      - name: Build tests
+        run: go build ./go/tests/main.go
       - name: Live tests
         run: ./run-tests-simul.sh --go
 
