@@ -1484,8 +1484,8 @@ class gemini extends Exchange {
         );
         $type = $this->safe_string($params, 'type', $type);
         $params = $this->omit($params, 'type');
-        $triggerPrice = $this->safe_string_n($params, array( 'stop_price', 'stopPrice' ));
-        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'type' ));
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
+        $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
         if ($type === 'stopLimit') {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
         }

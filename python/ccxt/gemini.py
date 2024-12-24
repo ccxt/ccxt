@@ -1430,8 +1430,8 @@ class gemini(Exchange, ImplicitAPI):
         }
         type = self.safe_string(params, 'type', type)
         params = self.omit(params, 'type')
-        triggerPrice = self.safe_string_n(params, ['stop_price', 'stopPrice'])
-        params = self.omit(params, ['stop_price', 'stopPrice', 'type'])
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price', 'stopPrice'])
+        params = self.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type'])
         if type == 'stopLimit':
             raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders')
         if triggerPrice is not None:

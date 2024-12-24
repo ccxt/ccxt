@@ -391,9 +391,23 @@ class bingx extends Exchange {
                             'get' => array(
                                 'uid' => 1,
                                 'apiKey/query' => 2,
+                                'account/apiPermissions' => 5,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 1,
+                            ),
+                        ),
+                    ),
+                    'transfer' => array(
+                        'v1' => array(
+                            'private' => array(
+                                'get' => array(
+                                    'subAccount/asset/transferHistory' => 1,
+                                ),
+                                'post' => array(
+                                    'subAccount/transferAsset/supportCoins' => 1,
+                                    'subAccount/transferAsset' => 1,
+                                ),
                             ),
                         ),
                     ),
@@ -6550,14 +6564,20 @@ class bingx extends Exchange {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if ($type === 'spot' && $version === 'v3') {
-            $url .= '/api';
-        } else {
-            $url .= '/' . $type;
-        }
-        $url .= '/' . $version . '/';
         $path = $this->implode_params($path, $params);
-        $url .= $path;
+        if ($version === 'transfer') {
+            $type = 'account/transfer';
+            $version = $section[2];
+            $access = $section[3];
+        }
+        if ($path !== 'account/apiPermissions') {
+            if ($type === 'spot' && $version === 'v3') {
+                $url .= '/api';
+            } else {
+                $url .= '/' . $type;
+            }
+        }
+        $url .= '/' . $version . '/' . $path;
         $params = $this->omit($params, $this->extract_params($path));
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
@@ -6567,7 +6587,7 @@ class bingx extends Exchange {
             }
         } elseif ($access === 'private') {
             $this->check_required_credentials();
-            $isJsonContentType = (($type === 'subAccount') && ($method === 'POST'));
+            $isJsonContentType = ((($type === 'subAccount') || ($type === 'account/transfer')) && ($method === 'POST'));
             $parsedParams = $this->parse_params($params);
             $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
             $headers = array(

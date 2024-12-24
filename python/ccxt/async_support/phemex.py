@@ -3462,13 +3462,15 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USD is the default
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        code = self.safe_string(params, 'currency')
+        code = self.safe_string_2(params, 'currency', 'code', 'USD')
+        params = self.omit(params, ['currency', 'code'])
         settle = None
         market = None
         firstSymbol = self.safe_string(symbols, 0)
@@ -3477,15 +3479,15 @@ class phemex(Exchange, ImplicitAPI):
             settle = market['settle']
             code = market['settle']
         else:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USD')
+            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', code)
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
         isUSDTSettled = settle == 'USDT'
         if isUSDTSettled:
             code = 'USDT'
+        elif settle == 'BTC':
+            code = 'BTC'
         elif code is None:
             code = 'USD' if (subType == 'linear') else 'BTC'
-        else:
-            params = self.omit(params, 'code')
         currency = self.currency(code)
         request: dict = {
             'currency': currency['id'],

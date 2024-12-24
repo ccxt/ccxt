@@ -419,6 +419,7 @@ class Exchange {
         'lykke',
         'mercado',
         'mexc',
+        'myokx',
         'ndax',
         'novadax',
         'oceanex',

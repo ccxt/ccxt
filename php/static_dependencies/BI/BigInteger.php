@@ -171,13 +171,15 @@ class BigInteger {
     }
     
     public function pow($x) {
-        // try fix base and exponent overflow
+        $num = (new BigInteger($x))->toNumber();
         try {
-            $res = gmp_pow(num: $this->value, exponent:(new BigInteger($x))->toNumber());
-        } catch (\Throwable $_) {
-            $res = bcpow(gmp_strval($this->value), (new BigInteger($x))->toNumber());
+            $pow = gmp_pow($this->value, $num);
+        } catch (\Throwable $e) {
+            // if num is more than 64, then eg, gmp_pow(2, 64) throws an error, so have this as fallback
+            $val = bcpow($this->value, $num);
+            $pow = BigInteger::getGmp($val);
         }
-        return new BigInteger($res, true);
+        return new BigInteger($pow, true);
     }
     
     public function powMod($x, $n) {
