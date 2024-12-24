@@ -249,9 +249,10 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 func (this *Exchange) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() interface{} {
-		defer close(ch)
-		markets := <-this.callInternal("fetchMarkets", optionalArgs)
-		return markets
+		// defer close(ch)
+		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
+		// return markets
+		return this.Markets
 	}()
 	return ch
 }
@@ -260,8 +261,9 @@ func (this *Exchange) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
 	ch := make(chan interface{})
 	go func() interface{} {
 		defer close(ch)
-		markets := <-this.callInternal("fetchCurrencies", optionalArgs)
-		return markets
+		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
+		// return markets
+		return this.Currencies
 	}()
 	return ch
 }
