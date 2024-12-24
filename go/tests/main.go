@@ -7,7 +7,6 @@ import (
 
 func main() {
 	RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
-
 	if RUN_BASE_TETS {
 		base.BaseTestsInit()
 		fmt.Println("Base tests passed!")
@@ -19,6 +18,8 @@ func main() {
 	argvSymbol := base.GetCliPositionalArg(1)
 	argvMethod := base.GetCliPositionalArg(2)
 
-	<-tests.Init(argvExchange, argvSymbol, argvMethod)
+	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
+	base.Print("Got res: " + base.ToString(res))
+	base.PanicOnError(res)
 
 }
