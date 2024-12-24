@@ -154,6 +154,9 @@ const PAD_WITH_ZERO int = 6
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
 	// var properties = this.describe()
+	if userConfig == nil {
+		userConfig = map[string]interface{}{}
+	}
 	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
