@@ -54,7 +54,7 @@ const exchangeDirs = {
         },
         'async': {
             'path': './python/ccxt/async_support/',
-            'excluded': ['__init__', '__pycache__'],
+            'excluded': ['__init__', '__pycache__', 'base'],
         },
         'ws': {
             'path': './python/ccxt/pro/',
@@ -72,7 +72,7 @@ const exchangeDirs = {
         },
         'restAsync': {
             'path': './php/async/',
-            'excluded': ['abstract', 'async', 'InvalidOperation', 'ProxyError', 'static_dependencies', 'test', 'Precise', 'pro', 'Exchange'],
+            'excluded': ['abstract', 'async', 'InvalidOperation', 'ProxyError', 'static_dependencies', 'test', 'Precise', 'pro', 'Exchange', 'Throttler',],
         },
         'abstractAsync': {
             'path': './php/async/abstract/',
