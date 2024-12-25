@@ -576,6 +576,11 @@ class bingx(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         'trailing': True,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 5,
