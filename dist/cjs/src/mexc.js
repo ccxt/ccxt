@@ -696,9 +696,12 @@ class mexc extends mexc$1 {
                             'GTD': false,
                         },
                         'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                         // exchange-supported features
                         'selfTradePrevention': false,
-                        'trailing': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -758,10 +761,10 @@ class mexc extends mexc$1 {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
