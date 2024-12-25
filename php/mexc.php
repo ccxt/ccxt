@@ -693,9 +693,12 @@ class mexc extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
                         // exchange-supported features
                         'selfTradePrevention' => false,
-                        'trailing' => false,
                         'iceberg' => false,
                     ),
                     'createOrders' => array(
@@ -751,14 +754,14 @@ class mexc extends Exchange {
                             'mark' => true,
                             'index' => true,
                         ),
-                        'triggerDirection' => true,
+                        'triggerDirection' => true, // todo
                         'stopLossPrice' => false, // todo
-                        'takeProfitPrice' => false,
+                        'takeProfitPrice' => false, // todo
                         'hedged' => true,
+                        'leverage' => true, // todo
+                        'marketBuyByCost' => false,
                     ),
-                    'createOrders' => array(
-                        'max' => 50,
-                    ),
+                    'createOrders' => null, // todo => needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => 100,

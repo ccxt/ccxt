@@ -734,7 +734,7 @@ class delta(Exchange, ImplicitAPI):
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
-            linear = (settle == base)
+            linear = (settle == quote)
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:

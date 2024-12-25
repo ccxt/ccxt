@@ -1583,7 +1583,6 @@ class binance(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                # https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot': {
                     'sandbox': True,
                     'createOrder': {
@@ -1601,12 +1600,13 @@ class binance(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo
                         'trailing': True,
-                        'twap': False,
-                        'iceberg': True,
-                        'oco': False,
+                        'iceberg': True,  # todo implementation
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -1669,11 +1669,12 @@ class binance(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo
                         'trailing': True,
-                        'twap': False,
                         'iceberg': False,
-                        'oco': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                     },
                     'createOrders': {
                         'max': 5,

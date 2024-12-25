@@ -711,9 +711,12 @@ class mexc(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
                         # exchange-supported features
                         'selfTradePrevention': False,
-                        'trailing': False,
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -769,14 +772,14 @@ class mexc(Exchange, ImplicitAPI):
                             'mark': True,
                             'index': True,
                         },
-                        'triggerDirection': True,
+                        'triggerDirection': True,  # todo
                         'stopLossPrice': False,  # todo
-                        'takeProfitPrice': False,
+                        'takeProfitPrice': False,  # todo
                         'hedged': True,
+                        'leverage': True,  # todo
+                        'marketBuyByCost': False,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': None,  # todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
