@@ -394,8 +394,8 @@ export default class coinbase extends Exchange {
                             'GTD': true,
                         },
                         'hedged': false,
-                        'trailing': false, 
-                        'leverage': true,
+                        'trailing': false,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
                         'selfTradePrevention': false,
