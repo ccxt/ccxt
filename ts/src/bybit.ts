@@ -1111,7 +1111,6 @@ export default class bybit extends Exchange {
                         'hedged': true,
                         'selfTradePrevention': true, // todo: implement
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
