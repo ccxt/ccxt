@@ -2111,7 +2111,7 @@ export default class bybit extends Exchange {
                     'active': isActive,
                     'contract': true,
                     'linear': true,
-                    'inverse': undefined,
+                    'inverse': false,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
                     'contractSize': this.parseNumber ('1'),
