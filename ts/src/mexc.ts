@@ -703,7 +703,7 @@ export default class mexc extends Exchange {
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
-                        'iceberg': false, 
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 20,

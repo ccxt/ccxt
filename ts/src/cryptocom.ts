@@ -374,7 +374,7 @@ export default class cryptocom extends Exchange {
                         'hedged': false,
                         'selfTradePrevention': true, // todo: implement
                         'trailing': false,
-                        'iceberg': false, 
+                        'iceberg': false,
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
