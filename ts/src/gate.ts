@@ -725,7 +725,7 @@ export default class gate extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'iceberg': true, // todo implement
-                        'selfTradePrevention': true, // todo implement 
+                        'selfTradePrevention': true, // todo implement
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
