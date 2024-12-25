@@ -1,0 +1,2564 @@
+{
+    "MAX/TWD": {
+        "id": "maxtwd",
+        "symbol": "MAX/TWD",
+        "base": "MAX",
+        "quote": "TWD",
+        "baseId": "max",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 20
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "maxtwd",
+            "status": "active",
+            "base_unit": "max",
+            "base_unit_precision": "2",
+            "min_base_amount": "20.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BTC/TWD": {
+        "id": "btctwd",
+        "symbol": "BTC/TWD",
+        "base": "BTC",
+        "quote": "TWD",
+        "baseId": "btc",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 8,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "btctwd",
+            "status": "active",
+            "base_unit": "btc",
+            "base_unit_precision": "8",
+            "min_base_amount": "0.0001",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": true
+        }
+    },
+    "ETH/TWD": {
+        "id": "ethtwd",
+        "symbol": "ETH/TWD",
+        "base": "ETH",
+        "quote": "TWD",
+        "baseId": "eth",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 6,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0025
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ethtwd",
+            "status": "active",
+            "base_unit": "eth",
+            "base_unit_precision": "6",
+            "min_base_amount": "0.0025",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": true
+        }
+    },
+    "LTC/TWD": {
+        "id": "ltctwd",
+        "symbol": "LTC/TWD",
+        "base": "LTC",
+        "quote": "TWD",
+        "baseId": "ltc",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 4,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ltctwd",
+            "status": "active",
+            "base_unit": "ltc",
+            "base_unit_precision": "4",
+            "min_base_amount": "0.1",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BCH/TWD": {
+        "id": "bchtwd",
+        "symbol": "BCH/TWD",
+        "base": "BCH",
+        "quote": "TWD",
+        "baseId": "bch",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 6,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.018
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bchtwd",
+            "status": "active",
+            "base_unit": "bch",
+            "base_unit_precision": "6",
+            "min_base_amount": "0.018",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "USDT/TWD": {
+        "id": "usdttwd",
+        "symbol": "USDT/TWD",
+        "base": "USDT",
+        "quote": "TWD",
+        "baseId": "usdt",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 8
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "usdttwd",
+            "status": "active",
+            "base_unit": "usdt",
+            "base_unit_precision": "2",
+            "min_base_amount": "8.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": true
+        }
+    },
+    "ETH/BTC": {
+        "id": "ethbtc",
+        "symbol": "ETH/BTC",
+        "base": "ETH",
+        "quote": "BTC",
+        "baseId": "eth",
+        "quoteId": "btc",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 4,
+            "price": 6
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0025
+            },
+            "price": {},
+            "cost": {
+                "min": 0.0001
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ethbtc",
+            "status": "active",
+            "base_unit": "eth",
+            "base_unit_precision": "4",
+            "min_base_amount": "0.0025",
+            "quote_unit": "btc",
+            "quote_unit_precision": "6",
+            "min_quote_amount": "0.0001",
+            "m_wallet_supported": true
+        }
+    },
+    "MAX/USDT": {
+        "id": "maxusdt",
+        "symbol": "MAX/USDT",
+        "base": "MAX",
+        "quote": "USDT",
+        "baseId": "max",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 20
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "maxusdt",
+            "status": "active",
+            "base_unit": "max",
+            "base_unit_precision": "2",
+            "min_base_amount": "20.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BTC/USDT": {
+        "id": "btcusdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 6,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "btcusdt",
+            "status": "active",
+            "base_unit": "btc",
+            "base_unit_precision": "6",
+            "min_base_amount": "0.0001",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": true
+        }
+    },
+    "ETH/USDT": {
+        "id": "ethusdt",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 5,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0025
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ethusdt",
+            "status": "active",
+            "base_unit": "eth",
+            "base_unit_precision": "5",
+            "min_base_amount": "0.0025",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": true
+        }
+    },
+    "BCH/USDT": {
+        "id": "bchusdt",
+        "symbol": "BCH/USDT",
+        "base": "BCH",
+        "quote": "USDT",
+        "baseId": "bch",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 5,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.018
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bchusdt",
+            "status": "active",
+            "base_unit": "bch",
+            "base_unit_precision": "5",
+            "min_base_amount": "0.018",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LTC/USDT": {
+        "id": "ltcusdt",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "ltc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 5,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "ltcusdt",
+            "status": "active",
+            "base_unit": "ltc",
+            "base_unit_precision": "5",
+            "min_base_amount": "0.1",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "XRP/TWD": {
+        "id": "xrptwd",
+        "symbol": "XRP/TWD",
+        "base": "XRP",
+        "quote": "TWD",
+        "baseId": "xrp",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "xrptwd",
+            "status": "active",
+            "base_unit": "xrp",
+            "base_unit_precision": "2",
+            "min_base_amount": "13.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "XRP/USDT": {
+        "id": "xrpusdt",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "xrp",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "xrpusdt",
+            "status": "active",
+            "base_unit": "xrp",
+            "base_unit_precision": "2",
+            "min_base_amount": "13.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "5",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BCNT/TWD": {
+        "id": "bcnttwd",
+        "symbol": "BCNT/TWD",
+        "base": "BCNT",
+        "quote": "TWD",
+        "baseId": "bcnt",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 2500
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bcnttwd",
+            "status": "active",
+            "base_unit": "bcnt",
+            "base_unit_precision": "1",
+            "min_base_amount": "2500.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BCNT/USDT": {
+        "id": "bcntusdt",
+        "symbol": "BCNT/USDT",
+        "base": "BCNT",
+        "quote": "USDT",
+        "baseId": "bcnt",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 2500
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bcntusdt",
+            "status": "active",
+            "base_unit": "bcnt",
+            "base_unit_precision": "1",
+            "min_base_amount": "2500.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "5",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "USDC/TWD": {
+        "id": "usdctwd",
+        "symbol": "USDC/TWD",
+        "base": "USDC",
+        "quote": "TWD",
+        "baseId": "usdc",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 8
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "usdctwd",
+            "status": "active",
+            "base_unit": "usdc",
+            "base_unit_precision": "2",
+            "min_base_amount": "8.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LINK/TWD": {
+        "id": "linktwd",
+        "symbol": "LINK/TWD",
+        "base": "LINK",
+        "quote": "TWD",
+        "baseId": "link",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.55
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "linktwd",
+            "status": "active",
+            "base_unit": "link",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.55",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "COMP/TWD": {
+        "id": "comptwd",
+        "symbol": "COMP/TWD",
+        "base": "COMP",
+        "quote": "TWD",
+        "baseId": "comp",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.16
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "comptwd",
+            "status": "active",
+            "base_unit": "comp",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.16",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SAND/USDT": {
+        "id": "sandusdt",
+        "symbol": "SAND/USDT",
+        "base": "SAND",
+        "quote": "USDT",
+        "baseId": "sand",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 27
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "sandusdt",
+            "status": "active",
+            "base_unit": "sand",
+            "base_unit_precision": "1",
+            "min_base_amount": "27.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "5",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "USDC/USDT": {
+        "id": "usdcusdt",
+        "symbol": "USDC/USDT",
+        "base": "USDC",
+        "quote": "USDT",
+        "baseId": "usdc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 8
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "usdcusdt",
+            "status": "active",
+            "base_unit": "usdc",
+            "base_unit_precision": "2",
+            "min_base_amount": "8.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LINK/USDT": {
+        "id": "linkusdt",
+        "symbol": "LINK/USDT",
+        "base": "LINK",
+        "quote": "USDT",
+        "baseId": "link",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.55
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "linkusdt",
+            "status": "active",
+            "base_unit": "link",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.55",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "GRT/TWD": {
+        "id": "grttwd",
+        "symbol": "GRT/TWD",
+        "base": "GRT",
+        "quote": "TWD",
+        "baseId": "grt",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 45
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "grttwd",
+            "status": "active",
+            "base_unit": "grt",
+            "base_unit_precision": "1",
+            "min_base_amount": "45.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "YFI/TWD": {
+        "id": "yfitwd",
+        "symbol": "YFI/TWD",
+        "base": "YFI",
+        "quote": "TWD",
+        "baseId": "yfi",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 5,
+            "price": 0
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0011
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "yfitwd",
+            "status": "active",
+            "base_unit": "yfi",
+            "base_unit_precision": "5",
+            "min_base_amount": "0.0011",
+            "quote_unit": "twd",
+            "quote_unit_precision": "0",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "DOGE/TWD": {
+        "id": "dogetwd",
+        "symbol": "DOGE/TWD",
+        "base": "DOGE",
+        "quote": "TWD",
+        "baseId": "doge",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 28
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "dogetwd",
+            "status": "active",
+            "base_unit": "doge",
+            "base_unit_precision": "1",
+            "min_base_amount": "28.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "DOGE/USDT": {
+        "id": "dogeusdt",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "doge",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 28
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "dogeusdt",
+            "status": "active",
+            "base_unit": "doge",
+            "base_unit_precision": "0",
+            "min_base_amount": "28.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ADA/TWD": {
+        "id": "adatwd",
+        "symbol": "ADA/TWD",
+        "base": "ADA",
+        "quote": "TWD",
+        "baseId": "ada",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "adatwd",
+            "status": "active",
+            "base_unit": "ada",
+            "base_unit_precision": "1",
+            "min_base_amount": "13.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "COMP/USDT": {
+        "id": "compusdt",
+        "symbol": "COMP/USDT",
+        "base": "COMP",
+        "quote": "USDT",
+        "baseId": "comp",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.16
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "compusdt",
+            "status": "active",
+            "base_unit": "comp",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.16",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "DOT/TWD": {
+        "id": "dottwd",
+        "symbol": "DOT/TWD",
+        "base": "DOT",
+        "quote": "TWD",
+        "baseId": "dot",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1.5
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "dottwd",
+            "status": "active",
+            "base_unit": "dot",
+            "base_unit_precision": "2",
+            "min_base_amount": "1.5",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "DOT/USDT": {
+        "id": "dotusdt",
+        "symbol": "DOT/USDT",
+        "base": "DOT",
+        "quote": "USDT",
+        "baseId": "dot",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1.5
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "dotusdt",
+            "status": "active",
+            "base_unit": "dot",
+            "base_unit_precision": "2",
+            "min_base_amount": "1.5",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "POL/TWD": {
+        "id": "poltwd",
+        "symbol": "POL/TWD",
+        "base": "POL",
+        "quote": "TWD",
+        "baseId": "pol",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 19
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "poltwd",
+            "status": "active",
+            "base_unit": "pol",
+            "base_unit_precision": "1",
+            "min_base_amount": "19.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "POL/USDT": {
+        "id": "polusdt",
+        "symbol": "POL/USDT",
+        "base": "POL",
+        "quote": "USDT",
+        "baseId": "pol",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 19
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "polusdt",
+            "status": "active",
+            "base_unit": "pol",
+            "base_unit_precision": "1",
+            "min_base_amount": "19.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ADA/USDT": {
+        "id": "adausdt",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ada",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "adausdt",
+            "status": "active",
+            "base_unit": "ada",
+            "base_unit_precision": "1",
+            "min_base_amount": "13.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SOL/TWD": {
+        "id": "soltwd",
+        "symbol": "SOL/TWD",
+        "base": "SOL",
+        "quote": "TWD",
+        "baseId": "sol",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.037
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "soltwd",
+            "status": "active",
+            "base_unit": "sol",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.037",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SOL/USDT": {
+        "id": "solusdt",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "sol",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.037
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "solusdt",
+            "status": "active",
+            "base_unit": "sol",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.037",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SHIB/TWD": {
+        "id": "shibtwd",
+        "symbol": "SHIB/TWD",
+        "base": "SHIB",
+        "quote": "TWD",
+        "baseId": "shib",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": -3,
+            "price": 7
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 300000
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "shibtwd",
+            "status": "active",
+            "base_unit": "shib",
+            "base_unit_precision": "-3",
+            "min_base_amount": "300000.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "7",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SHIB/USDT": {
+        "id": "shibusdt",
+        "symbol": "SHIB/USDT",
+        "base": "SHIB",
+        "quote": "USDT",
+        "baseId": "shib",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": -3,
+            "price": 8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 300000
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "shibusdt",
+            "status": "active",
+            "base_unit": "shib",
+            "base_unit_precision": "-3",
+            "min_base_amount": "300000.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "8",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "SAND/TWD": {
+        "id": "sandtwd",
+        "symbol": "SAND/TWD",
+        "base": "SAND",
+        "quote": "TWD",
+        "baseId": "sand",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 27
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "sandtwd",
+            "status": "active",
+            "base_unit": "sand",
+            "base_unit_precision": "1",
+            "min_base_amount": "27.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "GALA/TWD": {
+        "id": "galatwd",
+        "symbol": "GALA/TWD",
+        "base": "GALA",
+        "quote": "TWD",
+        "baseId": "gala",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 310
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "galatwd",
+            "status": "active",
+            "base_unit": "gala",
+            "base_unit_precision": "1",
+            "min_base_amount": "310.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "MANA/TWD": {
+        "id": "manatwd",
+        "symbol": "MANA/TWD",
+        "base": "MANA",
+        "quote": "TWD",
+        "baseId": "mana",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 22
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "manatwd",
+            "status": "active",
+            "base_unit": "mana",
+            "base_unit_precision": "1",
+            "min_base_amount": "22.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ALICE/TWD": {
+        "id": "alicetwd",
+        "symbol": "ALICE/TWD",
+        "base": "ALICE",
+        "quote": "TWD",
+        "baseId": "alice",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 7
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "alicetwd",
+            "status": "active",
+            "base_unit": "alice",
+            "base_unit_precision": "2",
+            "min_base_amount": "7.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LOOKS/TWD": {
+        "id": "lookstwd",
+        "symbol": "LOOKS/TWD",
+        "base": "LOOKS",
+        "quote": "TWD",
+        "baseId": "looks",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 160
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "lookstwd",
+            "status": "active",
+            "base_unit": "looks",
+            "base_unit_precision": "1",
+            "min_base_amount": "160.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "RLY/TWD": {
+        "id": "rlytwd",
+        "symbol": "RLY/TWD",
+        "base": "RLY",
+        "quote": "TWD",
+        "baseId": "rly",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 2170
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "rlytwd",
+            "status": "active",
+            "base_unit": "rly",
+            "base_unit_precision": "0",
+            "min_base_amount": "2170.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LOOT/TWD": {
+        "id": "loottwd",
+        "symbol": "LOOT/TWD",
+        "base": "LOOT",
+        "quote": "TWD",
+        "baseId": "loot",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 600
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "loottwd",
+            "status": "active",
+            "base_unit": "loot",
+            "base_unit_precision": "1",
+            "min_base_amount": "600.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "LOOT/USDT": {
+        "id": "lootusdt",
+        "symbol": "LOOT/USDT",
+        "base": "LOOT",
+        "quote": "USDT",
+        "baseId": "loot",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 600
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "lootusdt",
+            "status": "active",
+            "base_unit": "loot",
+            "base_unit_precision": "0",
+            "min_base_amount": "600.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "MASK/USDT": {
+        "id": "maskusdt",
+        "symbol": "MASK/USDT",
+        "base": "MASK",
+        "quote": "USDT",
+        "baseId": "mask",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 3
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "maskusdt",
+            "status": "active",
+            "base_unit": "mask",
+            "base_unit_precision": "1",
+            "min_base_amount": "3.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "APE/TWD": {
+        "id": "apetwd",
+        "symbol": "APE/TWD",
+        "base": "APE",
+        "quote": "TWD",
+        "baseId": "ape",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 7
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "apetwd",
+            "status": "active",
+            "base_unit": "ape",
+            "base_unit_precision": "2",
+            "min_base_amount": "7.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "APE/USDT": {
+        "id": "apeusdt",
+        "symbol": "APE/USDT",
+        "base": "APE",
+        "quote": "USDT",
+        "baseId": "ape",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 7
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "apeusdt",
+            "status": "active",
+            "base_unit": "ape",
+            "base_unit_precision": "1",
+            "min_base_amount": "7.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "RLY/USDT": {
+        "id": "rlyusdt",
+        "symbol": "RLY/USDT",
+        "base": "RLY",
+        "quote": "USDT",
+        "baseId": "rly",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 2170
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "rlyusdt",
+            "status": "active",
+            "base_unit": "rly",
+            "base_unit_precision": "0",
+            "min_base_amount": "2170.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "XTZ/TWD": {
+        "id": "xtztwd",
+        "symbol": "XTZ/TWD",
+        "base": "XTZ",
+        "quote": "TWD",
+        "baseId": "xtz",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 12.2
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "xtztwd",
+            "status": "active",
+            "base_unit": "xtz",
+            "base_unit_precision": "1",
+            "min_base_amount": "12.2",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "GMT/TWD": {
+        "id": "gmttwd",
+        "symbol": "GMT/TWD",
+        "base": "GMT",
+        "quote": "TWD",
+        "baseId": "gmt",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 55
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "gmttwd",
+            "status": "active",
+            "base_unit": "gmt",
+            "base_unit_precision": "2",
+            "min_base_amount": "55.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "GST/TWD": {
+        "id": "gsttwd",
+        "symbol": "GST/TWD",
+        "base": "GST",
+        "quote": "TWD",
+        "baseId": "gst",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 520
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "gsttwd",
+            "status": "active",
+            "base_unit": "gst",
+            "base_unit_precision": "1",
+            "min_base_amount": "520.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BNB/TWD": {
+        "id": "bnbtwd",
+        "symbol": "BNB/TWD",
+        "base": "BNB",
+        "quote": "TWD",
+        "baseId": "bnb",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.013
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bnbtwd",
+            "status": "active",
+            "base_unit": "bnb",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.013",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "BNB/USDT": {
+        "id": "bnbusdt",
+        "symbol": "BNB/USDT",
+        "base": "BNB",
+        "quote": "USDT",
+        "baseId": "bnb",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 3,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.013
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "bnbusdt",
+            "status": "active",
+            "base_unit": "bnb",
+            "base_unit_precision": "3",
+            "min_base_amount": "0.013",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ENS/TWD": {
+        "id": "enstwd",
+        "symbol": "ENS/TWD",
+        "base": "ENS",
+        "quote": "TWD",
+        "baseId": "ens",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.4
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "enstwd",
+            "status": "active",
+            "base_unit": "ens",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.4",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ETC/TWD": {
+        "id": "etctwd",
+        "symbol": "ETC/TWD",
+        "base": "ETC",
+        "quote": "TWD",
+        "baseId": "etc",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.33
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "etctwd",
+            "status": "active",
+            "base_unit": "etc",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.33",
+            "quote_unit": "twd",
+            "quote_unit_precision": "1",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ETC/USDT": {
+        "id": "etcusdt",
+        "symbol": "ETC/USDT",
+        "base": "ETC",
+        "quote": "USDT",
+        "baseId": "etc",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.33
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "etcusdt",
+            "status": "active",
+            "base_unit": "etc",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.33",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ARB/TWD": {
+        "id": "arbtwd",
+        "symbol": "ARB/TWD",
+        "base": "ARB",
+        "quote": "TWD",
+        "baseId": "arb",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "arbtwd",
+            "status": "active",
+            "base_unit": "arb",
+            "base_unit_precision": "1",
+            "min_base_amount": "13.0",
+            "quote_unit": "twd",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "ARB/USDT": {
+        "id": "arbusdt",
+        "symbol": "ARB/USDT",
+        "base": "ARB",
+        "quote": "USDT",
+        "baseId": "arb",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 4
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 13
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "arbusdt",
+            "status": "active",
+            "base_unit": "arb",
+            "base_unit_precision": "1",
+            "min_base_amount": "13.0",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "4",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    },
+    "AVAX/TWD": {
+        "id": "avaxtwd",
+        "symbol": "AVAX/TWD",
+        "base": "AVAX",
+        "quote": "TWD",
+        "baseId": "avax",
+        "quoteId": "twd",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 2
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.24
+            },
+            "price": {},
+            "cost": {
+                "min": 250
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "avaxtwd",
+            "status": "active",
+            "base_unit": "avax",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.24",
+            "quote_unit": "twd",
+            "quote_unit_precision": "2",
+            "min_quote_amount": "250.0",
+            "m_wallet_supported": false
+        }
+    },
+    "AVAX/USDT": {
+        "id": "avaxusdt",
+        "symbol": "AVAX/USDT",
+        "base": "AVAX",
+        "quote": "USDT",
+        "baseId": "avax",
+        "quoteId": "usdt",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 2,
+            "price": 3
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.24
+            },
+            "price": {},
+            "cost": {
+                "min": 8
+            }
+        },
+        "marginModes": {},
+        "info": {
+            "id": "avaxusdt",
+            "status": "active",
+            "base_unit": "avax",
+            "base_unit_precision": "2",
+            "min_base_amount": "0.24",
+            "quote_unit": "usdt",
+            "quote_unit_precision": "3",
+            "min_quote_amount": "8.0",
+            "m_wallet_supported": false
+        }
+    }
+}
