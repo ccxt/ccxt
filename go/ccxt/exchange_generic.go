@@ -45,7 +45,11 @@ func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...int
 			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
 		})
 		if desc {
-			for i := len(list)/2 - 1; i >= 0; i-- {
+			// for i := len(list)/2 - 1; i >= 0; i-- {
+			// 	opp := len(list) - 1 - i
+			// 	list[i], list[opp] = list[opp], list[i]
+			// }
+			for i := 0; i < len(list)/2; i++ {
 				opp := len(list) - 1 - i
 				list[i], list[opp] = list[opp], list[i]
 			}
