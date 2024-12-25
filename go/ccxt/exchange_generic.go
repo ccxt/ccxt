@@ -42,6 +42,23 @@ func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...int
 			} else {
 				b = defaultValue
 			}
+			// return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			switch aVal := a.(type) {
+			case int:
+				if bVal, ok := b.(int); ok {
+					return aVal < bVal
+				}
+			case float64:
+				if bVal, ok := b.(float64); ok {
+					return aVal < bVal
+				}
+			case string:
+				if bVal, ok := b.(string); ok {
+					return aVal < bVal
+				}
+			}
+
+			// Fallback to string comparison
 			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
 		})
 		if desc {
