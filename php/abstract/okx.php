@@ -145,6 +145,9 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_rubik_stat_contracts_long_short_account_ratio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_rubik_stat_contracts_long_short_account_ratio_contract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_rubik_stat_contracts_open_interest_volume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -201,6 +204,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function public_get_finance_staking_defi_eth_apy_history($params = array()) {
         return $this->request('finance/staking-defi/eth/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function public_get_finance_staking_defi_sol_apy_history($params = array()) {
+        return $this->request('finance/staking-defi/sol/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function public_get_finance_savings_lending_rate_summary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
@@ -366,6 +372,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_asset_monthly_statement($params = array()) {
         return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_get_account_instruments($params = array()) {
+        return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -564,6 +573,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_finance_staking_defi_eth_purchase_redeem_history($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_finance_staking_defi_eth_product_info($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function private_get_finance_staking_defi_sol_balance($params = array()) {
+        return $this->request('finance/staking-defi/sol/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_finance_staking_defi_sol_purchase_redeem_history($params = array()) {
+        return $this->request('finance/staking-defi/sol/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function private_get_copytrading_current_subpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -925,6 +943,12 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_finance_staking_defi_eth_redeem($params = array()) {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_finance_staking_defi_sol_purchase($params = array()) {
+        return $this->request('finance/staking-defi/sol/purchase', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_finance_staking_defi_sol_redeem($params = array()) {
+        return $this->request('finance/staking-defi/sol/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_copytrading_algo_order($params = array()) {
         return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1129,6 +1153,9 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetRubikStatContractsLongShortAccountRatio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function publicGetRubikStatContractsLongShortAccountRatioContract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function publicGetRubikStatContractsOpenInterestVolume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1185,6 +1212,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function publicGetFinanceStakingDefiEthApyHistory($params = array()) {
         return $this->request('finance/staking-defi/eth/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function publicGetFinanceStakingDefiSolApyHistory($params = array()) {
+        return $this->request('finance/staking-defi/sol/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function publicGetFinanceSavingsLendingRateSummary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
@@ -1350,6 +1380,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetAssetMonthlyStatement($params = array()) {
         return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetAccountInstruments($params = array()) {
+        return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
@@ -1548,6 +1581,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetFinanceStakingDefiEthPurchaseRedeemHistory($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetFinanceStakingDefiEthProductInfo($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetFinanceStakingDefiSolBalance($params = array()) {
+        return $this->request('finance/staking-defi/sol/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetFinanceStakingDefiSolPurchaseRedeemHistory($params = array()) {
+        return $this->request('finance/staking-defi/sol/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1908,6 +1950,12 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostFinanceStakingDefiEthRedeem($params = array()) {
         return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostFinanceStakingDefiSolPurchase($params = array()) {
+        return $this->request('finance/staking-defi/sol/purchase', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostFinanceStakingDefiSolRedeem($params = array()) {
+        return $this->request('finance/staking-defi/sol/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostCopytradingAlgoOrder($params = array()) {
         return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));

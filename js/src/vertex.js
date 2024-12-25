@@ -51,6 +51,8 @@ export default class vertex extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -87,6 +89,7 @@ export default class vertex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -341,15 +344,15 @@ export default class vertex extends Exchange {
         const numStr = this.numberToString(num);
         return Precise.stringDiv(numStr, '1000000000000000000');
     }
+    /**
+     * @method
+     * @name vertex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const request = {};
         const response = await this.v2GatewayGetAssets(this.extend(request, params));
         //
@@ -505,15 +508,15 @@ export default class vertex extends Exchange {
             'info': market,
         };
     }
+    /**
+     * @method
+     * @name vertex#fetchMarkets
+     * @description retrieves data on all markets for vertex
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchMarkets
-         * @description retrieves data on all markets for vertex
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const request = {
             'type': 'symbols',
         };
@@ -553,27 +556,27 @@ export default class vertex extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name vertex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.v1GatewayGetTime(params);
         // 1717481623452
         return this.parseNumber(response);
     }
+    /**
+     * @method
+     * @name vertex#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         const request = {
             'type': 'status',
         };
@@ -727,18 +730,18 @@ export default class vertex extends Exchange {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name vertex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['baseId'] + '_USDC';
@@ -773,19 +776,19 @@ export default class vertex extends Exchange {
         //
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name vertex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchMyTrades', params);
@@ -983,17 +986,17 @@ export default class vertex extends Exchange {
         const trades = this.safeList(response, 'matches', []);
         return this.parseTrades(trades, market, since, limit, params);
     }
+    /**
+     * @method
+     * @name vertex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['baseId'] + '_USDC';
@@ -1046,16 +1049,16 @@ export default class vertex extends Exchange {
         const timestamp = this.safeInteger(response, 'timestamp');
         return this.parseOrderBook(response, symbol, timestamp, 'bids', 'asks');
     }
+    /**
+     * @method
+     * @name vertex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchTradingFees', params);
@@ -1128,19 +1131,19 @@ export default class vertex extends Exchange {
             this.parseNumber(this.convertFromX18(this.safeString(ohlcv, 'volume'))),
         ];
     }
+    /**
+     * @method
+     * @name vertex#fetchOHLCV
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOHLCV
-         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const ohlcvRequest = {
@@ -1248,16 +1251,16 @@ export default class vertex extends Exchange {
             'interval': undefined,
         };
     }
+    /**
+     * @method
+     * @name vertex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1275,16 +1278,16 @@ export default class vertex extends Exchange {
         //
         return this.parseFundingRate(response, market);
     }
+    /**
+     * @method
+     * @name vertex#fetchFundingRates
+     * @description fetches funding rates for multiple markets
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchFundingRates
-         * @description fetches funding rates for multiple markets
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
-         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         const request = {};
         if (symbols !== undefined) {
@@ -1350,26 +1353,90 @@ export default class vertex extends Exchange {
         //     }
         // }
         //
-        const value = this.safeNumber(interest, 'open_interest_usd');
+        const marketId = this.safeString(interest, 'ticker_id');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
-            'openInterestAmount': undefined,
-            'openInterestValue': value,
+            'symbol': this.safeSymbol(marketId, market),
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': this.safeNumber(interest, 'open_interest_usd'),
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
         }, market);
     }
+    /**
+     * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v2ArchiveGetContracts(params);
+        //
+        //     {
+        //         "ADA-PERP_USDC": {
+        //             "ticker_id": "ADA-PERP_USDC",
+        //             "base_currency": "ADA-PERP",
+        //             "quote_currency": "USDC",
+        //             "last_price": 0.85506,
+        //             "base_volume": 1241320.0,
+        //             "quote_volume": 1122670.9080057142,
+        //             "product_type": "perpetual",
+        //             "contract_price": 0.8558601432685385,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 104040.0,
+        //             "open_interest_usd": 89043.68930565874,
+        //             "index_price": 0.8561952606869176,
+        //             "mark_price": 0.856293781088936,
+        //             "funding_rate": 0.000116153806226841,
+        //             "next_funding_rate_timestamp": 1734685200,
+        //             "price_change_percent_24h": -12.274325340321374
+        //         },
+        //     }
+        //
+        const parsedSymbols = [];
+        const results = [];
+        const markets = Object.keys(response);
+        if (symbols === undefined) {
+            symbols = [];
+            for (let y = 0; y < markets.length; y++) {
+                const tickerId = markets[y];
+                const parsedTickerId = tickerId.split('-');
+                const currentSymbol = parsedTickerId[0] + '/USDC:USDC';
+                if (!this.inArray(currentSymbol, symbols)) {
+                    symbols.push(currentSymbol);
+                }
+            }
+        }
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = markets[i];
+            const marketInner = this.safeMarket(marketId);
+            const openInterest = this.safeDict(response, marketId, {});
+            for (let j = 0; j < symbols.length; j++) {
+                const market = this.market(symbols[j]);
+                const tickerId = market['base'] + '_USDC';
+                if (marketInner['marketId'] === tickerId) {
+                    parsedSymbols.push(market['symbol']);
+                    results.push(this.parseOpenInterest(openInterest, market));
+                }
+            }
+        }
+        return this.filterByArray(results, 'symbol', parsedSymbols);
+    }
+    /**
+     * @method
+     * @name vertex#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     async fetchOpenInterest(symbol, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOpenInterest
-         * @description Retrieves the open interest of a derivative trading pair
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
-         * @param {string} symbol Unified CCXT market symbol
-         * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['contract']) {
@@ -1446,16 +1513,16 @@ export default class vertex extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name vertex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const request = {};
@@ -1627,25 +1694,25 @@ export default class vertex extends Exchange {
         }
         return amountString;
     }
+    /**
+     * @method
+     * @name vertex#createOrder
+     * @description create a trade order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] ioc, fok
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#createOrder
-         * @description create a trade order
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] ioc, fok
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
         const marketType = type.toLowerCase();
         const isMarketOrder = marketType === 'market';
@@ -1731,25 +1798,25 @@ export default class vertex extends Exchange {
             'id': this.safeString(data, 'digest'),
         });
     }
+    /**
+     * @method
+     * @name vertex#editOrder
+     * @description edit a trade order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] ioc, fok
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#editOrder
-         * @description edit a trade order
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] ioc, fok
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only, only works for ioc and fok order
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
         const marketType = type.toLowerCase();
         const isMarketOrder = marketType === 'market';
@@ -1966,17 +2033,17 @@ export default class vertex extends Exchange {
         };
         return this.safeStringUpper(timeInForces, timeInForce, timeInForce);
     }
+    /**
+     * @method
+     * @name vertex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
-         * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2006,35 +2073,35 @@ export default class vertex extends Exchange {
         const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name vertex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
         await this.loadMarkets();
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOpenOrders', params);
         const request = {};
         let market = undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['product_id'] = this.parseToNumeric(market['id']);
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             const contracts = await this.queryContracts();
             const chainId = this.safeString(contracts, 'chain_id');
             const verifyingContractAddress = this.safeString(contracts, 'endpoint_addr');
@@ -2124,24 +2191,24 @@ export default class vertex extends Exchange {
         const orders = this.safeList(data, 'orders');
         return this.parseOrders(orders, market, since, limit);
     }
+    /**
+     * @method
+     * @name vertex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        if (!stop) {
+        if (!trigger) {
             throw new NotSupported(this.id + ' fetchOrders only support trigger orders');
         }
         let userAddress = undefined;
@@ -2211,18 +2278,18 @@ export default class vertex extends Exchange {
         const orders = this.safeList(data, 'orders');
         return this.parseOrders(orders, market, since, limit);
     }
+    /**
+     * @method
+     * @name vertex#cancelAllOrders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+     * @description cancel all open orders in a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#cancelAllOrders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
-         * @description cancel all open orders in a market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
         await this.loadMarkets();
         if (symbol === undefined) {
@@ -2252,10 +2319,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelAllOrdersSig(cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute(this.extend(request, params));
             //
             // {
@@ -2294,32 +2361,32 @@ export default class vertex extends Exchange {
         }
         return response;
     }
+    /**
+     * @method
+     * @name vertex#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         return await this.cancelOrders([id], symbol, params);
     }
+    /**
+     * @method
+     * @name vertex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#cancelOrders
-         * @description cancel multiple orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
-         * @param {string[]} ids order ids
-         * @param {string} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         this.checkRequiredCredentials();
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
@@ -2353,10 +2420,10 @@ export default class vertex extends Exchange {
                 'signature': this.buildCancelOrdersSig(cancels, chainId, verifyingContractAddress),
             },
         };
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1TriggerPostExecute(this.extend(request, params));
             //
             // {
@@ -2395,16 +2462,16 @@ export default class vertex extends Exchange {
         }
         return response;
     }
+    /**
+     * @method
+     * @name vertex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchBalance', params);
         const request = {
@@ -2805,17 +2872,17 @@ export default class vertex extends Exchange {
             'takeProfitPrice': undefined,
         });
     }
+    /**
+     * @method
+     * @name vertex#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#fetchPositions
-         * @description fetch all open positions
-         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
-         * @param {string[]} [symbols] list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
         const request = {
@@ -2855,19 +2922,19 @@ export default class vertex extends Exchange {
         //
         return this.safeDict(response, 'data', {});
     }
+    /**
+     * @method
+     * @name vertex#withdraw
+     * @description make a withdrawal
+     * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name vertex#withdraw
-         * @description make a withdrawal
-         * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2895,13 +2962,58 @@ export default class vertex extends Exchange {
         };
         const response = await this.v1GatewayPostExecute(this.extend(request, params));
         //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "request_type": "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
         //
-        return response;
+        const transaction = this.parseTransaction(response, currency);
+        return this.extend(transaction, {
+            'amount': amount,
+            'address': address,
+        });
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
+        //
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': 'withdrawal',
+            'amount': undefined,
+            'currency': code,
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'updated': undefined,
+            'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
+    }
+    parseTransactionStatus(status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     handlePublicAddress(methodName, params) {
         let userAux = undefined;

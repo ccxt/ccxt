@@ -497,6 +497,158 @@
         ],
         "fetchClosedOrder": [
             {
+                "description": "fetchOrder created using the cost",
+                "method": "fetchClosedOrder",
+                "input": [
+                    "1823584718894229760",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777",
+                        "category": "spot",
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "orderType": "Market",
+                                "orderLinkId": "1823584718911006976",
+                                "slLimitPrice": "0",
+                                "orderId": "1823584718894229760",
+                                "cancelType": "UNKNOWN",
+                                "avgPrice": "91760.9",
+                                "stopOrderType": "",
+                                "lastPriceOnCreated": "",
+                                "orderStatus": "Filled",
+                                "takeProfit": "0",
+                                "cumExecValue": "49.91792960",
+                                "smpType": "None",
+                                "triggerDirection": "0",
+                                "blockTradeId": "",
+                                "rejectReason": "EC_NoError",
+                                "isLeverage": "0",
+                                "price": "0",
+                                "orderIv": "",
+                                "createdTime": "1732124238777",
+                                "tpTriggerBy": "",
+                                "positionIdx": "0",
+                                "trailingPercentage": "0",
+                                "timeInForce": "IOC",
+                                "leavesValue": "0.08207040",
+                                "basePrice": "91676.16",
+                                "updatedTime": "1732124238788",
+                                "side": "Buy",
+                                "smpGroup": "0",
+                                "triggerPrice": "0.00",
+                                "tpLimitPrice": "0",
+                                "trailingValue": "0",
+                                "cumExecFee": "0.000000544",
+                                "slTriggerBy": "",
+                                "leavesQty": "0.000000",
+                                "closeOnTrigger": false,
+                                "placeType": "",
+                                "cumExecQty": "0.000544",
+                                "reduceOnly": false,
+                                "activationPrice": "0",
+                                "qty": "50.00000000",
+                                "stopLoss": "0",
+                                "marketUnit": "quoteCoin",
+                                "smpOrderId": "",
+                                "triggerBy": "",
+                                "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1732124607365"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "orderType": "Market",
+                        "orderLinkId": "1823584718911006976",
+                        "slLimitPrice": "0",
+                        "orderId": "1823584718894229760",
+                        "cancelType": "UNKNOWN",
+                        "avgPrice": "91760.9",
+                        "stopOrderType": "",
+                        "lastPriceOnCreated": "",
+                        "orderStatus": "Filled",
+                        "takeProfit": "0",
+                        "cumExecValue": "49.91792960",
+                        "smpType": "None",
+                        "triggerDirection": "0",
+                        "blockTradeId": "",
+                        "rejectReason": "EC_NoError",
+                        "isLeverage": "0",
+                        "price": "0",
+                        "orderIv": "",
+                        "createdTime": "1732124238777",
+                        "tpTriggerBy": "",
+                        "positionIdx": "0",
+                        "trailingPercentage": "0",
+                        "timeInForce": "IOC",
+                        "leavesValue": "0.08207040",
+                        "basePrice": "91676.16",
+                        "updatedTime": "1732124238788",
+                        "side": "Buy",
+                        "smpGroup": "0",
+                        "triggerPrice": "0.00",
+                        "tpLimitPrice": "0",
+                        "trailingValue": "0",
+                        "cumExecFee": "0.000000544",
+                        "slTriggerBy": "",
+                        "leavesQty": "0.000000",
+                        "closeOnTrigger": false,
+                        "placeType": "",
+                        "cumExecQty": "0.000544",
+                        "reduceOnly": false,
+                        "activationPrice": "0",
+                        "qty": "50.00000000",
+                        "stopLoss": "0",
+                        "marketUnit": "quoteCoin",
+                        "smpOrderId": "",
+                        "triggerBy": "",
+                        "nextPageCursor": "1823584718894229760%3A1732124238777%2C1823584718894229760%3A1732124238777"
+                    },
+                    "id": "1823584718894229760",
+                    "clientOrderId": "1823584718911006976",
+                    "timestamp": 1732124238777,
+                    "datetime": "2024-11-20T17:37:18.777Z",
+                    "lastTradeTimestamp": 1732124238788,
+                    "lastUpdateTimestamp": 1732124238788,
+                    "symbol": "BTC/USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 91760.9,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.000544,
+                    "cost": 49.9179296,
+                    "average": 91760.9,
+                    "filled": 0.000544,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "cost": 5.44e-7,
+                        "currency": "BTC"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 5.44e-7,
+                            "currency": "BTC"
+                        }
+                    ]
+                }
+            },
+            {
                 "description": "swap closed order",
                 "method": "fetchClosedOrder",
                 "input": [
@@ -630,7 +782,7 @@
                     "remaining": 0,
                     "status": "closed",
                     "fee": {
-                        "cost": "0.00385935",
+                        "cost": 0.00385935,
                         "currency": "USDT"
                     },
                     "trades": [],
@@ -2724,6 +2876,206 @@
                   }
                 ]
               }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68641.30",
+                        "indexPrice": "68650.75",
+                        "markPrice": "68649.90",
+                        "prevPrice24h": "68042.70",
+                        "price24hPcnt": "0.008797",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69145.90",
+                        "openInterest": "69655.813",
+                        "openInterestValue": "4781864596.87",
+                        "turnover24h": "7940401914.5025",
+                        "volume24h": "115859.1120",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "14.246",
+                        "bid1Price": "68641.20",
+                        "ask1Price": "68641.30",
+                        "bid1Size": "0.043",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730729903941
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730729903941"
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "info": {
+                      "symbol": "BTCUSDT",
+                      "lastPrice": "68641.30",
+                      "indexPrice": "68650.75",
+                      "markPrice": "68649.90",
+                      "prevPrice24h": "68042.70",
+                      "price24hPcnt": "0.008797",
+                      "highPrice24h": "69497.00",
+                      "lowPrice24h": "67456.10",
+                      "prevPrice1h": "69145.90",
+                      "openInterest": "69655.813",
+                      "openInterestValue": "4781864596.87",
+                      "turnover24h": "7940401914.5025",
+                      "volume24h": "115859.1120",
+                      "fundingRate": "0.0001",
+                      "nextFundingTime": "1730736000000",
+                      "predictedDeliveryPrice": "",
+                      "basisRate": "",
+                      "deliveryFeeRate": "",
+                      "deliveryTime": "0",
+                      "ask1Size": "14.246",
+                      "bid1Price": "68641.20",
+                      "ask1Price": "68641.30",
+                      "bid1Size": "0.043",
+                      "basis": "",
+                      "preOpenPrice": "",
+                      "preQty": "",
+                      "curPreListingPhase": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 68649.9,
+                    "indexPrice": 68650.75,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1730729903941,
+                    "datetime": "2024-11-04T14:18:23.941Z",
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1730736000000,
+                    "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                  }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68577.50",
+                        "indexPrice": "68599.90",
+                        "markPrice": "68591.46",
+                        "prevPrice24h": "67993.80",
+                        "price24hPcnt": "0.008584",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69200.10",
+                        "openInterest": "69604.924",
+                        "openInterestValue": "4774303360.35",
+                        "turnover24h": "7939403499.8677",
+                        "volume24h": "115843.2740",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "7.927",
+                        "bid1Price": "68577.40",
+                        "ask1Price": "68577.50",
+                        "bid1Size": "6.371",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730730080834
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730730080834"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSDT",
+                    "lastPrice": "68577.50",
+                    "indexPrice": "68599.90",
+                    "markPrice": "68591.46",
+                    "prevPrice24h": "67993.80",
+                    "price24hPcnt": "0.008584",
+                    "highPrice24h": "69497.00",
+                    "lowPrice24h": "67456.10",
+                    "prevPrice1h": "69200.10",
+                    "openInterest": "69604.924",
+                    "openInterestValue": "4774303360.35",
+                    "turnover24h": "7939403499.8677",
+                    "volume24h": "115843.2740",
+                    "fundingRate": "0.0001",
+                    "nextFundingTime": "1730736000000",
+                    "predictedDeliveryPrice": "",
+                    "basisRate": "",
+                    "deliveryFeeRate": "",
+                    "deliveryTime": "0",
+                    "ask1Size": "7.927",
+                    "bid1Price": "68577.40",
+                    "ask1Price": "68577.50",
+                    "bid1Size": "6.371",
+                    "basis": "",
+                    "preOpenPrice": "",
+                    "preQty": "",
+                    "curPreListingPhase": ""
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": 68591.46,
+                  "indexPrice": 68599.9,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": 1730730080834,
+                  "datetime": "2024-11-04T14:21:20.834Z",
+                  "fundingRate": 0.0001,
+                  "fundingTimestamp": 1730736000000,
+                  "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                  "nextFundingRate": null,
+                  "nextFundingTimestamp": null,
+                  "nextFundingDatetime": null,
+                  "previousFundingRate": null,
+                  "previousFundingTimestamp": null,
+                  "previousFundingDatetime": null,
+                  "interval": "8h"
+                }
+            }
         ]
     }
 }

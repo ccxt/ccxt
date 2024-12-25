@@ -256,6 +256,16 @@ public partial class bybit : Exchange
         return await this.callAsync ("publicGetV5SpotCrossMarginTradeBorrowToken",parameters);
     }
 
+    public async Task<object> publicGetV5CryptoLoanCollateralData (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5CryptoLoanCollateralData",parameters);
+    }
+
+    public async Task<object> publicGetV5CryptoLoanLoanableData (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5CryptoLoanLoanableData",parameters);
+    }
+
     public async Task<object> publicGetV5InsLoanProductInfos (object parameters = null)
     {
         return await this.callAsync ("publicGetV5InsLoanProductInfos",parameters);
@@ -811,6 +821,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5UserSubmembers",parameters);
     }
 
+    public async Task<object> privateGetV5AffiliateAffUserList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AffiliateAffUserList",parameters);
+    }
+
     public async Task<object> privateGetV5SpotLeverTokenOrderRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotLeverTokenOrderRecord",parameters);
@@ -844,6 +859,36 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5SpotCrossMarginTradeRepayHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotCrossMarginTradeRepayHistory",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanBorrowableCollateralisableNumber (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanBorrowableCollateralisableNumber",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanOngoingOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanOngoingOrders",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanRepaymentHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanRepaymentHistory",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanBorrowHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanBorrowHistory",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanMaxCollateralAmount (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanMaxCollateralAmount",parameters);
+    }
+
+    public async Task<object> privateGetV5CryptoLoanAdjustmentHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5CryptoLoanAdjustmentHistory",parameters);
     }
 
     public async Task<object> privateGetV5InsLoanProductInfos (object parameters = null)
@@ -904,71 +949,6 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5BrokerAssetQuerySubMemberDepositRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1PlaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1CancelOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1CancelOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1CancelAll (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1CancelAll",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1ExecutionList (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1ExecutionList",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryPosition (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryPosition",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1CancelAll (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1CancelAll",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave",parameters);
     }
 
     public async Task<object> privatePostSpotV3PrivateOrder (object parameters = null)
@@ -1481,6 +1461,21 @@ public partial class bybit : Exchange
         return await this.callAsync ("privatePostV5SpotCrossMarginTradeSwitch",parameters);
     }
 
+    public async Task<object> privatePostV5CryptoLoanBorrow (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5CryptoLoanBorrow",parameters);
+    }
+
+    public async Task<object> privatePostV5CryptoLoanRepay (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5CryptoLoanRepay",parameters);
+    }
+
+    public async Task<object> privatePostV5CryptoLoanAdjustLtv (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5CryptoLoanAdjustLtv",parameters);
+    }
+
     public async Task<object> privatePostV5InsLoanAssociationUid (object parameters = null)
     {
         return await this.callAsync ("privatePostV5InsLoanAssociationUid",parameters);
@@ -1514,6 +1509,21 @@ public partial class bybit : Exchange
     public async Task<object> privatePostV5AccountDemoApplyMoney (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AccountDemoApplyMoney",parameters);
+    }
+
+    public async Task<object> privatePostV5BrokerAwardInfo (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5BrokerAwardInfo",parameters);
+    }
+
+    public async Task<object> privatePostV5BrokerAwardDistributeAward (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5BrokerAwardDistributeAward",parameters);
+    }
+
+    public async Task<object> privatePostV5BrokerAwardDistributionRecord (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5BrokerAwardDistributionRecord",parameters);
     }
 
 }

@@ -76,6 +76,7 @@ class hashkey extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -332,6 +333,84 @@ class hashkey extends Exchange {
                 ),
                 'defaultNetwork' => 'ERC20',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        // exchange-supported features
+                        // 'marketBuyRequiresPrice' => false,
+                        // 'marketBuyByCost' => false,
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 30,
+                        'untilDays' => 30,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'selfTradePrevention' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'trigger' => true,
+                        'limit' => 500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -509,7 +588,9 @@ class hashkey extends Exchange {
     public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -525,7 +606,9 @@ class hashkey extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
@@ -545,17 +628,14 @@ class hashkey extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for the exchange
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] the id of the market to fetch
          * @return {array[]} an array of objects representing market data
          */
-        $symbol = null;
         $request = array();
-        list($symbol, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'symbol');
-        if ($symbol !== null) {
-            $request['symbol'] = $symbol;
-        }
         $response = $this->publicGetApiV1ExchangeInfo ($this->extend($request, $params));
         //
         //     {
@@ -630,7 +710,7 @@ class hashkey extends Exchange {
         //                 )
         //             }
         //         ),
-        //         "options" => array(),
+        //         "options" => [ ],
         //         "contracts" => array(
         //             {
         //                 "filters" => array(
@@ -1014,7 +1094,9 @@ class hashkey extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1125,7 +1207,9 @@ class hashkey extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (maximum value is 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1162,7 +1246,9 @@ class hashkey extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
@@ -1195,9 +1281,11 @@ class hashkey extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+         *
          * @param {string} $symbol *is mandatory for swap markets* unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1236,11 +1324,6 @@ class hashkey extends Exchange {
         if ($marketType === 'spot') {
             if ($market !== null) {
                 $request['symbol'] = $market['id'];
-            }
-            $clientOrderId = null;
-            list($clientOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
             }
             if ($accountId !== null) {
                 $request['accountId'] = $accountId;
@@ -1414,7 +1497,9 @@ class hashkey extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+         *
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1496,7 +1581,9 @@ class hashkey extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-$ticker-price-change
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1530,7 +1617,9 @@ class hashkey extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1588,7 +1677,9 @@ class hashkey extends Exchange {
     public function fetch_last_prices(?array $symbols = null, $params = array ()): array {
         /**
          * fetches the last price for multiple markets
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-$symbol-price-ticker
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] the id of the market to fetch last price for
@@ -1597,11 +1688,6 @@ class hashkey extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
-        $symbol = null;
-        list($symbol, $params) = $this->handle_option_and_params($params, 'fetchLastPrices', 'symbol');
-        if ($symbol !== null) {
-            $request['symbol'] = $symbol;
-        }
         $response = $this->publicGetQuoteV1TickerPrice ($this->extend($request, $params));
         //
         //     array(
@@ -1631,7 +1717,9 @@ class hashkey extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account ID, for Master Key only
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the market to fetch $balance for (default 'spot')
@@ -1659,11 +1747,6 @@ class hashkey extends Exchange {
             $balance = $this->safe_dict($response, 0, array());
             return $this->parse_swap_balance($balance);
         } elseif ($marketType === 'spot') {
-            $accountId = null;
-            list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
-            if ($accountId !== null) {
-                $request['accountId'] = $accountId;
-            }
             $response = $this->privateGetApiV1Account ($this->extend($request, $params));
             //
             //     {
@@ -1749,7 +1832,9 @@ class hashkey extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+         *
          * @param {string} $code unified $currency $code (default is 'USDT')
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] network for fetch deposit address (default is 'ETH')
@@ -1815,7 +1900,9 @@ class hashkey extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1864,7 +1951,9 @@ class hashkey extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1916,18 +2005,20 @@ class hashkey extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] network for withdraw
          * @param {string} [$params->clientOrderId] client order id
-         * @param {string} [$params->platform] the $platform to withdraw to (hashkey, HashKey HK)
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->platform] the platform to withdraw to (hashkey, HashKey HK)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -1941,20 +2032,10 @@ class hashkey extends Exchange {
         if ($tag !== null) {
             $request['addressExt'] = $tag;
         }
-        $clientOrderId = null;
-        list($clientOrderId, $params) = $this->handle_option_and_params($params, 'withdraw', 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-        }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
             $request['chainType'] = $this->network_code_to_id($networkCode);
-        }
-        $platform = null;
-        list($platform, $params) = $this->handle_option_and_params($params, 'withdraw', 'platform');
-        if ($platform !== null) {
-            $request['platform'] = $platform;
         }
         $response = $this->privatePostApiV1AccountWithdraw ($this->extend($request, $params));
         //
@@ -2081,7 +2162,9 @@ class hashkey extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account id to transfer from
@@ -2099,16 +2182,6 @@ class hashkey extends Exchange {
             'fromAccountId' => $fromAccount,
             'toAccountId' => $toAccount,
         );
-        $clientOrderId = null;
-        list($clientOrderId, $params) = $this->handle_option_and_params($params, 'transfer', 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-        }
-        $remark = null;
-        list($remark, $params) = $this->handle_option_and_params($params, 'transfer', 'remark');
-        if ($remark !== null) {
-            $request['remark'] = $remark;
-        }
         $response = $this->privatePostApiV1AccountAssetTransfer ($this->extend($request, $params));
         //
         //     {
@@ -2145,7 +2218,9 @@ class hashkey extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -2216,7 +2291,9 @@ class hashkey extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+         *
          * @param {string} [$code] unified $currency $code, default is null (not used)
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
@@ -2224,7 +2301,7 @@ class hashkey extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {int} [$params->flowType] trade, fee, transfer, deposit, withdrawal
          * @param {int} [$params->accountType] spot, swap, custody
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $methodName = 'fetchLedger';
         if ($since === null) {
@@ -2341,9 +2418,11 @@ class hashkey extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
          * @param {string} $side 'buy' or 'sell'
@@ -2389,8 +2468,10 @@ class hashkey extends Exchange {
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order on spot $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'LIMIT_MAKER'
          * @param {string} $side 'buy' or 'sell'
@@ -2629,7 +2710,9 @@ class hashkey extends Exchange {
     public function create_swap_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
         /**
          * create a trade order on swap $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit' or 'STOP'
          * @param {string} $side 'buy' or 'sell'
@@ -2674,8 +2757,10 @@ class hashkey extends Exchange {
     public function create_orders(array $orders, $params = array ()) {
         /**
          * create a list of trade $orders (all $orders should be of the same $symbol)
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-$orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+         *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2786,8 +2871,10 @@ class hashkey extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2874,8 +2961,10 @@ class hashkey extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-$order
+         *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->side] 'buy' or 'sell'
@@ -2917,10 +3006,13 @@ class hashkey extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-$order-by-$order-id
+         *
          * @param {string[]} $ids $order $ids
          * @param {string} [$symbol] unified $market $symbol (not used by hashkey)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
@@ -2957,8 +3049,10 @@ class hashkey extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+         *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2988,11 +3082,6 @@ class hashkey extends Exchange {
         if ($marketType === 'spot') {
             if ($clientOrderId !== null) {
                 $request['origClientOrderId'] = $clientOrderId;
-            }
-            $accountId = null;
-            list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
-            if ($accountId !== null) {
-                $request['accountId'] = $accountId;
             }
             $response = $this->privateGetApiV1SpotOrder ($this->extend($request, $params));
             //
@@ -3063,10 +3152,12 @@ class hashkey extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in - is mandatory for swap markets
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3103,14 +3194,16 @@ class hashkey extends Exchange {
         /**
          * @ignore
          * fetch all unfilled currently open orders for spot markets
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve - default 500, maximum 1000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->orderId] the id of the order to fetch
-         * @param {string} [$params->side] 'buy' or 'sell' - the $side of the orders to fetch
+         * @param {string} [$params->side] 'buy' or 'sell' - the side of the orders to fetch
          * @param {string} [$params->accountId] account id to fetch the orders from
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -3132,16 +3225,6 @@ class hashkey extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
-            }
-            $orderId = null;
-            list($orderId, $params) = $this->handle_option_and_params($params, $methodName, 'orderId');
-            if ($orderId !== null) {
-                $request['orderId'] = $orderId;
-            }
-            $side = null;
-            list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-            if ($side !== null) {
-                $request['side'] = strtoupper($side);
             }
             $response = $this->privateGetApiV1SpotOpenOrders ($this->extend($request, $params));
             //
@@ -3180,8 +3263,10 @@ class hashkey extends Exchange {
         /**
          * @ignore
          * fetch all unfilled currently open orders for swap markets
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+         *
          * @param {string} $symbol *is mandatory* unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve - maximum 500
@@ -3210,11 +3295,6 @@ class hashkey extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
-        }
-        $fromOrderId = null;
-        list($fromOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'fromOrderId');
-        if ($fromOrderId !== null) {
-            $request['fromOrderId'] = $fromOrderId;
         }
         $response = null;
         $accountId = null;
@@ -3274,9 +3354,11 @@ class hashkey extends Exchange {
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple canceled and closed orders made by the user
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+         *
          * @param {string} $symbol *is mandatory for swap markets* unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3284,7 +3366,7 @@ class hashkey extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entries for (default 'spot')
          * @param {string} [$params->orderId] *spot markets only* the id of the order to fetch
-         * @param {string} [$params->side] *spot markets only* 'buy' or 'sell' - the $side of the orders to fetch
+         * @param {string} [$params->side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
          * @param {string} [$params->fromOrderId] *swap markets only* the id of the order to start from
          * @param {bool} [$params->trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
          * @param {bool} [$params->stop] *swap markets only* the id of the order to start from an alternative for trigger param
@@ -3318,16 +3400,6 @@ class hashkey extends Exchange {
         if ($marketType === 'spot') {
             if ($market !== null) {
                 $request['symbol'] = $market['id'];
-            }
-            $orderId = null;
-            list($orderId, $params) = $this->handle_option_and_params($params, $methodName, 'orderId');
-            if ($orderId !== null) {
-                $request['orderId'] = $orderId;
-            }
-            $side = null;
-            list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-            if ($side !== null) {
-                $request['side'] = strtoupper($side);
             }
             if ($accountId !== null) {
                 $request['accountId'] = $accountId;
@@ -3373,11 +3445,6 @@ class hashkey extends Exchange {
                 $request['type'] = 'STOP';
             } else {
                 $request['type'] = 'LIMIT';
-            }
-            $fromOrderId = null;
-            list($fromOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'fromOrderId');
-            if ($fromOrderId !== null) {
-                $request['fromOrderId'] = $fromOrderId;
             }
             if ($accountId !== null) {
                 $request['subAccountId'] = $accountId;
@@ -3427,10 +3494,8 @@ class hashkey extends Exchange {
     }
 
     public function handle_trigger_option_and_params(array $params, string $methodName, $defaultValue = null) {
-        $isStop = $defaultValue;
-        list($isStop, $params) = $this->handle_option_and_params($params, $methodName, 'stop', $isStop);
-        $isTrigger = $isStop;
-        list($isTrigger, $params) = $this->handle_option_and_params($params, $methodName, 'trigger', $isTrigger);
+        $isTrigger = $defaultValue;
+        list($isTrigger, $params) = $this->handle_option_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
         return array( $isTrigger, $params );
     }
 
@@ -3575,7 +3640,6 @@ class hashkey extends Exchange {
         if ($feeCurrncyId === '') {
             $feeCurrncyId = null;
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
@@ -3593,8 +3657,7 @@ class hashkey extends Exchange {
             'amount' => $this->omit_zero($this->safe_string($order, 'origQty')),
             'filled' => $this->safe_string($order, 'executedQty'),
             'remaining' => null,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->omit_zero($this->safe_string($order, 'stopPrice')),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'cost' => $this->omit_zero($this->safe_string_2($order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
@@ -3664,7 +3727,9 @@ class hashkey extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding $rate
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-$rate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
@@ -3688,7 +3753,9 @@ class hashkey extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+         *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
@@ -3746,7 +3813,9 @@ class hashkey extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
@@ -3797,7 +3866,9 @@ class hashkey extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch open positions for a market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+         *
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3820,7 +3891,9 @@ class hashkey extends Exchange {
     public function fetch_positions_for_symbol(string $symbol, $params = array ()): array {
         /**
          * fetch open positions for a single $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+         *
          * fetch all open positions for specific $symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3837,11 +3910,6 @@ class hashkey extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $side = null;
-        list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-        if ($side !== null) {
-            $request['side'] = strtoupper($side);
-        }
         $response = $this->privateGetApiV1FuturesPositions ($this->extend($request, $params));
         //
         //     array(
@@ -3906,7 +3974,9 @@ class hashkey extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set $leverage for a $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-$leverage-trade
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$leverage-structure $leverage structure~
@@ -3945,7 +4015,9 @@ class hashkey extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-$leverage-trade
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3973,8 +4045,10 @@ class hashkey extends Exchange {
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+         *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -4066,14 +4140,15 @@ class hashkey extends Exchange {
         //     }
         //
         $riskLimits = $this->safe_list($info, 'riskLimits', array());
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($riskLimits); $i++) {
             $tier = $riskLimits[$i];
             $initialMarginRate = $this->safe_string($tier, 'initialMargin');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => null,
                 'maxNotional' => $this->safe_number($tier, 'quantity'),
@@ -4088,8 +4163,10 @@ class hashkey extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
+         *
          * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -4120,7 +4197,9 @@ class hashkey extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * *for spot markets only* fetch the trading fees for multiple markets
+         *
          * @see https://developers.binance.com/docs/wallet/asset/trade-$fee
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */

@@ -9,6 +9,18 @@
     "methods": {
         "createOrder": [
             {
+                "description": "spot market buy order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "XRP/USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"10\"}"
+            },
+            {
                 "description": "spot market order with stopPrice",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -791,6 +803,19 @@
                 ]
             },
             {
+                "description": "inverse balance should use unified when account is > UTA 1.0",
+                "method": "fetchBalance",
+                "options": {
+                    "unifiedMarginStatus": 5
+                },
+                "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
+                "input": [
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
                 "description": "fetch funding balance using options",
                 "method": "fetchBalance",
                 "options": {
@@ -984,6 +1009,18 @@
             }
         ],
         "fetchTickers": [
+            {
+                "description": "fetch options tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                    null,
+                    {
+                        "type": "option"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Conflicting id with type in params",
                 "method": "fetchTickers",
@@ -1343,6 +1380,16 @@
                   "USDT",
                   null,
                   3
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "fetch the long short ratio history for a linear swap market",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api-testnet.bybit.com/v5/market/account-ratio?symbol=BTCUSDT&period=1d&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ],

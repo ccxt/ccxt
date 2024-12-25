@@ -104,6 +104,12 @@ public partial class bybit
     /// string : *contract only* 'linear', 'inverse'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.baseCoin</term>
+    /// <description>
+    /// string : *option only* base coin, default is 'BTC'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
@@ -489,6 +495,12 @@ public partial class bybit
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/order/batch-place"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -496,17 +508,6 @@ public partial class bybit
     {
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public async Task<Order> CreateUsdcOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createUsdcOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
-    }
-    public async Task<Order> EditUsdcOrder(object id, object symbol, object type, object side, object amount = null, object price = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
     }
     public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -587,11 +588,6 @@ public partial class bybit
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CancelUsdcOrder(object id, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelUsdcOrder(id, symbol, parameters);
-        return new Order(res);
-    }
     public Dictionary<string, object> CancelOrderRequest(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = this.cancelOrderRequest(id, symbol, parameters);
@@ -610,9 +606,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : *spot only* whether the order is a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : *spot only* whether the order is a stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -695,11 +697,6 @@ public partial class bybit
         var res = await this.cancelOrdersForSymbols(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, object>> CancelAllUsdcOrders(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllUsdcOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     /// <summary>
     /// cancel all open orders
     /// </summary>
@@ -713,9 +710,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : true if trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : true if stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -749,13 +752,6 @@ public partial class bybit
     {
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<List<Order>> FetchUsdcOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchUsdcOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     ///  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
@@ -813,9 +809,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : true if trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : true if stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -884,9 +886,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching a closed trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : set to true for fetching a closed stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -934,9 +942,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching an open trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : set to true for fetching an open stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -1008,9 +1022,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : set to true for fetching stop orders
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -1084,9 +1104,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching closed trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : set to true for fetching closed stop orders
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -1160,9 +1186,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : true if trigger order
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : true if stop order
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -1205,13 +1237,6 @@ public partial class bybit
         var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Order>> FetchUsdcOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchUsdcOpenOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
@@ -1237,9 +1262,15 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching open trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.stop</term>
     /// <description>
-    /// boolean : set to true for fetching open stop orders
+    /// boolean : alias for trigger
     /// </description>
     /// </item>
     /// <item>
@@ -1320,13 +1351,6 @@ public partial class bybit
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    public async Task<List<Trade>> FetchMyUsdcTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchMyUsdcTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
@@ -1545,6 +1569,12 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1556,15 +1586,9 @@ public partial class bybit
     /// string : if inverse will use v5/account/contract-transaction-log
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1611,11 +1635,6 @@ public partial class bybit
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
-    }
-    public async Task<List<Position>> FetchUsdcPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUsdcPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
     /// fetch all open positions
@@ -1886,12 +1905,12 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
     /// <summary>
     /// retrieves a history of a currencies borrow interest rate at specific time slots
@@ -2417,12 +2436,6 @@ public partial class bybit
     /// See <see href="https://bybit-exchange.github.io/docs/v5/position/close-pnl"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
@@ -2613,5 +2626,45 @@ public partial class bybit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
+    }
+    /// <summary>
+    /// fetches the long short ratio history for a unified market symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/market/long-short-ratio"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>timeframe</term>
+    /// <description>
+    /// string : the period for the ratio, default is 24 hours
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch ratios for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of long short ratio structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}.</returns>
+    public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LongShortRatio(item)).ToList<LongShortRatio>();
     }
 }

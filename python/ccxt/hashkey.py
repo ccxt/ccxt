@@ -104,6 +104,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -360,6 +361,84 @@ class hashkey(Exchange, ImplicitAPI):
                 },
                 'defaultNetwork': 'ERC20',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-supported features
+                        # 'marketBuyRequiresPrice': False,
+                        # 'marketBuyByCost': False,
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 30,
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'selfTradePrevention': True,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': True,
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -536,7 +615,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
+        https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -551,7 +632,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -570,16 +653,14 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for the exchange
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: the id of the market to fetch
         :returns dict[]: an array of objects representing market data
         """
-        symbol: Str = None
         request: dict = {}
-        symbol, params = self.handle_option_and_params(params, 'fetchMarkets', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = self.publicGetApiV1ExchangeInfo(self.extend(request, params))
         #
         #     {
@@ -1029,7 +1110,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1136,7 +1219,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum value is 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1171,7 +1256,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
@@ -1202,9 +1289,11 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
         :param str symbol: *is mandatory for swap markets* unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1239,10 +1328,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            clientOrderId: Str = None
-            clientOrderId, params = self.handle_option_and_params(params, methodName, 'clientOrderId')
-            if clientOrderId is not None:
-                request['clientOrderId'] = clientOrderId
             if accountId is not None:
                 request['accountId'] = accountId
             response = self.privateGetApiV1AccountTrades(self.extend(request, params))
@@ -1404,7 +1489,9 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1480,7 +1567,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1513,7 +1602,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1569,7 +1660,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_last_prices(self, symbols: Strings = None, params={}) -> LastPrices:
         """
         fetches the last price for multiple markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
         :param str[] [symbols]: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: the id of the market to fetch last price for
@@ -1578,10 +1671,6 @@ class hashkey(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {}
-        symbol: Str = None
-        symbol, params = self.handle_option_and_params(params, 'fetchLastPrices', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = self.publicGetQuoteV1TickerPrice(self.extend(request, params))
         #
         #     [
@@ -1609,7 +1698,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account ID, for Master Key only
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch balance for(default 'spot')
@@ -1637,10 +1728,6 @@ class hashkey(Exchange, ImplicitAPI):
             balance = self.safe_dict(response, 0, {})
             return self.parse_swap_balance(balance)
         elif marketType == 'spot':
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = self.privateGetApiV1Account(self.extend(request, params))
             #
             #     {
@@ -1721,7 +1808,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
         :param str code: unified currency code(default is 'USDT')
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for fetch deposit address(default is 'ETH')
@@ -1783,7 +1872,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1827,7 +1918,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
+        https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1874,18 +1967,20 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
+        https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for withdraw
         :param str [params.clientOrderId]: client order id
         :param str [params.platform]: the platform to withdraw to(hashkey, HashKey HK)
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1898,18 +1993,10 @@ class hashkey(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressExt'] = tag
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'withdraw', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chainType'] = self.network_code_to_id(networkCode)
-        platform: Str = None
-        platform, params = self.handle_option_and_params(params, 'withdraw', 'platform')
-        if platform is not None:
-            request['platform'] = platform
         response = self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         #     {
@@ -2028,7 +2115,9 @@ class hashkey(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
+        https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account id to transfer from
@@ -2046,14 +2135,6 @@ class hashkey(Exchange, ImplicitAPI):
             'fromAccountId': fromAccount,
             'toAccountId': toAccount,
         }
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'transfer', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
-        remark: Str = None
-        remark, params = self.handle_option_and_params(params, 'transfer', 'remark')
-        if remark is not None:
-            request['remark'] = remark
         response = self.privatePostApiV1AccountAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -2087,7 +2168,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -2152,7 +2235,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
         :param str [code]: unified currency code, default is None(not used)
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
@@ -2160,7 +2245,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :param int [params.flowType]: trade, fee, transfer, deposit, withdrawal
         :param int [params.accountType]: spot, swap, custody
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         methodName = 'fetchLedger'
         if since is None:
@@ -2268,9 +2353,11 @@ class hashkey(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
         :param str side: 'buy' or 'sell'
@@ -2312,8 +2399,10 @@ class hashkey(Exchange, ImplicitAPI):
     def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on spot market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER'
         :param str side: 'buy' or 'sell'
@@ -2436,7 +2525,7 @@ class hashkey(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER'
@@ -2478,7 +2567,7 @@ class hashkey(Exchange, ImplicitAPI):
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP'
@@ -2532,7 +2621,9 @@ class hashkey(Exchange, ImplicitAPI):
     def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on swap market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -2576,8 +2667,10 @@ class hashkey(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders(all orders should be of the same symbol)
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2683,8 +2776,10 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2765,8 +2860,10 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: 'buy' or 'sell'
@@ -2804,10 +2901,13 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol(not used by hashkey)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch entry for(default 'spot')
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2841,8 +2941,10 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-order
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2870,10 +2972,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = self.privateGetApiV1SpotOrder(self.extend(request, params))
             #
             #     {
@@ -2940,10 +3038,12 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/sub
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/sub
+        https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
         :param str [symbol]: unified market symbol of the market orders were made in - is mandatory for swap markets
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -2975,10 +3075,12 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for spot markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/sub
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3005,14 +3107,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
             #     [
@@ -3046,10 +3140,12 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_open_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for swap markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
         :param str symbol: *is mandatory* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - maximum 500
@@ -3076,10 +3172,6 @@ class hashkey(Exchange, ImplicitAPI):
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
-        fromOrderId: Str = None
-        fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-        if fromOrderId is not None:
-            request['fromOrderId'] = fromOrderId
         response = None
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
@@ -3136,9 +3228,11 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
         :param str symbol: *is mandatory for swap markets* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3176,14 +3270,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             if accountId is not None:
                 request['accountId'] = accountId
             response = self.privateGetApiV1SpotTradeOrders(self.extend(request, params))
@@ -3226,10 +3312,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
-            fromOrderId: Str = None
-            fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-            if fromOrderId is not None:
-                request['fromOrderId'] = fromOrderId
             if accountId is not None:
                 request['subAccountId'] = accountId
                 response = self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, params))
@@ -3273,10 +3355,8 @@ class hashkey(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue=None):
-        isStop = defaultValue
-        isStop, params = self.handle_option_and_params(params, methodName, 'stop', isStop)
-        isTrigger = isStop
-        isTrigger, params = self.handle_option_and_params(params, methodName, 'trigger', isTrigger)
+        isTrigger = defaultValue
+        isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -3415,7 +3495,6 @@ class hashkey(Exchange, ImplicitAPI):
         feeCurrncyId = self.safe_string(order, 'feeCoin')
         if feeCurrncyId == '':
             feeCurrncyId = None
-        triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -3433,8 +3512,7 @@ class hashkey(Exchange, ImplicitAPI):
             'amount': self.omit_zero(self.safe_string(order, 'origQty')),
             'filled': self.safe_string(order, 'executedQty'),
             'remaining': None,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.omit_zero(self.safe_string(order, 'stopPrice')),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'cost': self.omit_zero(self.safe_string_2(order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
@@ -3496,7 +3574,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -3519,7 +3599,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
@@ -3575,7 +3657,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -3622,7 +3706,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch open positions for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3642,7 +3728,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """
         fetch open positions for a single market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
         fetch all open positions for specific symbol
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3658,10 +3746,6 @@ class hashkey(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        side: Str = None
-        side, params = self.handle_option_and_params(params, methodName, 'side')
-        if side is not None:
-            request['side'] = side.upper()
         response = self.privateGetApiV1FuturesPositions(self.extend(request, params))
         #
         #     [
@@ -3724,7 +3808,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -3761,7 +3847,9 @@ class hashkey(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
+        https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3787,8 +3875,10 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -3879,14 +3969,15 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         riskLimits = self.safe_list(info, 'riskLimits', [])
-        id = self.safe_string(info, 'symbol')
-        market = self.safe_market(id, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             initialMarginRate = self.safe_string(tier, 'initialMargin')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': None,
                 'maxNotional': self.safe_number(tier, 'quantity'),
@@ -3899,8 +3990,10 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -3929,7 +4022,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         *for spot markets only* fetch the trading fees for multiple markets
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """

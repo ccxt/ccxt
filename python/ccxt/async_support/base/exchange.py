@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.21'
+__version__ = '4.4.43'
 
 # -----------------------------------------------------------------------------
 
@@ -598,8 +598,14 @@ class Exchange(BaseExchange):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
+    async def un_watch_trades(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
+
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' unWatchTradesForSymbols() is not supported yet')
 
     async def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
@@ -610,14 +616,23 @@ class Exchange(BaseExchange):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+        raise NotSupported(self.id + ' unWatchOHLCVForSymbols() is not supported yet')
+
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderBookWs() is not supported yet')
 
     async def fetch_margin_mode(self, symbol: str, params={}):
         if self.has['fetchMarginModes']:
@@ -642,6 +657,9 @@ class Exchange(BaseExchange):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
+
+    async def un_watch_order_book(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchOrderBook() is not supported yet')
 
     async def fetch_time(self, params={}):
         raise NotSupported(self.id + ' fetchTime() is not supported yet')
@@ -707,6 +725,12 @@ class Exchange(BaseExchange):
     async def set_margin(self, symbol: str, amount: float, params={}):
         raise NotSupported(self.id + ' setMargin() is not supported yet')
 
+    async def fetch_long_short_ratio(self, symbol: str, timeframe: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchLongShortRatio() is not supported yet')
+
+    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
+
     async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}):
         """
         fetches the history of margin added or reduced from contract isolated positions
@@ -731,19 +755,22 @@ class Exchange(BaseExchange):
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
+
     async def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
     async def fetch_payment_methods(self, params={}):
         raise NotSupported(self.id + ' fetchPaymentMethods() is not supported yet')
 
-    async def fetch_borrow_rate(self, code: str, amount, params={}):
+    async def fetch_borrow_rate(self, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead')
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' repayCrossMargin is not support yet')
 
-    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' repayIsolatedMargin is not support yet')
 
     async def borrow_cross_margin(self, code: str, amount: float, params={}):
@@ -752,10 +779,10 @@ class Exchange(BaseExchange):
     async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' borrowIsolatedMargin is not support yet')
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead')
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
@@ -1067,6 +1094,9 @@ class Exchange(BaseExchange):
 
     async def watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchTickers() is not supported yet')
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
@@ -1623,44 +1653,44 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'reduceOnly': True})
         return await self.create_order_ws(symbol, type, side, amount, price, query)
 
-    async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, type, side, amount, price, query)
 
-    async def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    async def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrderWs']:
             raise NotSupported(self.id + ' createStopOrderWs() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createStopOrderWs() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, type, side, amount, price, query)
 
-    async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrder']:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'limit', side, amount, price, query)
 
-    async def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    async def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrderWs']:
             raise NotSupported(self.id + ' createStopLimitOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'limit', side, amount, price, query)
 
-    async def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    async def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrder']:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
-    async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrderWs']:
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'market', side, amount, None, query)
 
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
@@ -1739,7 +1769,7 @@ class Exchange(BaseExchange):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         * @returns {} A list of candles ordered, open, high, low, close, None
+ @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
             request: dict = {
@@ -1769,7 +1799,7 @@ class Exchange(BaseExchange):
 
     async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
+ @deprecated
         *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -1782,7 +1812,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
-    async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None):
+    async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -1790,6 +1820,8 @@ class Exchange(BaseExchange):
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
+        removeRepeatedOption = removeRepeated
+        removeRepeatedOption, params = self.handle_option_and_params(params, method, 'removeRepeated', removeRepeated)
         calls = 0
         result = []
         errors = 0
@@ -1843,7 +1875,9 @@ class Exchange(BaseExchange):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        uniqueResults = self.remove_repeated_elements_from_array(result)
+        uniqueResults = result
+        if removeRepeatedOption:
+            uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 

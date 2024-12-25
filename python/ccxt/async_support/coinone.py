@@ -212,7 +212,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.coinone.co.kr/reference/currencies
+
+        https://docs.coinone.co.kr/reference/currencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -238,7 +240,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        currencies = self.safe_value(response, 'currencies', [])
+        currencies = self.safe_list(response, 'currencies', [])
         for i in range(0, len(currencies)):
             entry = currencies[i]
             id = self.safe_string(entry, 'symbol')
@@ -275,7 +277,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -316,7 +320,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'tickers', [])
+        tickers = self.safe_list(response, 'tickers', [])
         result = []
         for i in range(0, len(tickers)):
             entry = self.safe_value(tickers, i)
@@ -398,7 +402,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.coinone.co.kr/v1.0/reference/v21
+
+        https://docs.coinone.co.kr/v1.0/reference/v21
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -409,7 +415,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinone.co.kr/v1.0/reference/orderbook
+
+        https://docs.coinone.co.kr/v1.0/reference/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -453,8 +461,10 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -513,7 +523,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -558,7 +570,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
@@ -591,8 +603,8 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        asks = self.safe_value(ticker, 'best_asks')
-        bids = self.safe_value(ticker, 'best_bids')
+        asks = self.safe_list(ticker, 'best_asks', [])
+        bids = self.safe_list(ticker, 'best_bids', [])
         baseId = self.safe_string(ticker, 'target_currency')
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -646,7 +658,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
-        isSellerMaker = self.safe_value(trade, 'is_seller_maker')
+        isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
@@ -684,7 +696,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
+        https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -724,8 +738,10 @@ class coinone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -757,6 +773,7 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -898,7 +915,6 @@ class coinone(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'average': self.safe_string(order, 'averageExecutedPrice'),
@@ -1046,7 +1062,7 @@ class coinone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        walletAddress = self.safe_value(response, 'walletAddress', {})
+        walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
         result: dict = {}
         for i in range(0, len(keys)):
