@@ -1211,7 +1211,7 @@ export default class okx extends Exchange {
                         },
                         'hedged': true,
                         'trailing': true,
-                        'iceberg': true,
+                        'iceberg': true, // todo implement
                         'leverage': false,
                         'selfTradePrevention': true, // todo implement
                         'marketBuyByCost': true,
