@@ -22,6 +22,25 @@
                 ]
             }
         ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch Order Book",
+                "method": "fetchOrderBook",
+                "url": "https://api.oceanex.pro/v1/order_book?market=btcusdt",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Order Book with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.oceanex.pro/v1/order_book?market=btcusdt&limit=3",
+                "input": [
+                  "BTC/USDT",
+                  3
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Fetch Ticker",
@@ -29,6 +48,25 @@
                 "url": "https://api.oceanex.pro/v1/tickers/btcusdt",
                 "input": [
                   "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch Tickers",
+                "method": "fetchTickers",
+                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=aaveusdt&markets[]=adausdt&markets[]=b3trvet&markets[]=bchusdt&markets[]=btcusdt&markets[]=dogeusdt&markets[]=ethusdt&markets[]=haibtc&markets[]=linkusdt&markets[]=ltcusdt&markets[]=mkrusdt&markets[]=ocevet&markets[]=shabtc&markets[]=shausdt&markets[]=shavet&markets[]=usdcusdt&markets[]=vetusdt&markets[]=vthousdt&markets[]=vthovet&markets[]=xrpusdt&",
+                "input": []
+            },
+            {
+                "description": "Fetch tickers with symbols",
+                "method": "fetchTickers",
+                "url": "https://api.oceanex.pro/v1/tickers_multi?markets[]=btcusdt&markets[]=ethusdt&",
+                "input": [
+                  [
+                    "BTC/USDT",
+                    "ETH/USDT"
+                  ]
                 ]
             }
         ]
