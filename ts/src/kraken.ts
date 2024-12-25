@@ -447,7 +447,7 @@ export default class kraken extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, 
+                        'trailing': true,
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,

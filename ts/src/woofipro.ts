@@ -321,7 +321,7 @@ export default class woofipro extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, 
+                        'trailing': true,
                         'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
