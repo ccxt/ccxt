@@ -71,6 +71,7 @@ const VIRTUAL_BASE_METHODS = [
     "parseOrderSide",
     "parseOrderType",
     "parseOHLCV",
+    "parseCurrency",
     "parsePosition",
     "parseBalance",
     "parseDepositAddress",
