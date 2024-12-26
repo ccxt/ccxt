@@ -2,8 +2,10 @@ package ccxt
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	neturl "net/url"
@@ -152,20 +154,38 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		defer resp.Body.Close()
 
 		// Read the response body
-		respBody, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(fmt.Sprintf("failed to read response body: %v", err))
-		}
+		// respBody, err := ioutil.ReadAll(resp.Body)
+		var respBody []byte
 
-		// Log the response (for debugging purposes)
-		if this.Verbose {
-			fmt.Printf("Response: %s\n", respBody)
+		if resp.Header.Get("Content-Encoding") == "gzip" {
+			gzipReader, err := gzip.NewReader(resp.Body)
+			if err != nil {
+				panic(fmt.Sprintf("Error creating gzip reader: %s", err))
+			}
+			defer gzipReader.Close()
+
+			decompressedData, err := io.ReadAll(gzipReader)
+			if err != nil {
+				panic(fmt.Sprintf("Error reading decompressed data: %s", err))
+			}
+			respBody = decompressedData
+		} else {
+			respBodyAux, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				panic(fmt.Sprintf("failed to read response body: %v", err))
+			}
+			respBody = respBodyAux
 		}
 
 		// Check for HTTP errors
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			// add handle http status()
 			panic(fmt.Sprintf("HTTP request failed with status code %d: %s", resp.StatusCode, string(respBody)))
+		}
+
+		// Log the response (for debugging purposes)
+		if this.Verbose {
+			fmt.Printf("Response: %s\n", respBody)
 		}
 
 		// Unmarshal the response body
