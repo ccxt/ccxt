@@ -451,6 +451,11 @@ class kraken extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(

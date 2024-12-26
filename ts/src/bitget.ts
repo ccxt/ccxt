@@ -6940,8 +6940,10 @@ export default class bitget extends Exchange {
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols (symbols);
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, market);
+        const result = this.parseFundingRates (data, market);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

@@ -371,10 +371,12 @@ class cryptocom extends cryptocom$1 {
                             'GTD': false,
                         },
                         'hedged': false,
-                        // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': false,
                         'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,

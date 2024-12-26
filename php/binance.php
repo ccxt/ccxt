@@ -1553,7 +1553,6 @@ class binance extends Exchange {
                 ),
             ),
             'features' => array(
-                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -1571,12 +1570,13 @@ class binance extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                         // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo
                         'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => true,
-                        'oco' => false,
+                        'iceberg' => true, // todo implementation
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -1639,11 +1639,12 @@ class binance extends Exchange {
                         ),
                         'hedged' => true,
                         // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 5,

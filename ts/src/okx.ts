@@ -1182,7 +1182,6 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': true,
                     'createOrder': {
@@ -1211,12 +1210,12 @@ export default class okx extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': true,
-                        'iceberg': true,
-                        'oco': true,
+                        'iceberg': true, // todo implement
+                        'leverage': false,
+                        'selfTradePrevention': true, // todo implement
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                     },
                     'createOrders': {
                         'max': 20,

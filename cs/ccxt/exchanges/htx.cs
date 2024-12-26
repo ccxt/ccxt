@@ -1156,6 +1156,9 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "iceberg", false },
                         { "selfTradePrevention", true },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },

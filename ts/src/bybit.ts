@@ -1109,12 +1109,12 @@ export default class bybit extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1153,29 +1153,13 @@ export default class bybit extends Exchange {
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': false,
-                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'limitPrice': true,
                         },
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
-                        'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
-                        'trailing': true,
-                        'twap': false,
-                        'iceberg': false,
-                        'oco': false,
+                        'marketBuyRequiresPrice': true,
                     },
                 },
                 'swap': {
@@ -2105,6 +2089,7 @@ export default class bybit extends Exchange {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
+                    'subType': 'linear',
                     'spot': false,
                     'margin': false,
                     'swap': false,
@@ -2112,8 +2097,8 @@ export default class bybit extends Exchange {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': true,
+                    'inverse': false,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
                     'contractSize': this.parseNumber ('1'),

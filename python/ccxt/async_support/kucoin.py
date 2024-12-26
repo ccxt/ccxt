@@ -1026,11 +1026,11 @@ class kucoin(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'iceberg': True,
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'oco': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 5,

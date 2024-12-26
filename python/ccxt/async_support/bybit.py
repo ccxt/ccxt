@@ -1125,12 +1125,12 @@ class bybit(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': True,
-                        'twap': False,
                         'iceberg': False,
-                        'oco': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1169,29 +1169,13 @@ class bybit(Exchange, ImplicitAPI):
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': False,
-                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
-                        'stopLossPrice': True,
-                        'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
                             'limitPrice': True,
                         },
-                        'timeInForce': {
-                            'IOC': True,
-                            'FOK': True,
-                            'PO': True,
-                            'GTD': False,
-                        },
-                        'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
-                        'trailing': True,
-                        'twap': False,
-                        'iceberg': False,
-                        'oco': False,
+                        'marketBuyRequiresPrice': True,
                     },
                 },
                 'swap': {
@@ -2057,6 +2041,7 @@ class bybit(Exchange, ImplicitAPI):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
+                    'subType': 'linear',
                     'spot': False,
                     'margin': False,
                     'swap': False,
@@ -2064,8 +2049,8 @@ class bybit(Exchange, ImplicitAPI):
                     'option': True,
                     'active': isActive,
                     'contract': True,
-                    'linear': None,
-                    'inverse': None,
+                    'linear': True,
+                    'inverse': False,
                     'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
                     'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                     'contractSize': self.parse_number('1'),

@@ -405,6 +405,11 @@ public partial class kraken : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {

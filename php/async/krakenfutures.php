@@ -287,6 +287,11 @@ class krakenfutures extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 100,
