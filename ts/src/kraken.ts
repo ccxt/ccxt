@@ -1471,7 +1471,7 @@ export default class kraken extends Exchange {
         trades[length - 1] = lastTrade;
         return this.parseTrades (trades, market, since, limit);
     }
-    
+
     parseBalance (response): Balances {
         const balances = this.safeValue (response, 'result', {});
         const result: Dict = {
