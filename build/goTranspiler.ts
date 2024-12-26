@@ -939,7 +939,7 @@ ${caseStatements.join('\n')}
 
         // custom transformations needed for go
         baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
-        baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+        // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
         baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
@@ -1244,7 +1244,7 @@ ${caseStatements.join('\n')}
 
         if (!ws) {
             content = content.replace(/func\sNew(\w+)\(\)/g, "func New$1Core()");
-            content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+            // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\./gm, "this.Exchange.");
             content = content.replace(/base\./gm, "this.Exchange.");
             content = content.replace(/"\0"/gm, '"\/\/\" + "0"'); // check this later in bl3p
