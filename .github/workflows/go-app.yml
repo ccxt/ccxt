@@ -79,6 +79,8 @@ jobs:
       #   run: go build ./go/ccxt
       # - name: Build tests
       #   run: go build ./go/tests/main.go
+      - name: Adjust permissions
+        run: chmod +x main
       - name: Live tests
         run: node run-tests --go
 
