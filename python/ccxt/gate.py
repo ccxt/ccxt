@@ -723,7 +723,7 @@ class gate(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': True,
@@ -742,9 +742,11 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-specific features
-                        'iceberg': True,
-                        'selfTradePrevention': True,
+                        'iceberg': True,  # todo implement
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 40,  # NOTE! max 10 per symbol
@@ -779,6 +781,9 @@ class gate(Exchange, ImplicitAPI):
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',

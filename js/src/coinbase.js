@@ -378,7 +378,7 @@ export default class coinbase extends Exchange {
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': true,
@@ -396,6 +396,11 @@ export default class coinbase extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -436,21 +441,20 @@ export default class coinbase extends Exchange {
                         'limit': 350,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': undefined,
                 },
                 'future': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': undefined,
                 },
             },
         });

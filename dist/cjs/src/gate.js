@@ -705,7 +705,7 @@ class gate extends gate$1 {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
@@ -724,9 +724,11 @@ class gate extends gate$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
                         'iceberg': true,
                         'selfTradePrevention': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 40, // NOTE! max 10 per symbol
@@ -761,6 +763,9 @@ class gate extends gate$1 {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',

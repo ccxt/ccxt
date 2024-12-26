@@ -329,6 +329,11 @@ class gemini(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {

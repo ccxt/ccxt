@@ -607,8 +607,11 @@ public partial class bitmart : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
-                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyRequiresPrice", false },
                         { "marketBuyByCost", true },
+                        { "leverage", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },

@@ -710,12 +710,11 @@ class mexc(Exchange, ImplicitAPI):
                             'PO': True,
                             'GTD': False,
                         },
-                        'hedged': False,
+                        'hedged': True,  # todo implement
                         'trailing': False,
-                        'leverage': False,
+                        'leverage': True,  # todo implement
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
-                        # exchange-supported features
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },

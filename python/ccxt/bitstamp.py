@@ -525,6 +525,11 @@ class bitstamp(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {

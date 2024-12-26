@@ -1113,12 +1113,12 @@ class bybit extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -1157,29 +1157,13 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        'marginMode' => false,
-                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => true,
-                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
                             'limitPrice' => true,
                         ),
-                        'timeInForce' => array(
-                            'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
-                            'GTD' => false,
-                        ),
-                        'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
-                        'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => false,
-                        'oco' => false,
+                        'marketBuyRequiresPrice' => true,
                     ),
                 ),
                 'swap' => array(

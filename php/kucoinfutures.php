@@ -383,11 +383,11 @@ class kucoinfutures extends kucoin {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'iceberg' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'oco' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true,
                     ),
                     'createOrders' => array(
                         'max' => 20,

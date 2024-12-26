@@ -1107,12 +1107,12 @@ class bybit extends bybit$1 {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1151,29 +1151,13 @@ class bybit extends bybit$1 {
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': false,
-                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'limitPrice': true,
                         },
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
-                        'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
-                        'trailing': true,
-                        'twap': false,
-                        'iceberg': false,
-                        'oco': false,
+                        'marketBuyRequiresPrice': true,
                     },
                 },
                 'swap': {

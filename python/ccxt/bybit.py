@@ -1124,12 +1124,12 @@ class bybit(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': True,
-                        'twap': False,
                         'iceberg': False,
-                        'oco': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1168,29 +1168,13 @@ class bybit(Exchange, ImplicitAPI):
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': False,
-                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
-                        'stopLossPrice': True,
-                        'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
                             'limitPrice': True,
                         },
-                        'timeInForce': {
-                            'IOC': True,
-                            'FOK': True,
-                            'PO': True,
-                            'GTD': False,
-                        },
-                        'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
-                        'trailing': True,
-                        'twap': False,
-                        'iceberg': False,
-                        'oco': False,
+                        'marketBuyRequiresPrice': True,
                     },
                 },
                 'swap': {

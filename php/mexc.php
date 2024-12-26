@@ -692,12 +692,11 @@ class mexc extends Exchange {
                             'PO' => true,
                             'GTD' => false,
                         ),
-                        'hedged' => false,
+                        'hedged' => true, // todo implement
                         'trailing' => false,
-                        'leverage' => false,
+                        'leverage' => true, // todo implement
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
-                        // exchange-supported features
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
