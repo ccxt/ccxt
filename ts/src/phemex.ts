@@ -1174,7 +1174,7 @@ export default class phemex extends Exchange {
     }
 
     fromEn (en, scale) {
-        if (en === undefined) {
+        if (en === undefined || scale === undefined) {
             return undefined;
         }
         const precise = new Precise (en);
