@@ -82,6 +82,6 @@ jobs:
       - name: Adjust permissions
         run: chmod +x main
       - name: Live tests
-        run: node run-tests --go
+        run: npm run live-tests-rest-go
 
 
