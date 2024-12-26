@@ -6314,7 +6314,8 @@ export default class Exchange {
         const results = [];
         if (Array.isArray (tickers)) {
             for (let i = 0; i < tickers.length; i++) {
-                const ticker = this.extend (this.parseTicker (tickers[i]), params);
+                const parsedTicker = this.parseTicker (tickers[i]);
+                const ticker = this.extend (parsedTicker, params);
                 results.push (ticker);
             }
         } else {
@@ -6322,7 +6323,8 @@ export default class Exchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
-                const ticker = this.extend (this.parseTicker (tickers[marketId], market), params);
+                const parsed = this.parseTicker (tickers[marketId], market);
+                const ticker = this.extend (parsed, params);
                 results.push (ticker);
             }
         }
