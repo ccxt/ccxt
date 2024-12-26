@@ -1246,8 +1246,8 @@ ${caseStatements.join('\n')}
         if (!ws) {
             content = content.replace(/func\sNew(\w+)\(\)/g, "func New$1Core()");
             // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
-            content = content.replace(/base\./gm, "this.Exchange.");
-            content = content.replace(/base\./gm, "this.Exchange.");
+            content = content.replace(/base\.Describe/gm, "this.Exchange.Describe");
+            content = content.replace(/base\.Describe/gm, "this.Exchange.Describe");
             content = content.replace(/"\0"/gm, '"\/\/\" + "0"'); // check this later in bl3p
             content = content.replace(/new Precise/gm, "NewPrecise");
             content = content.replace(/var precise interface\{\} = /gm, "precise := ");
