@@ -278,8 +278,8 @@ func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interf
 	for _, elem := range targetX {
 		if reflect.TypeOf(elem).Kind() == reflect.Map {
 			elem2 := elem.(map[string]interface{})
-			if val, ok := elem2[key2.(string)]; ok {
-				outDict[val.(string)] = elem2
+			if val, ok := elem2[ToString(key2)]; ok {
+				outDict[ToString(val)] = elem2
 			}
 		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
 			index := key2.(int)
