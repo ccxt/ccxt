@@ -1251,9 +1251,11 @@ class htx extends htx$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
                         'iceberg': false,
                         'selfTradePrevention': true,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,

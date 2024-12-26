@@ -374,10 +374,12 @@ export default class cryptocom extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': false,
                         'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 10,

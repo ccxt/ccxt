@@ -698,10 +698,12 @@ export default class mexc extends Exchange {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
+                        'hedged': true,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -761,10 +763,10 @@ export default class mexc extends Exchange {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,

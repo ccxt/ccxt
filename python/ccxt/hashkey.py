@@ -380,13 +380,11 @@ class hashkey(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'marketBuyRequiresPrice': False,
-                        # 'marketBuyByCost': False,
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'iceberg': False,
-                        # 'oco': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,  # todo fix
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 20,

@@ -1012,11 +1012,11 @@ class kucoin extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'iceberg' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'oco' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
                         'max' => 5,

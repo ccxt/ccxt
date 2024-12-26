@@ -7521,8 +7521,10 @@ public partial class bitget : Exchange
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, market);
+        object result = this.parseFundingRates(data, market);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

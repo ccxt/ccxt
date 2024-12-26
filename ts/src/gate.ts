@@ -705,7 +705,7 @@ export default class gate extends Exchange {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
@@ -724,9 +724,11 @@ export default class gate extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
-                        'iceberg': true,
-                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
+                        'selfTradePrevention': true, // todo implement
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 40, // NOTE! max 10 per symbol
@@ -761,6 +763,9 @@ export default class gate extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',

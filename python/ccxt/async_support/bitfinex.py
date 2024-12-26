@@ -439,8 +439,12 @@ class bitfinex(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        'trailing': True,  # todo: unify
-                        # todo: leverage unify
+                        'trailing': True,  # todo: implement
+                        'leverage': True,  # todo: implement
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 75,

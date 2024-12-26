@@ -333,9 +333,11 @@ class woo extends woo$1 {
                         },
                         'hedged': false,
                         'trailing': true,
-                        // exchange specific params:
-                        // 'iceberg': true,
-                        // 'oco': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {

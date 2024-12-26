@@ -226,6 +226,11 @@ public partial class hyperliquid : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 1000 },

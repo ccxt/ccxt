@@ -389,10 +389,12 @@ class cryptocom(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': False,
                         'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 10,

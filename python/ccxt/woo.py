@@ -344,9 +344,11 @@ class woo(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
-                        # exchange specific params:
-                        # 'iceberg': True,
-                        # 'oco': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': None,
                     'fetchMyTrades': {

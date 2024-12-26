@@ -726,14 +726,11 @@ class bitmart(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        'marketBuyRequiresPrice': True,
+                        'marketBuyRequiresPrice': False,  # todo: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
                         'marketBuyByCost': True,
-                        # exchange-supported features
-                        # 'leverage': True,
-                        # 'selfTradePrevention': False,
-                        # 'twap': False,
-                        # 'iceberg': False,
-                        # 'oco': False,
+                        'leverage': True,  # todo: implement
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 10,

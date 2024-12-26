@@ -1269,9 +1269,11 @@ class htx(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-specific features
                         'iceberg': False,
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 10,

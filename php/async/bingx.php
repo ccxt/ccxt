@@ -567,6 +567,11 @@ class bingx extends Exchange {
                         ),
                         'hedged' => true,
                         'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 5,

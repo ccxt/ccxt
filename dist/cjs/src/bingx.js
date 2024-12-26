@@ -560,6 +560,11 @@ class bingx extends bingx$1 {
                         },
                         'hedged': true,
                         'trailing': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 5,

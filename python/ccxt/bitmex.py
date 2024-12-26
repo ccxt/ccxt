@@ -310,11 +310,9 @@ class bitmex(Exchange, ImplicitAPI):
                             'trailing': True,
                             'marketBuyRequiresPrice': False,
                             'marketBuyByCost': False,
-                            # exchange-supported features
-                            # 'selfTradePrevention': True,
-                            # 'twap': False,
-                            # 'iceberg': False,
-                            # 'oco': False,
+                            'leverage': False,
+                            'selfTradePrevention': False,
+                            'iceberg': True,  # todo
                         },
                         'createOrders': None,
                         'fetchMyTrades': {

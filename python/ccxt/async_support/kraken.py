@@ -464,6 +464,11 @@ class kraken(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
