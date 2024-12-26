@@ -525,6 +525,9 @@ func GetRootDir() string {
 		return dir + "/"
 	}
 	res := dir + ROOT_DIR
+	// baseDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	// res := baseDir + ROOT_DIR
+	// Print("Base dir: " + res)
 	return res
 }
 
