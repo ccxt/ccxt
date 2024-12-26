@@ -116,7 +116,7 @@ func (this *Exchange) Ymdhms(ts interface{}, args ...interface{}) string {
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *Exchange) Yyyymmdd(ts interface{}, args ...interface{}) string {
-	infix := GetArg(args, 1, nil)
+	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
 	}
@@ -130,7 +130,7 @@ func (this *Exchange) Yyyymmdd(ts interface{}, args ...interface{}) string {
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
 func (this *Exchange) Yymmdd(ts interface{}, args ...interface{}) string {
-	infix := GetArg(args, 1, nil)
+	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
 	}
