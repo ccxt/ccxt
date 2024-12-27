@@ -223,8 +223,8 @@ func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{},
 
 	if codeinHttpExceptions != nil {
 		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
-		errorException := CreateError(ToString(codeinHttpExceptions), errorMessage)
-		panic(errorException)
+		functionError := codeinHttpExceptions.(func(...interface{}) error)
+		panic(functionError(errorMessage))
 	}
 
 }
