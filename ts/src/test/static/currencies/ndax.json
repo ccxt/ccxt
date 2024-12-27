@@ -88,7 +88,7 @@
         "name": "United States Dollar",
         "code": "USD",
         "type": "fiat",
-        "precision": 0.0001,
+        "precision": 1e-8,
         "info": {
             "OMSId": "1",
             "ProductId": "6",
@@ -96,8 +96,8 @@
             "ProductFullName": "United States Dollar",
             "MasterDataUniqueProductSymbol": "",
             "ProductType": "NationalCurrency",
-            "DecimalPlaces": "4",
-            "TickSize": "0.0001000000000000000000000000",
+            "DecimalPlaces": "8",
+            "TickSize": "0.0000000100000000000000000000",
             "DepositEnabled": true,
             "WithdrawEnabled": true,
             "NoFees": false,
@@ -238,6 +238,62 @@
             "ProductType": "CryptoCurrency",
             "DecimalPlaces": "2",
             "TickSize": "0.0100000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "SOL": {
+        "id": "34",
+        "name": "Solana",
+        "code": "SOL",
+        "type": "crypto",
+        "precision": 0.0001,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "34",
+            "Product": "SOL",
+            "ProductFullName": "Solana",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "4",
+            "TickSize": "0.0001000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "CAD": {
+        "id": "7",
+        "name": "Canadian Dollar",
+        "code": "CAD",
+        "type": "fiat",
+        "precision": 1e-8,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "7",
+            "Product": "CAD",
+            "ProductFullName": "Canadian Dollar",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "NationalCurrency",
+            "DecimalPlaces": "8",
+            "TickSize": "0.0000000100000000000000000000",
             "DepositEnabled": true,
             "WithdrawEnabled": true,
             "NoFees": false,

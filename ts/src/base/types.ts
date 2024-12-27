@@ -353,6 +353,7 @@ export interface BorrowInterest {
 
 export interface LeverageTier {
     tier?: number;
+    symbol?: Str;
     currency?: Str;
     minNotional?: number;
     maxNotional?: number;
@@ -441,6 +442,9 @@ export interface OpenInterest {
     timestamp?: number;
     datetime?: Str;
     info: any;
+}
+
+export interface OpenInterests extends Dictionary<OpenInterest> {
 }
 
 export interface Liquidation {

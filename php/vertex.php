@@ -43,6 +43,8 @@ class vertex extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -79,6 +81,7 @@ class vertex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -342,7 +345,9 @@ class vertex extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -506,7 +511,9 @@ class vertex extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all $markets for vertex
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -564,7 +571,9 @@ class vertex extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
@@ -722,7 +731,9 @@ class vertex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -767,7 +778,9 @@ class vertex extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -976,7 +989,9 @@ class vertex extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1038,7 +1053,9 @@ class vertex extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by $market symbols
@@ -1119,7 +1136,9 @@ class vertex extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+         *
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1240,7 +1259,9 @@ class vertex extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -1266,7 +1287,9 @@ class vertex extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetches funding rates for multiple markets
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+         *
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -1337,21 +1360,88 @@ class vertex extends Exchange {
         //     }
         // }
         //
-        $value = $this->safe_number($interest, 'open_interest_usd');
+        $marketId = $this->safe_string($interest, 'ticker_id');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
-            'openInterestAmount' => null,
-            'openInterestValue' => $value,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => $this->safe_number($interest, 'open_interest_usd'),
             'timestamp' => null,
             'datetime' => null,
             'info' => $interest,
         ), $market);
     }
 
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT $market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v2ArchiveGetContracts ($params);
+        //
+        //     {
+        //         "ADA-PERP_USDC" => array(
+        //             "ticker_id" => "ADA-PERP_USDC",
+        //             "base_currency" => "ADA-PERP",
+        //             "quote_currency" => "USDC",
+        //             "last_price" => 0.85506,
+        //             "base_volume" => 1241320.0,
+        //             "quote_volume" => 1122670.9080057142,
+        //             "product_type" => "perpetual",
+        //             "contract_price" => 0.8558601432685385,
+        //             "contract_price_currency" => "USD",
+        //             "open_interest" => 104040.0,
+        //             "open_interest_usd" => 89043.68930565874,
+        //             "index_price" => 0.8561952606869176,
+        //             "mark_price" => 0.856293781088936,
+        //             "funding_rate" => 0.000116153806226841,
+        //             "next_funding_rate_timestamp" => 1734685200,
+        //             "price_change_percent_24h" => -12.274325340321374
+        //         ),
+        //     }
+        //
+        $parsedSymbols = array();
+        $results = array();
+        $markets = is_array($response) ? array_keys($response) : array();
+        if ($symbols === null) {
+            $symbols = array();
+            for ($y = 0; $y < count($markets); $y++) {
+                $tickerId = $markets[$y];
+                $parsedTickerId = explode('-', $tickerId);
+                $currentSymbol = $parsedTickerId[0] . '/USDC:USDC';
+                if (!$this->in_array($currentSymbol, $symbols)) {
+                    $symbols[] = $currentSymbol;
+                }
+            }
+        }
+        for ($i = 0; $i < count($markets); $i++) {
+            $marketId = $markets[$i];
+            $marketInner = $this->safe_market($marketId);
+            $openInterest = $this->safe_dict($response, $marketId, array());
+            for ($j = 0; $j < count($symbols); $j++) {
+                $market = $this->market($symbols[$j]);
+                $tickerId = $market['base'] . '_USDC';
+                if ($marketInner['marketId'] === $tickerId) {
+                    $parsedSymbols[] = $market['symbol'];
+                    $results[] = $this->parse_open_interest($openInterest, $market);
+                }
+            }
+        }
+        return $this->filter_by_array($results, 'symbol', $parsedSymbols);
+    }
+
     public function fetch_open_interest(string $symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a derivative trading pair
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+         *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
@@ -1437,7 +1527,9 @@ class vertex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1629,8 +1721,10 @@ class vertex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-$order
          * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-$order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1730,7 +1824,9 @@ class vertex extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade $order
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+         *
          * @param {string} $id cancel $order $id
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1967,7 +2063,9 @@ class vertex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2006,13 +2104,15 @@ class vertex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-$orders
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-$trigger-$orders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -2022,14 +2122,14 @@ class vertex extends Exchange {
         list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
         $request = array();
         $market = null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['product_id'] = $this->parse_to_numeric($market['id']);
         }
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $contracts = $this->query_contracts();
             $chainId = $this->safe_string($contracts, 'chain_id');
             $verifyingContractAddress = $this->safe_string($contracts, 'endpoint_addr');
@@ -2122,20 +2222,22 @@ class vertex extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
-         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-$orders
+         *
+         * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-$trigger-$orders
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_credentials();
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$stop) {
-            throw new NotSupported($this->id . ' fetchOrders only support trigger orders');
+        if (!$trigger) {
+            throw new NotSupported($this->id . ' fetchOrders only support $trigger orders');
         }
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
@@ -2207,12 +2309,14 @@ class vertex extends Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+         *
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->check_required_credentials();
@@ -2244,10 +2348,10 @@ class vertex extends Exchange {
                 'signature' => $this->build_cancel_all_orders_sig($cancels, $chainId, $verifyingContractAddress),
             ),
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->v1TriggerPostExecute ($this->extend($request, $params));
             //
             // {
@@ -2289,8 +2393,10 @@ class vertex extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2302,8 +2408,10 @@ class vertex extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
          * @see https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+         *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2342,10 +2450,10 @@ class vertex extends Exchange {
                 'signature' => $this->build_cancel_orders_sig($cancels, $chainId, $verifyingContractAddress),
             ),
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $response = $this->v1TriggerPostExecute ($this->extend($request, $params));
             //
             // {
@@ -2387,7 +2495,9 @@ class vertex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
@@ -2797,7 +2907,9 @@ class vertex extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open $positions
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+         *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
@@ -2847,7 +2959,9 @@ class vertex extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to $withdraw
          * @param {string} $address the $address to $withdraw to

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# note, don't run commands inline, as shown https://github.com/ccxt/ccxt/pull/24460
 set -e
 
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
@@ -164,7 +166,7 @@ echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
-  node build/transpile.js $exchange --force --child
+  npm run transpileRest -- $exchange --force --child
   npm run transpileCsSingle -- $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
@@ -172,7 +174,7 @@ done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
-  node build/transpileWS.js $exchange --force --child
+  npm run transpileWs -- $exchange --force --child
   npm run transpileCsSingle -- $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done
@@ -211,16 +213,20 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
-  npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
-  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
+  npm run request-py-sync -- $exchange
+  npm run request-py-async -- $exchange
+  npm run request-php-sync -- $exchange
+  npm run request-php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
-  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
+  npm run response-py-sync -- $exchange
+  npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange
+  npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 

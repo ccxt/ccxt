@@ -508,6 +508,7 @@ class bitrue extends Exchange {
                     '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
+                    'Insufficient account balance' => '\\ccxt\\InsufficientFunds', // array("code":-2010,"msg":"Insufficient account balance.","data":null)
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
                     'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),
@@ -522,7 +523,9 @@ class bitrue extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
@@ -547,7 +550,9 @@ class bitrue extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -690,9 +695,11 @@ class bitrue extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for bitrue
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
          * @see https://www.bitrue.com/api-docs#current-open-contract
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+         *
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -962,9 +969,11 @@ class bitrue extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
          * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'future', 'delivery', 'spot', 'swap'
          * @param {string} [$params->subType] 'linear', 'inverse'
@@ -1072,9 +1081,11 @@ class bitrue extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
          * @see https://www.bitrue.com/api-docs#order-book
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1215,9 +1226,11 @@ class bitrue extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
          * @see https://www.bitrue.com/api-docs#ticker
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1289,9 +1302,11 @@ class bitrue extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-$data
          * @see https://www.bitrue.com/api-docs#kline-candlestick-$data
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-$data
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1415,9 +1430,11 @@ class bitrue extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @see https://www.bitrue.com/api-docs#ticker
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1476,9 +1493,11 @@ class bitrue extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-$ticker-price-change-statistics
          * @see https://www.bitrue.com/api-docs#$ticker
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#$ticker
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1655,7 +1674,9 @@ class bitrue extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1800,8 +1821,7 @@ class bitrue extends Exchange {
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
-        $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice')));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1815,8 +1835,7 @@ class bitrue extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1831,8 +1850,10 @@ class bitrue extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
+         *
          * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1850,9 +1871,11 @@ class bitrue extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
          * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1946,10 +1969,10 @@ class bitrue extends Exchange {
                 $params = $this->omit($params, array( 'newClientOrderId', 'clientOrderId' ));
                 $request['newClientOrderId'] = $clientOrderId;
             }
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice !== null) {
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $response = $this->spotV1PrivatePostOrder ($this->extend($request, $params));
             $data = $response;
@@ -1983,9 +2006,11 @@ class bitrue extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
          * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+         *
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2075,7 +2100,9 @@ class bitrue extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2132,9 +2159,11 @@ class bitrue extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
          * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -2216,9 +2245,11 @@ class bitrue extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
          * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2284,8 +2315,10 @@ class bitrue extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
+         *
          * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+         *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
@@ -2323,9 +2356,11 @@ class bitrue extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
          * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2415,7 +2450,9 @@ class bitrue extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2486,7 +2523,9 @@ class bitrue extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2687,7 +2726,9 @@ class bitrue extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2781,7 +2822,9 @@ class bitrue extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
+         *
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2833,8 +2876,10 @@ class bitrue extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
+         *
          * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfers structures to retrieve
@@ -2888,8 +2933,10 @@ class bitrue extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -2922,8 +2969,10 @@ class bitrue extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://www.bitrue.com/api-docs#change-initial-$leverage-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-$leverage-trade-hmac-sha256
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2980,8 +3029,10 @@ class bitrue extends Exchange {
     public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         *
          * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+         *
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the exchange API endpoint
@@ -3017,7 +3068,7 @@ class bitrue extends Exchange {
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
         $url = null;
-        if ($type === 'api' && $version === 'kline') {
+        if (($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false)) {
             $url = $this->urls['api'][$type];
         } else {
             $url = $this->urls['api'][$type] . '/' . $version;
@@ -3027,7 +3078,7 @@ class bitrue extends Exchange {
         if ($access === 'private') {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
-            if ($type === 'spot') {
+            if ($type === 'spot' || $type === 'open') {
                 $query = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,

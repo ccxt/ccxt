@@ -202,14 +202,14 @@ abstract class bitrue extends \ccxt\Exchange {
     public function dapi_v2_private_post_futures_transfer($params = array()) {
         return $this->request('futures_transfer', array('dapi', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function open_private_post_poseidon_api_v1_listenkey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey', array('open', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function open_v1_private_post_poseidon_api_v1_listenkey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey', array('open', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function open_private_put_poseidon_api_v1_listenkey_listenkey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    public function open_v1_private_put_poseidon_api_v1_listenkey_listenkey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function open_private_delete_poseidon_api_v1_listenkey_listenkey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function open_v1_private_delete_poseidon_api_v1_listenkey_listenkey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function spotKlinePublicGetPublicJson($params = array()) {
         return $this->request('public.json', array('spot', 'kline', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -406,13 +406,13 @@ abstract class bitrue extends \ccxt\Exchange {
     public function dapiV2PrivatePostFuturesTransfer($params = array()) {
         return $this->request('futures_transfer', array('dapi', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openPrivatePostPoseidonApiV1ListenKey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey', array('open', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function openV1PrivatePostPoseidonApiV1ListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey', array('open', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openPrivatePutPoseidonApiV1ListenKeyListenKey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    public function openV1PrivatePutPoseidonApiV1ListenKeyListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'v1', 'private'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function openPrivateDeletePoseidonApiV1ListenKeyListenKey($params = array()) {
-        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function openV1PrivateDeletePoseidonApiV1ListenKeyListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', array('open', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

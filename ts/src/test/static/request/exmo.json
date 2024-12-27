@@ -150,7 +150,39 @@
                 "output": "nonce=1700155664178&position_id=BTC_USDT&quantity=1"
             }
         ],
-        "createOrder": [
+"createOrder": [
+            {
+                "description": "create market sell order with cost",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                    "LTC/USD",
+                    "market",
+                    "sell",
+                    0,
+                    null,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "nonce=1734346972185&pair=LTC_USD&quantity=5&price=0&type=market_sell_total"
+            },
+            {
+                "description": "create market order with cost",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                    "LTC/USD",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "nonce=1734346942237&pair=LTC_USD&quantity=5&price=0&type=market_buy_total"
+            },
             {
                 "description": "Create Order - spot",
                 "method": "createOrder",

@@ -53,9 +53,9 @@ public partial class testMainClass : BaseTest
             object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
-        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null)
+        public void assertStructure(Exchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
         {
-            emptyAllowedFor ??= new List<object>();
+            deep ??= false;
             object logText = logTemplate(exchange, method, entry);
             assert(entry, add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -67,7 +67,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
                 for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
-                    object emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     if (isTrue(inOp(skippedProperties, i)))
                     {
@@ -101,7 +101,7 @@ public partial class testMainClass : BaseTest
                     {
                         continue;
                     }
-                    object emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
+                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -117,6 +117,13 @@ public partial class testMainClass : BaseTest
                     {
                         object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        if (isTrue(deep))
+                        {
+                            if (isTrue((value is IDictionary<string, object>)))
+                            {
+                                assertStructure(exchange, skippedProperties, method, value, getValue(format, key), emptyAllowedFor, deep);
+                            }
+                        }
                     }
                 }
             }

@@ -106,7 +106,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarketLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': False,
@@ -1250,16 +1250,142 @@ class htx(Exchange, ImplicitAPI):
                 'BIFI': 'BITCOINFILE',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
                 'FUD': 'FTX Users Debt',
             },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': True,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,  # todo: add support by triggerprice
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'iceberg': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 120,
+                        'untilDays': 2,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 500,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 500,
+                        'untilDays': 2,
+                        'daysBack': 180,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'untilDays': 2,
+                        'limit': 500,
+                        'daysBackClosed': 180,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,  # 2000 for non-historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'trailing': True,
+                        'hedged': True,
+                        # 'leverage': True,  # todo
+                    },
+                    'createOrders': {
+                        'max': 25,
+                    },
+                    'fetchOrder': {
+                        'marginMode': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'limit': 50,
+                    },
+                    'fetchOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'limit': 50,
+                        'daysBack': 90,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'trigger': False,
+                        'trailing': False,
+                        'untilDays': 2,
+                        'limit': 50,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
         })
 
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  # contractPublicGetHeartbeat
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+        https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  # contractPublicGetHeartbeat
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -1474,8 +1600,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1522,7 +1650,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1567,8 +1697,10 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_trading_limits_by_id(self, id: str, params={}):
         """
-         * @ignore
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+ @ignore
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+
         :param str id: market id
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the limits object of a market structure
@@ -1627,10 +1759,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1656,12 +1790,14 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}):
         """
-         * @ignore
+ @ignore
         retrieves data on all markets of a certain type and/or subtype
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+
         :param str [type]: 'spot', 'swap' or 'future'
         :param str [subType]: 'linear' or 'inverse'
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2068,10 +2204,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+        https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2146,10 +2284,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2250,9 +2390,11 @@ class htx(Exchange, ImplicitAPI):
     def fetch_last_prices(self, symbols: Strings = None, params={}):
         """
         fetches the last price for multiple markets
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
+        https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
+        https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003 inverse swap
+
         :param str[] [symbols]: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of lastprices structures
@@ -2365,10 +2507,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+        https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2580,7 +2724,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2599,9 +2745,11 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @ignore
+ @ignore
         fetch all the trades made from a single order
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2618,9 +2766,11 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+        https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2771,10 +2921,12 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params={}) -> List[Trade]:
         """
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+        https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -2866,10 +3018,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+        https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -2993,7 +3147,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -3033,9 +3189,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}):
         """
         fetch all the accounts by a type and marginModeassociated with a profile
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+
         :param str type: 'spot', 'swap' or 'future
         :param str [marginMode]: 'cross' or 'isolated'
+        :param str [symbol]: unified ccxt market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -3065,7 +3224,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
+
+        https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -3220,13 +3381,15 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+        https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+        https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
@@ -3525,12 +3688,15 @@ class htx(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+        https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+        https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -3822,11 +3988,11 @@ class htx(Exchange, ImplicitAPI):
             'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
         response = None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-        if stop or stopLossTakeProfit or trailing:
+        if trigger or stopLossTakeProfit or trailing:
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
@@ -3843,7 +4009,7 @@ class htx(Exchange, ImplicitAPI):
             marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
             if marginMode == 'isolated':
-                if stop:
+                if trigger:
                     response = self.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = self.contractPrivatePostLinearSwapApiV1SwapTpslHisorders(self.extend(request, params))
@@ -3852,7 +4018,7 @@ class htx(Exchange, ImplicitAPI):
                 else:
                     response = self.contractPrivatePostLinearSwapApiV3SwapHisorders(self.extend(request, params))
             elif marginMode == 'cross':
-                if stop:
+                if trigger:
                     response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(self.extend(request, params))
@@ -3862,7 +4028,7 @@ class htx(Exchange, ImplicitAPI):
                     response = self.contractPrivatePostLinearSwapApiV3SwapCrossHisorders(self.extend(request, params))
         elif market['inverse']:
             if market['swap']:
-                if stop:
+                if trigger:
                     response = self.contractPrivatePostSwapApiV1SwapTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = self.contractPrivatePostSwapApiV1SwapTpslHisorders(self.extend(request, params))
@@ -3872,7 +4038,7 @@ class htx(Exchange, ImplicitAPI):
                     response = self.contractPrivatePostSwapApiV3SwapHisorders(self.extend(request, params))
             elif market['future']:
                 request['symbol'] = market['settleId']
-                if stop:
+                if trigger:
                     response = self.contractPrivatePostApiV1ContractTriggerHisorders(self.extend(request, params))
                 elif stopLossTakeProfit:
                     response = self.contractPrivatePostApiV1ContractTpslHisorders(self.extend(request, params))
@@ -4035,18 +4201,20 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+        https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
+        :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
@@ -4068,12 +4236,14 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
+        https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -4100,15 +4270,17 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
+        :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4146,7 +4318,7 @@ class htx(Exchange, ImplicitAPI):
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
-            stop = self.safe_bool_2(params, 'stop', 'trigger')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
@@ -4155,7 +4327,7 @@ class htx(Exchange, ImplicitAPI):
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(self.extend(request, params))
@@ -4164,7 +4336,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapOpenorders(self.extend(request, params))
                 elif marginMode == 'cross':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(self.extend(request, params))
@@ -4174,7 +4346,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(self.extend(request, params))
             elif market['inverse']:
                 if market['swap']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostSwapApiV1SwapTpslOpenorders(self.extend(request, params))
@@ -4184,7 +4356,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapOpenorders(self.extend(request, params))
                 elif market['future']:
                     request['symbol'] = market['settleId']
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostApiV1ContractTpslOpenorders(self.extend(request, params))
@@ -4799,7 +4971,6 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        stopPrice = self.safe_string_2(order, 'stop-price', 'trigger_price')
         average = self.safe_string(order, 'trade_avg_price')
         trades = self.safe_value(order, 'trades')
         reduceOnlyInteger = self.safe_integer(order, 'reduce_only')
@@ -4819,8 +4990,7 @@ class htx(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_string_2(order, 'stop-price', 'trigger_price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -4835,7 +5005,9 @@ class htx(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec4ee16-7773-11ed-9966-0242ac110003
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4871,7 +5043,7 @@ class htx(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -4908,7 +5080,7 @@ class htx(Exchange, ImplicitAPI):
         if triggerPrice is None:
             stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
             if orderType in stopOrderTypes:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for a stop order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for a trigger order')
         else:
             defaultOperator = 'lte' if (side == 'sell') else 'gte'
             stopOperator = self.safe_string(params, 'operator', defaultOperator)
@@ -4975,7 +5147,7 @@ class htx(Exchange, ImplicitAPI):
 
     def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -5041,31 +5213,41 @@ class htx(Exchange, ImplicitAPI):
                 params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
-            reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
             if reduceOnly:
                 request['reduce_only'] = 1
             request['lever_rate'] = self.safe_integer_n(params, ['leverRate', 'lever_rate', 'leverage'], 1)
             if not isTrailingPercentOrder:
                 request['order_price_type'] = type
+        hedged = self.safe_bool(params, 'hedged', False)
+        if hedged:
+            if reduceOnly:
+                request['offset'] = 'close'
+            else:
+                request['offset'] = 'open'
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
-        params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
+        params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+
+        https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
+        https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
+        https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -5084,6 +5266,7 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
+        :param bool [params.hedged]: *contract only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5214,11 +5397,13 @@ class htx(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+
+        https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
+        https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5331,7 +5516,7 @@ class htx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *contract only* if the order is a stop trigger order or not
+        :param boolean [params.trigger]: *contract only* if the order is a trigger trigger order or not
         :param boolean [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
         :param boolean [params.trailing]: *contract only* set to True if you want to cancel a trailing order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5377,7 +5562,7 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_bool_2(params, 'stop', 'trigger')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
@@ -5386,7 +5571,7 @@ class htx(Exchange, ImplicitAPI):
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
@@ -5395,7 +5580,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
                 elif marginMode == 'cross':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
@@ -5405,7 +5590,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
             elif market['inverse']:
                 if market['swap']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
@@ -5414,7 +5599,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
                 elif market['future']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostApiV1ContractTpslCancel(self.extend(request, params))
@@ -5454,7 +5639,7 @@ class htx(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
+        :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -5504,7 +5689,7 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_bool_2(params, 'stop', 'trigger')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trigger'])
             if market['linear']:
@@ -5512,14 +5697,14 @@ class htx(Exchange, ImplicitAPI):
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancel(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCancel(self.extend(request, params))
                 elif marginMode == 'cross':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(self.extend(request, params))
@@ -5527,14 +5712,14 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancel(self.extend(request, params))
             elif market['inverse']:
                 if market['swap']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostSwapApiV1SwapTpslCancel(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancel(self.extend(request, params))
                 elif market['future']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancel(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostApiV1ContractTpslCancel(self.extend(request, params))
@@ -5655,7 +5840,7 @@ class htx(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *contract only* if the orders are stop trigger orders or not
+        :param boolean [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param boolean [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param boolean [params.trailing]: *contract only* set to True if you want to cancel all trailing orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5707,7 +5892,7 @@ class htx(Exchange, ImplicitAPI):
             if market['future']:
                 request['symbol'] = market['settleId']
             request['contract_code'] = market['id']
-            stop = self.safe_bool_2(params, 'stop', 'trigger')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
@@ -5716,7 +5901,7 @@ class htx(Exchange, ImplicitAPI):
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslCancelall(self.extend(request, params))
@@ -5725,7 +5910,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCancelall(self.extend(request, params))
                 elif marginMode == 'cross':
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(self.extend(request, params))
@@ -5735,7 +5920,7 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossCancelall(self.extend(request, params))
             elif market['inverse']:
                 if market['swap']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostSwapApiV1SwapTpslCancelall(self.extend(request, params))
@@ -5744,7 +5929,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapCancelall(self.extend(request, params))
                 elif market['future']:
-                    if stop:
+                    if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerCancelall(self.extend(request, params))
                     elif stopLossTakeProfit:
                         response = self.contractPrivatePostApiV1ContractTpslCancelall(self.extend(request, params))
@@ -5770,7 +5955,9 @@ class htx(Exchange, ImplicitAPI):
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
         dead man's switch, cancel all orders after the given timeout
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+
+        https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
+
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
@@ -5820,7 +6007,9 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5852,7 +6041,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -5898,7 +6089,9 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
+
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -5953,7 +6146,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits
+
+        https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -6119,7 +6314,9 @@ class htx(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
+
+        https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
+
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -6197,13 +6394,15 @@ class htx(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+
+        https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+        https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+        https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+        https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+        https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+        https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
@@ -6279,7 +6478,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
         """
@@ -6362,8 +6563,10 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by huobi, but filtered internally by ccxt
@@ -6490,8 +6693,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -6529,8 +6734,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
@@ -6577,8 +6784,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
+
+        https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+        https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
+
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -6826,9 +7035,11 @@ class htx(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
+        https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -6908,10 +7119,12 @@ class htx(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  # Coin-m futures
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+        https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  # Coin-m futures
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7097,10 +7310,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+        https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: 'linear' or 'inverse'
@@ -7231,10 +7446,12 @@ class htx(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+        https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
+
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -7537,14 +7754,16 @@ class htx(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -7645,92 +7864,41 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
-        """
-        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
-        """
-        self.load_markets()
-        request: dict = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol supports contract markets only')
-            request['contract_code'] = market['id']
-        response = self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
-        #
-        #    {
-        #        "status": "ok",
-        #        "data": [
-        #            {
-        #                "symbol": "MANA",
-        #                "contract_code": "MANA-USDT",
-        #                "margin_mode": "isolated",
-        #                "trade_partition": "USDT",
-        #                "list": [
-        #                    {
-        #                        "lever_rate": 75,
-        #                        "ladders": [
-        #                            {
-        #                                "ladder": 0,
-        #                                "min_size": 0,
-        #                                "max_size": 999,
-        #                                "adjust_factor": 0.7
-        #                            },
-        #                            ...
-        #                        ]
-        #                    }
-        #                    ...
-        #                ]
-        #            },
-        #            ...
-        #        ]
-        #    }
-        #
-        data = self.safe_value(response, 'data')
-        tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
-        return self.safe_value(tiers, symbol)
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        result: dict = {}
-        for i in range(0, len(response)):
-            item = response[i]
-            list = self.safe_value(item, 'list', [])
-            tiers = []
-            currency = self.safe_string(item, 'trade_partition')
-            id = self.safe_string(item, marketIdKey)
-            symbol = self.safe_symbol(id)
-            if self.in_array(symbol, symbols):
-                for j in range(0, len(list)):
-                    obj = list[j]
-                    leverage = self.safe_string(obj, 'lever_rate')
-                    ladders = self.safe_value(obj, 'ladders', [])
-                    for k in range(0, len(ladders)):
-                        bracket = ladders[k]
-                        adjustFactor = self.safe_string(bracket, 'adjust_factor')
-                        tiers.append({
-                            'tier': self.safe_integer(bracket, 'ladder'),
-                            'currency': self.safe_currency_code(currency),
-                            'minNotional': self.safe_number(bracket, 'min_size'),
-                            'maxNotional': self.safe_number(bracket, 'max_size'),
-                            'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
-                            'maxLeverage': self.parse_number(leverage),
-                            'info': bracket,
-                        })
-                result[symbol] = tiers
-        return result
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+        currencyId = self.safe_string(info, 'trade_partition')
+        marketId = self.safe_string(info, 'contract_code')
+        tiers = []
+        brackets = self.safe_list(info, 'list', [])
+        for i in range(0, len(brackets)):
+            item = brackets[i]
+            leverage = self.safe_string(item, 'lever_rate')
+            ladders = self.safe_list(item, 'ladders', [])
+            for k in range(0, len(ladders)):
+                bracket = ladders[k]
+                adjustFactor = self.safe_string(bracket, 'adjust_factor')
+                tiers.append({
+                    'tier': self.safe_integer(bracket, 'ladder'),
+                    'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+                    'currency': self.safe_currency_code(currencyId),
+                    'minNotional': self.safe_number(bracket, 'min_size'),
+                    'maxNotional': self.safe_number(bracket, 'max_size'),
+                    'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
+                    'maxLeverage': self.parse_number(leverage),
+                    'info': bracket,
+                })
+        return tiers
 
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         """
         Retrieves the open interest history of a currency
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+
+        https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
         :param int [since]: Not used by huobi api, but response parsed by CCXT
@@ -7835,14 +8003,16 @@ class htx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         tick = self.safe_list(data, 'tick')
-        return self.parse_open_interests(tick, market, since, limit)
+        return self.parse_open_interests_history(tick, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+
+        https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -8007,8 +8177,10 @@ class htx(Exchange, ImplicitAPI):
     def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+        https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -8040,8 +8212,10 @@ class htx(Exchange, ImplicitAPI):
     def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
+        https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8070,10 +8244,12 @@ class htx(Exchange, ImplicitAPI):
     def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+        https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
@@ -8108,7 +8284,9 @@ class htx(Exchange, ImplicitAPI):
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
+        https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8177,9 +8355,11 @@ class htx(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetches historical settlement records
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+
+        https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+
         :param str symbol: unified symbol of the market to fetch the settlement history for
         :param int [since]: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         :param int [limit]: page items, default 20, shall not exceed 50
@@ -8273,7 +8453,9 @@ class htx(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+
+        https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -8474,9 +8656,11 @@ class htx(Exchange, ImplicitAPI):
     def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+        https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -8566,17 +8750,19 @@ class htx(Exchange, ImplicitAPI):
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
         closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  # USDT-M(isolated)
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  # USDT-M(cross)
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  # Coin-M swap
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      # Coin-M futures
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  # USDT-M(isolated)
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  # USDT-M(cross)
+        https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  # Coin-M swap
+        https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      # Coin-M futures
+
         :param str symbol: unified CCXT market symbol
         :param str side: 'buy' or 'sell', the side of the closing order, opposite side side
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.clientOrderId]: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
         :param dict [params.marginMode]: 'cross' or 'isolated', required for linear markets
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param number [params.amount]: order quantity
         :param str [params.order_price_type]: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
         :returns dict: `an order structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -8617,8 +8803,10 @@ class htx(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
+        https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+
         :param bool hedged: set to True to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
         :param str [symbol]: unified market symbol, required for isolated margin mode
         :param dict [params]: extra parameters specific to the exchange API endpoint

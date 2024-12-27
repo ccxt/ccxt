@@ -176,7 +176,7 @@
     "bitcoincom": {
         "skipWs": true
     },
-    "bitfinex": {
+    "bitfinex1": {
         "skipMethods": {
             "loadMarkets": "linear and inverse values are same",
             "ticker": {
@@ -189,7 +189,7 @@
             }
         }
     },
-    "bitfinex2": {
+    "bitfinex": {
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -280,7 +280,9 @@
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609"
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609",
+                "vwap": "incorrect",
+                "quoteVolume": "incorrect"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
@@ -1614,7 +1616,8 @@
             "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {
                 "deposit": "not provided",
-                "precision": "not provided"
+                "precision": "not provided",
+                "limits": "min/max essup temrporarily"
             },
             "orderBook": {
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
@@ -1761,6 +1764,8 @@
 	      }
     },
     "hashkey": {
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"

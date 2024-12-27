@@ -19,7 +19,7 @@ class woo extends Exchange {
             'version' => 'v1',
             'certified' => true,
             'pro' => true,
-            'hostname' => 'woo.org',
+            'hostname' => 'woox.io',
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -31,7 +31,7 @@ class woo extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
-                'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createConvertTrade' => true,
@@ -110,7 +110,7 @@ class woo extends Exchange {
                 'setMargin' => false,
                 'setPositionMode' => true,
                 'transfer' => true,
-                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://docx.woo.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -128,24 +128,24 @@ class woo extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api' => array(
-                    'pub' => 'https://api-pub.woo.org',
+                    'pub' => 'https://api-pub.woox.io',
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                 ),
                 'test' => array(
-                    'pub' => 'https://api-pub.staging.woo.org',
-                    'public' => 'https://api.staging.woo.org',
-                    'private' => 'https://api.staging.woo.org',
+                    'pub' => 'https://api-pub.staging.woox.io',
+                    'public' => 'https://api.staging.woox.io',
+                    'private' => 'https://api.staging.woox.io',
                 ),
-                'www' => 'https://woo.org/',
+                'www' => 'https://woox.io/',
                 'doc' => array(
-                    'https://docs.woo.org/',
+                    'https://docs.woox.io/',
                 ),
                 'fees' => array(
-                    'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
+                    'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
                 ),
                 'referral' => array(
-                    'url' => 'https://x.woo.org/register?ref=DIJT0CNL',
+                    'url' => 'https://woox.io/register?ref=DIJT0CNL',
                     'discount' => 0.35,
                 ),
             ),
@@ -154,7 +154,7 @@ class woo extends Exchange {
                     'pub' => array(
                         'get' => array(
                             'hist/kline' => 10,
-                            'hist/trades' => 1,
+                            'hist/trades' => 10,
                         ),
                     ),
                     'public' => array(
@@ -204,11 +204,11 @@ class woo extends Exchange {
                             'client/futures_leverage' => 60,
                         ),
                         'post' => array(
-                            'order' => 5, // 2 requests per 1 second per symbol
+                            'order' => 1, // 10 requests per 1 second per symbol
                             'order/cancel_all_after' => 1,
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/ltv' => 30,
-                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw' => 30,
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
@@ -221,7 +221,7 @@ class woo extends Exchange {
                             'order' => 1,
                             'client/order' => 1,
                             'orders' => 1,
-                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         ),
                     ),
                 ),
@@ -307,6 +307,94 @@ class woo extends Exchange {
                 ),
                 'brokerId' => 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo by triggerPrice
+                        'takeProfitPrice' => false, // todo by triggerPrice
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 90,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forSwap' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'hedged' => true,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forSwap',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -343,7 +431,9 @@ class woo extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
-         * @see https://docs.woo.org/#get-system-maintenance-$status-public
+         *
+         * @see https://docs.woox.io/#get-system-maintenance-$status-public
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
@@ -379,7 +469,9 @@ class woo extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://docs.woo.org/#get-system-maintenance-status-public
+         *
+         * @see https://docs.woox.io/#get-system-maintenance-status-public
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -400,7 +492,9 @@ class woo extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for woo
-         * @see https://docs.woo.org/#exchange-information
+         *
+         * @see https://docs.woox.io/#exchange-information
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -516,7 +610,9 @@ class woo extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @see https://docs.woo.org/#$market-trades-public
+         *
+         * @see https://docs.woox.io/#$market-trades-public
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -648,7 +744,9 @@ class woo extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
-         * @see https://docs.woo.org/#get-account-information-new
+         *
+         * @see https://docs.woox.io/#get-account-information-new
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -703,7 +801,9 @@ class woo extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
-         * @see https://docs.woo.org/#available-token-public
+         *
+         * @see https://docs.woox.io/#available-token-public
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -839,7 +939,9 @@ class woo extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
-         * @see https://docs.woo.org/#send-order
+         *
+         * @see https://docs.woox.io/#send-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -856,7 +958,9 @@ class woo extends Exchange {
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market sell order by providing the $symbol and $cost
-         * @see https://docs.woo.org/#send-order
+         *
+         * @see https://docs.woox.io/#send-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -873,7 +977,9 @@ class woo extends Exchange {
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
-         * @see https://docs.woo.org/#send-algo-order
+         *
+         * @see https://docs.woox.io/#send-algo-order
+         *
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -898,7 +1004,9 @@ class woo extends Exchange {
     public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()): array {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
-         * @see https://docs.woo.org/#send-algo-order
+         *
+         * @see https://docs.woox.io/#send-algo-order
+         *
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -923,8 +1031,10 @@ class woo extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
-         * @see https://docs.woo.org/#send-$order
-         * @see https://docs.woo.org/#send-algo-$order
+         *
+         * @see https://docs.woox.io/#send-$order
+         * @see https://docs.woox.io/#send-algo-$order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -933,9 +1043,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -960,7 +1070,7 @@ class woo extends Exchange {
         if ($marginMode !== null) {
             $request['margin_mode'] = $this->encode_margin_mode($marginMode);
         }
-        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $algoType = $this->safe_string($params, 'algoType');
@@ -970,17 +1080,17 @@ class woo extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-        $isStop = $isTrailing || $stopPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $reduceOnlyKey = $isStop ? 'reduceOnly' : 'reduce_only';
-        $clientOrderIdKey = $isStop ? 'clientOrderId' : 'client_order_id';
-        $orderQtyKey = $isStop ? 'quantity' : 'order_quantity';
-        $priceKey = $isStop ? 'price' : 'order_price';
-        $typeKey = $isStop ? 'type' : 'order_type';
+        $reduceOnlyKey = $isConditional ? 'reduceOnly' : 'reduce_only';
+        $clientOrderIdKey = $isConditional ? 'clientOrderId' : 'client_order_id';
+        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
+        $priceKey = $isConditional ? 'price' : 'order_price';
+        $typeKey = $isConditional ? 'type' : 'order_type';
         $request[$typeKey] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!$isStop) {
+        if (!$isConditional) {
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -995,7 +1105,7 @@ class woo extends Exchange {
         if (!$isMarket && $price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        if ($isMarket && !$isStop) {
+        if ($isMarket && !$isConditional) {
             // for $market buy it requires the $amount of quote currency to spend
             $cost = $this->safe_string_2($params, 'cost', 'order_amount');
             $params = $this->omit($params, array( 'cost', 'order_amount' ));
@@ -1033,9 +1143,9 @@ class woo extends Exchange {
                 $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
                 $request['callbackRate'] = $convertedTrailingPercent;
             }
-        } elseif ($stopPrice !== null) {
+        } elseif ($triggerPrice !== null) {
             if ($algoType !== 'TRAILING_STOP') {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['algoType'] = 'STOP';
             }
         } elseif (($stopLoss !== null) || ($takeProfit !== null)) {
@@ -1048,7 +1158,7 @@ class woo extends Exchange {
             );
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($stopLoss !== null) {
-                $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
                     'algoType' => 'STOP_LOSS',
@@ -1059,7 +1169,7 @@ class woo extends Exchange {
                 $outterOrder['childOrders'][] = $stopLossOrder;
             }
             if ($takeProfit !== null) {
-                $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
                     'algoType' => 'TAKE_PROFIT',
@@ -1073,7 +1183,7 @@ class woo extends Exchange {
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
         $response = null;
-        if ($isStop) {
+        if ($isConditional) {
             $response = $this->v3PrivatePostAlgoOrder ($this->extend($request, $params));
         } else {
             $response = $this->v1PrivatePostOrder ($this->extend($request, $params));
@@ -1124,10 +1234,12 @@ class woo extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.woo.org/#edit-order
-         * @see https://docs.woo.org/#edit-order-by-client_order_id
-         * @see https://docs.woo.org/#edit-algo-order
-         * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
+         *
+         * @see https://docs.woox.io/#edit-order
+         * @see https://docs.woox.io/#edit-order-by-client_order_id
+         * @see https://docs.woox.io/#edit-algo-order
+         * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1158,9 +1270,9 @@ class woo extends Exchange {
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
-        if ($stopPrice !== null) {
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+        if ($triggerPrice !== null) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activatedPrice', $this->number_to_string($price));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'callbackValue');
@@ -1180,18 +1292,18 @@ class woo extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $isStop = $isTrailing || ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isConditional = $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
         if ($isByClientOrder) {
             $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            if ($isStop) {
+            if ($isConditional) {
                 $response = $this->v3PrivatePutAlgoOrderClientClientOrderId ($this->extend($request, $params));
             } else {
                 $response = $this->v3PrivatePutOrderClientClientOrderId ($this->extend($request, $params));
             }
         } else {
             $request['oid'] = $id;
-            if ($isStop) {
+            if ($isConditional) {
                 $response = $this->v3PrivatePutAlgoOrderOid ($this->extend($request, $params));
             } else {
                 $response = $this->v3PrivatePutOrderOid ($this->extend($request, $params));
@@ -1215,19 +1327,21 @@ class woo extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#cancel-algo-order
-         * @see https://docs.woo.org/#cancel-order
-         * @see https://docs.woo.org/#cancel-order-by-client_order_id
+         *
+         * @see https://docs.woox.io/#cancel-algo-order
+         * @see https://docs.woox.io/#cancel-order
+         * @see https://docs.woox.io/#cancel-order-by-client_order_id
+         *
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $stop = $this->safe_bool($params, 'stop', false);
-        $params = $this->omit($params, 'stop');
-        if (!$stop && ($symbol === null)) {
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        if (!$isTrigger && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
@@ -1240,7 +1354,7 @@ class woo extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($stop) {
+        if ($isTrigger) {
             $request['order_id'] = $id;
             $response = $this->v3PrivateDeleteAlgoOrderOrderId ($this->extend($request, $params));
         } else {
@@ -1268,19 +1382,21 @@ class woo extends Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#cancel-all-pending-orders
-         * @see https://docs.woo.org/#cancel-orders
-         * @see https://docs.woo.org/#cancel-all-pending-algo-orders
+         *
+         * @see https://docs.woox.io/#cancel-all-pending-orders
+         * @see https://docs.woox.io/#cancel-orders
+         * @see https://docs.woox.io/#cancel-all-pending-algo-orders
+         *
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($stop) {
+        if ($trigger) {
             return $this->v3PrivateDeleteAlgoOrdersPending ($params);
         }
         if ($symbol === null) {
@@ -1305,9 +1421,10 @@ class woo extends Exchange {
     public function cancel_all_orders_after(?int $timeout, $params = array ()) {
         /**
          * dead man's switch, cancel all orders after the given $timeout
-         * @see https://docs.woo.org/#cancel-all-after
+         *
+         * @see https://docs.woox.io/#cancel-all-after
+         *
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
-         * @param {boolean} activated countdown
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the api result
          */
@@ -1332,23 +1449,25 @@ class woo extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#get-algo-order
-         * @see https://docs.woo.org/#get-order
+         *
+         * @see https://docs.woox.io/#get-algo-order
+         * @see https://docs.woox.io/#get-order
+         *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $response = null;
-        if ($stop) {
+        if ($trigger) {
             $request['oid'] = $id;
             $response = $this->v3PrivateGetAlgoOrderOid ($this->extend($request, $params));
         } elseif ($clientOrderId) {
@@ -1400,13 +1519,15 @@ class woo extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
-         * @see https://docs.woo.org/#get-$orders
-         * @see https://docs.woo.org/#get-algo-$orders
+         *
+         * @see https://docs.woox.io/#get-$orders
+         * @see https://docs.woox.io/#get-algo-$orders
+         *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing $orders
@@ -1421,7 +1542,7 @@ class woo extends Exchange {
         }
         $request = array();
         $market = null;
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
         $params = $this->omit($params, array( 'stop', 'trailing', 'trigger' ));
         if ($symbol !== null) {
@@ -1429,7 +1550,7 @@ class woo extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            if ($stop || $trailing) {
+            if ($trigger || $trailing) {
                 $request['createdTimeStart'] = $since;
             } else {
                 $request['start_t'] = $since;
@@ -1440,13 +1561,13 @@ class woo extends Exchange {
         } else {
             $request['size'] = 500;
         }
-        if ($stop) {
+        if ($trigger) {
             $request['algoType'] = 'stop';
         } elseif ($trailing) {
             $request['algoType'] = 'TRAILING_STOP';
         }
         $response = null;
-        if ($stop || $trailing) {
+        if ($trigger || $trailing) {
             $response = $this->v3PrivateGetAlgoOrders ($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateGetOrders ($this->extend($request, $params));
@@ -1490,13 +1611,15 @@ class woo extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
-         * @see https://docs.woo.org/#get-orders
-         * @see https://docs.woo.org/#get-algo-orders
+         *
+         * @see https://docs.woox.io/#get-orders
+         * @see https://docs.woox.io/#get-algo-orders
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
@@ -1511,13 +1634,15 @@ class woo extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
-         * @see https://docs.woo.org/#get-orders
-         * @see https://docs.woo.org/#get-algo-orders
+         *
+         * @see https://docs.woox.io/#get-orders
+         * @see https://docs.woox.io/#get-algo-orders
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->stop] whether the order is a stop/algo order
+         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @param {boolean} [$params->isTriggered] whether the order has been triggered (false by default)
          * @param {string} [$params->side] 'buy' or 'sell'
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing orders
@@ -1601,7 +1726,7 @@ class woo extends Exchange {
         $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
+        $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
         $childOrders = $this->safe_value($order, 'childOrders');
@@ -1632,8 +1757,7 @@ class woo extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'average' => $average,
@@ -1671,7 +1795,9 @@ class woo extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.woo.org/#orderbook-snapshot-public
+         *
+         * @see https://docs.woox.io/#orderbook-snapshot-public
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1709,8 +1835,10 @@ class woo extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://docs.woo.org/#kline-public
-         * @see https://docs.woo.org/#kline-historical-data-public
+         *
+         * @see https://docs.woox.io/#kline-public
+         * @see https://docs.woox.io/#kline-historical-data-public
+         *
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1804,7 +1932,9 @@ class woo extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
-         * @see https://docs.woo.org/#get-$trades
+         *
+         * @see https://docs.woox.io/#get-$trades
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1846,7 +1976,9 @@ class woo extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
-         * @see https://docs.woo.org/#get-$trades
+         *
+         * @see https://docs.woox.io/#get-trade-history
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1869,6 +2001,7 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
+        list($request, $params) = $this->handle_until_option('end_t', $request, $params);
         if ($limit !== null) {
             $request['size'] = $limit;
         } else {
@@ -1905,7 +2038,9 @@ class woo extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
-         * @see https://docs.woo.org/#get-assets-of-subaccounts
+         *
+         * @see https://docs.woox.io/#get-assets-of-subaccounts
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
@@ -1951,7 +2086,9 @@ class woo extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.woo.org/#get-current-holding-get-balance-new
+         *
+         * @see https://docs.woox.io/#get-current-holding-get-balance-new
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -2003,7 +2140,9 @@ class woo extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
-         * @see https://docs.woo.org/#get-token-deposit-$address
+         *
+         * @see https://docs.woox.io/#get-token-deposit-$address
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -2096,12 +2235,14 @@ class woo extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.woo.org/#get-asset-history
+         *
+         * @see https://docs.woox.io/#get-asset-history
+         *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         list($currency, $rows) = $this->get_asset_history_rows($code, $since, $limit, $params);
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
@@ -2163,7 +2304,9 @@ class woo extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
-         * @see https://docs.woo.org/#get-asset-history
+         *
+         * @see https://docs.woox.io/#get-asset-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2179,7 +2322,9 @@ class woo extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
-         * @see https://docs.woo.org/#get-asset-history
+         *
+         * @see https://docs.woox.io/#get-asset-history
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2195,7 +2340,9 @@ class woo extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
-         * @see https://docs.woo.org/#get-asset-history
+         *
+         * @see https://docs.woox.io/#get-asset-history
+         *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2271,7 +2418,9 @@ class woo extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
-         * @see https://docs.woo.org/#get-$transfer-history
+         *
+         * @see https://docs.woox.io/#get-$transfer-history
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -2308,7 +2457,9 @@ class woo extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
-         * @see https://docs.woo.org/#get-transfer-history
+         *
+         * @see https://docs.woox.io/#get-transfer-history
+         *
          * @param {string} $code unified currency $code of the currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
@@ -2415,7 +2566,9 @@ class woo extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
-         * @see https://docs.woo.org/#token-withdraw
+         *
+         * @see https://docs.woox.io/#token-withdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2457,7 +2610,9 @@ class woo extends Exchange {
     public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://docs.woo.org/#repay-interest
+         *
+         * @see https://docs.woox.io/#repay-interest
+         *
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol not used by woo.repayMargin ()
@@ -2534,8 +2689,8 @@ class woo extends Exchange {
                 if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
-                    $isStop = mb_strpos($path, 'algo') > -1;
-                    if ($isStop) {
+                    $isTrigger = mb_strpos($path, 'algo') > -1;
+                    if ($isTrigger) {
                         $params['brokerId'] = $brokerId;
                     } else {
                         $params['broker_id'] = $brokerId;
@@ -2636,7 +2791,9 @@ class woo extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
-         * @see https://docs.woo.org/#get-funding-fee-history
+         *
+         * @see https://docs.woox.io/#get-funding-fee-history
+         *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -2746,7 +2903,9 @@ class woo extends Exchange {
     public function fetch_funding_interval(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate interval
+         *
          * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -2757,7 +2916,9 @@ class woo extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-$market-public
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -2788,7 +2949,9 @@ class woo extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
+         *
          * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+         *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
@@ -2820,7 +2983,9 @@ class woo extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
-         * @see https://docs.woo.org/#get-funding-rate-history-for-one-$market-public
+         *
+         * @see https://docs.woox.io/#get-funding-rate-history-for-one-$market-public
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
@@ -2886,7 +3051,9 @@ class woo extends Exchange {
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
-         * @see https://docs.woo.org/#update-position-mode
+         *
+         * @see https://docs.woox.io/#update-position-mode
+         *
          * @param {bool} $hedged set to true to use HEDGE_MODE, false for ONE_WAY
          * @param {string} $symbol not used by woo setPositionMode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2915,7 +3082,9 @@ class woo extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
-         * @see https://docs.woo.org/#get-account-information-new
+         *
+         * @see https://docs.woox.io/#get-account-information-new
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
@@ -3043,10 +3212,12 @@ class woo extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
-         * @see https://docs.woo.org/#update-$leverage-setting
-         * @see https://docs.woo.org/#update-futures-$leverage-setting
+         *
+         * @see https://docs.woox.io/#update-$leverage-setting
+         * @see https://docs.woox.io/#update-futures-$leverage-setting
+         *
          * @param {float} $leverage the rate of $leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
-         * @param {string} [symbo] unified $market $symbol (is mandatory for swap markets)
+         * @param {string} [$symbol] unified $market $symbol (is mandatory for swap markets)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
          * @param {string} [$params->position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
@@ -3076,7 +3247,9 @@ class woo extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
-         * @see https://docs.woo.org/#update-isolated-margin-setting
+         *
+         * @see https://docs.woox.io/#update-isolated-margin-setting
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3089,7 +3262,9 @@ class woo extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
-         * @see https://docs.woo.org/#update-isolated-margin-setting
+         *
+         * @see https://docs.woox.io/#update-isolated-margin-setting
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3307,7 +3482,9 @@ class woo extends Exchange {
     public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * fetch a quote for converting from one currency to another
-         * @see https://docs.woo.org/#get-quote-rfq
+         *
+         * @see https://docs.woox.io/#get-quote-rfq
+         *
          * @param {string} $fromCode the currency that you want to sell and convert from
          * @param {string} $toCode the currency that you want to buy and convert into
          * @param {float} [$amount] how much you want to trade in units of the from currency
@@ -3348,7 +3525,9 @@ class woo extends Exchange {
     public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * convert from one currency to another
-         * @see https://docs.woo.org/#send-quote-rft
+         *
+         * @see https://docs.woox.io/#send-quote-rft
+         *
          * @param {string} $id the $id of the trade that you want to make
          * @param {string} $fromCode the currency that you want to sell and convert from
          * @param {string} $toCode the currency that you want to buy and convert into
@@ -3378,7 +3557,9 @@ class woo extends Exchange {
     public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
         /**
          * fetch the $data for a conversion trade
-         * @see https://docs.woo.org/#get-quote-trade
+         *
+         * @see https://docs.woox.io/#get-quote-trade
+         *
          * @param {string} $id the $id of the trade that you want to fetch
          * @param {string} [$code] the unified currency $code of the conversion trade
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3420,7 +3601,9 @@ class woo extends Exchange {
     public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the users history of conversion trades
-         * @see https://docs.woo.org/#get-quote-trades
+         *
+         * @see https://docs.woox.io/#get-quote-trades
+         *
          * @param {string} [$code] the unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch conversions for
          * @param {int} [$limit] the maximum number of conversion structures to retrieve
@@ -3521,7 +3704,9 @@ class woo extends Exchange {
     public function fetch_convert_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies that can be converted
-         * @see https://docs.woo.org/#get-quote-asset-info
+         *
+         * @see https://docs.woox.io/#get-quote-asset-info
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */

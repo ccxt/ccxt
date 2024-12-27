@@ -496,9 +496,19 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
     interval: Str
 
+class OpenInterest(TypedDict):
+    symbol: Str
+    openInterestAmount: Num
+    openInterestValue: Num
+    baseVolume: Num
+    quoteVolume: Num
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
 
 class LeverageTier:
     tier: Num
+    symbol: Str
     currency: Str
     minNotional: Num
     maxNotional: Num
@@ -555,6 +565,7 @@ class BorrowInterest:
 
 
 FundingRates = Dict[Str, FundingRate]
+OpenInterests = Dict[Str, OpenInterest]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]

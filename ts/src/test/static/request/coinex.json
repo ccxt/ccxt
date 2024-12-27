@@ -728,6 +728,18 @@
         ],
         "cancelOrders": [
             {
+                "description": "cancelOrders spot",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
+                "input": [
+                    [
+                        "133207122417"
+                    ],
+                    "LTC/USDT"
+                ],
+                "output": "{\"market\":\"LTCUSDT\",\"order_ids\":[133207122417]}"
+            },
+            {
                 "description": "Cancel multiple spot orders at once",
                 "method": "cancelOrders",
                 "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
