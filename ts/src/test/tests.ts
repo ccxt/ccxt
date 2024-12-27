@@ -88,6 +88,16 @@ class testMainClass {
     }
 
     async init (exchangeId, symbolArgv, methodArgv) {
+        try {
+            await this.initInner (exchangeId, symbolArgv, methodArgv);
+        } catch (e) {
+            dump ('[TEST_FAILURE]'); // tell run-tests.js this is failure
+            throw e;
+        }
+    }
+    
+
+    async initInner (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgsAndProps ();
 
         if (this.requestTests && this.responseTests) {
@@ -117,6 +127,7 @@ class testMainClass {
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
         if (exchange.alias) {
+            dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
         }
         await this.importFiles (exchange);
@@ -428,6 +439,7 @@ class testMainClass {
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {
                         if (this.info) {
+                            // todo - turn into warning
                             dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
                         }
                         return true;
