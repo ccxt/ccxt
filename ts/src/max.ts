@@ -145,6 +145,41 @@ export default class max extends Exchange {
                 '1w': '10080',
             },
             'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0005'),
+                    'taker': this.parseNumber ('0.0015'),
+                    'tiers': {
+                        // https://max-vip-en.maicoin.com/
+                        'taker': [
+                            // volume in TWD
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.00135') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0.00105') ],
+                            [ this.parseNumber ('150000000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('1000000000'), this.parseNumber ('0.00055') ],
+                            [ this.parseNumber ('1500000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('2000000000'), this.parseNumber ('0.00045') ],
+                        ],
+                        'maker': [
+                            // volume in TWD
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('150000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('300000000'), this.parseNumber ('0.00025') ],
+                            [ this.parseNumber ('600000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('1000000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('1500000000'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('2000000000'), this.parseNumber ('0.0000') ],
+                        ],
+                    },
+                },
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
@@ -301,10 +336,9 @@ export default class max extends Exchange {
         } else if (status === 'suspended') {
             active = false;
         }
-        // Handle precision properly - API returns decimal places
-        const baseUnitPrecision = this.safeInteger (market, 'base_unit_precision');
-        const quoteUnitPrecision = this.safeInteger (market, 'quote_unit_precision');
-        return this.safeMarketStructure ({
+        const baseUnitPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'base_unit_precision')));
+        const quoteUnitPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_unit_precision')));
+        return {
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -352,7 +386,7 @@ export default class max extends Exchange {
             },
             'created': undefined,
             'info': market,
-        });
+        };
     }
 
     /**
@@ -545,11 +579,13 @@ export default class max extends Exchange {
             const mWalletSupported = this.safeValue (currency, 'm_wallet_supported', false);
             const mWalletMortgageable = this.safeValue (currency, 'm_wallet_mortgageable', false);
             const mWalletBorrowable = this.safeValue (currency, 'm_wallet_borrowable', false);
-            const precision = this.safeInteger (currency, 'precision');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
             const minAmount = this.safeNumber (currencyMinAmounts, code);
             const fiat = (type === 'fiat');
             // Process networks info
             const networksObject = {};
+            let deposit = false;
+            let withdraw = false;
             let withdrawalFee = undefined;
             let withdrawalLimitMin = undefined;
             for (let j = 0; j < networks.length; j++) {
@@ -558,7 +594,13 @@ export default class max extends Exchange {
                 const network_protocol = this.safeString (network, 'network_protocol');
                 const networkCode = this.networkProtocolToCode (network_protocol, code);
                 const depositEnabled = this.safeValue (network, 'deposit_enabled');
+                if (depositEnabled) {
+                    deposit = true;
+                }
                 const withdrawalEnabled = this.safeValue (network, 'withdrawal_enabled');
+                if (withdrawalEnabled) {
+                    withdraw = true;
+                }
                 // Use the first available network's withdrawal constraints
                 if (j === 0) {
                     withdrawalFee = this.safeNumber (network, 'withdrawal_fee');
@@ -572,7 +614,7 @@ export default class max extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawalEnabled,
                     'fee': this.safeNumber (network, 'withdrawal_fee'),
-                    'precision': this.safeInteger (network, 'precision'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (network, 'min_withdrawal_amount'),
@@ -589,6 +631,8 @@ export default class max extends Exchange {
                 'type': type,
                 'name': undefined,
                 'active': true,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fiat': fiat,
                 'fee': withdrawalFee, // Use the first network's fee as default
                 'precision': precision,
