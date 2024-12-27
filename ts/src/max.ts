@@ -377,8 +377,8 @@ export default class max extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Wallet/operation/getApiV3WalletPathWalletTypeAccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
-     * @param {string} [params.currency] Filter response to show only specific currency balance
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {string|undefined} [params.currency] Filter response to show only specific currency balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
@@ -630,6 +630,7 @@ export default class max extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (1-300, default 300)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean|undefined} params.sort_by_price sorting by price or by ticker position
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -871,8 +872,8 @@ export default class max extends Exchange {
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Public/operation/getApiV3K
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch (1-10000, default 30)
+     * @param {int|undefined} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int|undefined} [limit] the maximum amount of candles to fetch (1-10000, default 30)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -912,11 +913,11 @@ export default class max extends Exchange {
      * @name max#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Order/operation/getApiV3WalletPathWalletTypeOrdersOpen
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of open orders structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} symbol unified market symbol
+     * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
+     * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -950,8 +951,8 @@ export default class max extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.client_oid] client-assigned order ID. Can be used instead of exchange order ID
-     * @param {string} [params.clientOrderId] Alias for client_oid parameter
+     * @param {string|undefined} [params.client_oid] client-assigned order ID. Can be used instead of exchange order ID
+     * @param {string|undefined} [params.clientOrderId] Alias for client_oid parameter
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -981,12 +982,12 @@ export default class max extends Exchange {
      * @name max#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Order/operation/getApiV3WalletPathWalletTypeOrdersHistory
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] not used by max fetchOrders
-     * @param {int} [limit] the maximum number of order structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} symbol unified market symbol of the market orders were made in
+     * @param {int|undefined} [since] not used by max fetchOrders
+     * @param {int|undefined} [limit] the maximum number of order structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
-     * @param {int} [params.fromId] fetch orders from order id (this is the more efficient way to fetch orders in MAX)
+     * @param {int|undefined} [params.fromId] fetch orders from order id (this is the more efficient way to fetch orders in MAX)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1018,11 +1019,11 @@ export default class max extends Exchange {
      * @name max#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Order/operation/getApiV3WalletPathWalletTypeOrdersClosed
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of closed orders structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} symbol unified market symbol of the market orders were made in
+     * @param {int|undefined} [since] the earliest time in ms to fetch orders for
+     * @param {int|undefined} [limit] the maximum number of closed orders structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1143,11 +1144,11 @@ export default class max extends Exchange {
      * @name max#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Trade/operation/getApiV3WalletPathWalletTypeTrades
-     * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for, must be between 1512950400000 and 4102444800000
-     * @param {int} [limit] the maximum number of trades structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} symbol unified market symbol
+     * @param {int|undefined} [since] the earliest time in ms to fetch trades for, must be between 1512950400000 and 4102444800000
+     * @param {int|undefined} [limit] the maximum number of trades structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1255,14 +1256,14 @@ export default class max extends Exchange {
      * @param {string} type 'market', 'limit', 'post_only', 'stop_market', 'stop_limit', 'ioc_limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the max api endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
-     * @param {string} [params.clientOrderId] client identifier, defaults to uuid if not passed
-     * @param {int} [params.groupId] group identifier for orders
-     * @param {boolean} [params.postOnly] if true, the order will be executed as a post-only order
-     * @param {string} [params.timeInForce] 'IOC', or 'PO'
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {float|undefined} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {string|undefined} [params.clientOrderId] client identifier, defaults to uuid if not passed
+     * @param {int|undefined} [params.groupId] group identifier for orders
+     * @param {boolean|undefined} [params.postOnly] if true, the order will be executed as a post-only order
+     * @param {string|undefined} [params.timeInForce] 'IOC', or 'PO'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1357,6 +1358,7 @@ export default class max extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string|undefined} params.client_oid user specific order id. maximum length of client_oid must less or equal to 36. persistence, server will validate uniqueness within 24 hours only
      * @returns {object} a response object with a boolean indicating success - {success: true}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1384,9 +1386,9 @@ export default class max extends Exchange {
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Order/operation/deleteApiV3WalletPathWalletTypeOrders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
-     * @param {string} [params.side] "sell" or "buy"
-     * @param {int} [params.group_id] group order id, ex. 123
+     * @param {string|undefined} [params.marginMode] 'isolated' for isolated margin trading, default is undefined for spot trading
+     * @param {string|undefined} [params.side] "sell" or "buy"
+     * @param {int|undefined} [params.group_id] group order id, ex. 123
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1494,12 +1496,12 @@ export default class max extends Exchange {
      * @name max#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Transaction/operation/getApiV3Withdrawals
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch withdrawals for
-     * @param {int} [limit] the maximum number of withdrawals structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} code unified currency code
+     * @param {int|undefined} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int|undefined} [limit] the maximum number of withdrawals structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.state] Filter by withdrawal state ('processing', 'failed', 'canceled', 'done')
-     * @param {int} [params.timestamp] Alternative to 'since' parameter, in milliseconds (1512950400000 to 4102444800000)
+     * @param {string|undefined} [params.state] Filter by withdrawal state ('processing', 'failed', 'canceled', 'done')
+     * @param {int|undefined} [params.timestamp] Alternative to 'since' parameter, in milliseconds (1512950400000 to 4102444800000)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1644,12 +1646,12 @@ export default class max extends Exchange {
      * @name max#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Transaction/operation/getApiV3Deposits
-     * @param {string} code unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits for
-     * @param {int} [limit] the maximum number of deposits structures to retrieve (1-1000, default 50)
+     * @param {string|undefined} code unified currency code
+     * @param {int|undefined} [since] the earliest time in ms to fetch deposits for
+     * @param {int|undefined} [limit] the maximum number of deposits structures to retrieve (1-1000, default 50)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.limit] Default: 50, returned limit (1~1000, default 50)
-     * @param {int} [params.timestamp] Alternative to 'since' parameter, in milliseconds (1512950400000 to 4102444800000)
+     * @param {string|undefined} [params.limit] Default: 50, returned limit (1~1000, default 50)
+     * @param {int|undefined} [params.timestamp] Alternative to 'since' parameter, in milliseconds (1512950400000 to 4102444800000)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1789,9 +1791,9 @@ export default class max extends Exchange {
      * @method
      * @name max#fetchDepositsWithdrawals
      * @description fetch all deposits and withdrawals made to an account
-     * @param {string} [code] unified currency code
-     * @param {int} [since] the earliest time in ms to fetch deposits/withdrawals for
-     * @param {int} [limit] the maximum number of deposits/withdrawals structures to retrieve
+     * @param {string|undefined} [code] unified currency code
+     * @param {int|undefined} [since] the earliest time in ms to fetch deposits/withdrawals for
+     * @param {int|undefined} [limit] the maximum number of deposits/withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
@@ -1817,11 +1819,11 @@ export default class max extends Exchange {
      * @description fetch all trades made from a specific order
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Trade/operation/getApiV3OrderTrades
      * @param {string} id order id
-     * @param {string} [symbol] not used by max fetchOrderTrades()
-     * @param {int} [since] not used by max fetchOrderTrades()
-     * @param {int} [limit] not used by max fetchOrderTrades()
+     * @param {string|undefined} [symbol] not used by max fetchOrderTrades()
+     * @param {int|undefined} [since] not used by max fetchOrderTrades()
+     * @param {int|undefined} [limit] not used by max fetchOrderTrades()
      * @param {object} [params] extra parameters specific to the max api endpoint
-     * @param {string} [params.clientOrderId] client order id as alternative to order id
+     * @param {string|undefined} [params.clientOrderId] client order id as alternative to order id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1954,7 +1956,7 @@ export default class max extends Exchange {
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Wallet/operation/getApiV3DepositAddress
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the max api endpoint
-     * @param {string} [params.network] deposit chain/network, if the currency supports multiple chains
+     * @param {string|undefined} [params.network] deposit chain/network, if the currency supports multiple chains
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
@@ -2017,7 +2019,7 @@ export default class max extends Exchange {
      * @see https://max.maicoin.com/documents/api_list/v3#tag/Wallet/operation/getApiV3DepositAddress
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the max api endpoint
-     * @param {string} [params.network] deposit chain/network, if the currency supports multiple chains
+     * @param {string|undefined} [params.network] deposit chain/network, if the currency supports multiple chains
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async createDepositAddress (code: string, params = {}) {
