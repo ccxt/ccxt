@@ -3913,15 +3913,20 @@ export default class Exchange {
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);
             let response = undefined;
             let retry = 0;
+            let shouldBreak = false;
             while (retry < maxRetries) {
                 try {
                     response = await this[endpointMethod] ({});
+                    shouldBreak = true;
                     break;
                 } catch (e) {
                     retry = retry + 1;
                     if (retry === maxRetries) {
                         throw e;
                     }
+                }
+                if (shouldBreak) {
+                    break; // this is needed because of GO
                 }
             }
             let content = response;
