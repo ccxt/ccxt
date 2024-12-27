@@ -280,7 +280,9 @@
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3615",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609"
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269331129#L3609",
+                "vwap": "incorrect",
+                "quoteVolume": "incorrect"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269177564#L3946"
