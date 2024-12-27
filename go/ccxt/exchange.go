@@ -28,6 +28,7 @@ type Exchange struct {
 	Currencies_by_id    map[string]interface{}
 	Currencies          map[string]interface{}
 	RequiredCredentials map[string]interface{}
+	HttpExceptions      map[string]interface{}
 	MarketsById         map[string]interface{}
 	Timeframes          map[string]interface{}
 	Features            map[string]interface{}

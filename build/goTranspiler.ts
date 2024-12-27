@@ -134,6 +134,7 @@ const VIRTUAL_BASE_METHODS = [
     "parseDepositWithdrawFee",
     "parseBorrowRate",
     "parseOpenInterest",
+    "parseBidsAsks",
     "fetchTime",
     "sign"
 ]

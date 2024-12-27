@@ -2095,6 +2095,27 @@ func (this *CreateDepositAddressOptionsStruct) WithParams(params map[string]inte
 }
 
 
+type FetchOpenInterestsOptionsStruct struct {
+    Symbols *[]string
+    Params *map[string]interface{}
+}
+
+type FetchOpenInterestsOptions func(opts *FetchOpenInterestsOptionsStruct)
+
+func (this *FetchOpenInterestsOptionsStruct) WithSymbols(symbols []string) FetchOpenInterestsOptions {
+    return func(opts *FetchOpenInterestsOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
+func (this *FetchOpenInterestsOptionsStruct) WithParams(params map[string]interface{}) FetchOpenInterestsOptions {
+    return func(opts *FetchOpenInterestsOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchLiquidationsOptionsStruct struct {
     Since *int64
     Limit *int64
@@ -3725,27 +3746,6 @@ func (this *FetchOpenOrdersV2OptionsStruct) WithLimit(limit int64) FetchOpenOrde
 
 func (this *FetchOpenOrdersV2OptionsStruct) WithParams(params map[string]interface{}) FetchOpenOrdersV2Options {
     return func(opts *FetchOpenOrdersV2OptionsStruct) {
-        opts.Params = &params
-    }
-}
-
-
-type FetchOpenInterestsOptionsStruct struct {
-    Symbols *[]string
-    Params *map[string]interface{}
-}
-
-type FetchOpenInterestsOptions func(opts *FetchOpenInterestsOptionsStruct)
-
-func (this *FetchOpenInterestsOptionsStruct) WithSymbols(symbols []string) FetchOpenInterestsOptions {
-    return func(opts *FetchOpenInterestsOptionsStruct) {
-        opts.Symbols = &symbols
-    }
-}
-
-
-func (this *FetchOpenInterestsOptionsStruct) WithParams(params map[string]interface{}) FetchOpenInterestsOptions {
-    return func(opts *FetchOpenInterestsOptionsStruct) {
         opts.Params = &params
     }
 }

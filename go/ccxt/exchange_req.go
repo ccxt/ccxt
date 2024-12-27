@@ -148,39 +148,56 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// strings.NewReader()
 		// Send the request
 		resp, err := client.Do(req)
-		if err != nil {
-			panic(fmt.Sprintf("request failed: %v", err))
-		}
-		defer resp.Body.Close()
 
 		// Read the response body
 		// respBody, err := ioutil.ReadAll(resp.Body)
 		var respBody []byte
 
-		if resp.Header.Get("Content-Encoding") == "gzip" {
-			gzipReader, err := gzip.NewReader(resp.Body)
-			if err != nil {
-				panic(fmt.Sprintf("Error creating gzip reader: %s", err))
-			}
-			defer gzipReader.Close()
+		if resp == nil {
+			// when resp is nil: The request failed at the transport level (e.g., network issue, DNS lookup failure).
+			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
+			panic(networkError)
+		}
 
-			decompressedData, err := io.ReadAll(gzipReader)
-			if err != nil {
-				panic(fmt.Sprintf("Error reading decompressed data: %s", err))
+		if err == nil {
+			defer resp.Body.Close()
+			if resp.Header.Get("Content-Encoding") == "gzip" {
+				gzipReader, err := gzip.NewReader(resp.Body)
+				if err != nil {
+					panic(fmt.Sprintf("Error creating gzip reader: %s", err))
+				}
+				defer gzipReader.Close()
+
+				decompressedData, err := io.ReadAll(gzipReader)
+				if err != nil {
+					panic(fmt.Sprintf("Error reading decompressed data: %s", err))
+				}
+				respBody = decompressedData
+			} else {
+				respBodyAux, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					panic(fmt.Sprintf("failed to read response body: %v", err))
+				}
+				respBody = respBodyAux
 			}
-			respBody = decompressedData
-		} else {
-			respBodyAux, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				panic(fmt.Sprintf("failed to read response body: %v", err))
-			}
-			respBody = respBodyAux
+		}
+
+		statusText := http.StatusText(resp.StatusCode)
+		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, respBody, respBody, headers, body)
+
+		if handleErrorResult == nil {
+			this.HandleHttpStatusCode(resp.StatusCode, statusText, urlStr, methodStr, respBody)
 		}
 
 		// Check for HTTP errors
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			// add handle http status()
 			panic(fmt.Sprintf("HTTP request failed with status code %d: %s", resp.StatusCode, string(respBody)))
+		}
+
+		// only handling failure here
+		if err != nil {
+			panic(fmt.Sprintf("request failed: %v", err))
 		}
 
 		// Log the response (for debugging purposes)
@@ -197,4 +214,17 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		ch <- result
 	}()
 	return ch
+}
+
+func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{}, url interface{}, method interface{}, body interface{}) {
+
+	codeString := ToString(code)
+	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)
+
+	if codeinHttpExceptions != nil {
+		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
+		errorException := CreateError(ToString(codeinHttpExceptions), errorMessage)
+		panic(errorException)
+	}
+
 }

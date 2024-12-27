@@ -342,6 +342,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         mexcItf := &mexc{}
         mexcItf.Init(exchangeArgs)
         return mexcItf, true
+    case "myokx":
+        myokxItf := &myokx{}
+        myokxItf.Init(exchangeArgs)
+        return myokxItf, true
     case "ndax":
         ndaxItf := &ndax{}
         ndaxItf.Init(exchangeArgs)

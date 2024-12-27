@@ -387,4 +387,6 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)
 	this.NewUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
 	this.Accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
+
+	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
 }
