@@ -141,11 +141,19 @@ echo "$msgPrefix Unimportant changes detected - build & test only specific excha
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
+pattern_static_request='ts\/src\/test\/static\/request\/([A-Za-z0-9_-]+).json'
+pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+).json'
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
 for file in "${y[@]}"; do
   if [[ "$file" =~ $rest_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    REST_EXCHANGES+=($modified_exchange)
+  elif [[ "$file" =~ $pattern_static_request ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    REST_EXCHANGES+=($modified_exchange)
+  elif [[ "$file" =~ $pattern_static_response ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     REST_EXCHANGES+=($modified_exchange)
   elif [[ "$file" =~ $ws_pattern ]]; then
