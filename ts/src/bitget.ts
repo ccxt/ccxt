@@ -1543,14 +1543,11 @@ export default class bitget extends Exchange {
                         },
                         'hedged': true,
                         'trailing': true,
-                        'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
-                        // exchange-supported features
-                        // 'selfTradePrevention': true,
-                        // 'trailing': true,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        'leverage': false,
+                        'selfTradePrevention': true, // todo
+                        'iceberg': false,
                     },
                     'fetchMyTrades': {
                         'untilDays': 7,
