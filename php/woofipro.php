@@ -314,8 +314,11 @@ class woofipro extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
-                        // exchange specific
-                        // 'iceberg' => true,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
                         'max' => 10,

@@ -320,8 +320,11 @@ class woofipro extends woofipro$1 {
                         },
                         'hedged': false,
                         'trailing': true,
-                        // exchange specific
-                        // 'iceberg': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 10,

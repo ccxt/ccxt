@@ -449,6 +449,11 @@ export default class kraken extends Exchange {
                         },
                         'hedged': false,
                         'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {

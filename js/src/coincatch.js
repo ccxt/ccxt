@@ -843,8 +843,8 @@ export default class coincatch extends Exchange {
             settleId = this.safeString(supportMarginCoins, 0);
             settle = this.safeCurrencyCode(settleId);
             suffix = ':' + settle;
-            isLinear = baseId === settleId; // todo check
-            isInverse = quoteId === settleId; // todo check
+            isLinear = quoteId === settleId; // todo check
+            isInverse = baseId === settleId; // todo check
             if (isLinear) {
                 subType = 'linear';
             }

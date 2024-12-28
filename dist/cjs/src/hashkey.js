@@ -355,13 +355,11 @@ class hashkey extends hashkey$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': false,
-                        // 'marketBuyByCost': false,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 20,

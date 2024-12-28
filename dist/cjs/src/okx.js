@@ -1180,7 +1180,6 @@ class okx extends okx$1 {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': true,
                     'createOrder': {
@@ -1209,12 +1208,12 @@ class okx extends okx$1 {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': true,
                         'iceberg': true,
-                        'oco': true,
+                        'leverage': false,
+                        'selfTradePrevention': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                     },
                     'createOrders': {
                         'max': 20,

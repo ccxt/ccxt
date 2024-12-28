@@ -515,11 +515,11 @@ class coinex extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice' => true,
-                        // 'marketBuyByCost' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'iceberg' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => true, // todo => implement
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
                         'max' => 5,

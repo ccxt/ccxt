@@ -343,6 +343,11 @@ public partial class kucoinfutures : kucoin
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 20 },

@@ -343,6 +343,9 @@ public partial class cryptocom : Exchange
                         { "selfTradePrevention", true },
                         { "trailing", false },
                         { "iceberg", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },

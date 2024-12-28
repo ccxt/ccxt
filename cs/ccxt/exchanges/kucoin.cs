@@ -848,6 +848,11 @@ public partial class kucoin : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 5 },

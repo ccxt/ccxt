@@ -1103,12 +1103,12 @@ class bybit extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -1147,29 +1147,13 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        'marginMode' => false,
-                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => true,
-                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
                             'limitPrice' => true,
                         ),
-                        'timeInForce' => array(
-                            'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
-                            'GTD' => false,
-                        ),
-                        'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
-                        'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => false,
-                        'oco' => false,
+                        'marketBuyRequiresPrice' => true,
                     ),
                 ),
                 'swap' => array(
@@ -2094,6 +2078,7 @@ class bybit extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
                     'type' => 'option',
+                    'subType' => 'linear',
                     'spot' => false,
                     'margin' => false,
                     'swap' => false,
@@ -2101,8 +2086,8 @@ class bybit extends Exchange {
                     'option' => true,
                     'active' => $isActive,
                     'contract' => true,
-                    'linear' => null,
-                    'inverse' => null,
+                    'linear' => true,
+                    'inverse' => false,
                     'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                     'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                     'contractSize' => $this->parse_number('1'),

@@ -504,9 +504,12 @@ public partial class mexc : Exchange
                             { "PO", true },
                             { "GTD", false },
                         } },
-                        { "hedged", false },
-                        { "selfTradePrevention", false },
+                        { "hedged", true },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
                         { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
@@ -566,10 +569,10 @@ public partial class mexc : Exchange
                         { "stopLossPrice", false },
                         { "takeProfitPrice", false },
                         { "hedged", true },
+                        { "leverage", true },
+                        { "marketBuyByCost", false },
                     } },
-                    { "createOrders", new Dictionary<string, object>() {
-                        { "max", 50 },
-                    } },
+                    { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },

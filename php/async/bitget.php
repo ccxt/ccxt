@@ -7014,8 +7014,10 @@ class bitget extends Exchange {
             //         ),
             //     )
             // }
+            $symbols = $this->market_symbols($symbols);
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_funding_rates($data, $market);
+            $result = $this->parse_funding_rates($data, $market);
+            return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
     }
 

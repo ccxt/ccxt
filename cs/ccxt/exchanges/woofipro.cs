@@ -306,6 +306,11 @@ public partial class woofipro : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", true },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },

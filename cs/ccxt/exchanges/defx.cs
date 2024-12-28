@@ -960,11 +960,11 @@ public partial class defx : Exchange
         object id = this.safeString(trade, "id");
         object oid = this.safeString(trade, "orderId");
         object takerOrMaker = this.safeStringLower(trade, "role");
-        object buyerMaker = this.safeString(trade, "buyerMaker");
+        object buyerMaker = this.safeBool(trade, "buyerMaker");
         object side = this.safeStringLower(trade, "side");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
-            if (isTrue(isEqual(buyerMaker, "true")))
+            if (isTrue(buyerMaker))
             {
                 side = "sell";
             } else
