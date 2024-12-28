@@ -1057,6 +1057,668 @@
                   }
                 ]
               }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "29162446",
+                      "amount": "29162.446000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761301608.157400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8142.478",
+                      "trade_volume": "8142478",
+                      "trade_turnover": "772388837.3592",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  ],
+                  "ts": "1735383186448"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "baseVolume": 29162446,
+                  "quoteVolume": 2761301608.1574,
+                  "openInterestAmount": 29162446,
+                  "openInterestValue": 2761301608.1574,
+                  "timestamp": 1735383186448,
+                  "datetime": "2024-12-28T10:53:06.448Z",
+                  "info": {
+                    "volume": "29162446",
+                    "amount": "29162.446000000000000000",
+                    "symbol": "BTC",
+                    "value": "2761301608.157400000000000000",
+                    "contract_code": "BTC-USDT",
+                    "trade_amount": "8142.478",
+                    "trade_volume": "8142478",
+                    "trade_turnover": "772388837.3592",
+                    "business_type": "swap",
+                    "pair": "BTC-USDT",
+                    "contract_type": "swap",
+                    "trade_partition": "USDT"
+                  }
+                }
+            },
+            {
+                "description": "inverse swap fetch open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "358158.000000000000000000",
+                      "amount": "378.400136924647070383",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "116.9397254894748133599845592591834559263",
+                      "trade_volume": "110724",
+                      "trade_turnover": "11072400.000000000000000000"
+                    }
+                  ],
+                  "ts": "1735383301024"
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USD:BTC",
+                  "baseVolume": 358158,
+                  "quoteVolume": null,
+                  "openInterestAmount": 358158,
+                  "openInterestValue": null,
+                  "timestamp": 1735383301024,
+                  "datetime": "2024-12-28T10:55:01.024Z",
+                  "info": {
+                    "volume": "358158.000000000000000000",
+                    "amount": "378.400136924647070383",
+                    "symbol": "BTC",
+                    "contract_code": "BTC-USD",
+                    "trade_amount": "116.9397254894748133599845592591834559263",
+                    "trade_volume": "110724",
+                    "trade_turnover": "11072400.000000000000000000"
+                  }
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "inverse swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "231391.000000000000000000",
+                      "amount": "1073301.853535447241961519",
+                      "symbol": "XRP",
+                      "contract_code": "XRP-USD",
+                      "trade_amount": "878789.8722867232510360793169418857709672311",
+                      "trade_volume": "189372",
+                      "trade_turnover": "1893720.000000000000000000"
+                    },
+                    {
+                      "volume": "358165.000000000000000000",
+                      "amount": "378.679187631564757614",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "117.0178362634861033342502886349856939548",
+                      "trade_volume": "110800",
+                      "trade_turnover": "11080000.000000000000000000"
+                    },
+                    {
+                      "volume": "42608.000000000000000000",
+                      "amount": "490444.459536145070634914",
+                      "symbol": "ADA",
+                      "contract_code": "ADA-USD",
+                      "trade_amount": "939951.7861933000483488196333556351784453272",
+                      "trade_volume": "82736",
+                      "trade_turnover": "827360.000000000000000000"
+                    }
+                  ],
+                  "ts": "1735382530465"
+                },
+                "parsedResponse": {
+                  "BTC/USD:BTC": {
+                    "symbol": "BTC/USD:BTC",
+                    "baseVolume": 358165,
+                    "quoteVolume": null,
+                    "openInterestAmount": 358165,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "358165.000000000000000000",
+                      "amount": "378.679187631564757614",
+                      "symbol": "BTC",
+                      "contract_code": "BTC-USD",
+                      "trade_amount": "117.0178362634861033342502886349856939548",
+                      "trade_volume": "110800",
+                      "trade_turnover": "11080000.000000000000000000"
+                    }
+                  }
+                }
+            },
+            {
+                "description": "linear swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "4941204",
+                      "amount": "4941204000000.000000000000000000",
+                      "symbol": "SATS",
+                      "value": "865698.940800000000000000",
+                      "contract_code": "SATS-USDT",
+                      "trade_amount": "1917446000000",
+                      "trade_volume": "1917446",
+                      "trade_turnover": "338799.9488",
+                      "business_type": "swap",
+                      "pair": "SATS-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    },
+                    {
+                      "volume": "29163579",
+                      "amount": "29163.579000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761750102.289400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8225.994",
+                      "trade_volume": "8225994",
+                      "trade_turnover": "780469490.0094",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    },
+                    {
+                      "volume": "91348",
+                      "amount": "91348.000000000000000000",
+                      "symbol": "ZRO",
+                      "value": "485880.012000000000000000",
+                      "contract_code": "ZRO-USDT",
+                      "trade_amount": "75458",
+                      "trade_volume": "75458",
+                      "trade_turnover": "416536.154",
+                      "business_type": "swap",
+                      "pair": "ZRO-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  ],
+                  "ts": "1735382711003"
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": 29163579,
+                    "quoteVolume": 2761750102.2894,
+                    "openInterestAmount": 29163579,
+                    "openInterestValue": 2761750102.2894,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "29163579",
+                      "amount": "29163.579000000000000000",
+                      "symbol": "BTC",
+                      "value": "2761750102.289400000000000000",
+                      "contract_code": "BTC-USDT",
+                      "trade_amount": "8225.994",
+                      "trade_volume": "8225994",
+                      "trade_turnover": "780469490.0094",
+                      "business_type": "swap",
+                      "pair": "BTC-USDT",
+                      "contract_type": "swap",
+                      "trade_partition": "USDT"
+                    }
+                  }
+                }
+            },
+            {
+                "description": "future fetch open interests",
+                "method": "fetchOpenInterests",
+                "input": [
+                  null,
+                  {
+                    "type": "future"
+                  }
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "LOOKS",
+                      "contract_type": "this_week",
+                      "contract_code": "LOOKS250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "DORA",
+                      "contract_type": "this_week",
+                      "contract_code": "DORA250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "345.000000000000000000",
+                      "amount": "0.363901172457934079",
+                      "symbol": "BTC",
+                      "contract_type": "next_week",
+                      "contract_code": "BTC250110",
+                      "trade_amount": "5.9082583502900634148446154454942885232",
+                      "trade_volume": "5614",
+                      "trade_turnover": "561400.000000000000000000"
+                    },
+                    {
+                      "volume": "3615.000000000000000000",
+                      "amount": "3.696543910391276360",
+                      "symbol": "BTC",
+                      "contract_type": "quarter",
+                      "contract_code": "BTC250328",
+                      "trade_amount": "9.8739847703456006628777486162756534142",
+                      "trade_volume": "9664",
+                      "trade_turnover": "966400.000000000000000000"
+                    },
+                    {
+                      "volume": "304.000000000000000000",
+                      "amount": "0.908733557228542005",
+                      "symbol": "ETH",
+                      "contract_type": "this_week",
+                      "contract_code": "ETH250103",
+                      "trade_amount": "148.0464362826000722479854040233563666996",
+                      "trade_volume": "49598",
+                      "trade_turnover": "495980.000000000000000000"
+                    },
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "VRA",
+                      "contract_type": "this_week",
+                      "contract_code": "VRA250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "1314.000000000000000000",
+                      "amount": "50761.029127713822143243",
+                      "symbol": "TRX",
+                      "contract_type": "this_week",
+                      "contract_code": "TRX250103",
+                      "trade_amount": "379189.0289107008305540346113208759328056639",
+                      "trade_volume": "9874",
+                      "trade_turnover": "98740.000000000000000000"
+                    },
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "CEEK",
+                      "contract_type": "this_week",
+                      "contract_code": "CEEK250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "439.000000000000000000",
+                      "amount": "16962.905718701700154559",
+                      "symbol": "TRX",
+                      "contract_type": "next_week",
+                      "contract_code": "TRX250110",
+                      "trade_amount": "509798.491371479065308766706399850872068447",
+                      "trade_volume": "13288",
+                      "trade_turnover": "132880.000000000000000000"
+                    },
+                    {
+                      "volume": "76.000000000000000000",
+                      "amount": "0.226581936947613361",
+                      "symbol": "ETH",
+                      "contract_type": "next_week",
+                      "contract_code": "ETH250110",
+                      "trade_amount": "26.7705432544718932184044222921582386065",
+                      "trade_volume": "8990",
+                      "trade_turnover": "89900.000000000000000000"
+                    },
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "CLV",
+                      "contract_type": "this_week",
+                      "contract_code": "CLV250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "SIS",
+                      "contract_type": "this_week",
+                      "contract_code": "SIS250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    },
+                    {
+                      "volume": "1576.000000000000000000",
+                      "amount": "1.664138077844493476",
+                      "symbol": "BTC",
+                      "contract_type": "this_week",
+                      "contract_code": "BTC250103",
+                      "trade_amount": "5.9398160514962076268608242130078560546",
+                      "trade_volume": "5634",
+                      "trade_turnover": "563400.000000000000000000"
+                    },
+                    {
+                      "volume": "4913.000000000000000000",
+                      "amount": "14.206870307149470849",
+                      "symbol": "ETH",
+                      "contract_type": "quarter",
+                      "contract_code": "ETH250328",
+                      "trade_amount": "76.9874251675254838648353812111165824925",
+                      "trade_volume": "26594",
+                      "trade_turnover": "265940.000000000000000000"
+                    }
+                  ],
+                  "ts": "1735383040939"
+                },
+                "parsedResponse": {
+                  "LOOKS250103": {
+                    "symbol": "LOOKS250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "LOOKS",
+                      "contract_type": "this_week",
+                      "contract_code": "LOOKS250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "DORA250103": {
+                    "symbol": "DORA250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "DORA",
+                      "contract_type": "this_week",
+                      "contract_code": "DORA250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "BTC/USD:BTC-250110": {
+                    "symbol": "BTC/USD:BTC-250110",
+                    "baseVolume": 345,
+                    "quoteVolume": null,
+                    "openInterestAmount": 345,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "345.000000000000000000",
+                      "amount": "0.363901172457934079",
+                      "symbol": "BTC",
+                      "contract_type": "next_week",
+                      "contract_code": "BTC250110",
+                      "trade_amount": "5.9082583502900634148446154454942885232",
+                      "trade_volume": "5614",
+                      "trade_turnover": "561400.000000000000000000"
+                    }
+                  },
+                  "BTC/USD:BTC-250328": {
+                    "symbol": "BTC/USD:BTC-250328",
+                    "baseVolume": 3615,
+                    "quoteVolume": null,
+                    "openInterestAmount": 3615,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "3615.000000000000000000",
+                      "amount": "3.696543910391276360",
+                      "symbol": "BTC",
+                      "contract_type": "quarter",
+                      "contract_code": "BTC250328",
+                      "trade_amount": "9.8739847703456006628777486162756534142",
+                      "trade_volume": "9664",
+                      "trade_turnover": "966400.000000000000000000"
+                    }
+                  },
+                  "ETH/USD:ETH-250103": {
+                    "symbol": "ETH/USD:ETH-250103",
+                    "baseVolume": 304,
+                    "quoteVolume": null,
+                    "openInterestAmount": 304,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "304.000000000000000000",
+                      "amount": "0.908733557228542005",
+                      "symbol": "ETH",
+                      "contract_type": "this_week",
+                      "contract_code": "ETH250103",
+                      "trade_amount": "148.0464362826000722479854040233563666996",
+                      "trade_volume": "49598",
+                      "trade_turnover": "495980.000000000000000000"
+                    }
+                  },
+                  "VRA250103": {
+                    "symbol": "VRA250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "VRA",
+                      "contract_type": "this_week",
+                      "contract_code": "VRA250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "TRX/USD:TRX-250103": {
+                    "symbol": "TRX/USD:TRX-250103",
+                    "baseVolume": 1314,
+                    "quoteVolume": null,
+                    "openInterestAmount": 1314,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "1314.000000000000000000",
+                      "amount": "50761.029127713822143243",
+                      "symbol": "TRX",
+                      "contract_type": "this_week",
+                      "contract_code": "TRX250103",
+                      "trade_amount": "379189.0289107008305540346113208759328056639",
+                      "trade_volume": "9874",
+                      "trade_turnover": "98740.000000000000000000"
+                    }
+                  },
+                  "CEEK250103": {
+                    "symbol": "CEEK250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "CEEK",
+                      "contract_type": "this_week",
+                      "contract_code": "CEEK250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "TRX/USD:TRX-250110": {
+                    "symbol": "TRX/USD:TRX-250110",
+                    "baseVolume": 439,
+                    "quoteVolume": null,
+                    "openInterestAmount": 439,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "439.000000000000000000",
+                      "amount": "16962.905718701700154559",
+                      "symbol": "TRX",
+                      "contract_type": "next_week",
+                      "contract_code": "TRX250110",
+                      "trade_amount": "509798.491371479065308766706399850872068447",
+                      "trade_volume": "13288",
+                      "trade_turnover": "132880.000000000000000000"
+                    }
+                  },
+                  "ETH/USD:ETH-250110": {
+                    "symbol": "ETH/USD:ETH-250110",
+                    "baseVolume": 76,
+                    "quoteVolume": null,
+                    "openInterestAmount": 76,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "76.000000000000000000",
+                      "amount": "0.226581936947613361",
+                      "symbol": "ETH",
+                      "contract_type": "next_week",
+                      "contract_code": "ETH250110",
+                      "trade_amount": "26.7705432544718932184044222921582386065",
+                      "trade_volume": "8990",
+                      "trade_turnover": "89900.000000000000000000"
+                    }
+                  },
+                  "CLV250103": {
+                    "symbol": "CLV250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "CLV",
+                      "contract_type": "this_week",
+                      "contract_code": "CLV250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "SIS250103": {
+                    "symbol": "SIS250103",
+                    "baseVolume": 0,
+                    "quoteVolume": null,
+                    "openInterestAmount": 0,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "0",
+                      "amount": "0",
+                      "symbol": "SIS",
+                      "contract_type": "this_week",
+                      "contract_code": "SIS250103",
+                      "trade_amount": "0",
+                      "trade_volume": "0",
+                      "trade_turnover": "0E-18"
+                    }
+                  },
+                  "BTC/USD:BTC-250103": {
+                    "symbol": "BTC/USD:BTC-250103",
+                    "baseVolume": 1576,
+                    "quoteVolume": null,
+                    "openInterestAmount": 1576,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "1576.000000000000000000",
+                      "amount": "1.664138077844493476",
+                      "symbol": "BTC",
+                      "contract_type": "this_week",
+                      "contract_code": "BTC250103",
+                      "trade_amount": "5.9398160514962076268608242130078560546",
+                      "trade_volume": "5634",
+                      "trade_turnover": "563400.000000000000000000"
+                    }
+                  },
+                  "ETH/USD:ETH-250328": {
+                    "symbol": "ETH/USD:ETH-250328",
+                    "baseVolume": 4913,
+                    "quoteVolume": null,
+                    "openInterestAmount": 4913,
+                    "openInterestValue": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                      "volume": "4913.000000000000000000",
+                      "amount": "14.206870307149470849",
+                      "symbol": "ETH",
+                      "contract_type": "quarter",
+                      "contract_code": "ETH250328",
+                      "trade_amount": "76.9874251675254838648353812111165824925",
+                      "trade_volume": "26594",
+                      "trade_turnover": "265940.000000000000000000"
+                    }
+                  }
+                }
+            }
         ]
     }
 }
