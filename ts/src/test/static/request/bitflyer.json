@@ -13,6 +13,20 @@
                   "BTC/JPY:JPY"
                 ]
             }
-        ]
+        ],
+        "fetchMarkets": {
+            "description": "Fetch Markets",
+            "method": "fetchMarkets",
+            "url": "https://api.bitflyer.com/v1/getmarkets/eu",
+            "input": []
+        },
+        "fetchTicker": {
+            "description": "Fetch Ticker",
+            "method": "fetchTicker",
+            "url": "https://api.bitflyer.com/v1/getticker?product_code=FX_BTC_JPY",
+            "input": [
+              "BTC/JPY:JPY"
+            ]
+        }
     }
 }
