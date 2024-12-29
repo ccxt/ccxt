@@ -499,15 +499,15 @@ class NewTranspiler {
     }
 
     convertParamsToGo(methodName: string, params: any[]): string {
-        const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
-        if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
-            // handle params = {}
-            return 'params ...interface{}';
-        }
+        // const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
+        // if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
+        //     // handle params = {}
+        //     return 'params ...interface{}';
+        // }
         const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param)).join(', ');
-        if (!needsVariadicOptions) {
-            return paramsParsed;
-        }
+        // if (!needsVariadicOptions) {
+        //     return paramsParsed;
+        // }
         return paramsParsed;
         // const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
         // const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
