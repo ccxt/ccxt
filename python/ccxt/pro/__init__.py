@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.42'
+__version__ = '4.4.43'
 
 # ----------------------------------------------------------------------------
 
@@ -68,6 +68,7 @@ from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
@@ -144,6 +145,7 @@ exchanges = [
     'lbank',
     'luno',
     'mexc',
+    'myokx',
     'ndax',
     'okcoin',
     'okx',

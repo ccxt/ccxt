@@ -704,14 +704,11 @@ class bitmart extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        'marketBuyRequiresPrice' => true,
+                        'marketBuyRequiresPrice' => false, // todo => https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
                         'marketBuyByCost' => true,
-                        // exchange-supported features
-                        // 'leverage' => true,
-                        // 'selfTradePrevention' => false,
-                        // 'twap' => false,
-                        // 'iceberg' => false,
-                        // 'oco' => false,
+                        'leverage' => true, // todo => implement
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,

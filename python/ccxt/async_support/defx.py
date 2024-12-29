@@ -926,10 +926,10 @@ class defx(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         oid = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string_lower(trade, 'role')
-        buyerMaker = self.safe_string(trade, 'buyerMaker')
+        buyerMaker = self.safe_bool(trade, 'buyerMaker')
         side = self.safe_string_lower(trade, 'side')
         if buyerMaker is not None:
-            if buyerMaker == 'true':
+            if buyerMaker:
                 side = 'sell'
             else:
                 side = 'buy'

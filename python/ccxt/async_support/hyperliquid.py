@@ -32,7 +32,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,  # 1200 requests per minute, 20 request per second
-            'certified': False,
+            'certified': True,
             'pro': True,
             'dex': True,
             'has': {
@@ -247,6 +247,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 1000,

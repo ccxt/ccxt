@@ -95,6 +95,7 @@ var luno = require('./src/luno.js');
 var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
+var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
@@ -179,6 +180,7 @@ var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
+var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
@@ -200,7 +202,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.42';
+const version = '4.4.43';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -286,6 +288,7 @@ const exchanges = {
     'lykke': lykke,
     'mercado': mercado,
     'mexc': mexc,
+    'myokx': myokx,
     'ndax': ndax,
     'novadax': novadax,
     'oceanex': oceanex,
@@ -372,6 +375,7 @@ const pro = {
     'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
+    'myokx': myokx$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
@@ -524,6 +528,7 @@ exports.luno = luno;
 exports.lykke = lykke;
 exports.mercado = mercado;
 exports.mexc = mexc;
+exports.myokx = myokx;
 exports.ndax = ndax;
 exports.novadax = novadax;
 exports.oceanex = oceanex;

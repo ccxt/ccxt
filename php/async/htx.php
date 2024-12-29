@@ -1259,9 +1259,11 @@ class htx extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
                         'iceberg' => false,
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,

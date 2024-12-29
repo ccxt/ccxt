@@ -327,8 +327,11 @@ class woofipro(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
-                        # exchange specific
-                        # 'iceberg': True,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 10,

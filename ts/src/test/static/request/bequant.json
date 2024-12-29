@@ -5,7 +5,7 @@
     "methods": {
         "fetchMyTrades": [
             {
-                "description": "Spot private trades",
+                "description": "Spot private trades ",
                 "method": "fetchMyTrades",
                 "url": "https://api.bequant.io/api/3/spot/history/trade?symbol=LTCUSDT&limit=5&from=1699457638000",
                 "input": [

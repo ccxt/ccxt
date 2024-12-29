@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.42';
+const version = '4.4.43';
 
 (Exchange as any).ccxtVersion = version
 
@@ -129,6 +129,7 @@ import luno from  './src/luno.js'
 import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
+import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
@@ -216,6 +217,7 @@ import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
@@ -319,6 +321,7 @@ const exchanges = {
     'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
@@ -406,6 +409,7 @@ const pro = {
     'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
@@ -649,6 +653,7 @@ export {
     lykke,
     mercado,
     mexc,
+    myokx,
     ndax,
     novadax,
     oceanex,

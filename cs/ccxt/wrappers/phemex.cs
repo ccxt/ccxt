@@ -611,6 +611,12 @@ public partial class phemex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
     /// string : *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'

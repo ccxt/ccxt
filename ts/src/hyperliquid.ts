@@ -24,7 +24,7 @@ export default class hyperliquid extends Exchange {
             'countries': [ ],
             'version': 'v1',
             'rateLimit': 50, // 1200 requests per minute, 20 request per second
-            'certified': false,
+            'certified': true,
             'pro': true,
             'dex': true,
             'has': {
@@ -239,6 +239,11 @@ export default class hyperliquid extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 1000,

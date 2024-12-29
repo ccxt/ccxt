@@ -522,11 +522,11 @@ export default class coinex extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': true,
-                        // 'marketBuyByCost': true,
-                        // 'selfTradePrevention': true,
-                        // 'iceberg': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,

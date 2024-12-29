@@ -7,13 +7,13 @@ import path from 'path'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { promisify } from 'util'
-import errors from "../js/src/base/errors.js"
-import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
-import Exchange from '../js/src/base/Exchange.js'
+import errors from "../ts/src/base/errors.js"
+import {unCamelCase, precisionConstants, safeString, unique} from "../ts/src/base/functions.js"
+import Exchange from '../ts/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import errorHierarchy from '../js/src/base/errorHierarchy.js'
+import errorHierarchy from '../ts/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
 import { fork } from 'child_process'
@@ -29,6 +29,9 @@ const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
+
+// let buildPython = true;
+// let buildPHP = true;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -52,6 +55,8 @@ if (platform === 'win32') {
 }
 class Transpiler {
 
+    buildPython = true;
+    buildPHP = true;
 
     baseMethodsList = null;
 
@@ -1147,16 +1152,24 @@ class Transpiler {
     transpileJavaScriptToPythonAndPHP (args) {
 
         // transpile JS → Python 3
-        let python3Body = this.transpileJavaScriptToPython3 (args)
+        let python3Body = ''
+        let python2Body = ''
 
-        // remove await from Python sync body (transpile Python async → Python sync)
-        let python2Body = this.transpilePython3ToPython2 (python3Body)
+        if (this.buildPython) {
+            python3Body = this.transpileJavaScriptToPython3 (args)
+            // remove await from Python sync body (transpile Python async → Python sync)
+            python2Body = this.transpilePython3ToPython2 (python3Body)
+        }
 
-        // transpile JS → Async PHP
-        let phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+        let phpAsyncBody  = ''
+        let phpBody = ''
 
-        // transpile JS -> Sync PHP
-        let phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
+        if (this.buildPHP) {
+            // transpile JS → Async PHP
+            phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+            // transpile JS -> Sync PHP
+            phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
+        }
 
         return { python3Body, python2Body, phpBody, phpAsyncBody }
     }
@@ -1253,10 +1266,10 @@ class Transpiler {
         const sync = false
         const async = true
         const result = {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
+            python2:      this.buildPython ? this.createPythonClass (className, baseClass, python2,  methodNames, sync) : '',
+            python3:      this.buildPython ? this.createPythonClass (className, baseClass, python3,  methodNames, async) : '',
+            php:          this.buildPHP ? this.createPHPClass    (className, baseClass, php,      methodNames, sync) : '',
+            phpAsync:     this.buildPHP ? this.createPHPClass    (className, baseClass, phpAsync, methodNames, async) : '',
             className,
             baseClass,
         }
@@ -1307,14 +1320,32 @@ class Transpiler {
                 (phpAsyncFolder && (tsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (tsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
-                log.cyan ('Transpiling from', filename.yellow)
+                if (this.buildPHP && this.buildPython) {
+                    log.cyan ('Transpiling from', filename.yellow)
+                } else {
+                    const lang = (this.buildPHP) ? '[PHP]' : '[Python]'
+                    log.cyan ('Transpiling from', filename.yellow, "to".cyan, lang.yellow )
+                }
 
-                ;[
-                    [ python2Folder, pythonFilename, python2 ],
-                    [ python3Folder, pythonFilename, python3 ],
-                    [ phpFolder, phpFilename, php ],
-                    [ phpAsyncFolder, phpFilename, phpAsync ],
-                ].forEach (([ folder, filename, code ]) => {
+                let languagesFolders = [];
+
+                if (this.buildPython) {
+                    languagesFolders = languagesFolders.concat([ [python2Folder, pythonFilename, python2] ])
+                    languagesFolders = languagesFolders.concat([ [python3Folder, pythonFilename, python3] ])
+                }
+
+                if (this.buildPHP) {
+                    languagesFolders = languagesFolders.concat([ [phpFolder, phpFilename, php] ])
+                    languagesFolders = languagesFolders.concat([ [phpAsyncFolder, phpFilename, phpAsync] ])
+                }
+
+                // ;[
+                //     // [ python2Folder, pythonFilename, python2 ],
+                //     // [ python3Folder, pythonFilename, python3 ],
+                //     [ phpFolder, phpFilename, php ],
+                //     [ phpAsyncFolder, phpFilename, phpAsync ],
+                // ].
+                languagesFolders.forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
                         overwriteSafe (qualifiedPath, code)
@@ -1538,79 +1569,18 @@ class Transpiler {
             // get names of all method arguments for later substitutions
             let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
 
-            // add $ to each argument name in PHP method signature
-            const phpTypes = {
-                'any': 'mixed',
-                'string': 'string',
-                'MarketType': 'string',
-                'SubType': 'string',
-                'Str': '?string',
-                'Num': '?float',
-                'Strings': '?array',
-                'number': 'float',
-                'boolean': 'bool',
-                'IndexType': 'int|string',
-                'Int': '?int',
-                'OrderType': 'string',
-                'OrderSide': 'string',
-                'Dictionary<any>': 'array',
-                'Dict': 'array',
-            }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
-            let phpArgs = args.map (x => {
-                const parts = x.split (':')
-                if (parts.length === 1) {
-                    return '$' + x
-                } else {
-                    let variable = parts[0]
-                    const secondPart = parts[1].split ('=')
-                    let nullable = false
-                    let endpart = ''
-                    if (secondPart.length === 2) {
-                        const trimmed = secondPart[1].trim ()
-                        nullable = trimmed === 'undefined'
-                        endpart = ' = ' + trimmed
-                    }
-                    nullable = nullable || variable.slice (-1) === '?'
-                    variable = variable.replace (/\?$/, '')
-                    const type = secondPart[0].trim ()
-                    const phpType = phpTypes[type] ?? type
-                    let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
-                    if (resolveType === 'object[]') {
-                        resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
-                    }
-                    // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
-                    return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
-                }
-            }).join (', ').trim ()
-                .replace (/undefined/g, 'null')
-                .replace (/\{\}/g, 'array ()')
-            phpArgs = phpArgs.length ? (phpArgs) : ''
-            let syncPhpReturnType = ''
-            let asyncPhpReturnType = ''
+            let phpArgs = ''
+            let syncPhpSignature = ''
+            let asyncPhpSignature = ''
             let promiseReturnTypeMatch = null
             let syncReturnType = null
+
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncReturnType === 'Currencies') {
-                    syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
-                } else if (syncReturnType.match (phpArrayRegex)) {
-                    syncPhpReturnType = ': array'
-                } else {
-                    syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
-                }
-                if (promiseReturnTypeMatch) {
-                    asyncPhpReturnType = ': PromiseInterface'
-                } else {
-                    asyncPhpReturnType = syncPhpReturnType
-                }
             }
-            const syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
-            const asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
 
-            // remove excessive spacing from argument defaults in Python method signature
+            // python helpers
             const pythonTypes = {
                 'string': 'str',
                 'number': 'float',
@@ -1622,7 +1592,6 @@ class Transpiler {
                 'Dict': 'dict'
             }
             const unwrapLists = (type) => {
-                const output = []
                 let count = 0
                 while (type.slice (-2) == '[]') {
                     type = type.slice (0, -2)
@@ -1630,25 +1599,105 @@ class Transpiler {
                 }
                 return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
-            let pythonArgs = args.map (x => {
-                if (x.includes (':')) {
-                    const parts = x.split(':')
-                    let typeParts = parts[1].trim ().split (' ')
-                    const type = typeParts[0]
-                    typeParts[0] = ''
-                    let variable = parts[0]
-                    // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
-                    variable = variable.replace (/\?$/, '')
-                    const rawType = unwrapLists (type)
-                    return variable + ': ' + rawType + typeParts.join (' ')
-                } else {
-                    return x.replace (' = ', '=')
+
+            if (this.buildPHP) {
+                // add $ to each argument name in PHP method signature
+                const phpTypes = {
+                    'any': 'mixed',
+                    'string': 'string',
+                    'MarketType': 'string',
+                    'SubType': 'string',
+                    'Str': '?string',
+                    'Num': '?float',
+                    'Strings': '?array',
+                    'number': 'float',
+                    'boolean': 'bool',
+                    'IndexType': 'int|string',
+                    'Int': '?int',
+                    'OrderType': 'string',
+                    'OrderSide': 'string',
+                    'Dictionary<any>': 'array',
+                    'Dict': 'array',
                 }
-            })
-            .join (', ')
-            .replace (/undefined/g, 'None')
-            .replace (/false/g, 'False')
-            .replace (/true/g, 'True')
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
+
+                phpArgs = args.map (x => {
+                    const parts = x.split (':')
+                    if (parts.length === 1) {
+                        return '$' + x
+                    } else {
+                        let variable = parts[0]
+                        const secondPart = parts[1].split ('=')
+                        let nullable = false
+                        let endpart = ''
+                        if (secondPart.length === 2) {
+                            const trimmed = secondPart[1].trim ()
+                            nullable = trimmed === 'undefined'
+                            endpart = ' = ' + trimmed
+                        }
+                        nullable = nullable || variable.slice (-1) === '?'
+                        variable = variable.replace (/\?$/, '')
+                        const type = secondPart[0].trim ()
+                        const phpType = phpTypes[type] ?? type
+                        let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
+                        if (resolveType === 'object[]') {
+                            resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
+                        }
+                        // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                        const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
+                        return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
+                    }
+                }).join (', ').trim ()
+                    .replace (/undefined/g, 'null')
+                    .replace (/\{\}/g, 'array ()')
+                phpArgs = phpArgs.length ? (phpArgs) : ''
+                let syncPhpReturnType = ''
+                let asyncPhpReturnType = ''
+                if (returnType) {
+                    // promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
+                    // syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                    if (syncReturnType === 'Currencies') {
+                        syncPhpReturnType = ': ?array'; // since for now `fetchCurrencies` returns null or Currencies
+                    } else if (syncReturnType.match (phpArrayRegex)) {
+                        syncPhpReturnType = ': array'
+                    } else {
+                        syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
+                    }
+                    if (promiseReturnTypeMatch) {
+                        asyncPhpReturnType = ': PromiseInterface'
+                    } else {
+                        asyncPhpReturnType = syncPhpReturnType
+                    }
+                }
+                syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
+                asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
+            }
+
+            let pythonArgs = ''
+
+            if (this.buildPython) {
+                // remove excessive spacing from argument defaults in Python method signature
+                pythonArgs = args.map (x => {
+                    if (x.includes (':')) {
+                        const parts = x.split(':')
+                        let typeParts = parts[1].trim ().split (' ')
+                        const type = typeParts[0]
+                        typeParts[0] = ''
+                        let variable = parts[0]
+                        // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                        variable = variable.replace (/\?$/, '')
+                        const rawType = unwrapLists (type)
+                        return variable + ': ' + rawType + typeParts.join (' ')
+                    } else {
+                        return x.replace (' = ', '=')
+                    }
+                })
+                .join (', ')
+                .replace (/undefined/g, 'None')
+                .replace (/false/g, 'False')
+                .replace (/true/g, 'True')
+            }
+
             // method body without the signature (first line)
             // and without the closing bracket (last line)
             let js = lines.slice (1, -1).join ("\n")
@@ -1656,33 +1705,37 @@ class Transpiler {
             // transpile everything
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
-            // compile the final Python code for the method signature
-            let pythonReturnType = ''
-            if (syncReturnType) {
-                pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+            if (this.buildPython) {
+                // compile the final Python code for the method signature
+                let pythonReturnType = ''
+                if (syncReturnType) {
+                    pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+                }
+                let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
+
+                // compile signature + body for Python sync
+                python2.push ('');
+                python2.push ('    ' + pythonString);
+                python2.push (python2Body);
+
+                // compile signature + body for Python async
+                python3.push ('');
+                python3.push ('    ' + keyword + pythonString);
+                python3.push (python3Body);
             }
-            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
-            // compile signature + body for Python sync
-            python2.push ('');
-            python2.push ('    ' + pythonString);
-            python2.push (python2Body);
+            if (this.buildPHP) {
+                // compile signature + body for PHP
+                php.push ('');
+                php.push (syncPhpSignature);
+                php.push (phpBody);
+                php.push ('    ' + '}')
 
-            // compile signature + body for Python async
-            python3.push ('');
-            python3.push ('    ' + keyword + pythonString);
-            python3.push (python3Body);
-
-            // compile signature + body for PHP
-            php.push ('');
-            php.push (syncPhpSignature);
-            php.push (phpBody);
-            php.push ('    ' + '}')
-
-            phpAsync.push ('');
-            phpAsync.push (asyncPhpSignature);
-            phpAsync.push (phpAsyncBody);
-            phpAsync.push ('    ' + '}')
+                phpAsync.push ('');
+                phpAsync.push (asyncPhpSignature);
+                phpAsync.push (phpAsyncBody);
+                phpAsync.push ('    ' + '}')
+            }
         }
 
         return {
@@ -1716,13 +1769,16 @@ class Transpiler {
             // trim away sync methods from python async
             // since it already inherits those methods
             const python3Async = []
-            python3.forEach ((line, i, arr) => {
-                if (line.match (/^\s+async def/)) {
-                    python3Async.push ('')
-                    python3Async.push (line)
-                    python3Async.push (arr[i+1])
-                }
-            })
+            if (this.buildPython) {
+                python3.forEach ((line, i, arr) => {
+                    if (line.match (/^\s+async def/)) {
+                        python3Async.push ('')
+                        python3Async.push (line)
+                        python3Async.push (arr[i+1])
+                    }
+                })
+            }
+
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
@@ -1730,14 +1786,20 @@ class Transpiler {
             const python3File = './python/ccxt/async_support/base/exchange.py'
             const phpFile = './php/Exchange.php'
             const phpAsyncFile = './php/async/Exchange.php'
-            log.magenta ('→', python2File.yellow)
-            replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
-            log.magenta ('→', python3File.yellow)
-            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
-            log.magenta ('→', phpFile.yellow)
-            replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
-            log.magenta ('→', phpAsyncFile.yellow)
-            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+
+            if (this.buildPython) {
+                log.magenta ('→', python2File.yellow)
+                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+                log.magenta ('→', python3File.yellow)
+                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
+            }
+
+            if (this.buildPHP) {
+                log.magenta ('→', phpFile.yellow)
+                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+                log.magenta ('→', phpAsyncFile.yellow)
+                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+            }
         }
     }
 
@@ -1817,65 +1879,69 @@ class Transpiler {
         }
 
         // Python -------------------------------------------------------------
+        if (this.buildPython) {
+            function pythonDeclareErrorClass (name, parent, classes) {
+                classes.push (name)
+                return [
+                    'class ' + name + '(' + parent + '):',
+                    '    pass',
+                    '',
+                    '',
+                ].join ('\n');
+            }
 
-        function pythonDeclareErrorClass (name, parent, classes) {
-            classes.push (name)
-            return [
-                'class ' + name + '(' + parent + '):',
+            const pythonBaseError = [
+                'class BaseError(Exception):',
                 '    pass',
                 '',
                 '',
             ].join ('\n');
-        }
 
-        const pythonBaseError = [
-            'class BaseError(Exception):',
-            '    pass',
-            '',
-            '',
-        ].join ('\n');
+            const quote = (s) => "'" + s + "'" // helper to add quotes around class names
+            const pythonExports = [ 'error_hierarchy', 'BaseError' ]
+            const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
+            const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
+            const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
 
-        const quote = (s) => "'" + s + "'" // helper to add quotes around class names
-        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
-        const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
-        const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
-        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
+            const pythonFilename = './python/ccxt/base/errors.py'
+            if (fs.existsSync (pythonFilename)) {
+                log.bright.cyan (message, pythonFilename.yellow)
+                fs.writeFileSync (pythonFilename, python3BodyIntellisense)
+            }
 
-        const pythonFilename = './python/ccxt/base/errors.py'
-        if (fs.existsSync (pythonFilename)) {
-            log.bright.cyan (message, pythonFilename.yellow)
-            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
         }
 
         // PHP ----------------------------------------------------------------
 
-        function phpMakeErrorClassFile (name, parent) {
+        if (this.buildPHP) {
+            function phpMakeErrorClassFile (name, parent) {
 
-            const useClause = "\nuse " + parent + ";\n"
-            const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
+                const useClause = "\nuse " + parent + ";\n"
+                const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
 
-            const phpBody = [
-                '<?php',
-                '',
-                'namespace ccxt;',
-                (parent === 'Exception') ? useClause : requireClause,
-                'class ' + name + ' extends ' + parent + ' {};',
-                '',
-            ].join ("\n")
-            const phpFilename = './php/' + name + '.php'
-            log.bright.cyan (message, phpFilename.yellow)
-            fs.writeFileSync (phpFilename, phpBody)
-            return "require_once PATH_TO_CCXT . '" + name + ".php';"
-        }
+                const phpBody = [
+                    '<?php',
+                    '',
+                    'namespace ccxt;',
+                    (parent === 'Exception') ? useClause : requireClause,
+                    'class ' + name + ' extends ' + parent + ' {};',
+                    '',
+                ].join ("\n")
+                const phpFilename = './php/' + name + '.php'
+                log.bright.cyan (message, phpFilename.yellow)
+                fs.writeFileSync (phpFilename, phpBody)
+                return "require_once PATH_TO_CCXT . '" + name + ".php';"
+            }
 
-        const phpFilename ='./ccxt.php'
+            const phpFilename ='./ccxt.php'
 
-        if (fs.existsSync (phpFilename)) {
-            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
-            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-            log.bright.cyan (message, phpFilename.yellow)
-            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+            if (fs.existsSync (phpFilename)) {
+                const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+                const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+                log.bright.cyan (message, phpFilename.yellow)
+                const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+                replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
+            }
         }
     }
 
@@ -1964,11 +2030,16 @@ class Transpiler {
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
+        if (this.buildPython) {
+            log.magenta ('→', pyFile.yellow)
+            overwriteSafe (pyFile, python)
+        }
 
-        overwriteSafe (pyFile, python)
-        overwriteSafe (phpFile, php)
+        if (this.buildPHP) {
+            log.magenta ('→', phpFile.yellow)
+            overwriteSafe (phpFile, php)
+
+        }
     }
 
     // ============================================================================
@@ -2133,24 +2204,58 @@ class Transpiler {
         };
         const transpiler = new astTranspiler(parserConfig);
         let fileConfig = [
-            {
-                language: "php",
-                async: true
-            },
-            {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: true
-            }
+            // {
+            //     language: "php",
+            //     async: true
+            // },
+            // {
+            //     language: "php",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: true
+            // }
         ]
+        if (this.buildPHP) {
+            fileConfig = [
+                {
+                    language: "php",
+                    async: true
+                },
+                {
+                    language: "php",
+                    async: false
+                },
+            ]
+        }
+        if (this.buildPython) {
+            fileConfig = fileConfig.concat([
+                {
+                    language: "python",
+                    async: true
+                }
+            ])
+        }
         const transpilerResult = transpiler.transpileDifferentLanguages(fileConfig, mainContent);
-        let [ phpAsync, php, python3 ] = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
+        let [ phpAsync, php, python3 ] = ['', '', '']
+        // let ren = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
+        const fileImports = transpilerResult[0].imports
+
+        if (transpilerResult.length == 3) { // all langs were transpiled
+            phpAsync =  transpilerResult[0].content
+            php = transpilerResult[1].content
+            python3 = transpilerResult[2].content
+        } else if (transpilerResult.length == 2) { // only  php
+            phpAsync =  transpilerResult[0].content
+            php = transpilerResult[1].content
+        } else { // only python
+            python3 = transpilerResult[0].content
+        }
 
         // ########### PYTHON ###########
-        python3 = python3.
+        if (this.buildPython) {
+            python3 = python3.
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
@@ -2159,46 +2264,49 @@ class Transpiler {
             replace(/\.wallet_address/g, '.walletAddress').
             replace(/\.private_key/g, '.privateKey').
             replace(/\.api_key/g, '.apiKey');
-        
-        let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
-        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
-        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
-        let newPython = impHelper + python3;
-        newPython = snakeCaseFunctions (newPython);
-        overwriteSafe (files.pyFileAsync, newPython);
-        this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
-        // remove 4 extra newlines
-        let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
-        existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteSafe (files.pyFileSync, existingPythonWN);
+
+            let pythonImports = fileImports.filter(x=>x.path.includes('./tests.helpers.js'));
+            pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
+            const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
+            let newPython = impHelper + python3;
+            newPython = snakeCaseFunctions (newPython);
+            overwriteSafe (files.pyFileAsync, newPython);
+            this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
+            // remove 4 extra newlines
+            let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
+            existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
+            overwriteSafe (files.pyFileSync, existingPythonWN);
+        }
 
 
         // ########### PHP ###########
-        const phpReform = (cont) => {
-            // add exceptions
-            let exceptions = '';
-            for (const eType of Object.keys(errors)) {
-                if (cont.includes (' ' + eType)) {
-                    exceptions += `use ccxt\\${eType};\n`;
+        if (this.buildPHP) {
+            const phpReform = (cont) => {
+                // add exceptions
+                let exceptions = '';
+                for (const eType of Object.keys(errors)) {
+                    if (cont.includes (' ' + eType)) {
+                        exceptions += `use ccxt\\${eType};\n`;
+                    }
                 }
+                let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+                let newContent = head + cont;
+                newContent = newContent.
+                    replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                    replace(/\->wallet_address/g, '->walletAddress').
+                    replace(/\->private_key/g, '->privateKey').
+                    replace(/\->api_key/g, '->apiKey').
+                    replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
+                newContent = snakeCaseFunctions (newContent);
+                newContent = this.phpReplaceException (newContent);
+                return newContent;
             }
-            let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
-            let newContent = head + cont;
-            newContent = newContent.
-                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-                replace(/\->wallet_address/g, '->walletAddress').
-                replace(/\->private_key/g, '->privateKey').
-                replace(/\->api_key/g, '->apiKey').
-                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
-            newContent = snakeCaseFunctions (newContent);
-            newContent = this.phpReplaceException (newContent);
-            return newContent;
+            let bodyPhpAsync = phpReform (phpAsync);
+            overwriteSafe (files.phpFileAsync, bodyPhpAsync);
+            let bodyPhpSync = phpReform (php);
+            bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
+            overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
-        let bodyPhpAsync = phpReform (phpAsync);
-        overwriteSafe (files.phpFileAsync, bodyPhpAsync);
-        let bodyPhpSync = phpReform (php);
-        bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
-        overwriteSafe (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -2237,25 +2345,43 @@ class Transpiler {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
         let fileConfig = [
-            {
-                language: "php",
-                async: true
-            },
-            {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: false
-            },
-            {
-                language: "python",
-                async: true
-            },
+            // {
+            //     language: "php",
+            //     async: true
+            // },
+            // {
+            //     language: "php",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: false
+            // },
+            // {
+            //     language: "python",
+            //     async: true
+            // },
         ]
+
+        if (this.buildPHP) {
+            fileConfig.push({"language": "php", "async": true})
+            fileConfig.push({"language": "php", "async": false})
+        }
+
+
+        if (this.buildPython) {
+            fileConfig.push({"language": "python", "async": false})
+            fileConfig.push({"language": "python", "async": true})
+        }
+
         if (tests.base) {
-            fileConfig = [{ language: "php", async: false}, { language: "python", async: false}]
+            fileConfig = []
+            if (this.buildPHP) {
+                fileConfig.push({ language: "php", async: false})
+            }
+            if (this.buildPython) {
+                fileConfig.push({ language: "python", async: false})
+            }
         }
         const parserConfig = {
             'verbose': false,
@@ -2321,10 +2447,27 @@ class Transpiler {
             const result = flatResult[i];
             const test = tests[i];
             const isWs = test.tsFile.includes('ts/src/pro/');
-            let phpAsync = phpFixes(result[0].content);
-            let phpSync = phpFixes(result[1].content);
-            let pythonSync = pyFixes (result[2].content, true);
-            let pythonAsync = pyFixes (result[3].content);
+
+            // handle different usecases regarding the conditional transpilation
+            let phpAsync = ''
+            let phpSync = ''
+
+            let pythonAsync = ''
+            let pythonSync = ''
+
+            if (this.buildPHP && this.buildPython) {
+                phpAsync = phpFixes(result[0].content);
+                phpSync = phpFixes(result[1].content);
+                pythonSync = pyFixes (result[2].content, true);
+                pythonAsync = pyFixes (result[3].content);
+            } else if (this.buildPHP) {
+                phpAsync = phpFixes(result[0].content);
+                phpSync = phpFixes(result[1].content);
+            } else if (this.buildPython) {
+                pythonAsync = pyFixes(result[1].content);
+                pythonSync = pyFixes(result[0].content);
+            }
+
             const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
@@ -2470,14 +2613,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                if (test.phpFileAsync) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                if (test.pyFileAsync) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync && this.buildPHP) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync && this.buildPython) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                if (test.phpFileSync) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync && this.buildPHP) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                if (test.pyFileSync) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync && this.buildPython) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
@@ -2553,7 +2696,7 @@ class Transpiler {
             ],
             phpAsync: [
                 "",
-                "error_reporting(E_ALL | E_STRICT);",
+                "error_reporting(E_ALL);",
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
@@ -2717,10 +2860,15 @@ class Transpiler {
             force = true; // when transpiling single exchange, we always force
         }
         if (!transpilingSingleExchange && !child) {
-            createFolderRecursively (python2Folder)
-            createFolderRecursively (python3Folder)
-            createFolderRecursively (phpFolder)
-            createFolderRecursively (phpAsyncFolder)
+            if (this.buildPython) {
+                createFolderRecursively (python2Folder)
+                createFolderRecursively (python3Folder)
+            }
+
+            if (this.buildPHP) {
+                createFolderRecursively (phpFolder)
+                createFolderRecursively (phpAsyncFolder)
+            }
         }
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
@@ -2752,13 +2900,19 @@ class Transpiler {
     }
 }
 
-function parallelizeTranspiling (exchanges, processes = undefined, force = false) {
+function parallelizeTranspiling (exchanges, processes = undefined, force = false, python = false, php = false) {
     const processesNum = Math.min(processes || os.cpus ().length, exchanges.length)
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
     const args = [];
     if (force) {
         args.push ('--force')
+    }
+    if (python) {
+        args.push('--python')
+    }
+    if (php) {
+        args.push('--php')
     }
     for (let i = 0; i < processesNum; i ++) {
         const toProcess = exchanges.filter ((_, index) => index % processesNum === i)
@@ -2793,6 +2947,16 @@ if (isMainEntry(import.meta.url)) {
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+
+    const phpOnly = process.argv.includes ('--php');
+    if (phpOnly) {
+        transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
+    }
+    const pyOnly = process.argv.includes ('--python');
+    if (pyOnly) {
+        transpiler.buildPHP = false
+    }
+
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
@@ -2801,7 +2965,7 @@ if (isMainEntry(import.meta.url)) {
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds, undefined, force)
+        parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

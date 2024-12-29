@@ -714,7 +714,7 @@ class gate extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -733,9 +733,11 @@ class gate extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
-                        'iceberg' => true,
-                        'selfTradePrevention' => true,
+                        'iceberg' => true, // todo implement
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 40, // NOTE! max 10 per symbol
@@ -770,6 +772,9 @@ class gate extends Exchange {
                     'fetchOHLCV' => array(
                         'limit' => 1000,
                     ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
                 ),
                 'forDerivatives' => array(
                     'extends' => 'spot',

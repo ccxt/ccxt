@@ -1,0 +1,35 @@
+'use strict';
+
+var okx = require('./okx.js');
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+class myokx extends okx {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'myokx',
+            'name': 'MyOKX (EEA)',
+            'certified': false,
+            'pro': true,
+            'hostname': 'eea.okx.com',
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',
+                'api': {
+                    'rest': 'https://{hostname}',
+                },
+                'www': 'https://my.okx.com',
+                'doc': 'https://my.okx.com/docs-v5/en/#overview',
+                'fees': 'https://my.okx.com/pages/products/fees.html',
+                'referral': {
+                    'url': 'https://www.my.okx.com/join/CCXT2023',
+                    'discount': 0.2,
+                },
+                'test': {
+                    'rest': 'https://{hostname}',
+                },
+            },
+        });
+    }
+}
+
+module.exports = myokx;

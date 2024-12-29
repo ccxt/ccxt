@@ -710,14 +710,11 @@ export default class bitmart extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'marketBuyRequiresPrice': true,
+                        'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        // exchange-supported features
-                        // 'leverage': true,
-                        // 'selfTradePrevention': false,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 10,

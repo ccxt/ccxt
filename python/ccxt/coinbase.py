@@ -385,7 +385,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'user_native_currency': 'USD',  # needed to get fees for v3
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': False,
                     'createOrder': {
                         'marginMode': True,
@@ -403,6 +403,11 @@ class coinbase(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -443,21 +448,20 @@ class coinbase(Exchange, ImplicitAPI):
                         'limit': 350,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': None,
                 },
                 'future': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': None,
                 },
             },
         })

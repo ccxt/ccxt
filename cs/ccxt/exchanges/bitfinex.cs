@@ -369,6 +369,11 @@ public partial class bitfinex : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 75 },

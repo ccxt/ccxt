@@ -1207,7 +1207,6 @@ class okx(Exchange, ImplicitAPI):
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                # https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': True,
                     'createOrder': {
@@ -1236,12 +1235,12 @@ class okx(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
-                        # even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': True,
                         'trailing': True,
-                        'twap': True,
-                        'iceberg': True,
-                        'oco': True,
+                        'iceberg': True,  # todo implement
+                        'leverage': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
                     },
                     'createOrders': {
                         'max': 20,

@@ -398,11 +398,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'iceberg': True,
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'oco': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,
                     },
                     'createOrders': {
                         'max': 20,

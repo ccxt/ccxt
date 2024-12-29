@@ -371,7 +371,7 @@ class coinbase extends Exchange {
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -389,6 +389,11 @@ class coinbase extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -429,21 +434,20 @@ class coinbase extends Exchange {
                         'limit' => 350,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
             ),
         ));

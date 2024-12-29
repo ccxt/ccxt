@@ -423,8 +423,12 @@ export default class bitfinex extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo: unify
-                        // todo: leverage unify
+                        'trailing': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 75,

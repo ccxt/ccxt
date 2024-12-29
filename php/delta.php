@@ -739,7 +739,7 @@ class delta extends Exchange {
                 // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
                 $amountPrecision = $this->parse_number('1');
             }
-            $linear = ($settle === $base);
+            $linear = ($settle === $quote);
             $optionType = null;
             $symbol = $base . '/' . $quote;
             if ($swap || $future || $option) {
