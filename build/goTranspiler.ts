@@ -508,11 +508,12 @@ class NewTranspiler {
         if (!needsVariadicOptions) {
             return paramsParsed;
         }
-        const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
-        const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
-        // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
-        const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
-        return allParams.join(', ');
+        return paramsParsed;
+        // const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
+        // const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
+        // // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
+        // const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
+        // return allParams.join(', ');
     }
 
     convertJavascriptParamToGoParam(param): string | undefined {
@@ -529,29 +530,30 @@ class NewTranspiler {
         const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
         if (isNonNullableType) {
             if (isOptional) {
-                if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                    return `${paramType} ${safeName} = ${param.initializer}`
-                } else {
-                    if (paramType  === 'bool') {
-                        return `${paramType}? ${safeName} = false`
-                    }
-                    if (paramType === 'double' || paramType  === 'float') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    if (paramType  === 'Int64') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    return `${safeName} ${paramType}`
-                }
+                // if (param.initializer !== undefined && param.initializer !== 'undefined') {
+                return `${safeName} *${paramType}`
+                // } else {
+                //     if (paramType  === 'bool') {
+                //         return `${paramType}? ${safeName} = false`
+                //     }
+                //     if (paramType === 'double' || paramType  === 'float') {
+                //         return `${paramType}? ${safeName}2 = 0`
+                //     }
+                //     if (paramType  === 'Int64') {
+                //         return `${paramType}? ${safeName}2 = 0`
+                //     }
+                //     return `${safeName} ${paramType}`
+                // }
             }
         } else {
             if (isOptional) {
-                if (param.initializer !== undefined) {
-                        if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return `${paramType} ${safeName} = null`
-                        }
-                        return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
-                }
+                // if (param.initializer !== undefined) {
+                //         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
+                //             return `${paramType} ${safeName} = null`
+                //         }
+                //         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
+                // }
+                return `${safeName} *${paramType}`
             } else {
                 return `${safeName} ${paramType}`
             }
@@ -754,7 +756,7 @@ class NewTranspiler {
         const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
-        this.createOptionsStruct(methodName, methodWrapper.parameters);
+        // this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
@@ -780,7 +782,7 @@ class NewTranspiler {
             // `${two}go func() {`,
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
-            this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
+            // this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
             `${two}res := <- this.Core.${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
             `${three}return ${emtpyObject}, CreateReturnError(res)`,
