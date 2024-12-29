@@ -1072,6 +1072,25 @@ func GetLength(v interface{}) int {
 	}
 }
 
+
+
+func IsNil(x interface{}) bool {
+	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+	if x == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(x)
+	kind := value.Kind()
+
+	switch kind {
+	case reflect. Chan, reflect. Func, reflect.Map, reflect. Ptr, reflect.UnsafePointer, reflect. Interface, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
+}
+
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	if len(v) <= index {
 		return def
@@ -1081,6 +1100,11 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	if val == nil {
 		return def
 	}
+
+	if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+		return def
+	}
+
 	return val
 }
 
