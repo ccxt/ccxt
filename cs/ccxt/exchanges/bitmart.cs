@@ -53,12 +53,13 @@ public partial class bitmart : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", true },
                 { "fetchDepositWithdrawFees", false },
-                { "fetchFundingHistory", null },
+                { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", true },
                 { "fetchIsolatedBorrowRates", true },
+                { "fetchLedger", true },
                 { "fetchLiquidations", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
@@ -143,6 +144,7 @@ public partial class bitmart : Exchange
                         { "contract/public/depth", 5 },
                         { "contract/public/open-interest", 30 },
                         { "contract/public/funding-rate", 30 },
+                        { "contract/public/funding-rate-history", 30 },
                         { "contract/public/kline", 6 },
                         { "account/v1/currencies", 30 },
                     } },
@@ -186,6 +188,7 @@ public partial class bitmart : Exchange
                         { "contract/private/position-risk", 10 },
                         { "contract/private/affilate/rebate-list", 10 },
                         { "contract/private/affilate/trade-list", 10 },
+                        { "contract/private/transaction-history", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -584,6 +587,143 @@ public partial class bitmart : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "brokerId", "CCXTxBitmart000" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "leverage", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", 99999 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 200 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 200 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", false },
+                        } },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", false },
+                            } },
+                            { "limitPrice", false },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyByCost", true },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", 99999 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 200 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
@@ -1822,12 +1962,13 @@ public partial class bitmart : Exchange
                 ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
             }
             object options = this.safeDict(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
-            object defaultLimit = this.safeInteger(options, "limit", 200);
+            object maxLimit = 200;
+            object defaultLimit = this.safeInteger(options, "limit", maxLimit);
             if (isTrue(isEqual(limit, null)))
             {
                 limit = defaultLimit;
             }
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2319,7 +2460,6 @@ public partial class bitmart : Exchange
             { "postOnly", postOnly },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.omitZero(priceString) },
-            { "stopPrice", trailingActivationPrice },
             { "triggerPrice", trailingActivationPrice },
             { "amount", this.omitZero(this.safeString(order, "size")) },
             { "cost", this.safeString2(order, "filled_notional", "filledNotional") },
@@ -2574,8 +2714,7 @@ public partial class bitmart : Exchange
         * @name bitmart#createSwapOrderRequest
         * @ignore
         * @description create a trade order
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
@@ -2849,7 +2988,7 @@ public partial class bitmart : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.stop] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -2879,9 +3018,9 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
         } else
         {
-            object stop = this.safeBool2(parameters, "stop", "trigger");
+            object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            if (!isTrue(stop))
+            if (!isTrue(trigger))
             {
                 response = await this.privatePostContractPrivateCancelOrder(this.extend(request, parameters));
             } else
@@ -3180,10 +3319,6 @@ public partial class bitmart : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limit;
-        }
         object type = null;
         object response = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
@@ -3191,6 +3326,10 @@ public partial class bitmart : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 200);
+            }
             object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -3212,9 +3351,13 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
-            object isStop = this.safeBool2(parameters, "stop", "trigger");
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
+            }
+            object isTrigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            if (isTrue(isStop))
+            if (isTrue(isTrigger))
             {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, parameters));
             } else
@@ -3331,17 +3474,9 @@ public partial class bitmart : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
             }
         }
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchClosedOrders", parameters);
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(isEqual(marginMode, "isolated")))
-        {
-            ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
-        }
-        object startTimeKey = ((bool) isTrue((isEqual(type, "spot")))) ? "startTime" : "start_time";
         if (isTrue(!isEqual(since, null)))
         {
+            object startTimeKey = ((bool) isTrue((isEqual(type, "spot")))) ? "startTime" : "start_time";
             ((IDictionary<string,object>)request)[(string)startTimeKey] = since;
         }
         object endTimeKey = ((bool) isTrue((isEqual(type, "spot")))) ? "endTime" : "end_time";
@@ -3354,6 +3489,14 @@ public partial class bitmart : Exchange
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchClosedOrders", parameters);
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
+            }
             response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, parameters));
         } else
         {
@@ -4637,6 +4780,71 @@ public partial class bitmart : Exchange
         return this.parseFundingRate(data, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetContractPublicFundingRateHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "funding_rate": "0.000091412174",
+        //                     "funding_time": "1734336000000"
+        //                 },
+        //             ]
+        //         },
+        //         "trace": "fg73d949fgfdf6a40c8fc7f5ae6738.54.345345345345"
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeList(data, "list", new List<object>() {});
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        {
+            object entry = getValue(result, i);
+            object marketId = this.safeString(entry, "symbol");
+            object symbolInner = this.safeSymbol(marketId, market, "-", "swap");
+            object timestamp = this.safeInteger(entry, "funding_time");
+            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+                { "info", entry },
+                { "symbol", symbolInner },
+                { "fundingRate", this.safeNumber(entry, "funding_rate") },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+            });
+        }
+        object sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+    }
+
     public override object parseFundingRate(object contract, object market = null)
     {
         //
@@ -5075,6 +5283,228 @@ public partial class bitmart : Exchange
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object transactionsRequest = this.fetchTransactionsRequest(0, null, since, limit, parameters);
+        object response = await this.privateGetContractPrivateTransactionHistory(transactionsRequest);
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "time": "1734422402121",
+        //                 "type": "Funding Fee",
+        //                 "amount": "-0.00008253",
+        //                 "asset": "USDT",
+        //                 "symbol": "LTCUSDT",
+        //                 "tran_id": "1734422402121",
+        //                 "flow_type": 3
+        //             },
+        //         ],
+        //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLedger(data, currency, since, limit);
+    }
+
+    public override object parseLedgerEntry(object item, object currency = null)
+    {
+        //
+        //     {
+        //         "time": "1734422402121",
+        //         "type": "Funding Fee",
+        //         "amount": "-0.00008253",
+        //         "asset": "USDT",
+        //         "symbol": "LTCUSDT",
+        //         "tran_id": "1734422402121",
+        //         "flow_type": 3
+        //     }
+        //
+        object amount = this.safeString(item, "amount");
+        object direction = null;
+        if (isTrue(Precise.stringLe(amount, "0")))
+        {
+            direction = "out";
+            amount = Precise.stringMul("-1", amount);
+        } else
+        {
+            direction = "in";
+        }
+        object currencyId = this.safeString(item, "asset");
+        object timestamp = this.safeInteger(item, "time");
+        object type = this.safeString(item, "type");
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
+            { "id", this.safeString(item, "tran_id") },
+            { "direction", direction },
+            { "account", null },
+            { "referenceAccount", null },
+            { "referenceId", this.safeString(item, "tradeId") },
+            { "type", this.parseLedgerEntryType(type) },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "amount", this.parseNumber(amount) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "before", null },
+            { "after", null },
+            { "status", null },
+            { "fee", null },
+        }, currency);
+    }
+
+    public virtual object parseLedgerEntryType(object type)
+    {
+        object ledgerType = new Dictionary<string, object>() {
+            { "Commission Fee", "fee" },
+            { "Funding Fee", "fee" },
+            { "Realized PNL", "trade" },
+            { "Transfer", "transfer" },
+            { "Liquidation Clearance", "settlement" },
+        };
+        return this.safeString(ledgerType, type, type);
+    }
+
+    public virtual object fetchTransactionsRequest(object flowType = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(flowType, null)))
+        {
+            ((IDictionary<string,object>)request)["flow_type"] = flowType;
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transaction-history-keyed
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object transactionsRequest = this.fetchTransactionsRequest(3, symbol, since, limit, parameters);
+        object response = await this.privateGetContractPrivateTransactionHistory(transactionsRequest);
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "time": "1734422402121",
+        //                 "type": "Funding Fee",
+        //                 "amount": "-0.00008253",
+        //                 "asset": "USDT",
+        //                 "symbol": "LTCUSDT",
+        //                 "tran_id": "1734422402121",
+        //                 "flow_type": 3
+        //             },
+        //         ],
+        //         "trace": "4cd11f83c71egfhfgh842790f07241e.23.173442343427772866"
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseFundingHistories(data, market, since, limit);
+    }
+
+    public virtual object parseFundingHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "time": "1734422402121",
+        //         "type": "Funding Fee",
+        //         "amount": "-0.00008253",
+        //         "asset": "USDT",
+        //         "symbol": "LTCUSDT",
+        //         "tran_id": "1734422402121",
+        //         "flow_type": 3
+        //     }
+        //
+        object marketId = this.safeString(contract, "symbol");
+        object currencyId = this.safeString(contract, "asset");
+        object timestamp = this.safeInteger(contract, "time");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "code", this.safeCurrencyCode(currencyId) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(contract, "tran_id") },
+            { "amount", this.safeNumber(contract, "amount") },
+        };
+    }
+
+    public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        {
+            object contract = getValue(contracts, i);
+            ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        return this.filterBySinceLimit(sorted, since, limit);
     }
 
     public override object nonce()

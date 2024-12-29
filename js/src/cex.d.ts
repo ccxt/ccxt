@@ -194,6 +194,7 @@ export default class cex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -228,7 +229,7 @@ export default class cex extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

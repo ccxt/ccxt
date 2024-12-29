@@ -634,6 +634,8 @@ class binance extends binance$1 {
                         'portfolio/bnb-transfer': 150,
                         'portfolio/repay-futures-switch': 150,
                         'portfolio/repay-futures-negative-balance': 150,
+                        'portfolio/mint': 20,
+                        'portfolio/redeem': 20,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -962,6 +964,7 @@ class binance extends binance$1 {
                         'block/order/orders': 5,
                         'block/order/execute': 5,
                         'block/user-trades': 5,
+                        'blockTrades': 5,
                     },
                     'post': {
                         'order': 1,
@@ -1556,34 +1559,34 @@ class binance extends binance$1 {
                 },
             },
             'features': {
-                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
-                        'marginMode': true,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
                             'GTD': false,
                         },
                         'hedged': true,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                         // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': false,
-                        'iceberg': true,
-                        'oco': false,
+                        'iceberg': true, // todo implementation
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 1, // days between start-end
@@ -1594,25 +1597,25 @@ class binance extends binance$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': undefined,
                         'marginMode': true,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 10000,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
@@ -1623,6 +1626,7 @@ class binance extends binance$1 {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'mark': true,
@@ -1632,9 +1636,7 @@ class binance extends binance$1 {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
-                        'marginMode': false,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -1645,14 +1647,16 @@ class binance extends binance$1 {
                         // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                     },
                     'createOrders': {
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'daysBack': undefined,
                         'limit': 1000,
                         'untilDays': 7,
@@ -1663,25 +1667,25 @@ class binance extends binance$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': 500,
                         'marginMode': true,
+                        'limit': 500,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
@@ -2109,6 +2113,7 @@ class binance extends binance$1 {
                         '-4141': errors.OperationRejected,
                         '-4144': errors.BadSymbol,
                         '-4164': errors.InvalidOrder,
+                        '-4136': errors.InvalidOrder,
                         '-4165': errors.BadRequest,
                         '-4167': errors.BadRequest,
                         '-4168': errors.BadRequest,
@@ -5228,8 +5233,8 @@ class binance extends binance$1 {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             }
@@ -5240,7 +5245,7 @@ class binance extends binance$1 {
         const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
             }
             else {
                 throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -5261,7 +5266,7 @@ class binance extends binance$1 {
         request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
+        let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
@@ -5291,12 +5296,12 @@ class binance extends binance$1 {
             quantityIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
         }
@@ -5316,12 +5321,12 @@ class binance extends binance$1 {
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+        if (triggerPriceIsRequired) {
+            if (triggerPrice === undefined) {
+                throw new errors.InvalidOrder(this.id + ' editOrder() requires a triggerPrice extra param for a ' + type + ' order');
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
         }
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
@@ -5985,7 +5990,7 @@ class binance extends binance$1 {
             type = 'limit';
         }
         const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        const triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         const feeCost = this.safeNumber(order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -6010,7 +6015,7 @@ class binance extends binance$1 {
             'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -6248,16 +6253,10 @@ class binance extends binance$1 {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
-            // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            params = this.omit(params, 'reduceOnly');
-            if (market['option']) {
-                request['reduceOnly'] = reduceOnly;
-            }
-            else {
-                if (reduceOnly) {
-                    request['sideEffectType'] = 'AUTO_REPAY';
-                }
+        if (reduceOnly) {
+            if (marketType === 'margin' || (!market['contract'] && (marginMode !== undefined))) {
+                params = this.omit(params, 'reduceOnly');
+                request['sideEffectType'] = 'AUTO_REPAY';
             }
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -6335,7 +6334,7 @@ class binance extends binance$1 {
             const validOrderTypes = this.safeList(market['info'], 'orderTypes');
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
-                    throw new errors.InvalidOrder(this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                    throw new errors.InvalidOrder(this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
                 }
                 else {
                     throw new errors.InvalidOrder(this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
@@ -6387,9 +6386,10 @@ class binance extends binance$1 {
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        const closePosition = this.safeBool(params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
-        let stopPriceIsRequired = false;
+        let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         //
         // spot/margin
@@ -6444,7 +6444,7 @@ class binance extends binance$1 {
             quantityIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             quantityIsRequired = true;
             if (market['linear'] || market['inverse']) {
                 priceIsRequired = true;
@@ -6452,7 +6452,7 @@ class binance extends binance$1 {
         }
         else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
         }
@@ -6462,18 +6462,19 @@ class binance extends binance$1 {
         }
         else if (uppercaseType === 'STOP') {
             quantityIsRequired = true;
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
             priceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeBool(params, 'closePosition');
-            if (closePosition === undefined) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
-            stopPriceIsRequired = true;
+            triggerPriceIsRequired = true;
         }
         else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            if (!closePosition) {
+                quantityIsRequired = true;
+            }
             if (trailingPercent === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
@@ -6507,16 +6508,16 @@ class binance extends binance$1 {
                 request['price'] = this.parseToNumeric(price); // some options don't have the precision available
             }
         }
-        if (stopPriceIsRequired) {
+        if (triggerPriceIsRequired) {
             if (market['contract']) {
                 if (stopPrice === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order');
                 }
             }
             else {
                 // check for delta price as well
                 if (trailingDelta === undefined && stopPrice === undefined && trailingPercent === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order');
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order');
                 }
             }
             if (stopPrice !== undefined) {
@@ -6705,7 +6706,7 @@ class binance extends binance$1 {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6982,7 +6983,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -7304,7 +7305,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7334,7 +7335,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7364,7 +7365,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to fetch portfolio margin account stop or conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7396,7 +7397,7 @@ class binance extends binance$1 {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to cancel a portfolio margin account conditional order
+     * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -7501,7 +7502,7 @@ class binance extends binance$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
-     * @param {boolean} [params.stop] set to true if you would like to cancel portfolio margin account conditional orders
+     * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -11586,7 +11587,7 @@ class binance extends binance$1 {
      * @param {string} id the identification number of the ledger entry
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedgerEntry(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -11633,14 +11634,14 @@ class binance extends binance$1 {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params, undefined, false);
         }
         let type = undefined;
         let subType = undefined;
@@ -11924,13 +11925,13 @@ class binance extends binance$1 {
     getExceptionsByUrl(url, exactOrBroad) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith('https://api.' + hostname + '/')) {
+        if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://testnet.binance.vision')) {
             marketType = 'spot';
         }
-        else if (url.startsWith('https://dapi.' + hostname + '/')) {
+        else if (url.startsWith('https://dapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
         }
-        else if (url.startsWith('https://fapi.' + hostname + '/')) {
+        else if (url.startsWith('https://fapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         }
         else if (url.startsWith('https://eapi.' + hostname + '/')) {
@@ -12822,7 +12823,7 @@ class binance extends binance$1 {
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, market, since, limit);
+        return this.parseOpenInterestsHistory(response, market, since, limit);
     }
     /**
      * @method
@@ -12891,7 +12892,7 @@ class binance extends binance$1 {
         //
         if (market['option']) {
             symbol = market['symbol'];
-            const result = this.parseOpenInterests(response, market);
+            const result = this.parseOpenInterestsHistory(response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];
                 if (item['symbol'] === symbol) {

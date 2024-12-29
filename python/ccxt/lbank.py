@@ -1609,7 +1609,6 @@ class lbank(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': costString,
             'amount': amountString,

@@ -117,6 +117,12 @@ class bybit(ccxt.async_support.bybit):
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
+                'watchMyTrades': {
+                    # filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes': [
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ],
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -309,7 +315,7 @@ class bybit(ccxt.async_support.bybit):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *spot only* whether the order is a stop order
+        :param boolean [params.trigger]: *spot only* whether the order is a trigger order
         :param str [params.orderFilter]: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1306,12 +1312,17 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols: dict = {}
+        filterExecTypes = self.handle_option('watchMyTrades', 'filterExecTypes', [])
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = None
             if spot:
                 parsed = self.parse_ws_trade(rawTrade)
             else:
+                # filter unified trades
+                execType = self.safe_string(rawTrade, 'execType', '')
+                if not self.in_array(execType, filterExecTypes):
+                    continue
                 parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
             symbols[symbol] = True

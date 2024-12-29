@@ -32,6 +32,8 @@ class krakenfutures extends Exchange {
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
@@ -197,7 +199,7 @@ class krakenfutures extends Exchange {
                     'invalidAmount' => '\\ccxt\\BadRequest',
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
-                    'Unavailable' => '\\ccxt\\InsufficientFunds',              // Insufficient funds in Futures account [withdraw]
+                    'Unavailable' => '\\ccxt\\ExchangeNotAvailable',              // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit' => '\\ccxt\\BadRequest',
                     'Json Parse Error' => '\\ccxt\\ExchangeError',
                     'nonceBelowThreshold' => '\\ccxt\\InvalidNonce',
@@ -253,6 +255,83 @@ class krakenfutures extends Exchange {
                 ),
                 'fetchTrades' => array(
                     'method' => 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 100,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => null,
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
                 ),
             ),
             'timeframes' => array(
@@ -1032,7 +1111,7 @@ class krakenfutures extends Exchange {
         /**
          * Create an order on the exchange
          *
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
          *
          * @param {string} $symbol unified $market $symbol
          * @param {string} $type 'limit' or 'market'
@@ -1093,7 +1172,7 @@ class krakenfutures extends Exchange {
         /**
          * create a list of trade $orders
          *
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1887,7 +1966,6 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
-            'stopPrice' => $this->safe_string($details, 'triggerPrice'),
             'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
             'amount' => $amount,
             'cost' => $cost,
@@ -1919,6 +1997,7 @@ class krakenfutures extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        // todo => lastFillTime => $this->iso8601(end)
         $response = $this->privateGetFills ($params);
         //
         //    {

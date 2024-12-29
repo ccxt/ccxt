@@ -303,6 +303,91 @@ export default class woofipro extends Exchange {
                 'brokerId': 'CCXT',
                 'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': true, // todo implement
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo: implementation needs unification
+                        'triggerPriceType': undefined,
+                        'attachedStopLossTakeProfit': {
+                            // todo: implementation needs unification
+                            'triggerPriceType': undefined,
+                            'limitPrice': false,
+                        },
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -1193,7 +1278,7 @@ export default class woofipro extends Exchange {
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
-        const stopPrice = this.safeNumber (order, 'triggerPrice');
+        const triggerPrice = this.safeNumber (order, 'triggerPrice');
         let takeProfitPrice: Num = undefined;
         let stopLossPrice: Num = undefined;
         const childOrders = this.safeValue (order, 'childOrders');
@@ -1224,8 +1309,7 @@ export default class woofipro extends Exchange {
             'reduceOnly': this.safeBool (order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,
@@ -1300,19 +1384,19 @@ export default class woofipro extends Exchange {
             'symbol': market['id'],
             'side': orderSide,
         };
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const algoType = this.safeString (params, 'algoType');
-        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
-        const priceKey = isStop ? 'price' : 'order_price';
-        const typeKey = isStop ? 'type' : 'order_type';
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
+        const typeKey = isConditional ? 'type' : 'order_type';
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isStop) {
+        if (!isConditional) {
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -1327,7 +1411,7 @@ export default class woofipro extends Exchange {
         if (price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
-        if (isMarket && !isStop) {
+        if (isMarket && !isConditional) {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         } else if (algoType !== 'POSITIONAL_TP_SL') {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
@@ -1336,8 +1420,8 @@ export default class woofipro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
-            request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+        if (triggerPrice !== undefined) {
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['algo_type'] = 'STOP';
         } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
             request['algo_type'] = 'TP_SL';
@@ -1402,12 +1486,12 @@ export default class woofipro extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
         let response = undefined;
-        if (isStop) {
+        if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
             //
             // {
@@ -1466,11 +1550,11 @@ export default class woofipro extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const stopPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeValue (orderParams, 'stopLoss');
             const takeProfit = this.safeValue (orderParams, 'takeProfit');
-            const isStop = stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
-            if (isStop) {
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
+            if (isConditional) {
                 throw new NotSupported (this.id + 'createOrders() only support non-stop order');
             }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
@@ -1526,13 +1610,13 @@ export default class woofipro extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
-        if (stopPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
-        const priceKey = isStop ? 'price' : 'order_price';
+        const isConditional = (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
         if (price !== undefined) {
             request[priceKey] = this.priceToPrecision (symbol, price);
         }
@@ -1541,7 +1625,7 @@ export default class woofipro extends Exchange {
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
         let response = undefined;
-        if (isStop) {
+        if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
@@ -1598,9 +1682,9 @@ export default class woofipro extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!stop && (symbol === undefined)) {
+        if (!trigger && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -1615,7 +1699,7 @@ export default class woofipro extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -1655,7 +1739,7 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (stop) {
+        if (trigger) {
             return this.extend (this.parseOrder (response), extendParams);
         }
         const data = this.safeDict (response, 'data', {});
@@ -1714,7 +1798,7 @@ export default class woofipro extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1722,12 +1806,12 @@ export default class woofipro extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateDeleteOrders (this.extend (request, params));
         }
-        // stop
+        // trigger
         // {
         //     "success": true,
         //     "timestamp": 1702989203989,
@@ -1767,12 +1851,12 @@ export default class woofipro extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             if (clientOrderId) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
@@ -2211,7 +2295,7 @@ export default class woofipro extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);

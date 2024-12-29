@@ -1135,7 +1135,6 @@ public partial class latoken : Exchange
         }
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
-        object triggerPrice = this.safeString(order, "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -1150,8 +1149,7 @@ public partial class latoken : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "cost", cost },
             { "amount", amount },
             { "filled", filled },

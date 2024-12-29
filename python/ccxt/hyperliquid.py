@@ -11,12 +11,14 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -29,7 +31,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,  # 1200 requests per minute, 20 request per second
-            'certified': False,
+            'certified': True,
             'pro': True,
             'dex': True,
             'has': {
@@ -55,6 +57,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -90,8 +94,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -208,9 +213,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'User or API Wallet ': InvalidOrder,
                     'Order has invalid size': InvalidOrder,
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
+                    'Order has zero size.': InvalidOrder,
+                    'Insufficient spot balance asset': InsufficientFunds,
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
             },
             'options': {
@@ -218,6 +225,101 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'sandboxMode': False,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 2000,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 2000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 2000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 2000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,  # todo, in two orders
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         })
 
@@ -359,6 +461,48 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_markets(result)
 
+    def calculate_price_precision(self, price: float, amountPrecision: float, maxDecimals: float):
+        """
+        Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+        :param float price: the price to use in the calculation
+        :param int amountPrecision: the amountPrecision to use in the calculation
+        :param int maxDecimals: the maxDecimals to use in the calculation
+        :returns int: The calculated price precision
+        """
+        pricePrecision = 0
+        priceStr = self.number_to_string(price)
+        if priceStr is None:
+            return 0
+        priceSplitted = priceStr.split('.')
+        if Precise.string_eq(priceStr, '0'):
+            # Significant digits is always hasattr(self, 5) case
+            significantDigits = 5
+            # Integer digits is always hasattr(self, 0) case(0 doesn't count)
+            integerDigits = 0
+            # Calculate the price precision
+            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - integerDigits)
+        elif Precise.string_gt(priceStr, '0') and Precise.string_lt(priceStr, '1'):
+            # Significant digits, always hasattr(self, 5) case
+            significantDigits = 5
+            # Get the part after the decimal separator
+            decimalPart = self.safe_string(priceSplitted, 1, '')
+            # Count the number of leading zeros in the decimal part
+            leadingZeros = 0
+            while((leadingZeros <= len(decimalPart)) and (decimalPart[leadingZeros] == '0')):
+                leadingZeros = leadingZeros + 1
+            # Calculate price precision based on leading zeros and significant digits
+            pricePrecision = leadingZeros + significantDigits
+            # Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = min(maxDecimals - amountPrecision, pricePrecision)
+        else:
+            # Count the numbers before the decimal separator
+            integerPart = self.safe_string(priceSplitted, 0, '')
+            # Get significant digits, take the max() of 5 and the integer digits count
+            significantDigits = max(5, len(integerPart))
+            # Calculate price precision based on maxDecimals - szDecimals and significantDigits - len(integerPart)
+            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - len(integerPart))
+        return self.parse_to_int(pricePrecision)
+
     def fetch_spot_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all spot markets for hyperliquid
@@ -448,9 +592,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
-            amountPrecision = self.safe_integer(innerBaseTokenInfo, 'szDecimals')
+            amountPrecisionStr = self.safe_string(innerBaseTokenInfo, 'szDecimals')
+            amountPrecision = int(amountPrecisionStr)
+            price = self.safe_number(extraData, 'midPx')
+            pricePrecision = self.calculate_price_precision(price, amountPrecision, 8)
+            pricePrecisionStr = self.number_to_string(pricePrecision)
             # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
-            baseId = self.number_to_string(i + 10000)
+            baseId = self.number_to_string(index + 10000)
             markets.append(self.safe_market_structure({
                 'id': marketName,
                 'symbol': symbol,
@@ -479,8 +627,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,  # decimal places
-                    'price': 8 - amountPrecision,  # MAX_DECIMALS is 8
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionStr)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -541,7 +689,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, 'swap', {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
-        amountPrecision = self.safe_integer(market, 'szDecimals')
+        amountPrecisionStr = self.safe_string(market, 'szDecimals')
+        amountPrecision = int(amountPrecisionStr)
+        price = self.safe_number(market, 'markPx', 0)
+        pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
+        pricePrecisionStr = self.number_to_string(pricePrecision)
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -569,8 +721,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,  # decimal places
-                'price': 6 - amountPrecision,  # MAX_DECIMALS is 6
+                'amount': self.parse_number(self.parse_precision(amountPrecisionStr)),
+                'price': self.parse_number(self.parse_precision(pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
@@ -1037,10 +1189,13 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def price_to_precision(self, symbol: str, price) -> str:
         market = self.market(symbol)
-        # https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        result = self.decimal_to_precision(price, ROUND, 5, SIGNIFICANT_DIGITS, self.paddingMode)
-        decimalParsedResult = self.decimal_to_precision(result, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
-        return decimalParsedResult
+        priceStr = self.number_to_string(price)
+        integerPart = priceStr.split('.')[0]
+        significantDigits = max(5, len(integerPart))
+        result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
+        maxDecimals = 8 if market['spot'] else 6
+        subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
+        return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
 
     def hash_message(self, message):
         return '0x' + self.hash(message, 'keccak', 'hex')
@@ -1132,13 +1287,24 @@ class hyperliquid(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def build_transfer_sig(self, message):
+    def build_usd_send_sig(self, message):
         messageTypes: dict = {
             'HyperliquidTransaction:UsdSend': [
                 {'name': 'hyperliquidChain', 'type': 'string'},
                 {'name': 'destination', 'type': 'string'},
                 {'name': 'amount', 'type': 'string'},
                 {'name': 'time', 'type': 'uint64'},
+            ],
+        }
+        return self.sign_user_signed_action(messageTypes, message)
+
+    def build_usd_class_send_sig(self, message):
+        messageTypes: dict = {
+            'HyperliquidTransaction:UsdClassTransfer': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
+                {'name': 'amount', 'type': 'string'},
+                {'name': 'toPerp', 'type': 'bool'},
+                {'name': 'nonce', 'type': 'uint64'},
             ],
         }
         return self.sign_user_signed_action(messageTypes, message)
@@ -2530,25 +2696,34 @@ class hyperliquid(Exchange, ImplicitAPI):
             # handle swap <> spot account transfer
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
                 raise NotSupported(self.id + 'transfer() only support spot <> swap transfer')
+            strAmount = self.number_to_string(amount)
             vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
             params = self.omit(params, 'vaultAddress')
+            if vaultAddress is not None:
+                strAmount = strAmount + ' subaccount:' + vaultAddress
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
-            action: dict = {
-                'type': 'spotUser',
-                'classTransfer': {
-                    'usdc': amount,
-                    'toPerp': toPerp,
-                },
-            }
-            signature = self.sign_l1_action(action, nonce, vaultAddress)
-            innerRequest: dict = {
-                'action': action,
+            transferPayload: dict = {
+                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+                'amount': strAmount,
+                'toPerp': toPerp,
                 'nonce': nonce,
-                'signature': signature,
+            }
+            transferSig = self.build_usd_class_send_sig(transferPayload)
+            transferRequest: dict = {
+                'action': {
+                    'hyperliquidChain': transferPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'usdClassTransfer',
+                    'amount': strAmount,
+                    'toPerp': toPerp,
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': transferSig,
             }
             if vaultAddress is not None:
-                innerRequest['vaultAddress'] = vaultAddress
-            transferResponse = self.privatePostExchange(innerRequest)
+                transferRequest['vaultAddress'] = vaultAddress
+            transferResponse = self.privatePostExchange(transferRequest)
             return transferResponse
         # handle sub-account/different account transfer
         self.check_address(toAccount)
@@ -2562,7 +2737,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'amount': self.number_to_string(amount),
             'time': nonce,
         }
-        sig = self.build_transfer_sig(payload)
+        sig = self.build_usd_send_sig(payload)
         request: dict = {
             'action': {
                 'hyperliquidChain': payload['hyperliquidChain'],
@@ -2801,7 +2976,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         userAddress = None
@@ -2961,6 +3136,64 @@ class hyperliquid(Exchange, ImplicitAPI):
         records = self.extract_type_from_delta(response)
         withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
         return self.parse_transactions(withdrawals, None, since, limit)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+        :param str[] [symbols]: Unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        swapMarkets = self.fetch_swap_markets()
+        result = self.parse_open_interests(swapMarkets)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict: an `open interest structure <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        symbol = self.symbol(symbol)
+        self.load_markets()
+        ois = self.fetch_open_interests([symbol], params)
+        return ois[symbol]
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #  {
+        #      szDecimals: '2',
+        #      name: 'HYPE',
+        #      maxLeverage: '3',
+        #      funding: '0.00014735',
+        #      openInterest: '14677900.74',
+        #      prevDayPx: '26.145',
+        #      dayNtlVlm: '299643445.12560016',
+        #      premium: '0.00081613',
+        #      oraclePx: '27.569',
+        #      markPx: '27.63',
+        #      midPx: '27.599',
+        #      impactPxs: ['27.5915', '27.6319'],
+        #      dayBaseVlm: '10790652.83',
+        #      baseId: 159
+        #  }
+        #
+        interest = self.safe_dict(interest, 'info', {})
+        coin = self.safe_string(interest, 'name')
+        marketId = None
+        if coin is not None:
+            marketId = self.coin_to_market_id(coin)
+        return self.safe_open_interest({
+            'symbol': self.safe_symbol(marketId),
+            'openInterestAmount': self.safe_number(interest, 'openInterest'),
+            'openInterestValue': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
+        }, market)
 
     def extract_type_from_delta(self, data=[]):
         records = []

@@ -1375,7 +1375,6 @@ class bigone extends bigone$1 {
             'postOnly': this.safeBool(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,

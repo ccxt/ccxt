@@ -1016,14 +1016,14 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] trigger $orders are watched if true
+             * @param {boolean} [$params->trigger] $trigger $orders are watched if true
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $url = Async\await($this->negotiate(true));
-            $topic = $stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+            $topic = $trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
             $request = array(
                 'privateChannel' => true,
             );

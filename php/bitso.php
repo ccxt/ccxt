@@ -199,7 +199,7 @@ class bitso extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $request = array();
         if ($limit !== null) {
@@ -1143,7 +1143,6 @@ class bitso extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1750,6 +1749,7 @@ class bitso extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
+            $endpoint = '/api' . $endpoint;
             $request = implode('', array($nonce, $method, $endpoint));
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if ($query) {
@@ -1761,7 +1761,7 @@ class bitso extends Exchange {
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers = array(
                 'Authorization' => 'Bitso ' . $auth,
-                'Content-Type' => 'application/json',
+                // 'Content-Type' => 'application/json',
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

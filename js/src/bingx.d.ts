@@ -46,7 +46,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
      * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
      * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#K-Line%20Data%20-%20Mark%20Price
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -195,6 +195,19 @@ export default class bingx extends Exchange {
     parseBalance(response: any): Balances;
     /**
      * @method
+     * @name bingx#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    /**
+     * @method
      * @name bingx#fetchPositions
      * @description fetch all open positions
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
@@ -257,6 +270,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -306,6 +320,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -357,9 +372,11 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -367,7 +384,8 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -384,10 +402,12 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap open orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -433,12 +453,14 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.standard] whether to fetch standard contract orders
+     * @param {boolean} [params.twap] if fetching twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchCanceledAndClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -573,6 +595,7 @@ export default class bingx extends Exchange {
      * @description fetch all trades made by the user
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -686,7 +709,7 @@ export default class bingx extends Exchange {
      * @param {float} amount how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.stopPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
+     * @param {string} [params.triggerPrice] Trigger price used for TAKE_STOP_LIMIT, TAKE_STOP_MARKET, TRIGGER_LIMIT, TRIGGER_MARKET order types.
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered

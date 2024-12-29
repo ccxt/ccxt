@@ -236,6 +236,9 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/data' => 5,
                         'v5/spot-cross-margin-trade/pledge-token' => 5,
                         'v5/spot-cross-margin-trade/borrow-token' => 5,
+                        // crypto loan
+                        'v5/crypto-loan/collateral-data' => 5,
+                        'v5/crypto-loan/loanable-data' => 5,
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
@@ -363,6 +366,8 @@ class bybit extends Exchange {
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
                         'v5/user/submembers' => 5,
+                        // affilate
+                        'v5/affiliate/aff-user-list' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -372,6 +377,13 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
+                        // crypto loan
+                        'v5/crypto-loan/borrowable-collateralisable-number' => 5,
+                        'v5/crypto-loan/ongoing-orders' => 5,
+                        'v5/crypto-loan/repayment-history' => 5,
+                        'v5/crypto-loan/borrow-history' => 5,
+                        'v5/crypto-loan/max-collateral-amount' => 5,
+                        'v5/crypto-loan/adjustment-history' => 5,
                         // institutional lending
                         'v5/ins-loan/product-infos' => 5,
                         'v5/ins-loan/ensure-tokens-convert' => 5,
@@ -383,7 +395,7 @@ class bybit extends Exchange {
                         'v5/lending/history-order' => 5,
                         'v5/lending/account' => 5,
                         // broker
-                        'v5/broker/earning-record' => 5,
+                        'v5/broker/earning-record' => 5, // deprecated
                         'v5/broker/earnings-info' => 5,
                         'v5/broker/account-info' => 5,
                         'v5/broker/asset/query-sub-member-deposit-record' => 10,
@@ -504,6 +516,10 @@ class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        // crypto loan
+                        'v5/crypto-loan/borrow' => 5,
+                        'v5/crypto-loan/repay' => 5,
+                        'v5/crypto-loan/adjust-ltv' => 5,
                         // institutional lending
                         'v5/ins-loan/association-uid' => 5,
                         // c2c lending
@@ -514,6 +530,10 @@ class bybit extends Exchange {
                         'v5/account/set-collateral-switch-batch' => 5,
                         // demo trading
                         'v5/account/demo-apply-money' => 5,
+                        // broker
+                        'v5/broker/award/info' => 5,
+                        'v5/broker/award/distribute-award' => 5,
+                        'v5/broker/award/distribution-record' => 5,
                     ),
                 ),
             ),
@@ -635,6 +655,9 @@ class bybit extends Exchange {
                     '110071' => '\\ccxt\\ExchangeError', // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
                     '110072' => '\\ccxt\\InvalidOrder', // OrderLinkedID is duplicate
                     '110073' => '\\ccxt\\ExchangeError', // Set margin mode failed
+                    '110092' => '\\ccxt\\InvalidOrder', // expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
+                    '110093' => '\\ccxt\\InvalidOrder', // expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
+                    '110094' => '\\ccxt\\InvalidOrder', // Order notional value below the lower limit
                     '130006' => '\\ccxt\\InvalidOrder', // array("ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed => too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100)
                     '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100) |  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100) caused issues/9149#issuecomment-1146559498
                     '130074' => '\\ccxt\\InvalidOrder', // array("ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100)
@@ -1055,6 +1078,7 @@ class bybit extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'last' => true,
@@ -1072,26 +1096,25 @@ class bybit extends Exchange {
                             ),
                             'limitPrice' => true,
                         ),
-                        'marginMode' => false,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'limit' => 100,
                         'daysBack' => 365 * 2, // 2 years
                         'untilDays' => 7, // days between start-end
@@ -1102,18 +1125,18 @@ class bybit extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 50,
                         'marginMode' => false,
+                        'limit' => 50,
                         'trigger' => true,
                         'trailing' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 50,
                         'daysBackClosed' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
-                        'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                     ),
@@ -1124,30 +1147,13 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => true,
-                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
                             'limitPrice' => true,
                         ),
-                        'marginMode' => false,
-                        'timeInForce' => array(
-                            'GTC' => true,
-                            'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
-                            'GTD' => false,
-                        ),
-                        'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
-                        'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => false,
-                        'oco' => false,
+                        'marketBuyRequiresPrice' => true,
                     ),
                 ),
                 'swap' => array(
@@ -1212,7 +1218,7 @@ class bybit extends Exchange {
 
     public function add_pagination_cursor_to_result($response) {
         $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_value_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
+        $data = $this->safe_list_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
         $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
         $dataLength = count($data);
         if (($paginationCursor !== null) && ($dataLength > 0)) {
@@ -1225,12 +1231,12 @@ class bybit extends Exchange {
 
     public function is_unified_enabled($params = array ()) {
         /**
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
          * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          *
          * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -2072,6 +2078,7 @@ class bybit extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
                     'type' => 'option',
+                    'subType' => 'linear',
                     'spot' => false,
                     'margin' => false,
                     'swap' => false,
@@ -2079,8 +2086,8 @@ class bybit extends Exchange {
                     'option' => true,
                     'active' => $isActive,
                     'contract' => true,
-                    'linear' => null,
-                    'inverse' => null,
+                    'linear' => true,
+                    'inverse' => false,
                     'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                     'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                     'contractSize' => $this->parse_number('1'),
@@ -2323,6 +2330,7 @@ class bybit extends Exchange {
          * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
+         * @param {string} [$params->baseCoin] *option only* base coin, default is 'BTC'
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -2368,10 +2376,11 @@ class bybit extends Exchange {
         // only if $passedSubType is null, then use spot
         if ($type === 'spot' && $passedSubType === null) {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
-            $request['category'] = $subType;
         } elseif ($type === 'option') {
             $request['category'] = 'option';
+            $request['baseCoin'] = $this->safe_string($params, 'baseCoin', 'BTC');
+        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
+            $request['category'] = $subType;
         }
         $response = $this->publicGetV5MarketTickers ($this->extend($request, $params));
         //
@@ -3209,7 +3218,7 @@ class bybit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_dict($response, 'result', array());
-        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
+        $currencyList = $this->safe_list_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
         if ($currencyList === null) {
             // usdc wallet
             $code = 'USDC';
@@ -3582,11 +3591,18 @@ class bybit extends Exchange {
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'createdTime', 'createdAt');
+        $marketUnit = $this->safe_string($order, 'marketUnit', 'baseCoin');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'qty');
-        $cost = $this->safe_string($order, 'cumExecValue');
+        $amount = null;
+        $cost = null;
+        if ($marketUnit === 'baseCoin') {
+            $amount = $this->safe_string($order, 'qty');
+            $cost = $this->safe_string($order, 'cumExecValue');
+        } else {
+            $cost = $this->safe_string($order, 'cumExecValue');
+        }
         $filled = $this->safe_string($order, 'cumExecQty');
         $remaining = $this->safe_string($order, 'leavesQty');
         $lastTradeTimestamp = $this->safe_integer_2($order, 'updatedTime', 'updatedAt');
@@ -3626,33 +3642,33 @@ class bybit extends Exchange {
         $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
         $reduceOnly = $this->safe_bool($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
         $triggerDirection = $this->safe_string($order, 'triggerDirection');
         $isAscending = ($triggerDirection === '1');
-        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        $isStopOrderType2 = ($triggerPrice !== null) && $reduceOnly;
         if (($stopLossPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $stopLossPrice
             if ($isAscending && ($side === 'buy')) {
                 // stopLoss $order against short position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'sell')) {
                 // stopLoss $order against a long position
-                $stopLossPrice = $stopPrice;
+                $stopLossPrice = $triggerPrice;
             }
         }
         if (($takeProfitPrice === null) && $isStopOrderType2) {
             // check if $order is stop $order $type 2 - $takeProfitPrice
             if ($isAscending && ($side === 'sell')) {
                 // takeprofit $order against a long position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
             if (!$isAscending && ($side === 'buy')) {
                 // takeprofit $order against a short position
-                $takeProfitPrice = $stopPrice;
+                $takeProfitPrice = $triggerPrice;
             }
         }
         return $this->safe_order(array(
@@ -3670,8 +3686,7 @@ class bybit extends Exchange {
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
@@ -4046,7 +4061,7 @@ class bybit extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams, $isUta);
             $ordersRequests[] = $orderRequest;
         }
@@ -5681,7 +5696,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -6687,7 +6702,7 @@ class bybit extends Exchange {
         $data = $this->add_pagination_cursor_to_result($response);
         $id = $this->safe_string($result, 'symbol');
         $market = $this->safe_market($id, $market, null, 'contract');
-        return $this->parse_open_interests($data, $market, $since, $limit);
+        return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -8091,7 +8106,7 @@ class bybit extends Exchange {
             }
             $symbol = $market['symbol'];
         }
-        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 20 ), $params));
+        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }

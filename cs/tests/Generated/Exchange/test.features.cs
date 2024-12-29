@@ -36,7 +36,11 @@ public partial class testMainClass : BaseTest
                         object subKey = getValue(subKeys, j);
                         testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
                         object subValue = getValue(value, subKey);
-                        testFeaturesInner(exchange, skippedProperties, subValue);
+                        // sometimes it might not be available for exchange, eg. future>inverse)
+                        if (isTrue(!isEqual(subValue, null)))
+                        {
+                            testFeaturesInner(exchange, skippedProperties, subValue);
+                        }
                     }
                 }
             }
@@ -47,6 +51,7 @@ public partial class testMainClass : BaseTest
         object format = new Dictionary<string, object>() {
             { "sandbox", false },
             { "createOrder", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "triggerPrice", false },
                 { "triggerPriceType", new Dictionary<string, object>() {
                     { "mark", false },
@@ -63,25 +68,20 @@ public partial class testMainClass : BaseTest
                     } },
                     { "limitPrice", false },
                 } },
-                { "marginMode", false },
                 { "timeInForce", new Dictionary<string, object>() {
-                    { "GTC", false },
                     { "IOC", false },
                     { "FOK", false },
                     { "PO", false },
                     { "GTD", false },
                 } },
                 { "hedged", false },
-                { "selfTradePrevention", false },
                 { "trailing", false },
-                { "twap", false },
-                { "iceberg", false },
-                { "oco", false },
             } },
             { "createOrders", new Dictionary<string, object>() {
                 { "max", 5 },
             } },
             { "fetchMyTrades", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "daysBack", 0 },
                 { "limit", 0 },
                 { "untilDays", 0 },
@@ -92,25 +92,25 @@ public partial class testMainClass : BaseTest
                 { "trailing", false },
             } },
             { "fetchOpenOrders", new Dictionary<string, object>() {
-                { "limit", 0 },
                 { "marginMode", false },
+                { "limit", 0 },
                 { "trigger", false },
                 { "trailing", false },
             } },
             { "fetchOrders", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "limit", 0 },
                 { "daysBack", 0 },
                 { "untilDays", 0 },
-                { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
             } },
             { "fetchClosedOrders", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "limit", 0 },
                 { "daysBackClosed", 0 },
                 { "daysBackCanceled", 0 },
                 { "untilDays", 0 },
-                { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
             } },

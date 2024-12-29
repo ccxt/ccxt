@@ -951,15 +951,15 @@ export default class kucoin extends kucoinRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] trigger orders are watched if true
+     * @param {boolean} [params.trigger] trigger orders are watched if true
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const url = await this.negotiate(true);
-        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+        const topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };

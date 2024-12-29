@@ -40,6 +40,8 @@ class cryptocom extends cryptocom$1 {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -346,6 +348,97 @@ class cryptocom extends cryptocom$1 {
                 },
                 'broker': 'CCXT',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        // todo: implementation fix
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': true,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 1,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
@@ -398,6 +491,9 @@ class cryptocom extends cryptocom$1 {
                     '40801': errors.RequestTimeout,
                     '42901': errors.RateLimitExceeded,
                     '43005': errors.InvalidOrder,
+                    '43003': errors.InvalidOrder,
+                    '43004': errors.InvalidOrder,
+                    '43012': errors.BadRequest,
                     '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
@@ -502,8 +598,8 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const resultResponse = this.safeValue(response, 'result', {});
-        const data = this.safeValue(resultResponse, 'data', []);
+        const resultResponse = this.safeDict(response, 'result', {});
+        const data = this.safeList(resultResponse, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -520,8 +616,8 @@ class cryptocom extends cryptocom$1 {
             const settle = spot ? undefined : this.safeCurrencyCode(settleId);
             const optionType = this.safeStringLower(market, 'put_call');
             const strike = this.safeString(market, 'strike');
-            const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
-            const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
+            const marginBuyEnabled = this.safeBool(market, 'margin_buy_enabled');
+            const marginSellEnabled = this.safeBool(market, 'margin_sell_enabled');
             const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
             const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
             let symbol = base + '/' + quote;
@@ -562,7 +658,7 @@ class cryptocom extends cryptocom$1 {
                 'swap': swap,
                 'future': future,
                 'option': option,
-                'active': this.safeValue(market, 'tradable'),
+                'active': this.safeBool(market, 'tradable'),
                 'contract': contract,
                 'linear': (contract) ? true : undefined,
                 'inverse': (contract) ? false : undefined,
@@ -653,7 +749,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseTickers(data, symbols);
     }
@@ -749,7 +845,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         const orders = this.safeList(data, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -809,7 +905,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -883,7 +979,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -925,15 +1021,15 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'data', []);
         const orderBook = this.safeValue(data, 0);
         const timestamp = this.safeInteger(orderBook, 't');
         return this.parseOrderBook(orderBook, symbol, timestamp);
     }
     parseBalance(response) {
-        const responseResult = this.safeValue(response, 'result', {});
-        const data = this.safeValue(responseResult, 'data', []);
+        const responseResult = this.safeDict(response, 'result', {});
+        const data = this.safeList(responseResult, 'data', []);
         const positionBalances = this.safeValue(data[0], 'position_balances', []);
         const result = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
@@ -1185,7 +1281,7 @@ class cryptocom extends cryptocom$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a trigger order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1229,7 +1325,7 @@ class cryptocom extends cryptocom$1 {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -1595,7 +1691,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         const orders = this.safeList(data, 'data', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -1666,7 +1762,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1769,15 +1865,15 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const addresses = this.safeValue(data, 'deposit_address_list', []);
+        const data = this.safeDict(response, 'result', {});
+        const addresses = this.safeList(data, 'deposit_address_list', []);
         const addressesLength = addresses.length;
         if (addressesLength === 0) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
         const result = {};
         for (let i = 0; i < addressesLength; i++) {
-            const value = this.safeValue(addresses, i);
+            const value = this.safeDict(addresses, i);
             const addressString = this.safeString(value, 'address');
             const currencyId = this.safeString(value, 'currency');
             const responseCode = this.safeCurrencyCode(currencyId);
@@ -1871,7 +1967,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         const depositList = this.safeList(data, 'deposit_list', []);
         return this.parseTransactions(depositList, currency, since, limit);
     }
@@ -1932,7 +2028,7 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeDict(response, 'result', {});
         const withdrawalList = this.safeList(data, 'withdrawal_list', []);
         return this.parseTransactions(withdrawalList, currency, since, limit);
     }
@@ -2343,7 +2439,7 @@ class cryptocom extends cryptocom$1 {
         //        ]
         //    }
         //
-        const networkList = this.safeValue(fee, 'network_list');
+        const networkList = this.safeList(fee, 'network_list', []);
         const networkListLength = networkList.length;
         const result = {
             'info': fee,
@@ -2401,7 +2497,7 @@ class cryptocom extends cryptocom$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2451,8 +2547,8 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const ledger = this.safeValue(result, 'data', []);
+        const result = this.safeDict(response, 'result', {});
+        const ledger = this.safeList(result, 'data', []);
         return this.parseLedger(ledger, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
@@ -2578,9 +2674,9 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const masterAccount = this.safeValue(result, 'master_account', {});
-        const accounts = this.safeValue(result, 'sub_account_list', []);
+        const result = this.safeDict(response, 'result', {});
+        const masterAccount = this.safeDict(result, 'master_account', {});
+        const accounts = this.safeList(result, 'sub_account_list', []);
         accounts.push(masterAccount);
         return this.parseAccounts(accounts, params);
     }
@@ -2662,8 +2758,8 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'data', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -2763,8 +2859,8 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'data', []);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'data', []);
         const marketId = this.safeString(result, 'instrument_name');
         const rates = [];
         for (let i = 0; i < data.length; i++) {
@@ -2875,8 +2971,8 @@ class cryptocom extends cryptocom$1 {
         //         }
         //     }
         //
-        const responseResult = this.safeValue(response, 'result', {});
-        const positions = this.safeValue(responseResult, 'data', []);
+        const responseResult = this.safeDict(response, 'result', {});
+        const positions = this.safeList(responseResult, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];

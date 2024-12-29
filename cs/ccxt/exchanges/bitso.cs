@@ -153,7 +153,7 @@ public partial class bitso : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1162,7 +1162,6 @@ public partial class bitso : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1819,6 +1818,7 @@ public partial class bitso : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
+            endpoint = add("/api", endpoint);
             object request = String.Join("", ((IList<object>)new List<object>() {nonce, method, endpoint}).ToArray());
             if (isTrue(isTrue(!isEqual(method, "GET")) && isTrue(!isEqual(method, "DELETE"))))
             {
@@ -1832,7 +1832,6 @@ public partial class bitso : Exchange
             object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Bitso ", auth) },
-                { "Content-Type", "application/json" },
             };
         }
         return new Dictionary<string, object>() {

@@ -202,8 +202,8 @@ export default class btcturk extends Exchange {
         //        ],
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const markets = this.safeValue(data, 'symbols', []);
+        const data = this.safeDict(response, 'data', {});
+        const markets = this.safeList(data, 'symbols', []);
         return this.parseMarkets(markets);
     }
     parseMarket(entry) {
@@ -212,7 +212,7 @@ export default class btcturk extends Exchange {
         const quoteId = this.safeString(entry, 'denominator');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const filters = this.safeValue(entry, 'filters', []);
+        const filters = this.safeList(entry, 'filters', []);
         let minPrice = undefined;
         let maxPrice = undefined;
         let minAmount = undefined;
@@ -281,7 +281,7 @@ export default class btcturk extends Exchange {
         };
     }
     parseBalance(response) {
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -356,7 +356,7 @@ export default class btcturk extends Exchange {
         //         ]
         //       }
         //     }
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'timestamp');
         return this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
@@ -645,20 +645,20 @@ export default class btcturk extends Exchange {
     }
     parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
-        const timestamp = this.safeValue(ohlcvs, 't');
-        const high = this.safeValue(ohlcvs, 'h');
-        const open = this.safeValue(ohlcvs, 'o');
-        const low = this.safeValue(ohlcvs, 'l');
-        const close = this.safeValue(ohlcvs, 'c');
-        const volume = this.safeValue(ohlcvs, 'v');
+        const timestamp = this.safeList(ohlcvs, 't', []);
+        const high = this.safeList(ohlcvs, 'h', []);
+        const open = this.safeList(ohlcvs, 'o', []);
+        const low = this.safeList(ohlcvs, 'l', []);
+        const close = this.safeList(ohlcvs, 'c', []);
+        const volume = this.safeList(ohlcvs, 'v', []);
         for (let i = 0; i < timestamp.length; i++) {
             const ohlcv = {
-                'timestamp': this.safeValue(timestamp, i),
-                'high': this.safeValue(high, i),
-                'open': this.safeValue(open, i),
-                'low': this.safeValue(low, i),
-                'close': this.safeValue(close, i),
-                'volume': this.safeValue(volume, i),
+                'timestamp': this.safeInteger(timestamp, i),
+                'high': this.safeNumber(high, i),
+                'open': this.safeNumber(open, i),
+                'low': this.safeNumber(low, i),
+                'close': this.safeNumber(close, i),
+                'volume': this.safeNumber(volume, i),
             };
             results.push(this.parseOHLCV(ohlcv, market));
         }
@@ -746,8 +746,8 @@ export default class btcturk extends Exchange {
             request['pairSymbol'] = market['id'];
         }
         const response = await this.privateGetOpenOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
-        const bids = this.safeValue(data, 'bids', []);
+        const data = this.safeDict(response, 'data', {});
+        const bids = this.safeList(data, 'bids', []);
         const asks = this.safeList(data, 'asks', []);
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }

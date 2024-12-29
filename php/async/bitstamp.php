@@ -156,6 +156,7 @@ class bitstamp extends Exchange {
                         'user_transactions/' => 1,
                         'user_transactions/{pair}/' => 1,
                         'crypto-transactions/' => 1,
+                        'open_order' => 1,
                         'open_orders/all/' => 1,
                         'open_orders/{pair}/' => 1,
                         'order_status/' => 1,
@@ -494,6 +495,64 @@ class bitstamp extends Exchange {
                     'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than' => '\\ccxt\\InvalidOrder', // array("status" => "error", "reason" => array("amount" => ["Ensure that there are no more than 0 decimal places."], "__all__" => [""]))
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 30,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -1977,7 +2036,6 @@ class bitstamp extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
@@ -2104,7 +2162,7 @@ class bitstamp extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array();

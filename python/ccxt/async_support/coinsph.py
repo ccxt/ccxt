@@ -555,7 +555,7 @@ class coinsph(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        markets = self.safe_value(response, 'symbols')
+        markets = self.safe_list(response, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -564,7 +564,7 @@ class coinsph(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            limits = self.index_by(self.safe_value(market, 'filters'), 'filterType')
+            limits = self.index_by(self.safe_list(market, 'filters', []), 'filterType')
             amountLimits = self.safe_value(limits, 'LOT_SIZE', {})
             priceLimits = self.safe_value(limits, 'PRICE_FILTER', {})
             costLimits = self.safe_value(limits, 'NOTIONAL', {})
@@ -644,7 +644,7 @@ class coinsph(Exchange, ImplicitAPI):
                 ids.append(id)
             request['symbols'] = ids
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
-        options = self.safe_value(self.options, 'fetchTickers', {})
+        options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
         tickers = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
@@ -673,7 +673,7 @@ class coinsph(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
-        options = self.safe_value(self.options, 'fetchTicker', {})
+        options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
         ticker = None
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
@@ -1002,7 +1002,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_value_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker', None)
         side = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
@@ -1064,7 +1064,7 @@ class coinsph(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        balances = self.safe_value(response, 'balances', [])
+        balances = self.safe_list(response, 'balances', [])
         result: dict = {
             'info': response,
             'timestamp': None,
@@ -1146,10 +1146,10 @@ class coinsph(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, amount)
                 request['quoteOrderQty'] = quoteAmount
         if orderType == 'STOP_LOSS' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT' or orderType == 'TAKE_PROFIT_LIMIT':
-            stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is None:
+            triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = None
@@ -1374,9 +1374,9 @@ class coinsph(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
         trades = self.safe_value(order, 'fills', None)
-        stopPrice = self.safe_string(order, 'stopPrice')
-        if Precise.string_eq(stopPrice, '0'):
-            stopPrice = None
+        triggerPrice = self.safe_string(order, 'stopPrice')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -1389,8 +1389,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': None,
             'amount': self.safe_string(order, 'origQty'),
             'cost': self.safe_string(order, 'cummulativeQuoteQty'),
@@ -1484,7 +1483,7 @@ class coinsph(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        tradingFee = self.safe_value(response, 0, {})
+        tradingFee = self.safe_dict(response, 0, {})
         return self.parse_trading_fee(tradingFee, market)
 
     async def fetch_trading_fees(self, params={}) -> TradingFees:

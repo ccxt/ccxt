@@ -355,7 +355,7 @@ class ndax extends Exchange {
                 //
                 //     {
                 //         "Authenticated" => true,
-                //         "UserId":57765,
+                //         "UserId":57764,
                 //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
                 //     }
                 //
@@ -1115,8 +1115,11 @@ class ndax extends Exchange {
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
             $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+            if ($accountId === null) {
+                $accountId = intval($this->accounts[0]['id']);
+            }
             $params = $this->omit($params, array( 'accountId', 'AccountId' ));
             $request = array(
                 'omsId' => $omsId,
@@ -1245,7 +1248,7 @@ class ndax extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -1383,7 +1386,7 @@ class ndax extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'Side'),
             'price' => $this->safe_string($order, 'Price'),
-            'stopPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
+            'triggerPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
             'cost' => $this->safe_string($order, 'GrossValueExecuted'),
             'amount' => $this->safe_string($order, 'OrigQuantity'),
             'filled' => $this->safe_string($order, 'QuantityExecuted'),
@@ -1408,6 +1411,7 @@ class ndax extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+             * @param {string} [$params->clientOrderId] a unique id for the order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -1661,6 +1665,7 @@ class ndax extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] a unique $id for the $order
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);

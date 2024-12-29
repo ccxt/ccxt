@@ -557,7 +557,7 @@ class coinsph extends Exchange {
             //         )
             //     }
             //
-            $markets = $this->safe_value($response, 'symbols');
+            $markets = $this->safe_list($response, 'symbols', array());
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -566,7 +566,7 @@ class coinsph extends Exchange {
                 $quoteId = $this->safe_string($market, 'quoteAsset');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $limits = $this->index_by($this->safe_value($market, 'filters'), 'filterType');
+                $limits = $this->index_by($this->safe_list($market, 'filters', array()), 'filterType');
                 $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
                 $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
                 $costLimits = $this->safe_value($limits, 'NOTIONAL', array());
@@ -652,7 +652,7 @@ class coinsph extends Exchange {
                 $request['symbols'] = $ids;
             }
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-            $options = $this->safe_value($this->options, 'fetchTickers', array());
+            $options = $this->safe_dict($this->options, 'fetchTickers', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $tickers = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -685,7 +685,7 @@ class coinsph extends Exchange {
                 'symbol' => $market['id'],
             );
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-            $options = $this->safe_value($this->options, 'fetchTicker', array());
+            $options = $this->safe_dict($this->options, 'fetchTicker', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $ticker = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -1044,7 +1044,7 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_value_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker', null);
         $side = null;
         if ($isBuyer !== null) {
             $side = ($isBuyer === true) ? 'buy' : 'sell';
@@ -1113,7 +1113,7 @@ class coinsph extends Exchange {
     }
 
     public function parse_balance($response): array {
-        $balances = $this->safe_value($response, 'balances', array());
+        $balances = $this->safe_list($response, 'balances', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1204,11 +1204,11 @@ class coinsph extends Exchange {
                 }
             }
             if ($orderType === 'STOP_LOSS' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT' || $orderType === 'TAKE_PROFIT_LIMIT') {
-                $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-                if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder () requires a triggerPrice or $stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
+                $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+                if ($triggerPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder () requires a $triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
                 }
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $request['newOrderRespType'] = $newOrderRespType;
             $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1459,9 +1459,9 @@ class coinsph extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
         $trades = $this->safe_value($order, 'fills', null);
-        $stopPrice = $this->safe_string($order, 'stopPrice');
-        if (Precise::string_eq($stopPrice, '0')) {
-            $stopPrice = null;
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
+        if (Precise::string_eq($triggerPrice, '0')) {
+            $triggerPrice = null;
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -1475,8 +1475,7 @@ class coinsph extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => null,
             'amount' => $this->safe_string($order, 'origQty'),
             'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
@@ -1578,7 +1577,7 @@ class coinsph extends Exchange {
             //       }
             //     )
             //
-            $tradingFee = $this->safe_value($response, 0, array());
+            $tradingFee = $this->safe_dict($response, 0, array());
             return $this->parse_trading_fee($tradingFee, $market);
         }) ();
     }

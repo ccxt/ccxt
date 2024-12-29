@@ -39,6 +39,8 @@ public partial class paradex : Exchange
                 { "createOrder", true },
                 { "createOrders", false },
                 { "createReduceOnlyOrder", false },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
@@ -258,6 +260,7 @@ public partial class paradex : Exchange
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
+                { "paradexAccount", null },
                 { "broker", "CCXT" },
             } },
         });
@@ -1029,12 +1032,12 @@ public partial class paradex : Exchange
 
     public async virtual Task<object> retrieveAccount()
     {
-        this.checkRequiredCredentials();
         object cachedAccount = this.safeDict(this.options, "paradexAccount");
         if (isTrue(!isEqual(cachedAccount, null)))
         {
             return cachedAccount;
         }
+        this.checkRequiredCredentials();
         object systemConfig = await this.getSystemConfig();
         object domain = await this.prepareParadexDomain(true);
         object messageTypes = new Dictionary<string, object>() {
@@ -1178,7 +1181,6 @@ public partial class paradex : Exchange
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
-        object stopPrice = this.safeString(order, "trigger_price");
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
@@ -1195,8 +1197,7 @@ public partial class paradex : Exchange
             { "reduceOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeString(order, "trigger_price") },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "average", average },
@@ -1271,7 +1272,7 @@ public partial class paradex : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
@@ -1294,7 +1295,7 @@ public partial class paradex : Exchange
             { "type", orderType },
             { "size", this.amountToPrecision(symbol, amount) },
         };
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -1321,7 +1322,7 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isMarket))
             {
@@ -1330,7 +1331,7 @@ public partial class paradex : Exchange
             {
                 ((IDictionary<string,object>)request)["type"] = "STOP_LIMIT";
             }
-            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
         object account = await this.retrieveAccount();
@@ -2214,7 +2215,6 @@ public partial class paradex : Exchange
             }
         } else if (isTrue(isEqual(api, "private")))
         {
-            this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "PARADEX-PARTNER", this.safeString(this.options, "broker", "CCXT") },

@@ -33,7 +33,7 @@ class woo(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
-            'hostname': 'woo.org',
+            'hostname': 'woox.io',
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -45,7 +45,7 @@ class woo(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
-                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createConvertTrade': True,
@@ -124,7 +124,7 @@ class woo(Exchange, ImplicitAPI):
                 'setMargin': False,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -142,24 +142,24 @@ class woo(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
-                    'pub': 'https://api-pub.woo.org',
+                    'pub': 'https://api-pub.woox.io',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 'test': {
-                    'pub': 'https://api-pub.staging.woo.org',
-                    'public': 'https://api.staging.woo.org',
-                    'private': 'https://api.staging.woo.org',
+                    'pub': 'https://api-pub.staging.woox.io',
+                    'public': 'https://api.staging.woox.io',
+                    'private': 'https://api.staging.woox.io',
                 },
-                'www': 'https://woo.org/',
+                'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woo.org/',
+                    'https://docs.woox.io/',
                 ],
                 'fees': [
-                    'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
+                    'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
+                    'url': 'https://woox.io/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -168,7 +168,7 @@ class woo(Exchange, ImplicitAPI):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -218,11 +218,11 @@ class woo(Exchange, ImplicitAPI):
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,  # 2 requests per 1 second per symbol
+                            'order': 1,  # 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -235,7 +235,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -321,6 +321,94 @@ class woo(Exchange, ImplicitAPI):
                 },
                 'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo by triggerPrice
+                        'takeProfitPrice': False,  # todo by triggerPrice
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 90,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forSwap': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'hedged': True,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -357,7 +445,7 @@ class woo(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://docs.woo.org/#get-system-maintenance-status-public
+        https://docs.woox.io/#get-system-maintenance-status-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
@@ -393,7 +481,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.woo.org/#get-system-maintenance-status-public
+        https://docs.woox.io/#get-system-maintenance-status-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -415,7 +503,7 @@ class woo(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for woo
 
-        https://docs.woo.org/#exchange-information
+        https://docs.woox.io/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -530,7 +618,7 @@ class woo(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.woo.org/#market-trades-public
+        https://docs.woox.io/#market-trades-public
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -657,7 +745,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://docs.woo.org/#get-account-information-new
+        https://docs.woox.io/#get-account-information-new
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -712,7 +800,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://docs.woo.org/#available-token-public
+        https://docs.woox.io/#available-token-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -846,7 +934,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol and cost
 
-        https://docs.woo.org/#send-order
+        https://docs.woox.io/#send-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -863,7 +951,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a market sell order by providing the symbol and cost
 
-        https://docs.woo.org/#send-order
+        https://docs.woox.io/#send-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -880,7 +968,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -904,7 +992,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -928,8 +1016,8 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.woo.org/#send-order
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -965,7 +1053,7 @@ class woo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
             request['margin_mode'] = self.encode_margin_mode(marginMode)
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
@@ -975,17 +1063,17 @@ class woo(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         isTrailingPercentOrder = trailingPercent is not None
         isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-        isStop = isTrailing or stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        reduceOnlyKey = 'reduceOnly' if isStop else 'reduce_only'
-        clientOrderIdKey = 'clientOrderId' if isStop else 'client_order_id'
-        orderQtyKey = 'quantity' if isStop else 'order_quantity'
-        priceKey = 'price' if isStop else 'order_price'
-        typeKey = 'type' if isStop else 'order_type'
+        reduceOnlyKey = 'reduceOnly' if isConditional else 'reduce_only'
+        clientOrderIdKey = 'clientOrderId' if isConditional else 'client_order_id'
+        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
+        priceKey = 'price' if isConditional else 'order_price'
+        typeKey = 'type' if isConditional else 'order_type'
         request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if not isStop:
+        if not isConditional:
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -996,7 +1084,7 @@ class woo(Exchange, ImplicitAPI):
             request[reduceOnlyKey] = reduceOnly
         if not isMarket and price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
-        if isMarket and not isStop:
+        if isMarket and not isConditional:
             # for market buy it requires the amount of quote currency to spend
             cost = self.safe_string_2(params, 'cost', 'order_amount')
             params = self.omit(params, ['cost', 'order_amount'])
@@ -1028,9 +1116,9 @@ class woo(Exchange, ImplicitAPI):
             elif isTrailingPercentOrder:
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
-        elif stopPrice is not None:
+        elif triggerPrice is not None:
             if algoType != 'TRAILING_STOP':
-                request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 request['algoType'] = 'STOP'
         elif (stopLoss is not None) or (takeProfit is not None):
             request['algoType'] = 'BRACKET'
@@ -1042,7 +1130,7 @@ class woo(Exchange, ImplicitAPI):
             }
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
-                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1052,7 +1140,7 @@ class woo(Exchange, ImplicitAPI):
                 }
                 outterOrder['childOrders'].append(stopLossOrder)
             if takeProfit is not None:
-                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
@@ -1064,7 +1152,7 @@ class woo(Exchange, ImplicitAPI):
             request['childOrders'] = [outterOrder]
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
-        if isStop:
+        if isConditional:
             response = await self.v3PrivatePostAlgoOrder(self.extend(request, params))
         else:
             response = await self.v1PrivatePostOrder(self.extend(request, params))
@@ -1112,10 +1200,10 @@ class woo(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.woo.org/#edit-order
-        https://docs.woo.org/#edit-order-by-client_order_id
-        https://docs.woo.org/#edit-algo-order
-        https://docs.woo.org/#edit-algo-order-by-client_order_id
+        https://docs.woox.io/#edit-order
+        https://docs.woox.io/#edit-order-by-client_order_id
+        https://docs.woox.io/#edit-algo-order
+        https://docs.woox.io/#edit-algo-order-by-client_order_id
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1145,9 +1233,9 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
-        if stopPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
@@ -1163,17 +1251,17 @@ class woo(Exchange, ImplicitAPI):
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        isStop = isTrailing or (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isByClientOrder:
             request['client_order_id'] = clientOrderIdExchangeSpecific
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
         else:
             request['oid'] = id
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderOid(self.extend(request, params))
@@ -1195,20 +1283,20 @@ class woo(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#cancel-algo-order
-        https://docs.woo.org/#cancel-order
-        https://docs.woo.org/#cancel-order-by-client_order_id
+        https://docs.woox.io/#cancel-algo-order
+        https://docs.woox.io/#cancel-order
+        https://docs.woox.io/#cancel-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_bool(params, 'stop', False)
-        params = self.omit(params, 'stop')
-        if not stop and (symbol is None):
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        params = self.omit(params, ['trigger', 'stop'])
+        if not isTrigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market: Market = None
@@ -1219,7 +1307,7 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if stop:
+        if isTrigger:
             request['order_id'] = id
             response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
@@ -1244,20 +1332,20 @@ class woo(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#cancel-all-pending-orders
-        https://docs.woo.org/#cancel-orders
-        https://docs.woo.org/#cancel-all-pending-algo-orders
+        https://docs.woox.io/#cancel-all-pending-orders
+        https://docs.woox.io/#cancel-orders
+        https://docs.woox.io/#cancel-all-pending-algo-orders
 
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if stop:
+        if trigger:
             return await self.v3PrivateDeleteAlgoOrdersPending(params)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -1280,7 +1368,7 @@ class woo(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.woo.org/#cancel-all-after
+        https://docs.woox.io/#cancel-all-after
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1307,24 +1395,24 @@ class woo(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#get-algo-order
-        https://docs.woo.org/#get-order
+        https://docs.woox.io/#get-algo-order
+        https://docs.woox.io/#get-order
 
         fetches information on an order made by the user
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         response = None
-        if stop:
+        if trigger:
             request['oid'] = id
             response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
@@ -1375,14 +1463,14 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1396,14 +1484,14 @@ class woo(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request: dict = {}
         market: Market = None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'trailing', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            if stop or trailing:
+            if trigger or trailing:
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
@@ -1411,12 +1499,12 @@ class woo(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = 500
-        if stop:
+        if trigger:
             request['algoType'] = 'stop'
         elif trailing:
             request['algoType'] = 'TRAILING_STOP'
         response = None
-        if stop or trailing:
+        if trigger or trailing:
             response = await self.v3PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
@@ -1459,14 +1547,14 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1481,14 +1569,14 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1570,7 +1658,7 @@ class woo(Exchange, ImplicitAPI):
         fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
-        stopPrice = self.safe_number(order, 'triggerPrice')
+        triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice: Num = None
         stopLossPrice: Num = None
         childOrders = self.safe_value(order, 'childOrders')
@@ -1599,8 +1687,7 @@ class woo(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,
@@ -1636,7 +1723,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.woo.org/#orderbook-snapshot-public
+        https://docs.woox.io/#orderbook-snapshot-public
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1674,8 +1761,8 @@ class woo(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://docs.woo.org/#kline-public
-        https://docs.woo.org/#kline-historical-data-public
+        https://docs.woox.io/#kline-public
+        https://docs.woox.io/#kline-historical-data-public
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1766,7 +1853,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://docs.woo.org/#get-trades
+        https://docs.woox.io/#get-trades
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1808,7 +1895,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.woo.org/#get-trades
+        https://docs.woox.io/#get-trade-history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1829,6 +1916,7 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        request, params = self.handle_until_option('end_t', request, params)
         if limit is not None:
             request['size'] = limit
         else:
@@ -1864,7 +1952,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
 
-        https://docs.woo.org/#get-assets-of-subaccounts
+        https://docs.woox.io/#get-assets-of-subaccounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
@@ -1910,7 +1998,7 @@ class woo(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.woo.org/#get-current-holding-get-balance-new
+        https://docs.woox.io/#get-current-holding-get-balance-new
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1961,7 +2049,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://docs.woo.org/#get-token-deposit-address
+        https://docs.woox.io/#get-token-deposit-address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2050,13 +2138,13 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
@@ -2113,7 +2201,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2130,7 +2218,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2147,7 +2235,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -2221,7 +2309,7 @@ class woo(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://docs.woo.org/#get-transfer-history
+        https://docs.woox.io/#get-transfer-history
 
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2258,7 +2346,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
 
-        https://docs.woo.org/#get-transfer-history
+        https://docs.woox.io/#get-transfer-history
 
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
@@ -2360,7 +2448,7 @@ class woo(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.woo.org/#token-withdraw
+        https://docs.woox.io/#token-withdraw
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2401,7 +2489,7 @@ class woo(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
 
-        https://docs.woo.org/#repay-interest
+        https://docs.woox.io/#repay-interest
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -2473,8 +2561,8 @@ class woo(Exchange, ImplicitAPI):
                 if not isSandboxMode:
                     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                    isStop = path.find('algo') > -1
-                    if isStop:
+                    isTrigger = path.find('algo') > -1
+                    if isTrigger:
                         params['brokerId'] = brokerId
                     else:
                         params['broker_id'] = brokerId
@@ -2562,7 +2650,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://docs.woo.org/#get-funding-fee-history
+        https://docs.woox.io/#get-funding-fee-history
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -2744,7 +2832,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+        https://docs.woox.io/#get-funding-rate-history-for-one-market-public
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -2807,7 +2895,7 @@ class woo(Exchange, ImplicitAPI):
         """
         set hedged to True or False for a market
 
-        https://docs.woo.org/#update-position-mode
+        https://docs.woox.io/#update-position-mode
 
         :param bool hedged: set to True to use HEDGE_MODE, False for ONE_WAY
         :param str symbol: not used by woo setPositionMode
@@ -2836,7 +2924,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://docs.woo.org/#get-account-information-new
+        https://docs.woox.io/#get-account-information-new
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2961,8 +3049,8 @@ class woo(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://docs.woo.org/#update-leverage-setting
-        https://docs.woo.org/#update-futures-leverage-setting
+        https://docs.woox.io/#update-leverage-setting
+        https://docs.woox.io/#update-futures-leverage-setting
 
         :param float leverage: the rate of leverage(1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
         :param str [symbol]: unified market symbol(is mandatory for swap markets)
@@ -2993,7 +3081,7 @@ class woo(Exchange, ImplicitAPI):
         """
         add margin
 
-        https://docs.woo.org/#update-isolated-margin-setting
+        https://docs.woox.io/#update-isolated-margin-setting
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
@@ -3007,7 +3095,7 @@ class woo(Exchange, ImplicitAPI):
         """
         remove margin from a position
 
-        https://docs.woo.org/#update-isolated-margin-setting
+        https://docs.woox.io/#update-isolated-margin-setting
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to remove
@@ -3221,7 +3309,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch a quote for converting from one currency to another
 
-        https://docs.woo.org/#get-quote-rfq
+        https://docs.woox.io/#get-quote-rfq
 
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -3263,7 +3351,7 @@ class woo(Exchange, ImplicitAPI):
         """
         convert from one currency to another
 
-        https://docs.woo.org/#send-quote-rft
+        https://docs.woox.io/#send-quote-rft
 
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
@@ -3294,7 +3382,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the data for a conversion trade
 
-        https://docs.woo.org/#get-quote-trade
+        https://docs.woox.io/#get-quote-trade
 
         :param str id: the id of the trade that you want to fetch
         :param str [code]: the unified currency code of the conversion trade
@@ -3335,7 +3423,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the users history of conversion trades
 
-        https://docs.woo.org/#get-quote-trades
+        https://docs.woox.io/#get-quote-trades
 
         :param str [code]: the unified currency code
         :param int [since]: the earliest time in ms to fetch conversions for
@@ -3434,7 +3522,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches all available currencies that can be converted
 
-        https://docs.woo.org/#get-quote-asset-info
+        https://docs.woox.io/#get-quote-asset-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies

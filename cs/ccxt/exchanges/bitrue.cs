@@ -464,6 +464,7 @@ public partial class bitrue : Exchange
                     { "-4051", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Insufficient account balance", typeof(InsufficientFunds) },
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(InvalidOrder) },
                 } },
@@ -1802,8 +1803,7 @@ public partial class bitrue : Exchange
         {
             type = "limit";
         }
-        object stopPriceString = this.safeString(order, "stopPrice");
-        object stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1817,8 +1817,7 @@ public partial class bitrue : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -1969,11 +1968,11 @@ public partial class bitrue : Exchange
                 parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"});
                 ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
             }
-            object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(!isEqual(stopPrice, null)))
+            object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(!isEqual(triggerPrice, null)))
             {
                 parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder(this.extend(request, parameters));
             data = response;
@@ -3176,7 +3175,7 @@ public partial class bitrue : Exchange
         object version = this.safeString(api, 1);
         object access = this.safeString(api, 2);
         object url = null;
-        if (isTrue(isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline"))))
+        if (isTrue(isTrue((isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline")))) || isTrue((isTrue(isEqual(type, "open")) && isTrue(isGreaterThanOrEqual(getIndexOf(path, "listenKey"), 0))))))
         {
             url = getValue(getValue(this.urls, "api"), type);
         } else
@@ -3189,7 +3188,7 @@ public partial class bitrue : Exchange
         {
             this.checkRequiredCredentials();
             object recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
-            if (isTrue(isEqual(type, "spot")))
+            if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "open"))))
             {
                 object query = this.urlencode(this.extend(new Dictionary<string, object>() {
                     { "timestamp", this.nonce() },

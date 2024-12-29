@@ -232,7 +232,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -386,7 +386,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// object : When true, all the trigger orders will be cancelled
     /// </description>

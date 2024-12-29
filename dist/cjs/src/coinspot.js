@@ -272,7 +272,7 @@ class coinspot extends coinspot$1 {
         const response = await this.publicGetLatest(params);
         let id = market['id'];
         id = id.toLowerCase();
-        const prices = this.safeValue(response, 'prices');
+        const prices = this.safeDict(response, 'prices', {});
         //
         //     {
         //         "status":"ok",
@@ -303,22 +303,22 @@ class coinspot extends coinspot$1 {
         //
         //    {
         //        "status": "ok",
-        //        "prices": {
-        //        "btc": {
-        //        "bid": "25050",
-        //        "ask": "25370",
-        //        "last": "25234"
-        //        },
-        //        "ltc": {
-        //        "bid": "79.39192993",
-        //        "ask": "87.98",
-        //        "last": "87.95"
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
+        //            }
         //        }
-        //      }
         //    }
         //
         const result = {};
-        const prices = this.safeValue(response, 'prices');
+        const prices = this.safeDict(response, 'prices', {});
         const ids = Object.keys(prices);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -383,36 +383,36 @@ class coinspot extends coinspot$1 {
         }
         const response = await this.privatePostRoMyTransactions(this.extend(request, params));
         //  {
-        //   "status": "ok",
-        //   "buyorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "ALGO/AUD",
-        //       "amount": 386.95197925,
-        //       "created": "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst": 1.80018002,
-        //       "audGst": 0.180018,
-        //       "audtotal": 200
-        //     },
-        //   ],
-        //   "sellorders": [
-        //     {
-        //       "otc": false,
-        //       "market": "SOLO/ALGO",
-        //       "amount": 154.52345614,
-        //       "total": 115.78858204658796,
-        //       "created": "2022-04-16T09:36:43.698Z",
-        //       "audfeeExGst": 1.08995731,
-        //       "audGst": 0.10899573,
-        //       "audtotal": 118.7
-        //     },
-        //   ]
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
         // }
-        const buyTrades = this.safeValue(response, 'buyorders', []);
+        const buyTrades = this.safeList(response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeValue(response, 'sellorders', []);
+        const sellTrades = this.safeList(response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }

@@ -843,8 +843,8 @@ export default class coincatch extends Exchange {
             settleId = this.safeString(supportMarginCoins, 0);
             settle = this.safeCurrencyCode(settleId);
             suffix = ':' + settle;
-            isLinear = baseId === settleId; // todo check
-            isInverse = quoteId === settleId; // todo check
+            isLinear = quoteId === settleId; // todo check
+            isInverse = baseId === settleId; // todo check
             if (isLinear) {
                 subType = 'linear';
             }
@@ -4152,7 +4152,6 @@ export default class coincatch extends Exchange {
             'amount': amount,
             'filled': this.safeString2(order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
-            'stopPrice': undefined,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -5079,7 +5078,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.business] *swap only*
      * @param {string} [params.lastEndId] *swap only*
      * @param {bool} [params.next] *swap only*
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchLedger';

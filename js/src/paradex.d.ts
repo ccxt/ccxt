@@ -2,6 +2,8 @@ import Exchange from './abstract/paradex.js';
 import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
 /**
  * @class paradex
+ * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
+ * or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
  * @augments Exchange
  */
 export default class paradex extends Exchange {
@@ -146,7 +148,7 @@ export default class paradex extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false

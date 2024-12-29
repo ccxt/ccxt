@@ -855,8 +855,8 @@ class coincatch extends Exchange {
             $settleId = $this->safe_string($supportMarginCoins, 0);
             $settle = $this->safe_currency_code($settleId);
             $suffix = ':' . $settle;
-            $isLinear = $baseId === $settleId; // todo check
-            $isInverse = $quoteId === $settleId; // todo check
+            $isLinear = $quoteId === $settleId; // todo check
+            $isInverse = $baseId === $settleId; // todo check
             if ($isLinear) {
                 $subType = 'linear';
             } elseif ($isInverse) {
@@ -4193,7 +4193,6 @@ class coincatch extends Exchange {
             'amount' => $amount,
             'filled' => $this->safe_string_2($order, 'fillQuantity', 'filledQty'),
             'remaining' => null,
-            'stopPrice' => null,
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
@@ -5164,7 +5163,7 @@ class coincatch extends Exchange {
              * @param {string} [$params->business] *swap only*
              * @param {string} [$params->lastEndId] *swap only*
              * @param {bool} [$params->next] *swap only*
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $methodName = 'fetchLedger';
             Async\await($this->load_markets());

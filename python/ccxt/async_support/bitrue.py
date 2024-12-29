@@ -532,6 +532,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-4051': InsufficientFunds,  # {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': InsufficientFunds,  # {"code":-2010,"msg":"Insufficient account balance.","data":null}
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': InvalidOrder,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -1777,8 +1778,7 @@ class bitrue(Exchange, ImplicitAPI):
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
         if type == 'limit_maker':
             type = 'limit'
-        stopPriceString = self.safe_string(order, 'stopPrice')
-        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
+        triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice')))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1792,8 +1792,7 @@ class bitrue(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1916,10 +1915,10 @@ class bitrue(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
                 request['newClientOrderId'] = clientOrderId
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is not None:
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is not None:
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = await self.spotV1PrivatePostOrder(self.extend(request, params))
             data = response
         else:
@@ -2939,7 +2938,7 @@ class bitrue(Exchange, ImplicitAPI):
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
         url = None
-        if type == 'api' and version == 'kline':
+        if (type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0):
             url = self.urls['api'][type]
         else:
             url = self.urls['api'][type] + '/' + version
@@ -2948,7 +2947,7 @@ class bitrue(Exchange, ImplicitAPI):
         if access == 'private':
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
-            if type == 'spot':
+            if type == 'spot' or type == 'open':
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,

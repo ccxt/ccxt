@@ -25,7 +25,7 @@ export default class woo extends Exchange {
             'version': 'v1',
             'certified': true,
             'pro': true,
-            'hostname': 'woo.org',
+            'hostname': 'woox.io',
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -116,7 +116,7 @@ export default class woo extends Exchange {
                 'setMargin': false,
                 'setPositionMode': true,
                 'transfer': true,
-                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -134,24 +134,24 @@ export default class woo extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
-                    'pub': 'https://api-pub.woo.org',
+                    'pub': 'https://api-pub.woox.io',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 'test': {
-                    'pub': 'https://api-pub.staging.woo.org',
-                    'public': 'https://api.staging.woo.org',
-                    'private': 'https://api.staging.woo.org',
+                    'pub': 'https://api-pub.staging.woox.io',
+                    'public': 'https://api.staging.woox.io',
+                    'private': 'https://api.staging.woox.io',
                 },
-                'www': 'https://woo.org/',
+                'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woo.org/',
+                    'https://docs.woox.io/',
                 ],
                 'fees': [
-                    'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
+                    'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
+                    'url': 'https://woox.io/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -160,7 +160,7 @@ export default class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -210,7 +210,7 @@ export default class woo extends Exchange {
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,
+                            'order': 1,
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,
                             'asset/ltv': 30,
@@ -227,7 +227,7 @@ export default class woo extends Exchange {
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120, // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -313,6 +313,94 @@ export default class woo extends Exchange {
                 },
                 'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 90,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forSwap': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'hedged': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -349,7 +437,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.woo.org/#get-system-maintenance-status-public
+     * @see https://docs.woox.io/#get-system-maintenance-status-public
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -388,7 +476,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.woo.org/#get-system-maintenance-status-public
+     * @see https://docs.woox.io/#get-system-maintenance-status-public
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -410,7 +498,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMarkets
      * @description retrieves data on all markets for woo
-     * @see https://docs.woo.org/#exchange-information
+     * @see https://docs.woox.io/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -528,7 +616,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.woo.org/#market-trades-public
+     * @see https://docs.woox.io/#market-trades-public
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -659,7 +747,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.woo.org/#get-account-information-new
+     * @see https://docs.woox.io/#get-account-information-new
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
@@ -715,7 +803,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.woo.org/#available-token-public
+     * @see https://docs.woox.io/#available-token-public
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -852,7 +940,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://docs.woo.org/#send-order
+     * @see https://docs.woox.io/#send-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -870,7 +958,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://docs.woo.org/#send-order
+     * @see https://docs.woox.io/#send-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -888,7 +976,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingAmountOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-     * @see https://docs.woo.org/#send-algo-order
+     * @see https://docs.woox.io/#send-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -914,7 +1002,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createTrailingPercentOrder
      * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-     * @see https://docs.woo.org/#send-algo-order
+     * @see https://docs.woox.io/#send-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -940,8 +1028,8 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createOrder
      * @description create a trade order
-     * @see https://docs.woo.org/#send-order
-     * @see https://docs.woo.org/#send-algo-order
+     * @see https://docs.woox.io/#send-order
+     * @see https://docs.woox.io/#send-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -978,7 +1066,7 @@ export default class woo extends Exchange {
         if (marginMode !== undefined) {
             request['margin_mode'] = this.encodeMarginMode(marginMode);
         }
-        const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const algoType = this.safeString(params, 'algoType');
@@ -988,17 +1076,17 @@ export default class woo extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isStop = isTrailing || stopPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        const reduceOnlyKey = isStop ? 'reduceOnly' : 'reduce_only';
-        const clientOrderIdKey = isStop ? 'clientOrderId' : 'client_order_id';
-        const orderQtyKey = isStop ? 'quantity' : 'order_quantity';
-        const priceKey = isStop ? 'price' : 'order_price';
-        const typeKey = isStop ? 'type' : 'order_type';
+        const reduceOnlyKey = isConditional ? 'reduceOnly' : 'reduce_only';
+        const clientOrderIdKey = isConditional ? 'clientOrderId' : 'client_order_id';
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
+        const typeKey = isConditional ? 'type' : 'order_type';
         request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isStop) {
+        if (!isConditional) {
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }
@@ -1015,7 +1103,7 @@ export default class woo extends Exchange {
         if (!isMarket && price !== undefined) {
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isMarket && !isStop) {
+        if (isMarket && !isConditional) {
             // for market buy it requires the amount of quote currency to spend
             const cost = this.safeString2(params, 'cost', 'order_amount');
             params = this.omit(params, ['cost', 'order_amount']);
@@ -1058,9 +1146,9 @@ export default class woo extends Exchange {
                 request['callbackRate'] = convertedTrailingPercent;
             }
         }
-        else if (stopPrice !== undefined) {
+        else if (triggerPrice !== undefined) {
             if (algoType !== 'TRAILING_STOP') {
-                request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
                 request['algoType'] = 'STOP';
             }
         }
@@ -1074,7 +1162,7 @@ export default class woo extends Exchange {
             };
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (stopLoss !== undefined) {
-                const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossPrice = this.safeString(stopLoss, 'triggerPrice', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1085,7 +1173,7 @@ export default class woo extends Exchange {
                 outterOrder['childOrders'].push(stopLossOrder);
             }
             if (takeProfit !== undefined) {
-                const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitPrice = this.safeString(takeProfit, 'triggerPrice', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
@@ -1099,7 +1187,7 @@ export default class woo extends Exchange {
         }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
         let response = undefined;
-        if (isStop) {
+        if (isConditional) {
             response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
         }
         else {
@@ -1150,10 +1238,10 @@ export default class woo extends Exchange {
      * @method
      * @name woo#editOrder
      * @description edit a trade order
-     * @see https://docs.woo.org/#edit-order
-     * @see https://docs.woo.org/#edit-order-by-client_order_id
-     * @see https://docs.woo.org/#edit-algo-order
-     * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
+     * @see https://docs.woox.io/#edit-order
+     * @see https://docs.woox.io/#edit-order-by-client_order_id
+     * @see https://docs.woox.io/#edit-algo-order
+     * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1185,9 +1273,9 @@ export default class woo extends Exchange {
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
-        if (stopPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const trailingTriggerPrice = this.safeString2(params, 'trailingTriggerPrice', 'activatedPrice', this.numberToString(price));
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'callbackValue');
@@ -1208,11 +1296,11 @@ export default class woo extends Exchange {
             }
         }
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
-        const isStop = isTrailing || (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const isConditional = isTrailing || (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isByClientOrder) {
             request['client_order_id'] = clientOrderIdExchangeSpecific;
-            if (isStop) {
+            if (isConditional) {
                 response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, params));
             }
             else {
@@ -1221,7 +1309,7 @@ export default class woo extends Exchange {
         }
         else {
             request['oid'] = id;
-            if (isStop) {
+            if (isConditional) {
                 response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, params));
             }
             else {
@@ -1246,20 +1334,20 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelOrder
-     * @see https://docs.woo.org/#cancel-algo-order
-     * @see https://docs.woo.org/#cancel-order
-     * @see https://docs.woo.org/#cancel-order-by-client_order_id
+     * @see https://docs.woox.io/#cancel-algo-order
+     * @see https://docs.woox.io/#cancel-order
+     * @see https://docs.woox.io/#cancel-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        const stop = this.safeBool(params, 'stop', false);
-        params = this.omit(params, 'stop');
-        if (!stop && (symbol === undefined)) {
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        params = this.omit(params, ['trigger', 'stop']);
+        if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
@@ -1272,7 +1360,7 @@ export default class woo extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (stop) {
+        if (isTrigger) {
             request['order_id'] = id;
             response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, params));
         }
@@ -1303,20 +1391,20 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://docs.woo.org/#cancel-all-pending-orders
-     * @see https://docs.woo.org/#cancel-orders
-     * @see https://docs.woo.org/#cancel-all-pending-algo-orders
+     * @see https://docs.woox.io/#cancel-all-pending-orders
+     * @see https://docs.woox.io/#cancel-orders
+     * @see https://docs.woox.io/#cancel-all-pending-algo-orders
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        if (stop) {
+        if (trigger) {
             return await this.v3PrivateDeleteAlgoOrdersPending(params);
         }
         if (symbol === undefined) {
@@ -1341,7 +1429,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.woo.org/#cancel-all-after
+     * @see https://docs.woox.io/#cancel-all-after
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -1368,24 +1456,24 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#fetchOrder
-     * @see https://docs.woo.org/#get-algo-order
-     * @see https://docs.woo.org/#get-order
+     * @see https://docs.woox.io/#get-algo-order
+     * @see https://docs.woox.io/#get-order
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             request['oid'] = id;
             response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, params));
         }
@@ -1439,13 +1527,13 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.woo.org/#get-orders
-     * @see https://docs.woo.org/#get-algo-orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1461,7 +1549,7 @@ export default class woo extends Exchange {
         }
         const request = {};
         let market = undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'trailing', 'trigger']);
         if (symbol !== undefined) {
@@ -1469,7 +1557,7 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (stop || trailing) {
+            if (trigger || trailing) {
                 request['createdTimeStart'] = since;
             }
             else {
@@ -1482,14 +1570,14 @@ export default class woo extends Exchange {
         else {
             request['size'] = 500;
         }
-        if (stop) {
+        if (trigger) {
             request['algoType'] = 'stop';
         }
         else if (trailing) {
             request['algoType'] = 'TRAILING_STOP';
         }
         let response = undefined;
-        if (stop || trailing) {
+        if (trigger || trailing) {
             response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
@@ -1534,13 +1622,13 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.woo.org/#get-orders
-     * @see https://docs.woo.org/#get-algo-orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1556,13 +1644,13 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.woo.org/#get-orders
-     * @see https://docs.woo.org/#get-algo-orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1645,7 +1733,7 @@ export default class woo extends Exchange {
         const fee = this.safeNumber2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue(order, 'Transactions');
-        const stopPrice = this.safeNumber(order, 'triggerPrice');
+        const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
         const childOrders = this.safeValue(order, 'childOrders');
@@ -1676,8 +1764,7 @@ export default class woo extends Exchange {
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,
@@ -1714,7 +1801,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.woo.org/#orderbook-snapshot-public
+     * @see https://docs.woox.io/#orderbook-snapshot-public
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1753,8 +1840,8 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#fetchOHLCV
-     * @see https://docs.woo.org/#kline-public
-     * @see https://docs.woo.org/#kline-historical-data-public
+     * @see https://docs.woox.io/#kline-public
+     * @see https://docs.woox.io/#kline-historical-data-public
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1850,7 +1937,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.woo.org/#get-trades
+     * @see https://docs.woox.io/#get-trades
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1893,7 +1980,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.woo.org/#get-trades
+     * @see https://docs.woox.io/#get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1908,7 +1995,7 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, 'page', 500);
         }
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1917,6 +2004,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
+        [request, params] = this.handleUntilOption('end_t', request, params);
         if (limit !== undefined) {
             request['size'] = limit;
         }
@@ -1954,7 +2042,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.woo.org/#get-assets-of-subaccounts
+     * @see https://docs.woox.io/#get-assets-of-subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
@@ -2000,7 +2088,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.woo.org/#get-current-holding-get-balance-new
+     * @see https://docs.woox.io/#get-current-holding-get-balance-new
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -2052,7 +2140,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.woo.org/#get-token-deposit-address
+     * @see https://docs.woox.io/#get-token-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2145,12 +2233,12 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-     * @see https://docs.woo.org/#get-asset-history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
@@ -2211,7 +2299,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.woo.org/#get-asset-history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2228,7 +2316,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.woo.org/#get-asset-history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2245,7 +2333,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://docs.woo.org/#get-asset-history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2320,7 +2408,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.woo.org/#get-transfer-history
+     * @see https://docs.woox.io/#get-transfer-history
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2358,7 +2446,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.woo.org/#get-transfer-history
+     * @see https://docs.woox.io/#get-transfer-history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -2464,7 +2552,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#withdraw
      * @description make a withdrawal
-     * @see https://docs.woo.org/#token-withdraw
+     * @see https://docs.woox.io/#token-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -2507,7 +2595,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#repayMargin
      * @description repay borrowed margin and interest
-     * @see https://docs.woo.org/#repay-interest
+     * @see https://docs.woox.io/#repay-interest
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {string} symbol not used by woo.repayMargin ()
@@ -2584,8 +2672,8 @@ export default class woo extends Exchange {
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
-                    const isStop = path.indexOf('algo') > -1;
-                    if (isStop) {
+                    const isTrigger = path.indexOf('algo') > -1;
+                    if (isTrigger) {
                         params['brokerId'] = brokerId;
                     }
                     else {
@@ -2688,7 +2776,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.woo.org/#get-funding-fee-history
+     * @see https://docs.woox.io/#get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2876,7 +2964,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+     * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -2943,7 +3031,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://docs.woo.org/#update-position-mode
+     * @see https://docs.woox.io/#update-position-mode
      * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
      * @param {string} symbol not used by woo setPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2974,7 +3062,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://docs.woo.org/#get-account-information-new
+     * @see https://docs.woox.io/#get-account-information-new
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
@@ -3106,8 +3194,8 @@ export default class woo extends Exchange {
      * @method
      * @name woo#setLeverage
      * @description set the level of leverage for a market
-     * @see https://docs.woo.org/#update-leverage-setting
-     * @see https://docs.woo.org/#update-futures-leverage-setting
+     * @see https://docs.woox.io/#update-leverage-setting
+     * @see https://docs.woox.io/#update-futures-leverage-setting
      * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
      * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3142,7 +3230,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#addMargin
      * @description add margin
-     * @see https://docs.woo.org/#update-isolated-margin-setting
+     * @see https://docs.woox.io/#update-isolated-margin-setting
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3156,7 +3244,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#reduceMargin
      * @description remove margin from a position
-     * @see https://docs.woo.org/#update-isolated-margin-setting
+     * @see https://docs.woox.io/#update-isolated-margin-setting
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3372,7 +3460,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchConvertQuote
      * @description fetch a quote for converting from one currency to another
-     * @see https://docs.woo.org/#get-quote-rfq
+     * @see https://docs.woox.io/#get-quote-rfq
      * @param {string} fromCode the currency that you want to sell and convert from
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} [amount] how much you want to trade in units of the from currency
@@ -3414,7 +3502,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createConvertTrade
      * @description convert from one currency to another
-     * @see https://docs.woo.org/#send-quote-rft
+     * @see https://docs.woox.io/#send-quote-rft
      * @param {string} id the id of the trade that you want to make
      * @param {string} fromCode the currency that you want to sell and convert from
      * @param {string} toCode the currency that you want to buy and convert into
@@ -3445,7 +3533,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchConvertTrade
      * @description fetch the data for a conversion trade
-     * @see https://docs.woo.org/#get-quote-trade
+     * @see https://docs.woox.io/#get-quote-trade
      * @param {string} id the id of the trade that you want to fetch
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3488,7 +3576,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchConvertTradeHistory
      * @description fetch the users history of conversion trades
-     * @see https://docs.woo.org/#get-quote-trades
+     * @see https://docs.woox.io/#get-quote-trades
      * @param {string} [code] the unified currency code
      * @param {int} [since] the earliest time in ms to fetch conversions for
      * @param {int} [limit] the maximum number of conversion structures to retrieve
@@ -3589,7 +3677,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchConvertCurrencies
      * @description fetches all available currencies that can be converted
-     * @see https://docs.woo.org/#get-quote-asset-info
+     * @see https://docs.woox.io/#get-quote-asset-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */

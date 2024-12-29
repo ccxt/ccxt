@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -35,6 +35,16 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    /**
+     * @method
+     * @name calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
     /**
      * @method
      * @name hyperliquid#fetchMarkets
@@ -147,7 +157,12 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    buildTransferSig(message: any): {
+    buildUsdSendSig(message: any): {
+        r: string;
+        s: string;
+        v: any;
+    };
+    buildUsdClassSendSig(message: any): {
         r: string;
         s: string;
         v: any;
@@ -486,7 +501,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -515,6 +530,25 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @param {string[]} [symbols] Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     extractTypeFromDelta(data?: any[]): any[];
     formatVaultAddress(address?: Str): string;
     handlePublicAddress(methodName: string, params: Dict): any[];

@@ -23,6 +23,8 @@ public partial class poloniexfutures : Exchange
                 { "future", false },
                 { "option", null },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
@@ -879,7 +881,7 @@ public partial class poloniexfutures : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @param {float} [params.leverage] Leverage size of the order
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
@@ -912,13 +914,13 @@ public partial class poloniexfutures : Exchange
             { "size", preciseAmount },
             { "leverage", 1 },
         };
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(stopPrice))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             object stopPriceType = this.safeString(parameters, "stopPriceType", "TP");
             ((IDictionary<string,object>)request)["stopPriceType"] = stopPriceType;
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(type, "limit")))
@@ -981,7 +983,7 @@ public partial class poloniexfutures : Exchange
             { "trades", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "info", response },
         }, market);
     }
@@ -1276,7 +1278,7 @@ public partial class poloniexfutures : Exchange
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1288,10 +1290,10 @@ public partial class poloniexfutures : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.marketId(symbol);
         }
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateDeleteStopOrders(this.extend(request, parameters));
         } else
@@ -1335,7 +1337,7 @@ public partial class poloniexfutures : Exchange
                 { "trades", null },
                 { "timeInForce", null },
                 { "postOnly", null },
-                { "stopPrice", null },
+                { "triggerPrice", null },
                 { "info", response },
             }));
         }
@@ -1363,7 +1365,7 @@ public partial class poloniexfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
@@ -1371,7 +1373,7 @@ public partial class poloniexfutures : Exchange
             status = "done";
         }
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["status"] = ((bool) isTrue((isEqual(status, "open")))) ? "active" : "done";
         } else if (isTrue(!isEqual(status, "open")))
@@ -1393,7 +1395,7 @@ public partial class poloniexfutures : Exchange
             ((IDictionary<string,object>)request)["endAt"] = until;
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetStopOrders(this.extend(request, parameters));
         } else
@@ -1699,7 +1701,7 @@ public partial class poloniexfutures : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stopPrice") },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "cost", this.safeString(order, "dealValue") },
             { "filled", filled },
             { "remaining", null },

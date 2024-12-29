@@ -657,6 +657,8 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/bnb-transfer': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-switch': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/mint': 20,
+                        'portfolio/redeem': 20,
                         'lending/auto-invest/plan/add': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -985,6 +987,7 @@ class binance(Exchange, ImplicitAPI):
                         'block/order/orders': 5,
                         'block/order/execute': 5,
                         'block/user-trades': 5,
+                        'blockTrades': 5,
                     },
                     'post': {
                         'order': 1,
@@ -1579,34 +1582,34 @@ class binance(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                # https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': True,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
                             'GTD': False,
                         },
                         'hedged': True,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo
                         'trailing': True,
-                        'twap': False,
-                        'iceberg': True,
-                        'oco': False,
+                        'iceberg': True,  # todo implementation
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 1,  # days between start-end
@@ -1617,25 +1620,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': None,
                         'marginMode': True,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -1646,6 +1649,7 @@ class binance(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'mark': True,
@@ -1655,9 +1659,7 @@ class binance(Exchange, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': False,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -1666,16 +1668,18 @@ class binance(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo
                         'trailing': True,
-                        'twap': False,
                         'iceberg': False,
-                        'oco': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                     },
                     'createOrders': {
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'daysBack': None,
                         'limit': 1000,
                         'untilDays': 7,
@@ -1686,25 +1690,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': 500,
                         'marginMode': True,
+                        'limit': 500,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -2131,7 +2135,8 @@ class binance(Exchange, ImplicitAPI):
                         '-4140': BadRequest,  # Invalid symbol status for opening position
                         '-4141': OperationRejected,  # Symbol is closed
                         '-4144': BadSymbol,  # Invalid pair
-                        '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 20(unless you choose reduce only)."}
+                        '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 20(unless you choose reduce only)."},
+                        '-4136': InvalidOrder,  # {"code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition True"}
                         '-4165': BadRequest,  # Invalid time interval
                         '-4167': BadRequest,  # Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest,  # Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -5061,8 +5066,8 @@ class binance(Exchange, ImplicitAPI):
         if postOnly:
             uppercaseType = 'LIMIT_MAKER'
         request['type'] = uppercaseType
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        if stopPrice is not None:
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        if triggerPrice is not None:
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
@@ -5070,7 +5075,7 @@ class binance(Exchange, ImplicitAPI):
         validOrderTypes = self.safe_list(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         if clientOrderId is None:
@@ -5084,7 +5089,7 @@ class binance(Exchange, ImplicitAPI):
         request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         timeInForceIsRequired = False
         priceIsRequired = False
-        stopPriceIsRequired = False
+        triggerPriceIsRequired = False
         quantityIsRequired = False
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
@@ -5107,11 +5112,11 @@ class binance(Exchange, ImplicitAPI):
             timeInForceIsRequired = True
             quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             priceIsRequired = True
             timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
@@ -5125,11 +5130,11 @@ class binance(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None):
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-        if stopPriceIsRequired:
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order')
+        if triggerPriceIsRequired:
+            if triggerPrice is None:
+                raise InvalidOrder(self.id + ' editOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'  # If the cancel request fails, the new order placement will not be attempted.
         cancelId = self.safe_string_2(params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId')
         if cancelId is None:
@@ -5774,7 +5779,7 @@ class binance(Exchange, ImplicitAPI):
         if type == 'limit_maker':
             type = 'limit'
         stopPriceString = self.safe_string(order, 'stopPrice')
-        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
+        triggerPrice = self.parse_number(self.omit_zero(stopPriceString))
         feeCost = self.safe_number(order, 'fee')
         fee = None
         if feeCost is not None:
@@ -5798,7 +5803,7 @@ class binance(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -6008,14 +6013,10 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        if (marketType == 'margin') or (marginMode is not None) or market['option']:
-            # for swap and future reduceOnly is a string that cant be sent with close position set to True or in hedge mode
-            params = self.omit(params, 'reduceOnly')
-            if market['option']:
-                request['reduceOnly'] = reduceOnly
-            else:
-                if reduceOnly:
-                    request['sideEffectType'] = 'AUTO_REPAY'
+        if reduceOnly:
+            if marketType == 'margin' or (not market['contract'] and (marginMode is not None)):
+                params = self.omit(params, 'reduceOnly')
+                request['sideEffectType'] = 'AUTO_REPAY'
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
@@ -6074,7 +6075,7 @@ class binance(Exchange, ImplicitAPI):
             validOrderTypes = self.safe_list(market['info'], 'orderTypes')
             if not self.in_array(uppercaseType, validOrderTypes):
                 if initialUppercaseType != uppercaseType:
-                    raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                    raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
                 else:
                     raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         clientOrderIdRequest = 'newClientStrategyId' if isPortfolioMarginConditional else 'newClientOrderId'
@@ -6110,9 +6111,10 @@ class binance(Exchange, ImplicitAPI):
         typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
+        closePosition = self.safe_bool(params, 'closePosition', False)
         timeInForceIsRequired = False
         priceIsRequired = False
-        stopPriceIsRequired = False
+        triggerPriceIsRequired = False
         quantityIsRequired = False
         #
         # spot/margin
@@ -6158,13 +6160,13 @@ class binance(Exchange, ImplicitAPI):
             timeInForceIsRequired = True
             quantityIsRequired = True
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             quantityIsRequired = True
             if market['linear'] or market['inverse']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             priceIsRequired = True
             timeInForceIsRequired = True
         elif uppercaseType == 'LIMIT_MAKER':
@@ -6172,15 +6174,15 @@ class binance(Exchange, ImplicitAPI):
             quantityIsRequired = True
         elif uppercaseType == 'STOP':
             quantityIsRequired = True
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            closePosition = self.safe_bool(params, 'closePosition')
-            if closePosition is None:
+            if not closePosition:
                 quantityIsRequired = True
-            stopPriceIsRequired = True
+            triggerPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
-            quantityIsRequired = True
+            if not closePosition:
+                quantityIsRequired = True
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
@@ -6203,14 +6205,14 @@ class binance(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
             else:
                 request['price'] = self.parse_to_numeric(price)  # some options don't have the precision available
-        if stopPriceIsRequired:
+        if triggerPriceIsRequired:
             if market['contract']:
                 if stopPrice is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
+                    raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
                 # check for delta price
                 if trailingDelta is None and stopPrice is None and trailingPercent is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a stopPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
+                    raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
@@ -6371,7 +6373,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -6628,7 +6630,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch open orders in the portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account conditional orders
+        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account conditional orders
         :param str [params.subType]: "linear" or "inverse"
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -6914,7 +6916,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -6943,7 +6945,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -6972,7 +6974,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch orders in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to fetch portfolio margin account stop or conditional orders
+        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -7003,7 +7005,7 @@ class binance(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to cancel an order in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to cancel a portfolio margin account conditional order
+        :param boolean [params.trigger]: set to True if you would like to cancel a portfolio margin account conditional order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -7083,7 +7085,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param boolean [params.portfolioMargin]: set to True if you would like to cancel orders in a portfolio margin account
-        :param boolean [params.stop]: set to True if you would like to cancel portfolio margin account conditional orders
+        :param boolean [params.trigger]: set to True if you would like to cancel portfolio margin account conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -10837,7 +10839,7 @@ class binance(Exchange, ImplicitAPI):
         :param str id: the identification number of the ledger entry
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         type = None
@@ -10883,13 +10885,13 @@ class binance(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the ledger for a portfolio margin account
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, None, False)
         type = None
         subType = None
         currency = None
@@ -11129,11 +11131,11 @@ class binance(Exchange, ImplicitAPI):
     def get_exceptions_by_url(self, url: str, exactOrBroad: str):
         marketType = None
         hostname = self.hostname if (self.hostname is not None) else 'binance.com'
-        if url.startswith('https://api.' + hostname + '/'):
+        if url.startswith('https://api.' + hostname + '/') or url.startswith('https://testnet.binance.vision'):
             marketType = 'spot'
-        elif url.startswith('https://dapi.' + hostname + '/'):
+        elif url.startswith('https://dapi.' + hostname + '/') or url.startswith('https://testnet.binancefuture.com/dapi'):
             marketType = 'inverse'
-        elif url.startswith('https://fapi.' + hostname + '/'):
+        elif url.startswith('https://fapi.' + hostname + '/') or url.startswith('https://testnet.binancefuture.com/fapi'):
             marketType = 'linear'
         elif url.startswith('https://eapi.' + hostname + '/'):
             marketType = 'option'
@@ -11964,7 +11966,7 @@ class binance(Exchange, ImplicitAPI):
         #      ...
         #  ]
         #
-        return self.parse_open_interests(response, market, since, limit)
+        return self.parse_open_interests_history(response, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -12027,7 +12029,7 @@ class binance(Exchange, ImplicitAPI):
         #
         if market['option']:
             symbol = market['symbol']
-            result = self.parse_open_interests(response, market)
+            result = self.parse_open_interests_history(response, market)
             for i in range(0, len(result)):
                 item = result[i]
                 if item['symbol'] == symbol:

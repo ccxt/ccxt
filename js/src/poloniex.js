@@ -39,6 +39,8 @@ export default class poloniex extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
@@ -1150,7 +1152,6 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString(order, 'clientOrderId');
-        const triggerPrice = this.safeString2(order, 'triggerPrice', 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1165,8 +1166,7 @@ export default class poloniex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': this.safeString2(order, 'triggerPrice', 'stopPrice'),
             'cost': undefined,
             'average': this.safeString(order, 'avgPrice'),
             'amount': amount,
@@ -1208,7 +1208,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
+     * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1269,7 +1269,7 @@ export default class poloniex extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */

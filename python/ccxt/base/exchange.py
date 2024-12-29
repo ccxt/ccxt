@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.32'
+__version__ = '4.4.43'
 
 # -----------------------------------------------------------------------------
 
@@ -384,6 +384,7 @@ class Exchange(object):
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = dict() if self.liquidations is None else self.liquidations
+        self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1931,6 +1932,7 @@ class Exchange(object):
                 'fetchOHLCV': None,
                 'fetchOHLCVWs': None,
                 'fetchOpenInterest': None,
+                'fetchOpenInterests': None,
                 'fetchOpenInterestHistory': None,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': None,
@@ -2291,26 +2293,23 @@ class Exchange(object):
         wssProxy = None
         wsSocksProxy = None
         # ws proxy
-        if self.value_is_defined(self.wsProxy):
+        isWsProxyDefined = self.value_is_defined(self.wsProxy)
+        is_ws_proxy_defined = self.value_is_defined(self.ws_proxy)
+        if isWsProxyDefined or is_ws_proxy_defined:
             usedProxies.append('wsProxy')
-            wsProxy = self.wsProxy
-        if self.value_is_defined(self.ws_proxy):
-            usedProxies.append('ws_proxy')
-            wsProxy = self.ws_proxy
+            wsProxy = self.wsProxy if (isWsProxyDefined) else self.ws_proxy
         # wss proxy
-        if self.value_is_defined(self.wssProxy):
+        isWssProxyDefined = self.value_is_defined(self.wssProxy)
+        is_wss_proxy_defined = self.value_is_defined(self.wss_proxy)
+        if isWssProxyDefined or is_wss_proxy_defined:
             usedProxies.append('wssProxy')
-            wssProxy = self.wssProxy
-        if self.value_is_defined(self.wss_proxy):
-            usedProxies.append('wss_proxy')
-            wssProxy = self.wss_proxy
+            wssProxy = self.wssProxy if (isWssProxyDefined) else self.wss_proxy
         # ws socks proxy
-        if self.value_is_defined(self.wsSocksProxy):
+        isWsSocksProxyDefined = self.value_is_defined(self.wsSocksProxy)
+        is_ws_socks_proxy_defined = self.value_is_defined(self.ws_socks_proxy)
+        if isWsSocksProxyDefined or is_ws_socks_proxy_defined:
             usedProxies.append('wsSocksProxy')
-            wsSocksProxy = self.wsSocksProxy
-        if self.value_is_defined(self.ws_socks_proxy):
-            usedProxies.append('ws_socks_proxy')
-            wsSocksProxy = self.ws_socks_proxy
+            wsSocksProxy = self.wsSocksProxy if (isWsSocksProxyDefined) else self.ws_socks_proxy
         # check
         length = len(usedProxies)
         if length > 1:
@@ -2390,7 +2389,7 @@ class Exchange(object):
                 entryFiledEqualValue = entry[field] == value
                 firstCondition = entryFiledEqualValue if valueIsDefined else True
                 entryKeyValue = self.safe_value(entry, key)
-                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
+                entryKeyGESince = (entryKeyValue) and (since is not None) and (entryKeyValue >= since)
                 secondCondition = entryKeyGESince if sinceIsDefined else True
                 if firstCondition and secondCondition:
                     result.append(entry)
@@ -2399,6 +2398,10 @@ class Exchange(object):
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
     def set_sandbox_mode(self, enabled: bool):
+        """
+        set the sandbox mode for the exchange
+        :param boolean enabled: True to enable sandbox mode, False to disable it
+        """
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):
@@ -2681,6 +2684,9 @@ class Exchange(object):
     def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
+
     def sign_in(self, params={}):
         raise NotSupported(self.id + ' signIn() is not supported yet')
 
@@ -2761,7 +2767,7 @@ class Exchange(object):
         self.features = {}
         unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
         subTypes = ['linear', 'inverse']
-        # atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for i in range(0, len(unifiedMarketTypes)):
             marketType = unifiedMarketTypes[i]
             # if marketType is not filled for self exchange, don't add that in `features`
@@ -2778,11 +2784,14 @@ class Exchange(object):
 
     def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
         featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        # if exchange does not have that market-type(eg. future>inverse)
+        if featuresObj is None:
+            return None
         extendsStr: Str = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
-            extendObj = initialFeatures[extendsStr]
-            featuresObj = self.extend(extendObj, featuresObj)  # Warning, do not use deepExtend here, because we override only one level
+            extendObj = self.features_mapper(initialFeatures, extendsStr)
+            featuresObj = self.deep_extend(extendObj, featuresObj)
         #
         # corrections
         #
@@ -2791,9 +2800,13 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # omit 'hedged' from spot
+            # for spot, default 'hedged' to False
             if marketType == 'spot':
-                featuresObj['createOrder']['hedged'] = None
+                featuresObj['createOrder']['hedged'] = False
+            # default 'GTC' to True
+            gtcValue = self.safe_bool(featuresObj['createOrder']['timeInForce'], 'gtc')
+            if gtcValue is None:
+                featuresObj['createOrder']['timeInForce']['GTC'] = True
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
@@ -3736,6 +3749,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def currency_ids(self, codes: Strings = None):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.currency_id(codes[i]))
+        return result
+
     def markets_for_symbols(self, symbols: Strings = None):
         if symbols is None:
             return symbols
@@ -4088,6 +4109,14 @@ class Exchange(object):
 
     def set_headers(self, headers):
         return headers
+
+    def currency_id(self, code: str):
+        currency = self.safe_dict(self.currencies, code)
+        if currency is None:
+            currency = self.safe_currency(code)
+        if currency is not None:
+            return currency['id']
+        return code
 
     def market_id(self, symbol: str):
         market = self.market(symbol)
@@ -4513,10 +4542,14 @@ class Exchange(object):
 
     def handle_option_and_params_2(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):
         value = None
-        value, params = self.handle_option_and_params(params, methodName1, optionName1, defaultValue)
+        value, params = self.handle_option_and_params(params, methodName1, optionName1)
+        if value is not None:
+            # omit optionName2 too from params
+            params = self.omit(params, optionName2)
+            return [value, params]
         # if still None, try optionName2
         value2 = None
-        value2, params = self.handle_option_and_params(params, methodName1, optionName2, value)
+        value2, params = self.handle_option_and_params(params, methodName1, optionName2, defaultValue)
         return [value2, params]
 
     def handle_option(self, methodName: str, optionName: str, defaultValue=None):
@@ -5417,44 +5450,44 @@ class Exchange(object):
         query = self.extend(params, {'reduceOnly': True})
         return self.create_order_ws(symbol, type, side, amount, price, query)
 
-    def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order(symbol, type, side, amount, price, query)
 
-    def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, stopPrice: Num = None, params={}):
+    def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
         if not self.has['createStopOrderWs']:
             raise NotSupported(self.id + ' createStopOrderWs() is not supported yet')
-        if stopPrice is None:
+        if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createStopOrderWs() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order_ws(symbol, type, side, amount, price, query)
 
-    def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrder']:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order(symbol, 'limit', side, amount, price, query)
 
-    def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, stopPrice: float, params={}):
+    def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
         if not self.has['createStopLimitOrderWs']:
             raise NotSupported(self.id + ' createStopLimitOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order_ws(symbol, 'limit', side, amount, price, query)
 
-    def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrder']:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
-    def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, stopPrice: float, params={}):
+    def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
         if not self.has['createStopMarketOrderWs']:
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
+        query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order_ws(symbol, 'market', side, amount, None, query)
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None):
@@ -5606,6 +5639,13 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
+    def parse_open_interests(self, response, market: Market = None):
+        result = {}
+        for i in range(0, len(response)):
+            parsed = self.parse_open_interest(response[i], market)
+            result[parsed['symbol']] = parsed
+        return result
+
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
@@ -5700,7 +5740,7 @@ class Exchange(object):
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
-    def parse_open_interests(self, response, market=None, since: Int = None, limit: Int = None):
+    def parse_open_interests_history(self, response, market=None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -5996,7 +6036,7 @@ class Exchange(object):
             maxEntriesPerRequest = 1000  # default to 1000
         return [maxEntriesPerRequest, params]
 
-    def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None):
+    def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -6004,6 +6044,8 @@ class Exchange(object):
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
+        removeRepeatedOption = removeRepeated
+        removeRepeatedOption, params = self.handle_option_and_params(params, method, 'removeRepeated', removeRepeated)
         calls = 0
         result = []
         errors = 0
@@ -6057,7 +6099,9 @@ class Exchange(object):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        uniqueResults = self.remove_repeated_elements_from_array(result)
+        uniqueResults = result
+        if removeRepeatedOption:
+            uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
@@ -6501,29 +6545,39 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if timeframe in self.ohlcvs[symbol]:
-                    del self.ohlcvs[symbol][timeframe]
+                if symbol in self.ohlcvs:
+                    if timeframe in self.ohlcvs[symbol]:
+                        del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 if topic == 'trades':
-                    del self.trades[symbol]
+                    if symbol in self.trades:
+                        del self.trades[symbol]
                 elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
+                    if symbol in self.orderbooks:
+                        del self.orderbooks[symbol]
                 elif topic == 'ticker':
-                    del self.tickers[symbol]
+                    if symbol in self.tickers:
+                        del self.tickers[symbol]
         else:
             if topic == 'myTrades':
                 # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
+                # because in c# we need to use a different object(thread-safe dict)
                 keys = list(self.myTrades.keys())
                 for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
+                    key = keys[i]
+                    if key in self.myTrades:
+                        del self.myTrades[key]
             elif topic == 'orders':
                 orderSymbols = list(self.orders.keys())
                 for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
+                    orderSymbol = orderSymbols[i]
+                    if orderSymbol in self.orders:
+                        del self.orders[orderSymbol]
             elif topic == 'ticker':
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
+                    tickerSymbol = tickerSymbols[i]
+                    if tickerSymbol in self.tickers:
+                        del self.tickers[tickerSymbol]

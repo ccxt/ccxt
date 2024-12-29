@@ -1224,7 +1224,6 @@ export default class currencycom extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1329,11 +1328,11 @@ export default class currencycom extends Exchange {
                 request['type'] = 'STOP';
                 request['price'] = this.priceToPrecision (symbol, price);
             } else if (type === 'market') {
-                const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+                const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
                 params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-                if (stopPrice !== undefined) {
+                if (triggerPrice !== undefined) {
                     request['type'] = 'STOP';
-                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['price'] = this.priceToPrecision (symbol, triggerPrice);
                 }
             }
         }
@@ -1726,7 +1725,7 @@ export default class currencycom extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

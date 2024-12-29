@@ -97,11 +97,18 @@ public partial class deribit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.deribit.com/#private-get_account_summary"/>  <br/>
+    /// See <see href="https://docs.deribit.com/#private-get_account_summaries"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.code</term>
+    /// <description>
+    /// string : unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
     /// </description>
     /// </item>
     /// </list>

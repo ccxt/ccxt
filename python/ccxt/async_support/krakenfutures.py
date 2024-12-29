@@ -51,6 +51,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRateHistories': False,
@@ -216,7 +218,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
-                    'Unavailable': InsufficientFunds,              # Insufficient funds in Futures account [withdraw]
+                    'Unavailable': ExchangeNotAvailable,              # https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
                     'Json Parse Error': ExchangeError,
                     'nonceBelowThreshold': InvalidNonce,
@@ -272,6 +274,83 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'fetchTrades': {
                     'method': 'historyGetMarketSymbolExecutions',  # historyGetMarketSymbolExecutions, publicGetHistory
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 100,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': None,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'timeframes': {
@@ -1009,7 +1088,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Create an order on the exchange
 
-        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+        https://docs.kraken.com/api/docs/futures-api/trading/send-order
 
         :param str symbol: unified market symbol
         :param str type: 'limit' or 'market'
@@ -1069,7 +1148,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         create a list of trade orders
 
-        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+        https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1802,7 +1881,6 @@ class krakenfutures(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
             'side': self.safe_string(details, 'side'),
             'price': price,
-            'stopPrice': self.safe_string(details, 'triggerPrice'),
             'triggerPrice': self.safe_string(details, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
@@ -1832,6 +1910,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        # todo: lastFillTime: self.iso8601(end)
         response = await self.privateGetFills(params)
         #
         #    {

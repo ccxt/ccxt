@@ -511,6 +511,7 @@ class bitrue extends bitrue$1 {
                     '-4051': errors.InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': errors.InsufficientFunds,
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -1833,8 +1834,7 @@ class bitrue extends bitrue$1 {
         if (type === 'limit_maker') {
             type = 'limit';
         }
-        const stopPriceString = this.safeString(order, 'stopPrice');
-        const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
+        const triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice')));
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1848,8 +1848,7 @@ class bitrue extends bitrue$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1987,10 +1986,10 @@ class bitrue extends bitrue$1 {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice !== undefined) {
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             response = await this.spotV1PrivatePostOrder(this.extend(request, params));
             data = response;
@@ -3087,7 +3086,7 @@ class bitrue extends bitrue$1 {
         const version = this.safeString(api, 1);
         const access = this.safeString(api, 2);
         let url = undefined;
-        if (type === 'api' && version === 'kline') {
+        if ((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0)) {
             url = this.urls['api'][type];
         }
         else {
@@ -3098,7 +3097,7 @@ class bitrue extends bitrue$1 {
         if (access === 'private') {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
-            if (type === 'spot') {
+            if (type === 'spot' || type === 'open') {
                 let query = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,

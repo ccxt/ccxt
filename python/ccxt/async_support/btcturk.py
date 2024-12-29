@@ -205,8 +205,8 @@ class btcturk(Exchange, ImplicitAPI):
         #        ],
         #    }
         #
-        data = self.safe_value(response, 'data')
-        markets = self.safe_value(data, 'symbols', [])
+        data = self.safe_dict(response, 'data', {})
+        markets = self.safe_list(data, 'symbols', [])
         return self.parse_markets(markets)
 
     def parse_market(self, entry) -> Market:
@@ -215,7 +215,7 @@ class btcturk(Exchange, ImplicitAPI):
         quoteId = self.safe_string(entry, 'denominator')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        filters = self.safe_value(entry, 'filters', [])
+        filters = self.safe_list(entry, 'filters', [])
         minPrice = None
         maxPrice = None
         minAmount = None
@@ -282,7 +282,7 @@ class btcturk(Exchange, ImplicitAPI):
         }
 
     def parse_balance(self, response) -> Balances:
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result: dict = {
             'info': response,
             'timestamp': None,
@@ -356,7 +356,7 @@ class btcturk(Exchange, ImplicitAPI):
         #         ]
         #       }
         #     }
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
@@ -637,20 +637,20 @@ class btcturk(Exchange, ImplicitAPI):
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
-        timestamp = self.safe_value(ohlcvs, 't')
-        high = self.safe_value(ohlcvs, 'h')
-        open = self.safe_value(ohlcvs, 'o')
-        low = self.safe_value(ohlcvs, 'l')
-        close = self.safe_value(ohlcvs, 'c')
-        volume = self.safe_value(ohlcvs, 'v')
+        timestamp = self.safe_list(ohlcvs, 't', [])
+        high = self.safe_list(ohlcvs, 'h', [])
+        open = self.safe_list(ohlcvs, 'o', [])
+        low = self.safe_list(ohlcvs, 'l', [])
+        close = self.safe_list(ohlcvs, 'c', [])
+        volume = self.safe_list(ohlcvs, 'v', [])
         for i in range(0, len(timestamp)):
             ohlcv: dict = {
-                'timestamp': self.safe_value(timestamp, i),
-                'high': self.safe_value(high, i),
-                'open': self.safe_value(open, i),
-                'low': self.safe_value(low, i),
-                'close': self.safe_value(close, i),
-                'volume': self.safe_value(volume, i),
+                'timestamp': self.safe_integer(timestamp, i),
+                'high': self.safe_number(high, i),
+                'open': self.safe_number(open, i),
+                'low': self.safe_number(low, i),
+                'close': self.safe_number(close, i),
+                'volume': self.safe_number(volume, i),
             }
             results.append(self.parse_ohlcv(ohlcv, market))
         sorted = self.sort_by(results, 0)
@@ -733,8 +733,8 @@ class btcturk(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['pairSymbol'] = market['id']
         response = await self.privateGetOpenOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data')
-        bids = self.safe_value(data, 'bids', [])
+        data = self.safe_dict(response, 'data', {})
+        bids = self.safe_list(data, 'bids', [])
         asks = self.safe_list(data, 'asks', [])
         return self.parse_orders(self.array_concat(bids, asks), market, since, limit)
 

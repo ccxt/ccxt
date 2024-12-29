@@ -31,6 +31,8 @@ class poloniexfutures extends poloniexfutures$1 {
                 'future': false,
                 'option': undefined,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -835,7 +837,7 @@ class poloniexfutures extends poloniexfutures$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @param {float} [params.leverage] Leverage size of the order
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
@@ -865,12 +867,12 @@ class poloniexfutures extends poloniexfutures$1 {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString(params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (type === 'limit') {
@@ -927,7 +929,7 @@ class poloniexfutures extends poloniexfutures$1 {
             'trades': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'info': response,
         }, market);
     }
@@ -1204,7 +1206,7 @@ class poloniexfutures extends poloniexfutures$1 {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1213,10 +1215,10 @@ class poloniexfutures extends poloniexfutures$1 {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateDeleteStopOrders(this.extend(request, params));
         }
         else {
@@ -1258,7 +1260,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'trades': undefined,
                 'timeInForce': undefined,
                 'postOnly': undefined,
-                'stopPrice': undefined,
+                'triggerPrice': undefined,
                 'info': response,
             }));
         }
@@ -1283,14 +1285,14 @@ class poloniexfutures extends poloniexfutures$1 {
      */
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['trigger', 'stop', 'until']);
         if (status === 'closed') {
             status = 'done';
         }
         const request = {};
-        if (!stop) {
+        if (!trigger) {
             request['status'] = (status === 'open') ? 'active' : 'done';
         }
         else if (status !== 'open') {
@@ -1308,7 +1310,7 @@ class poloniexfutures extends poloniexfutures$1 {
             request['endAt'] = until;
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.privateGetStopOrders(this.extend(request, params));
         }
         else {
@@ -1595,7 +1597,7 @@ class poloniexfutures extends poloniexfutures$1 {
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': this.safeString(order, 'stopPrice'),
+            'triggerPrice': this.safeString(order, 'stopPrice'),
             'cost': this.safeString(order, 'dealValue'),
             'filled': filled,
             'remaining': undefined,

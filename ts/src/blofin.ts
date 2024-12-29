@@ -160,7 +160,7 @@ export default class blofin extends Exchange {
                     'rest': 'https://openapi.blofin.com',
                 },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -280,10 +280,18 @@ export default class blofin extends Exchange {
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
@@ -896,8 +904,9 @@ export default class blofin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    parseBalanceByType (type, response) {
-        if (type) {
+    parseBalanceByType (response) {
+        const data = this.safeList (response, 'data');
+        if ((data !== undefined) && Array.isArray (data)) {
             return this.parseFundingBalance (response);
         } else {
             return this.parseBalance (response);
@@ -1017,12 +1026,12 @@ export default class blofin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const accountType = this.safeString2 (params, 'accountType', 'type');
-        params = this.omit (params, [ 'accountType', 'type' ]);
+        let accountType = undefined;
+        [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type');
         const request: Dict = {
         };
         let response = undefined;
-        if (accountType !== undefined) {
+        if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict (this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString (options, accountType, accountType);
             request['accountType'] = parsedAccountType;
@@ -1030,7 +1039,7 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetAccountBalance (this.extend (request, params));
         }
-        return this.parseBalanceByType (accountType, response);
+        return this.parseBalanceByType (response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1390,7 +1399,7 @@ export default class blofin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1411,12 +1420,12 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const isStop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
-        if (isStop || (method === 'privateGetTradeOrdersTpslPending')) {
+        if (isTrigger || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, query));
@@ -1551,7 +1560,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -1753,8 +1762,8 @@ export default class blofin extends Exchange {
         let method = this.safeString (params, 'method', defaultMethod);
         const clientOrderIds = this.parseIds (this.safeValue (params, 'clientOrderId'));
         const tpslIds = this.parseIds (this.safeValue (params, 'tpslId'));
-        const stop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
-        if (stop) {
+        const trigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
+        if (trigger) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -1768,7 +1777,7 @@ export default class blofin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
+                if (trigger) {
                     request.push ({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2189,7 +2198,7 @@ export default class blofin extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2213,12 +2222,12 @@ export default class blofin extends Exchange {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const isStop = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response = undefined;
-        if ((isStop) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, query));

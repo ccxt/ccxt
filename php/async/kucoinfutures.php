@@ -362,6 +362,91 @@ class kucoinfutures extends kucoin {
                 //    'code' => 'BTC',
                 // ),
             ),
+            'features' => array(
+                'spot' => null,
+                'forDerivs' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPrice' => null,
+                            'triggerPriceType' => null,
+                            'limitPrice' => true,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => 7,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -1477,8 +1562,8 @@ class kucoinfutures extends kucoin {
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
-             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
              * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
@@ -1490,8 +1575,9 @@ class kucoinfutures extends kucoin {
              * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
              * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
-             * @param {string} [$params->stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down => Triggers when the $price reaches or goes below the stopPrice. up => Triggers when the $price reaches or goes above the stopPrice.
-             * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to MP => Mark Price
+             * @param {string} [$params->stop] 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down => Triggers when the $price reaches or goes below the triggerPrice. up => Triggers when the $price reaches or goes above the triggerPrice.
+             * @param {string} [$params->triggerPriceType] "last", "mark", "index" - defaults to "mark"
+             * @param {string} [$params->stopPriceType] exchange-specific alternative for triggerPriceType => TP, IP or MP
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->test] set to true to use the test order endpoint (does not submit order, use to validate $params)
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -1621,12 +1707,14 @@ class kucoinfutures extends kucoin {
             if ($stopLoss !== null) {
                 $slPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['triggerStopDownPrice'] = $this->price_to_precision($symbol, $slPrice);
-                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', 'mark');
+                $priceType = $this->safe_string($triggerPriceTypes, $priceType, $priceType);
             }
             if ($takeProfit !== null) {
                 $tpPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'takeProfitPrice');
                 $request['triggerStopUpPrice'] = $this->price_to_precision($symbol, $tpPrice);
-                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+                $priceType = $this->safe_string($takeProfit, 'triggerPriceType', 'mark');
+                $priceType = $this->safe_string($triggerPriceTypes, $priceType, $priceType);
             }
             $request['stopPriceType'] = $priceType;
         } elseif ($stopLossPrice || $takeProfitPrice) {
@@ -1786,11 +1874,11 @@ class kucoinfutures extends kucoin {
              * cancel all open orders
              *
              * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
-             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-$stop-orders
+             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
              *
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->trigger] When true, all the trigger orders will be cancelled
+             * @param {array} [$params->trigger] When true, all the $trigger orders will be cancelled
              * @return Response from the exchange
              */
             Async\await($this->load_markets());
@@ -1798,10 +1886,10 @@ class kucoinfutures extends kucoin {
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
             }
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_value_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->futuresPrivateDeleteStopOrders ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->futuresPrivateDeleteOrders ($this->extend($request, $params)));
@@ -1971,14 +2059,14 @@ class kucoinfutures extends kucoin {
              * fetches a list of $orders placed on the exchange
              *
              * @see https://docs.kucoin.com/futures/#get-order-list
-             * @see https://docs.kucoin.com/futures/#get-untriggered-$stop-order-list
+             * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
              *
-             * @param {string} $status 'active' or 'closed', only 'active' is valid for $stop $orders
+             * @param {string} $status 'active' or 'closed', only 'active' is valid for stop $orders
              * @param {string} $symbol unified $symbol for the $market to retrieve $orders from
              * @param {int} [$since] timestamp in ms of the earliest order to retrieve
              * @param {int} [$limit] The maximum number of $orders to retrieve
              * @param {array} [$params] exchange specific parameters
-             * @param {bool} [$params->trigger] set to true to retrieve untriggered $stop $orders
+             * @param {bool} [$params->trigger] set to true to retrieve untriggered stop $orders
              * @param {int} [$params->until] End time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit or $market
@@ -1991,7 +2079,7 @@ class kucoinfutures extends kucoin {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params));
             }
-            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'stop', 'until', 'trigger' ));
             if ($status === 'closed') {
@@ -2000,10 +2088,10 @@ class kucoinfutures extends kucoin {
                 $status = 'active';
             }
             $request = array();
-            if (!$stop) {
+            if (!$trigger) {
                 $request['status'] = $status;
             } elseif ($status !== 'active') {
-                throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
+                throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered stop orders');
             }
             $market = null;
             if ($symbol !== null) {
@@ -2017,7 +2105,7 @@ class kucoinfutures extends kucoin {
                 $request['endAt'] = $until;
             }
             $response = null;
-            if ($stop) {
+            if ($trigger) {
                 $response = Async\await($this->futuresPrivateGetStopOrders ($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->futuresPrivateGetOrders ($this->extend($request, $params)));
@@ -2315,7 +2403,6 @@ class kucoinfutures extends kucoin {
         }
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedAt');
@@ -2330,8 +2417,7 @@ class kucoinfutures extends kucoin {
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => null,
@@ -2667,6 +2753,9 @@ class kucoinfutures extends kucoin {
             }
             if ($since !== null) {
                 $request['startAt'] = $since;
+            }
+            if ($limit !== null) {
+                $request['pageSize'] = min (1000, $limit);
             }
             list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->futuresPrivateGetFills ($this->extend($request, $params)));

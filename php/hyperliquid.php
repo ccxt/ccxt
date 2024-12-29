@@ -17,7 +17,7 @@ class hyperliquid extends Exchange {
             'countries' => [ ],
             'version' => 'v1',
             'rateLimit' => 50, // 1200 requests per minute, 20 request per second
-            'certified' => false,
+            'certified' => true,
             'pro' => true,
             'dex' => true,
             'has' => array(
@@ -43,6 +43,8 @@ class hyperliquid extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -78,8 +80,9 @@ class hyperliquid extends Exchange {
                 'fetchMyLiquidations' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -196,9 +199,11 @@ class hyperliquid extends Exchange {
                     'User or API Wallet ' => '\\ccxt\\InvalidOrder',
                     'Order has invalid size' => '\\ccxt\\InvalidOrder',
                     'Order price cannot be more than 80% away from the reference price' => '\\ccxt\\InvalidOrder',
+                    'Order has zero size.' => '\\ccxt\\InvalidOrder',
+                    'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
             ),
             'options' => array(
@@ -206,6 +211,101 @@ class hyperliquid extends Exchange {
                 'sandboxMode' => false,
                 'defaultSlippage' => 0.05,
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 1000,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 2000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forPerps' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null, // todo, in two orders
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
             ),
         ));
     }
@@ -354,6 +454,52 @@ class hyperliquid extends Exchange {
         return $this->parse_markets($result);
     }
 
+    public function calculate_price_precision(float $price, float $amountPrecision, float $maxDecimals) {
+        /**
+         * Helper function to calculate the Hyperliquid DECIMAL_PLACES $price precision
+         * @param {float} $price the $price to use in the calculation
+         * @param {int} $amountPrecision the $amountPrecision to use in the calculation
+         * @param {int} $maxDecimals the $maxDecimals to use in the calculation
+         * @return {int} The calculated $price precision
+         */
+        $pricePrecision = 0;
+        $priceStr = $this->number_to_string($price);
+        if ($priceStr === null) {
+            return 0;
+        }
+        $priceSplitted = explode('.', $priceStr);
+        if (Precise::string_eq($priceStr, '0')) {
+            // Significant digits is always property_exists($this, 5) case
+            $significantDigits = 5;
+            // Integer digits is always property_exists($this, 0) case (0 doesn't count)
+            $integerDigits = 0;
+            // Calculate the $price precision
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $significantDigits - $integerDigits);
+        } elseif (Precise::string_gt($priceStr, '0') && Precise::string_lt($priceStr, '1')) {
+            // Significant digits, always property_exists($this, 5) case
+            $significantDigits = 5;
+            // Get the part after the decimal separator
+            $decimalPart = $this->safe_string($priceSplitted, 1, '');
+            // Count the number of leading zeros in the decimal part
+            $leadingZeros = 0;
+            while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
+                $leadingZeros = $leadingZeros + 1;
+            }
+            // Calculate $price precision based on leading zeros and significant digits
+            $pricePrecision = $leadingZeros . $significantDigits;
+            // Calculate the $price precision based on $maxDecimals - szDecimals and the calculated $price precision from the previous step
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $pricePrecision);
+        } else {
+            // Count the numbers before the decimal separator
+            $integerPart = $this->safe_string($priceSplitted, 0, '');
+            // Get significant digits, take the max() of 5 and the integer digits count
+            $significantDigits = max (5, strlen($integerPart));
+            // Calculate $price precision based on $maxDecimals - szDecimals and $significantDigits - strlen($integerPart)
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $significantDigits - strlen($integerPart));
+        }
+        return $this->parse_to_int($pricePrecision);
+    }
+
     public function fetch_spot_markets($params = array ()): array {
         /**
          * retrieves data on all spot $markets for hyperliquid
@@ -443,9 +589,13 @@ class hyperliquid extends Exchange {
             $symbol = $base . '/' . $quote;
             $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
             // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
-            $amountPrecision = $this->safe_integer($innerBaseTokenInfo, 'szDecimals');
+            $amountPrecisionStr = $this->safe_string($innerBaseTokenInfo, 'szDecimals');
+            $amountPrecision = intval($amountPrecisionStr);
+            $price = $this->safe_number($extraData, 'midPx');
+            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
+            $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
-            $baseId = $this->number_to_string($i + 10000);
+            $baseId = $this->number_to_string($index + 10000);
             $markets[] = $this->safe_market_structure(array(
                 'id' => $marketName,
                 'symbol' => $symbol,
@@ -474,8 +624,8 @@ class hyperliquid extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision, // decimal places
-                    'price' => 8 - $amountPrecision, // MAX_DECIMALS is 8
+                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -540,7 +690,11 @@ class hyperliquid extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
-        $amountPrecision = $this->safe_integer($market, 'szDecimals');
+        $amountPrecisionStr = $this->safe_string($market, 'szDecimals');
+        $amountPrecision = intval($amountPrecisionStr);
+        $price = $this->safe_number($market, 'markPx', 0);
+        $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
+        $pricePrecisionStr = $this->number_to_string($pricePrecision);
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -568,8 +722,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision, // decimal places
-                'price' => 6 - $amountPrecision, // MAX_DECIMALS is 6
+                'amount' => $this->parse_number($this->parse_precision($amountPrecisionStr)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecisionStr)),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1056,10 +1210,13 @@ class hyperliquid extends Exchange {
 
     public function price_to_precision(string $symbol, $price): string {
         $market = $this->market($symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        $result = $this->decimal_to_precision($price, ROUND, 5, SIGNIFICANT_DIGITS, $this->paddingMode);
-        $decimalParsedResult = $this->decimal_to_precision($result, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-        return $decimalParsedResult;
+        $priceStr = $this->number_to_string($price);
+        $integerPart = explode('.', $priceStr)[0];
+        $significantDigits = max (5, strlen($integerPart));
+        $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
+        $maxDecimals = $market['spot'] ? 8 : 6;
+        $subtractedValue = $maxDecimals - $this->precision_from_string($this->safe_string($market['precision'], 'amount'));
+        return $this->decimal_to_precision($result, ROUND, $subtractedValue, DECIMAL_PLACES, $this->paddingMode);
     }
 
     public function hash_message($message) {
@@ -1160,13 +1317,25 @@ class hyperliquid extends Exchange {
         return $signature;
     }
 
-    public function build_transfer_sig($message) {
+    public function build_usd_send_sig($message) {
         $messageTypes = array(
             'HyperliquidTransaction:UsdSend' => array(
                 array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
                 array( 'name' => 'destination', 'type' => 'string' ),
                 array( 'name' => 'amount', 'type' => 'string' ),
                 array( 'name' => 'time', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function build_usd_class_send_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:UsdClassTransfer' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'amount', 'type' => 'string' ),
+                array( 'name' => 'toPerp', 'type' => 'bool' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
             ),
         );
         return $this->sign_user_signed_action($messageTypes, $message);
@@ -2649,26 +2818,36 @@ class hyperliquid extends Exchange {
             if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
                 throw new NotSupported($this->id . 'transfer() only support spot <> swap transfer');
             }
+            $strAmount = $this->number_to_string($amount);
             $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
             $params = $this->omit($params, 'vaultAddress');
+            if ($vaultAddress !== null) {
+                $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
+            }
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
-            $action = array(
-                'type' => 'spotUser',
-                'classTransfer' => array(
-                    'usdc' => $amount,
-                    'toPerp' => $toPerp,
-                ),
-            );
-            $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
-            $innerRequest = array(
-                'action' => $action,
+            $transferPayload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'amount' => $strAmount,
+                'toPerp' => $toPerp,
                 'nonce' => $nonce,
-                'signature' => $signature,
+            );
+            $transferSig = $this->build_usd_class_send_sig($transferPayload);
+            $transferRequest = array(
+                'action' => array(
+                    'hyperliquidChain' => $transferPayload['hyperliquidChain'],
+                    'signatureChainId' => '0x66eee',
+                    'type' => 'usdClassTransfer',
+                    'amount' => $strAmount,
+                    'toPerp' => $toPerp,
+                    'nonce' => $nonce,
+                ),
+                'nonce' => $nonce,
+                'signature' => $transferSig,
             );
             if ($vaultAddress !== null) {
-                $innerRequest['vaultAddress'] = $vaultAddress;
+                $transferRequest['vaultAddress'] = $vaultAddress;
             }
-            $transferResponse = $this->privatePostExchange ($innerRequest);
+            $transferResponse = $this->privatePostExchange ($transferRequest);
             return $transferResponse;
         }
         // handle sub-account/different account transfer
@@ -2685,7 +2864,7 @@ class hyperliquid extends Exchange {
             'amount' => $this->number_to_string($amount),
             'time' => $nonce,
         );
-        $sig = $this->build_transfer_sig($payload);
+        $sig = $this->build_usd_send_sig($payload);
         $request = array(
             'action' => array(
                 'hyperliquidChain' => $payload['hyperliquidChain'],
@@ -2934,7 +3113,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $userAddress = null;
@@ -3105,6 +3284,68 @@ class hyperliquid extends Exchange {
         $records = $this->extract_type_from_delta($response);
         $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
         return $this->parse_transactions($withdrawals, null, $since, $limit);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         * @param {string[]} [$symbols] Unified CCXT market symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $swapMarkets = $this->fetch_swap_markets();
+        $result = $this->parse_open_interests($swapMarkets);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        /**
+         * retrieves the open interest of a contract trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
+         */
+        $symbol = $this->symbol($symbol);
+        $this->load_markets();
+        $ois = $this->fetch_open_interests(array( $symbol ), $params);
+        return $ois[$symbol];
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        //  {
+        //      szDecimals => '2',
+        //      name => 'HYPE',
+        //      maxLeverage => '3',
+        //      funding => '0.00014735',
+        //      openInterest => '14677900.74',
+        //      prevDayPx => '26.145',
+        //      dayNtlVlm => '299643445.12560016',
+        //      premium => '0.00081613',
+        //      oraclePx => '27.569',
+        //      markPx => '27.63',
+        //      midPx => '27.599',
+        //      impactPxs => array( '27.5915', '27.6319' ),
+        //      dayBaseVlm => '10790652.83',
+        //      baseId => 159
+        //  }
+        //
+        $interest = $this->safe_dict($interest, 'info', array());
+        $coin = $this->safe_string($interest, 'name');
+        $marketId = null;
+        if ($coin !== null) {
+            $marketId = $this->coin_to_market_id($coin);
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol($marketId),
+            'openInterestAmount' => $this->safe_number($interest, 'openInterest'),
+            'openInterestValue' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
+        ), $market);
     }
 
     public function extract_type_from_delta($data = []) {

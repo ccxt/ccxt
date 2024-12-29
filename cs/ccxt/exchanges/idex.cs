@@ -185,10 +185,8 @@ public partial class idex : Exchange
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         object market = this.market(symbol);
-        object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-        object quoteAssetPrecision = this.safeInteger(info, "quoteAssetPrecision");
         price = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode);
-        return this.decimalToPrecision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+        return this.decimalToPrecision(price, TRUNCATE, getValue(getValue(market, "precision"), "quote"), TICK_SIZE, PAD_WITH_ZERO);
     }
 
     /**
@@ -301,6 +299,8 @@ public partial class idex : Exchange
                 { "precision", new Dictionary<string, object>() {
                     { "amount", basePrecision },
                     { "price", this.safeNumber(entry, "tickSize") },
+                    { "base", basePrecision },
+                    { "quote", quotePrecision },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -1199,7 +1199,6 @@ public partial class idex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1267,14 +1266,15 @@ public partial class idex : Exchange
             { "takeProfit", 5 },
             { "takeProfitLimit", 6 },
         };
-        object stopPriceString = null;
-        if (isTrue(isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((inOp(parameters, "stopPrice")))))
+        object triggerPrice = this.safeString(parameters, "triggerPrice", "stopPrice");
+        object triggerPriceString = null;
+        if (isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))))
         {
-            if (!isTrue((inOp(parameters, "stopPrice"))))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new BadRequest ((string)add(add(add(this.id, " createOrder() stopPrice is a required parameter for "), type), "orders")) ;
+                throw new BadRequest ((string)add(add(add(this.id, " createOrder() triggerPrice is a required parameter for "), type), "orders")) ;
             }
-            stopPriceString = this.priceToPrecision(symbol, getValue(parameters, "stopPrice"));
+            triggerPriceString = this.priceToPrecision(symbol, triggerPrice);
         }
         object limitTypeEnums = new Dictionary<string, object>() {
             { "limit", 1 },
@@ -1362,7 +1362,7 @@ public partial class idex : Exchange
         }
         if (isTrue(inOp(stopLossTypeEnums, type)))
         {
-            object encodedPrice = this.encode(isTrue(stopPriceString) || isTrue(priceString));
+            object encodedPrice = this.encode(isTrue(triggerPriceString) || isTrue(priceString));
             ((IList<object>)byteArray).Add(encodedPrice);
         }
         object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -1396,7 +1396,7 @@ public partial class idex : Exchange
         }
         if (isTrue(inOp(stopLossTypeEnums, type)))
         {
-            ((IDictionary<string,object>)getValue(request, "parameters"))["stopPrice"] = isTrue(stopPriceString) || isTrue(priceString);
+            ((IDictionary<string,object>)getValue(request, "parameters"))["stopPrice"] = isTrue(triggerPriceString) || isTrue(priceString);
         }
         if (isTrue(isEqual(amountEnum, 0)))
         {

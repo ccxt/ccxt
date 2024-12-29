@@ -734,7 +734,7 @@ class delta(Exchange, ImplicitAPI):
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
-            linear = (settle == base)
+            linear = (settle == quote)
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
@@ -2152,7 +2152,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         request: dict = {

@@ -1010,6 +1010,18 @@
         ],
         "fetchTickers": [
             {
+                "description": "fetch options tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bybit.com/v5/market/tickers?category=option&baseCoin=BTC",
+                "input": [
+                    null,
+                    {
+                        "type": "option"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Conflicting id with type in params",
                 "method": "fetchTickers",
                 "url": "https://api-testnet.bybit.com/v5/market/tickers?category=spot",

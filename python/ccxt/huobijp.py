@@ -1295,7 +1295,6 @@ class huobijp(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': None,
             'cost': cost,

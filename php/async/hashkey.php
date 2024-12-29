@@ -340,6 +340,82 @@ class hashkey extends Exchange {
                 ),
                 'defaultNetwork' => 'ERC20',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true, // todo fix
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 30,
+                        'untilDays' => 30,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'selfTradePrevention' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'trigger' => true,
+                        'limit' => 500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -569,12 +645,7 @@ class hashkey extends Exchange {
              * @param {string} [$params->symbol] the id of the market to fetch
              * @return {array[]} an array of objects representing market data
              */
-            $symbol = null;
             $request = array();
-            list($symbol, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'symbol');
-            if ($symbol !== null) {
-                $request['symbol'] = $symbol;
-            }
             $response = Async\await($this->publicGetApiV1ExchangeInfo ($this->extend($request, $params)));
             //
             //     {
@@ -649,7 +720,7 @@ class hashkey extends Exchange {
             //                 )
             //             }
             //         ),
-            //         "options" => array(),
+            //         "options" => [ ],
             //         "contracts" => array(
             //             {
             //                 "filters" => array(
@@ -1272,11 +1343,6 @@ class hashkey extends Exchange {
                 if ($market !== null) {
                     $request['symbol'] = $market['id'];
                 }
-                $clientOrderId = null;
-                list($clientOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'clientOrderId');
-                if ($clientOrderId !== null) {
-                    $request['clientOrderId'] = $clientOrderId;
-                }
                 if ($accountId !== null) {
                     $request['accountId'] = $accountId;
                 }
@@ -1638,7 +1704,7 @@ class hashkey extends Exchange {
             /**
              * fetches the last price for multiple markets
              *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/get-$symbol-price-ticker
+             * @see https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1648,11 +1714,6 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $request = array();
-            $symbol = null;
-            list($symbol, $params) = $this->handle_option_and_params($params, 'fetchLastPrices', 'symbol');
-            if ($symbol !== null) {
-                $request['symbol'] = $symbol;
-            }
             $response = Async\await($this->publicGetQuoteV1TickerPrice ($this->extend($request, $params)));
             //
             //     array(
@@ -1714,11 +1775,6 @@ class hashkey extends Exchange {
                 $balance = $this->safe_dict($response, 0, array());
                 return $this->parse_swap_balance($balance);
             } elseif ($marketType === 'spot') {
-                $accountId = null;
-                list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
-                if ($accountId !== null) {
-                    $request['accountId'] = $accountId;
-                }
                 $response = Async\await($this->privateGetApiV1Account ($this->extend($request, $params)));
                 //
                 //     {
@@ -1998,7 +2054,7 @@ class hashkey extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] network for withdraw
              * @param {string} [$params->clientOrderId] client order id
-             * @param {string} [$params->platform] the $platform to withdraw to (hashkey, HashKey HK)
+             * @param {string} [$params->platform] the platform to withdraw to (hashkey, HashKey HK)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -2012,20 +2068,10 @@ class hashkey extends Exchange {
             if ($tag !== null) {
                 $request['addressExt'] = $tag;
             }
-            $clientOrderId = null;
-            list($clientOrderId, $params) = $this->handle_option_and_params($params, 'withdraw', 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
-            }
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
                 $request['chainType'] = $this->network_code_to_id($networkCode);
-            }
-            $platform = null;
-            list($platform, $params) = $this->handle_option_and_params($params, 'withdraw', 'platform');
-            if ($platform !== null) {
-                $request['platform'] = $platform;
             }
             $response = Async\await($this->privatePostApiV1AccountWithdraw ($this->extend($request, $params)));
             //
@@ -2174,16 +2220,6 @@ class hashkey extends Exchange {
                 'fromAccountId' => $fromAccount,
                 'toAccountId' => $toAccount,
             );
-            $clientOrderId = null;
-            list($clientOrderId, $params) = $this->handle_option_and_params($params, 'transfer', 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
-            }
-            $remark = null;
-            list($remark, $params) = $this->handle_option_and_params($params, 'transfer', 'remark');
-            if ($remark !== null) {
-                $request['remark'] = $remark;
-            }
             $response = Async\await($this->privatePostApiV1AccountAssetTransfer ($this->extend($request, $params)));
             //
             //     {
@@ -2307,7 +2343,7 @@ class hashkey extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {int} [$params->flowType] trade, fee, transfer, deposit, withdrawal
              * @param {int} [$params->accountType] spot, swap, custody
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $methodName = 'fetchLedger';
             if ($since === null) {
@@ -3107,11 +3143,6 @@ class hashkey extends Exchange {
                 if ($clientOrderId !== null) {
                     $request['origClientOrderId'] = $clientOrderId;
                 }
-                $accountId = null;
-                list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
-                if ($accountId !== null) {
-                    $request['accountId'] = $accountId;
-                }
                 $response = Async\await($this->privateGetApiV1SpotOrder ($this->extend($request, $params)));
                 //
                 //     {
@@ -3236,7 +3267,7 @@ class hashkey extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve - default 500, maximum 1000
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->orderId] the id of the order to fetch
-             * @param {string} [$params->side] 'buy' or 'sell' - the $side of the orders to fetch
+             * @param {string} [$params->side] 'buy' or 'sell' - the side of the orders to fetch
              * @param {string} [$params->accountId] account id to fetch the orders from
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -3258,16 +3289,6 @@ class hashkey extends Exchange {
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
-                }
-                $orderId = null;
-                list($orderId, $params) = $this->handle_option_and_params($params, $methodName, 'orderId');
-                if ($orderId !== null) {
-                    $request['orderId'] = $orderId;
-                }
-                $side = null;
-                list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-                if ($side !== null) {
-                    $request['side'] = strtoupper($side);
                 }
                 $response = Async\await($this->privateGetApiV1SpotOpenOrders ($this->extend($request, $params)));
                 //
@@ -3341,11 +3362,6 @@ class hashkey extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $fromOrderId = null;
-            list($fromOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'fromOrderId');
-            if ($fromOrderId !== null) {
-                $request['fromOrderId'] = $fromOrderId;
-            }
             $response = null;
             $accountId = null;
             list($accountId, $params) = $this->handle_option_and_params($params, $methodName, 'accountId');
@@ -3418,7 +3434,7 @@ class hashkey extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
              * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entries for (default 'spot')
              * @param {string} [$params->orderId] *spot markets only* the id of the order to fetch
-             * @param {string} [$params->side] *spot markets only* 'buy' or 'sell' - the $side of the orders to fetch
+             * @param {string} [$params->side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
              * @param {string} [$params->fromOrderId] *swap markets only* the id of the order to start from
              * @param {bool} [$params->trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
              * @param {bool} [$params->stop] *swap markets only* the id of the order to start from an alternative for trigger param
@@ -3452,16 +3468,6 @@ class hashkey extends Exchange {
             if ($marketType === 'spot') {
                 if ($market !== null) {
                     $request['symbol'] = $market['id'];
-                }
-                $orderId = null;
-                list($orderId, $params) = $this->handle_option_and_params($params, $methodName, 'orderId');
-                if ($orderId !== null) {
-                    $request['orderId'] = $orderId;
-                }
-                $side = null;
-                list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-                if ($side !== null) {
-                    $request['side'] = strtoupper($side);
                 }
                 if ($accountId !== null) {
                     $request['accountId'] = $accountId;
@@ -3507,11 +3513,6 @@ class hashkey extends Exchange {
                     $request['type'] = 'STOP';
                 } else {
                     $request['type'] = 'LIMIT';
-                }
-                $fromOrderId = null;
-                list($fromOrderId, $params) = $this->handle_option_and_params($params, $methodName, 'fromOrderId');
-                if ($fromOrderId !== null) {
-                    $request['fromOrderId'] = $fromOrderId;
                 }
                 if ($accountId !== null) {
                     $request['subAccountId'] = $accountId;
@@ -3562,10 +3563,8 @@ class hashkey extends Exchange {
     }
 
     public function handle_trigger_option_and_params(array $params, string $methodName, $defaultValue = null) {
-        $isStop = $defaultValue;
-        list($isStop, $params) = $this->handle_option_and_params($params, $methodName, 'stop', $isStop);
-        $isTrigger = $isStop;
-        list($isTrigger, $params) = $this->handle_option_and_params($params, $methodName, 'trigger', $isTrigger);
+        $isTrigger = $defaultValue;
+        list($isTrigger, $params) = $this->handle_option_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
         return array( $isTrigger, $params );
     }
 
@@ -3710,7 +3709,6 @@ class hashkey extends Exchange {
         if ($feeCurrncyId === '') {
             $feeCurrncyId = null;
         }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
@@ -3728,8 +3726,7 @@ class hashkey extends Exchange {
             'amount' => $this->omit_zero($this->safe_string($order, 'origQty')),
             'filled' => $this->safe_string($order, 'executedQty'),
             'remaining' => null,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->omit_zero($this->safe_string($order, 'stopPrice')),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'cost' => $this->omit_zero($this->safe_string_2($order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
@@ -3991,11 +3988,6 @@ class hashkey extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $side = null;
-            list($side, $params) = $this->handle_option_and_params($params, $methodName, 'side');
-            if ($side !== null) {
-                $request['side'] = strtoupper($side);
-            }
             $response = Async\await($this->privateGetApiV1FuturesPositions ($this->extend($request, $params)));
             //
             //     array(

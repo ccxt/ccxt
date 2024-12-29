@@ -269,7 +269,6 @@ class coincheck extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'fee' => null,

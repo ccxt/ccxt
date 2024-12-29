@@ -1081,6 +1081,12 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_post_portfolio_repay_futures_negative_balance($params = array()) {
         return $this->request('portfolio/repay-futures-negative-balance', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapi_post_portfolio_mint($params = array()) {
+        return $this->request('portfolio/mint', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function sapi_post_portfolio_redeem($params = array()) {
+        return $this->request('portfolio/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1797,6 +1803,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function eapiprivate_get_block_user_trades($params = array()) {
         return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_blocktrades($params = array()) {
+        return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -3352,6 +3361,12 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiPostPortfolioRepayFuturesNegativeBalance($params = array()) {
         return $this->request('portfolio/repay-futures-negative-balance', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapiPostPortfolioMint($params = array()) {
+        return $this->request('portfolio/mint', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function sapiPostPortfolioRedeem($params = array()) {
+        return $this->request('portfolio/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -4068,6 +4083,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function eapiPrivateGetBlockUserTrades($params = array()) {
         return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetBlockTrades($params = array()) {
+        return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));

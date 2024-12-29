@@ -1550,7 +1550,7 @@ export default class coinlist extends Exchange {
                 request['type'] = 'stop_limit';
             }
         } else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
@@ -1696,7 +1696,7 @@ export default class coinlist extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price');
-        const stopPrice = this.safeString (order, 'stop_price');
+        const triggerPrice = this.safeString (order, 'stop_price');
         const average = this.safeString (order, 'average_fill_price'); // from documentation
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
@@ -1722,8 +1722,7 @@ export default class coinlist extends Exchange {
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
             'amount': amount,
             'cost': undefined,
@@ -2122,7 +2121,7 @@ export default class coinlist extends Exchange {
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const traderId = this.safeString2 (params, 'trader_id', 'traderId');

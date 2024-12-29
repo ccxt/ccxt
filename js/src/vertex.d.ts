@@ -1,5 +1,5 @@
 import Exchange from './abstract/vertex.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests } from './base/types.js';
 /**
  * @class vertex
  * @augments Exchange
@@ -136,6 +136,16 @@ export default class vertex extends Exchange {
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     /**
      * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: {}): Promise<OpenInterests>;
+    /**
+     * @method
      * @name vertex#fetchOpenInterest
      * @description Retrieves the open interest of a derivative trading pair
      * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
@@ -232,7 +242,7 @@ export default class vertex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -246,7 +256,7 @@ export default class vertex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -259,7 +269,7 @@ export default class vertex extends Exchange {
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;

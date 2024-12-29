@@ -544,7 +544,7 @@ class coinsph extends coinsph$1 {
         //         ]
         //     }
         //
-        const markets = this.safeValue(response, 'symbols');
+        const markets = this.safeList(response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -553,7 +553,7 @@ class coinsph extends coinsph$1 {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
+            const limits = this.indexBy(this.safeList(market, 'filters', []), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue(limits, 'NOTIONAL', {});
@@ -636,7 +636,7 @@ class coinsph extends coinsph$1 {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTickers', {});
+        const options = this.safeDict(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let tickers = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -668,7 +668,7 @@ class coinsph extends coinsph$1 {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTicker', {});
+        const options = this.safeDict(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
         let ticker = undefined;
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -1014,7 +1014,7 @@ class coinsph extends coinsph$1 {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeValue2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
@@ -1079,7 +1079,7 @@ class coinsph extends coinsph$1 {
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1173,11 +1173,11 @@ class coinsph extends coinsph$1 {
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1415,9 +1415,9 @@ class coinsph extends coinsph$1 {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
         const trades = this.safeValue(order, 'fills', undefined);
-        let stopPrice = this.safeString(order, 'stopPrice');
-        if (Precise["default"].stringEq(stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString(order, 'stopPrice');
+        if (Precise["default"].stringEq(triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder({
             'id': id,
@@ -1431,8 +1431,7 @@ class coinsph extends coinsph$1 {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString(order, 'origQty'),
             'cost': this.safeString(order, 'cummulativeQuoteQty'),
@@ -1526,7 +1525,7 @@ class coinsph extends coinsph$1 {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue(response, 0, {});
+        const tradingFee = this.safeDict(response, 0, {});
         return this.parseTradingFee(tradingFee, market);
     }
     /**

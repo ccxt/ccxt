@@ -742,7 +742,7 @@ export default class delta extends Exchange {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber('1');
             }
-            const linear = (settle === base);
+            const linear = (settle === quote);
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
@@ -2200,7 +2200,7 @@ export default class delta extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

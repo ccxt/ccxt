@@ -354,7 +354,7 @@ export default class ndax extends Exchange {
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
@@ -1100,8 +1100,11 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
-        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
+        let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        if (accountId === undefined) {
+            accountId = parseInt (this.accounts[0]['id']);
+        }
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
             'omsId': omsId,
@@ -1227,7 +1230,7 @@ export default class ndax extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1365,7 +1368,7 @@ export default class ndax extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'Side'),
             'price': this.safeString (order, 'Price'),
-            'stopPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
+            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
             'cost': this.safeString (order, 'GrossValueExecuted'),
             'amount': this.safeString (order, 'OrigQuantity'),
             'filled': this.safeString (order, 'QuantityExecuted'),
@@ -1388,6 +1391,7 @@ export default class ndax extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1633,6 +1637,7 @@ export default class ndax extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {

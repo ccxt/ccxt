@@ -88,6 +88,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
+                'fetchDepositMethodId': True,
+                'fetchDepositMethodIds': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -381,6 +383,86 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchBalance': 'v2PrivateGetAccounts',  # 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
                 'fetchTime': 'v2PublicGetTime',  # 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency': 'USD',  # needed to get fees for v3
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 3000,
+                        'daysBack': None,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': 10000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 10000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 350,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': None,
+                },
             },
         })
 
@@ -2181,7 +2263,8 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :param dict [params.type]: "spot"(default) or "swap" or "future"
+        :param str [params.type]: "spot"(default) or "swap" or "future"
+        :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
@@ -2198,7 +2281,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
-            request['limit'] = 100
+            request['limit'] = 250
             response = self.v2PrivateGetAccounts(self.extend(request, params))
         #
         # v2PrivateGetAccounts
@@ -2285,7 +2368,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -2730,10 +2813,10 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'side': side.upper(),
         }
-        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
-        isStop = stopPrice is not None
+        isStop = triggerPrice is not None
         isStopLoss = stopLossPrice is not None
         isTakeProfit = takeProfitPrice is not None
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2751,7 +2834,7 @@ class coinbase(Exchange, ImplicitAPI):
                         'stop_limit_stop_limit_gtd': {
                             'base_size': self.amount_to_precision(symbol, amount),
                             'limit_price': self.price_to_precision(symbol, price),
-                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_price': self.price_to_precision(symbol, triggerPrice),
                             'stop_direction': stopDirection,
                             'end_time': endTime,
                         },
@@ -2761,25 +2844,25 @@ class coinbase(Exchange, ImplicitAPI):
                         'stop_limit_stop_limit_gtc': {
                             'base_size': self.amount_to_precision(symbol, amount),
                             'limit_price': self.price_to_precision(symbol, price),
-                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_price': self.price_to_precision(symbol, triggerPrice),
                             'stop_direction': stopDirection,
                         },
                     }
             elif isStopLoss or isTakeProfit:
-                triggerPrice = None
+                tpslPrice = None
                 if isStopLoss:
                     if stopDirection is None:
                         stopDirection = 'STOP_DIRECTION_STOP_UP' if (side == 'buy') else 'STOP_DIRECTION_STOP_DOWN'
-                    triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                    tpslPrice = self.price_to_precision(symbol, stopLossPrice)
                 else:
                     if stopDirection is None:
                         stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
-                    triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    tpslPrice = self.price_to_precision(symbol, takeProfitPrice)
                 request['order_configuration'] = {
                     'stop_limit_stop_limit_gtc': {
                         'base_size': self.amount_to_precision(symbol, amount),
                         'limit_price': self.price_to_precision(symbol, price),
-                        'stop_price': triggerPrice,
+                        'stop_price': tpslPrice,
                         'stop_direction': stopDirection,
                     },
                 }
@@ -3030,7 +3113,6 @@ class coinbase(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': self.safe_string(order, 'filled_size'),
@@ -4100,6 +4182,90 @@ class coinbase(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
+
+    def fetch_deposit_method_ids(self, params={}):
+        """
+        fetch the deposit id for a fiat currency associated with self account
+
+        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an array of `deposit id structures <https://docs.ccxt.com/#/?id=deposit-id-structure>`
+        """
+        self.load_markets()
+        response = self.v3PrivateGetBrokeragePaymentMethods(params)
+        #
+        #     {
+        #         "payment_methods": [
+        #             {
+        #                 "id": "21b39a5d-f7b46876fb2e",
+        #                 "type": "COINBASE_FIAT_ACCOUNT",
+        #                 "name": "CAD Wallet",
+        #                 "currency": "CAD",
+        #                 "verified": True,
+        #                 "allow_buy": False,
+        #                 "allow_sell": True,
+        #                 "allow_deposit": False,
+        #                 "allow_withdraw": False,
+        #                 "created_at": "2023-06-29T19:58:46Z",
+        #                 "updated_at": "2023-10-30T20:25:01Z"
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_list(response, 'payment_methods', [])
+        return self.parse_deposit_method_ids(result)
+
+    def fetch_deposit_method_id(self, id: str, params={}):
+        """
+        fetch the deposit id for a fiat currency associated with self account
+
+        https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+
+        :param str id: the deposit payment method id
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `deposit id structure <https://docs.ccxt.com/#/?id=deposit-id-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'payment_method_id': id,
+        }
+        response = self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(self.extend(request, params))
+        #
+        #     {
+        #         "payment_method": {
+        #             "id": "21b39a5d-f7b46876fb2e",
+        #             "type": "COINBASE_FIAT_ACCOUNT",
+        #             "name": "CAD Wallet",
+        #             "currency": "CAD",
+        #             "verified": True,
+        #             "allow_buy": False,
+        #             "allow_sell": True,
+        #             "allow_deposit": False,
+        #             "allow_withdraw": False,
+        #             "created_at": "2023-06-29T19:58:46Z",
+        #             "updated_at": "2023-10-30T20:25:01Z"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'payment_method', {})
+        return self.parse_deposit_method_id(result)
+
+    def parse_deposit_method_ids(self, ids, params={}):
+        result = []
+        for i in range(0, len(ids)):
+            id = self.extend(self.parse_deposit_method_id(ids[i]), params)
+            result.append(id)
+        return result
+
+    def parse_deposit_method_id(self, depositId):
+        return {
+            'info': depositId,
+            'id': self.safe_string(depositId, 'id'),
+            'currency': self.safe_string(depositId, 'currency'),
+            'verified': self.safe_bool(depositId, 'verified'),
+            'tag': self.safe_string(depositId, 'name'),
+        }
 
     def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """

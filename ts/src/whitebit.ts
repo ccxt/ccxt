@@ -1312,8 +1312,8 @@ export default class whitebit extends Exchange {
         const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
-        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const isStopOrder = (triggerPrice !== undefined);
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
@@ -1326,7 +1326,7 @@ export default class whitebit extends Exchange {
         const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         let response = undefined;
         if (isStopOrder) {
-            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+            request['activation_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
                 // stop limit order
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -1397,11 +1397,11 @@ export default class whitebit extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         const isLimitOrder = type === 'limit';
-        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
-        const isStopOrder = (stopPrice !== undefined);
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const isStopOrder = (triggerPrice !== undefined);
         params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice' ]);
         if (isStopOrder) {
-            request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
+            request['activation_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
                 // stop limit order
                 request['amount'] = this.amountToPrecision (symbol, amount);
@@ -1794,7 +1794,7 @@ export default class whitebit extends Exchange {
             clientOrderId = undefined;
         }
         const price = this.safeString (order, 'price');
-        const stopPrice = this.safeNumber (order, 'activation_price');
+        const triggerPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
         const type = this.safeString (order, 'type');
         const orderType = this.parseOrderType (type);
@@ -1830,8 +1830,7 @@ export default class whitebit extends Exchange {
             'side': side,
             'price': price,
             'type': orderType,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

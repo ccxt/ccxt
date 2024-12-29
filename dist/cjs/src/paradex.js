@@ -12,6 +12,8 @@ var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
+ * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
+ * or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
  * @augments Exchange
  */
 class paradex extends paradex$1 {
@@ -48,6 +50,8 @@ class paradex extends paradex$1 {
                 'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -267,6 +271,7 @@ class paradex extends paradex$1 {
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
             'options': {
+                'paradexAccount': undefined,
                 'broker': 'CCXT',
             },
         });
@@ -974,11 +979,11 @@ class paradex extends paradex$1 {
         };
     }
     async retrieveAccount() {
-        this.checkRequiredCredentials();
         const cachedAccount = this.safeDict(this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;
         }
+        this.checkRequiredCredentials();
         const systemConfig = await this.getSystemConfig();
         const domain = await this.prepareParadexDomain(true);
         const messageTypes = {
@@ -1101,7 +1106,6 @@ class paradex extends paradex$1 {
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
-        const stopPrice = this.safeString(order, 'trigger_price');
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
         return this.safeOrder({
             'id': orderId,
@@ -1118,8 +1122,7 @@ class paradex extends paradex$1 {
             'reduceOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'trigger_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1182,7 +1185,7 @@ class paradex extends paradex$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
@@ -1203,7 +1206,7 @@ class paradex extends paradex$1 {
             'type': orderType,
             'size': this.amountToPrecision(symbol, amount),
         };
-        const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1227,14 +1230,14 @@ class paradex extends paradex$1 {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (isMarket) {
                 request['type'] = 'STOP_MARKET';
             }
             else {
                 request['type'] = 'STOP_LIMIT';
             }
-            request['trigger_price'] = this.priceToPrecision(symbol, stopPrice);
+            request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
         params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
         const account = await this.retrieveAccount();
@@ -2007,7 +2010,6 @@ class paradex extends paradex$1 {
             }
         }
         else if (api === 'private') {
-            this.checkRequiredCredentials();
             headers = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString(this.options, 'broker', 'CCXT'),

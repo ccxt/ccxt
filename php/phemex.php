@@ -2261,7 +2261,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -2276,8 +2276,7 @@ class phemex extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2427,7 +2426,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
+        $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'stopPx', 'stopPxRp'));
         $postOnly = ($timeInForce === 'PO');
         $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $execInst = $this->safe_string($order, 'execInst');
@@ -2464,8 +2463,7 @@ class phemex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfit,
             'stopLossPrice' => $stopLoss,
             'amount' => $amount,
@@ -2626,6 +2624,26 @@ class phemex extends Exchange {
             if ($triggerPrice !== null) {
                 $triggerType = $this->safe_string($params, 'triggerType', 'ByMarkPrice');
                 $request['triggerType'] = $triggerType;
+                // set direction & exchange specific order $type
+                $triggerDirection = null;
+                list($triggerDirection, $params) = $this->handle_param_string($params, 'triggerDirection');
+                if ($triggerDirection === null) {
+                    throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                }
+                // the flow defined per https://phemex-docs.github.io/#more-order-$type-examples
+                if ($triggerDirection === 'up') {
+                    if ($side === 'sell') {
+                        $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    } elseif ($side === 'buy') {
+                        $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
+                    }
+                } elseif ($triggerDirection === 'down') {
+                    if ($side === 'sell') {
+                        $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
+                    } elseif ($side === 'buy') {
+                        $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    }
+                }
             }
             if ($stopLossDefined || $takeProfitDefined) {
                 if ($stopLossDefined) {
@@ -2831,12 +2849,12 @@ class phemex extends Exchange {
                 $request['baseQtyEV'] = $this->to_ev($amount, $market);
             }
         }
-        $stopPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
-        if ($stopPrice !== null) {
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+        if ($triggerPrice !== null) {
             if ($isUSDTSettled) {
-                $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPxRp'] = $this->price_to_precision($symbol, $triggerPrice);
             } else {
-                $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+                $request['stopPxEp'] = $this->to_ep($triggerPrice, $market);
             }
         }
         $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
@@ -2914,15 +2932,15 @@ class phemex extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
-        $params = $this->omit($params, 'stop', 'trigger');
+        $trigger = $this->safe_value_2($params, 'stop', 'trigger', false);
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array(
             'symbol' => $market['id'],
             // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text' => 'up to 40 characters max',
         );
-        if ($stop) {
-            $request['untriggerred'] = $stop;
+        if ($trigger) {
+            $request['untriggerred'] = $trigger;
         }
         $response = null;
         if ($market['settle'] === 'USDT') {
@@ -3621,13 +3639,15 @@ class phemex extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USD is the default
          * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $subType = null;
-        $code = $this->safe_string($params, 'currency');
+        $code = $this->safe_string_2($params, 'currency', 'code', 'USD');
+        $params = $this->omit($params, array( 'currency', 'code' ));
         $settle = null;
         $market = null;
         $firstSymbol = $this->safe_string($symbols, 0);
@@ -3636,16 +3656,16 @@ class phemex extends Exchange {
             $settle = $market['settle'];
             $code = $market['settle'];
         } else {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USD');
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $code);
         }
         list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
         $isUSDTSettled = $settle === 'USDT';
         if ($isUSDTSettled) {
             $code = 'USDT';
+        } elseif ($settle === 'BTC') {
+            $code = 'BTC';
         } elseif ($code === null) {
             $code = ($subType === 'linear') ? 'USD' : 'BTC';
-        } else {
-            $params = $this->omit($params, 'code');
         }
         $currency = $this->currency($code);
         $request = array(
@@ -4074,19 +4094,23 @@ class phemex extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.000001);
+        $markEp = $this->from_ep($this->safe_string($contract, 'markEp'), $market);
+        $indexEp = $this->from_ep($this->safe_string($contract, 'indexEp'), $market);
+        $fundingRateEr = $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market);
+        $nextFundingRateEr = $this->from_er($this->safe_string($contract, 'predFundingRateEr'), $market);
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->from_ep($this->safe_string_2($contract, 'markEp', 'markPriceRp'), $market),
-            'indexPrice' => $this->from_ep($this->safe_string_2($contract, 'indexEp', 'indexPriceRp'), $market),
+            'markPrice' => $this->safe_number($contract, 'markPriceRp', $markEp),
+            'indexPrice' => $this->safe_number($contract, 'indexPriceRp', $indexEp),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market),
+            'fundingRate' => $this->safe_number($contract, 'fundingRateRr', $fundingRateEr),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->from_er($this->safe_string_2($contract, 'predFundingRateEr', 'predFundingRateRr'), $market),
+            'nextFundingRate' => $this->safe_number($contract, 'predFundingRateRr', $nextFundingRateEr),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,

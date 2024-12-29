@@ -347,7 +347,7 @@ public partial class ndax : Exchange
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
@@ -1134,8 +1134,12 @@ public partial class ndax : Exchange
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
         await this.loadAccounts();
-        object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", parseInt(getValue(getValue(this.accounts, 0), "id")));
+        object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId");
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        if (isTrue(isEqual(accountId, null)))
+        {
+            accountId = parseInt(getValue(getValue(this.accounts, 0), "id"));
+        }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         object request = new Dictionary<string, object>() {
             { "omsId", omsId },
@@ -1267,7 +1271,7 @@ public partial class ndax : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1411,7 +1415,7 @@ public partial class ndax : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "Side") },
             { "price", this.safeString(order, "Price") },
-            { "stopPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
+            { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
             { "cost", this.safeString(order, "GrossValueExecuted") },
             { "amount", this.safeString(order, "OrigQuantity") },
             { "filled", this.safeString(order, "QuantityExecuted") },
@@ -1434,6 +1438,7 @@ public partial class ndax : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1670,6 +1675,7 @@ public partial class ndax : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)

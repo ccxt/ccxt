@@ -209,7 +209,7 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         request: dict = {}
         if limit is not None:
@@ -1108,7 +1108,6 @@ class bitso(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1683,6 +1682,7 @@ class bitso(Exchange, ImplicitAPI):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
+            endpoint = '/api' + endpoint
             request = ''.join([nonce, method, endpoint])
             if method != 'GET' and method != 'DELETE':
                 if query:
@@ -1692,7 +1692,7 @@ class bitso(Exchange, ImplicitAPI):
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                # 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

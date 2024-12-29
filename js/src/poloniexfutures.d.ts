@@ -117,7 +117,7 @@ export default class poloniexfutures extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @param {float} [params.leverage] Leverage size of the order
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
@@ -195,7 +195,7 @@ export default class poloniexfutures extends Exchange {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.stop] When true, all the trigger orders will be cancelled
+     * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;

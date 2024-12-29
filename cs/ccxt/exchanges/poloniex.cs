@@ -28,6 +28,8 @@ public partial class poloniex : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrder", false },
@@ -1186,7 +1188,6 @@ public partial class poloniex : Exchange
             };
         }
         object clientOrderId = this.safeString(order, "clientOrderId");
-        object triggerPrice = this.safeString2(order, "triggerPrice", "stopPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1201,8 +1202,7 @@ public partial class poloniex : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString2(order, "triggerPrice", "stopPrice") },
             { "cost", null },
             { "average", this.safeString(order, "avgPrice") },
             { "amount", amount },
@@ -1250,7 +1250,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
+     * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1319,7 +1319,7 @@ public partial class poloniex : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */

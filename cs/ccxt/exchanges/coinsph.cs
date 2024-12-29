@@ -536,7 +536,7 @@ public partial class coinsph : Exchange
         //         ]
         //     }
         //
-        object markets = this.safeValue(response, "symbols");
+        object markets = this.safeList(response, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -546,7 +546,7 @@ public partial class coinsph : Exchange
             object quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object limits = this.indexBy(this.safeValue(market, "filters"), "filterType");
+            object limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
@@ -634,7 +634,7 @@ public partial class coinsph : Exchange
             ((IDictionary<string,object>)request)["symbols"] = ids;
         }
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTickers", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object tickers = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -670,7 +670,7 @@ public partial class coinsph : Exchange
             { "symbol", getValue(market, "id") },
         };
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTicker", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTicker", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object ticker = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -1042,7 +1042,7 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeValue2(trade, "isBuyer", "isBuyerMaker", null);
+        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
         object side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1115,7 +1115,7 @@ public partial class coinsph : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "balances", new List<object>() {});
+        object balances = this.safeList(response, "balances", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -1221,12 +1221,12 @@ public partial class coinsph : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue(isEqual(orderType, "STOP_LOSS")) || isTrue(isEqual(orderType, "STOP_LOSS_LIMIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT_LIMIT"))))
         {
-            object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(isEqual(stopPrice, null)))
+            object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(isEqual(triggerPrice, null)))
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         ((IDictionary<string,object>)request)["newOrderRespType"] = newOrderRespType;
         parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1489,10 +1489,10 @@ public partial class coinsph : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills", null);
-        object stopPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(stopPrice, "0")))
+        object triggerPrice = this.safeString(order, "stopPrice");
+        if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
-            stopPrice = null;
+            triggerPrice = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1506,8 +1506,7 @@ public partial class coinsph : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", null },
             { "amount", this.safeString(order, "origQty") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },
@@ -1616,7 +1615,7 @@ public partial class coinsph : Exchange
         //       }
         //     ]
         //
-        object tradingFee = this.safeValue(response, 0, new Dictionary<string, object>() {});
+        object tradingFee = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseTradingFee(tradingFee, market);
     }
 

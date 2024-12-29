@@ -37,6 +37,8 @@ class bitopro extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
@@ -146,6 +148,7 @@ class bitopro extends Exchange {
                         'wallet/withdraw/{currency}/id/{id}' => 1,
                         'wallet/depositHistory/{currency}' => 1,
                         'wallet/withdrawHistory/{currency}' => 1,
+                        'orders/open' => 1,
                     ),
                     'post' => array(
                         'orders/{pair}' => 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
@@ -1010,7 +1013,6 @@ class bitopro extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1037,6 +1039,7 @@ class bitopro extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1054,12 +1057,12 @@ class bitopro extends Exchange {
             }
             if ($orderType === 'STOP_LIMIT') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
-                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
+                if ($triggerPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $triggerPrice parameter for ' . $orderType . ' orders');
                 } else {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
                 $condition = $this->safe_string($params, 'condition');
                 if ($condition === null) {
@@ -1330,10 +1333,27 @@ class bitopro extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            $request = array(
-                'statusKind' => 'OPEN',
-            );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
+            /**
+             * fetch all unfilled currently open $orders
+             *
+             * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_open_orders_data.md
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open $orders for
+             * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privateGetOrdersOpen ($this->extend($request, $params)));
+            $orders = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
 

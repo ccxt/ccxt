@@ -267,6 +267,8 @@ public partial class probit : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object closed = this.safeBool(market, "closed", false);
+        object showInUI = this.safeBool(market, "show_in_ui", true);
+        object active = !isTrue(closed) && isTrue(showInUI);
         object takerFeeRate = this.safeString(market, "taker_fee_rate");
         object taker = Precise.stringDiv(takerFeeRate, "100");
         object makerFeeRate = this.safeString(market, "maker_fee_rate");
@@ -286,7 +288,7 @@ public partial class probit : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", !isTrue(closed) },
+            { "active", active },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -1237,7 +1239,6 @@ public partial class probit : Exchange
             { "side", side },
             { "status", status },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "filled", filled },

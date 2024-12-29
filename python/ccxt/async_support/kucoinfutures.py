@@ -370,6 +370,91 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 #    'code': 'BTC',
                 # },
             },
+            'features': {
+                'spot': None,
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': True,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPrice': None,
+                            'triggerPriceType': None,
+                            'limitPrice': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 7,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+            },
         })
 
     async def fetch_status(self, params={}):
@@ -1413,8 +1498,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param float amount: the amount of currency to trade
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
@@ -1426,8 +1511,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
-        :param str [params.stop]: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
-        :param str [params.stopPriceType]:  TP, IP or MP, defaults to MP: Mark Price
+        :param str [params.stop]: 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+        :param str [params.triggerPriceType]: "last", "mark", "index" - defaults to "mark"
+        :param str [params.stopPriceType]: exchange-specific alternative for triggerPriceType: TP, IP or MP
         :param bool [params.closeOrder]: set to True to close position
         :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
         :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
@@ -1547,11 +1633,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
             if stopLoss is not None:
                 slPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['triggerStopDownPrice'] = self.price_to_precision(symbol, slPrice)
-                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', 'mark')
+                priceType = self.safe_string(triggerPriceTypes, priceType, priceType)
             if takeProfit is not None:
                 tpPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
                 request['triggerStopUpPrice'] = self.price_to_precision(symbol, tpPrice)
-                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+                priceType = self.safe_string(takeProfit, 'triggerPriceType', 'mark')
+                priceType = self.safe_string(triggerPriceTypes, priceType, priceType)
             request['stopPriceType'] = priceType
         elif stopLossPrice or takeProfitPrice:
             if stopLossPrice:
@@ -1698,10 +1786,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        stop = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
-        if stop:
+        if trigger:
             response = await self.futuresPrivateDeleteStopOrders(self.extend(request, params))
         else:
             response = await self.futuresPrivateDeleteOrders(self.extend(request, params))
@@ -1882,7 +1970,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['stop', 'until', 'trigger'])
         if status == 'closed':
@@ -1890,7 +1978,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         elif status == 'open':
             status = 'active'
         request: dict = {}
-        if not stop:
+        if not trigger:
             request['status'] = status
         elif status != 'active':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
@@ -1903,7 +1991,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if until is not None:
             request['endAt'] = until
         response = None
-        if stop:
+        if trigger:
             response = await self.futuresPrivateGetStopOrders(self.extend(request, params))
         else:
             response = await self.futuresPrivateGetOrders(self.extend(request, params))
@@ -2181,7 +2269,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
             }
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
         reduceOnly = self.safe_value(order, 'reduceOnly')
         lastUpdateTimestamp = self.safe_integer(order, 'updatedAt')
@@ -2196,8 +2283,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'side': side,
             'amount': amount,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'cost': cost,
             'filled': filled,
             'remaining': None,
@@ -2510,6 +2596,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = min(1000, limit)
         request, params = self.handle_until_option('endAt', request, params)
         response = await self.futuresPrivateGetFills(self.extend(request, params))
         #

@@ -461,7 +461,15 @@ public partial class Exchange
     public object eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
-        var msg = Encoding.UTF8.GetBytes((string)request);
+        byte[] msg;
+        if (request is string)
+        {
+            msg = Encoding.UTF8.GetBytes((string)request);
+        }
+        else
+        {
+            msg = request as byte[];
+        }
         var signer = new Ed25519Signer();
         var privateKey = (secret is string) ? ReadEDDSAPrivateKeyFromPem(secret as string) : new Ed25519PrivateKeyParameters(secret as byte[]);
         signer.Init(true, privateKey);

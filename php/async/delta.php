@@ -755,7 +755,7 @@ class delta extends Exchange {
                     // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
                     $amountPrecision = $this->parse_number('1');
                 }
-                $linear = ($settle === $base);
+                $linear = ($settle === $quote);
                 $optionType = null;
                 $symbol = $base . '/' . $quote;
                 if ($swap || $future || $option) {
@@ -2263,7 +2263,7 @@ class delta extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array(

@@ -49,6 +49,8 @@ class paradex extends Exchange {
                 'createOrder' => true,
                 'createOrders' => false,
                 'createReduceOnlyOrder' => false,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -270,6 +272,7 @@ class paradex extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
+                'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
                 'broker' => 'CCXT',
             ),
         ));
@@ -1015,11 +1018,11 @@ class paradex extends Exchange {
 
     public function retrieve_account() {
         return Async\async(function ()  {
-            $this->check_required_credentials();
             $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
             if ($cachedAccount !== null) {
                 return $cachedAccount;
             }
+            $this->check_required_credentials();
             $systemConfig = Async\await($this->get_system_config());
             $domain = Async\await($this->prepare_paradex_domain(true));
             $messageTypes = array(
@@ -1154,7 +1157,6 @@ class paradex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
-        $stopPrice = $this->safe_string($order, 'trigger_price');
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1171,8 +1173,7 @@ class paradex extends Exchange {
             'reduceOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_string($order, 'trigger_price'),
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'average' => $average,
@@ -1243,7 +1244,7 @@ class paradex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] The $price a trigger $order is triggered at
+             * @param {float} [$params->stopPrice] alias for $triggerPrice
              * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
              * @param {bool} [$params->postOnly] true or false
@@ -1263,7 +1264,7 @@ class paradex extends Exchange {
                 'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
                 'size' => $this->amount_to_precision($symbol, $amount),
             );
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $isMarket = $orderType === 'MARKET';
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1286,13 +1287,13 @@ class paradex extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_id'] = $clientOrderId;
             }
-            if ($stopPrice !== null) {
+            if ($triggerPrice !== null) {
                 if ($isMarket) {
                     $request['type'] = 'STOP_MARKET';
                 } else {
                     $request['type'] = 'STOP_LIMIT';
                 }
-                $request['trigger_price'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ));
             $account = Async\await($this->retrieve_account());
@@ -2104,7 +2105,6 @@ class paradex extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
-            $this->check_required_credentials();
             $headers = array(
                 'Accept' => 'application/json',
                 'PARADEX-PARTNER' => $this->safe_string($this->options, 'broker', 'CCXT'),

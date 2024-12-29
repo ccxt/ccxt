@@ -99,7 +99,7 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
+     * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -122,7 +122,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.end] timestamp in seconds of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchLedgerEntriesByIds(ids: any, code?: Str, params?: {}): Promise<LedgerEntry[]>;
@@ -207,20 +207,23 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#editOrder
      * @description edit a trade order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/amend-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-     * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
-     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
-     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] the percent away from the trailingAmount
+     * @param {string} [params.offset] '+' or '-' whether you want the trailingLimitAmount value to be positive or negative
+     * @param {boolean} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
@@ -263,7 +266,7 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+     * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -277,11 +280,13 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+     * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
@@ -319,11 +324,13 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
-     * @param {string} symbol unified market symbol
+     * @see https://docs.kraken.com/api/docs/rest-api/get-open-orders
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -331,12 +338,14 @@ export default class kraken extends Exchange {
      * @method
      * @name kraken#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.clientOrderId] the orders client order id
+     * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

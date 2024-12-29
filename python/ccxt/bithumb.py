@@ -905,7 +905,6 @@ class bithumb(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,
@@ -1027,7 +1026,7 @@ class bithumb(Exchange, ImplicitAPI):
             'address': address,
             'currency': currency['id'],
         }
-        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM':
+        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
             destination = self.safe_string(params, 'destination')
             if (tag is None) and (destination is None):
                 raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')

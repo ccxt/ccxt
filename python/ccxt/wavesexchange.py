@@ -1243,7 +1243,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: The price at which a stop order is triggered at
+        :param float [params.triggerPrice]: The price at which a stop order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
@@ -1254,8 +1254,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
         isMarketOrder = (type == 'market')
-        stopPrice = self.safe_float_2(params, 'triggerPrice', 'stopPrice')
-        isStopOrder = (stopPrice is not None)
+        triggerPrice = self.safe_float_2(params, 'triggerPrice', 'stopPrice')
+        isStopOrder = (triggerPrice is not None)
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
         timestamp = self.milliseconds()
@@ -1351,7 +1351,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'c': {
                     't': 'sp',
                     'v': {
-                        'p': self.to_real_symbol_price(symbol, stopPrice),
+                        'p': self.to_real_symbol_price(symbol, triggerPrice),
                     },
                 },
             }
@@ -1725,7 +1725,6 @@ class wavesexchange(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': None,

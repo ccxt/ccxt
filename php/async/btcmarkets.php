@@ -37,6 +37,7 @@ class btcmarkets extends Exchange {
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createTriggerOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -326,7 +327,7 @@ class btcmarkets extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $cryptoPaymentDetail = $this->safe_value($transaction, 'paymentDetail', array());
+        $cryptoPaymentDetail = $this->safe_dict($transaction, 'paymentDetail', array());
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
         $tag = null;
@@ -414,7 +415,7 @@ class btcmarkets extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
+        $fees = $this->safe_value($this->safe_dict($this->options, 'fees', array()), $quote, $this->fees);
         $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
         $minAmount = $this->safe_number($market, 'minOrderAmount');
         $maxAmount = $this->safe_number($market, 'maxOrderAmount');
@@ -841,6 +842,7 @@ class btcmarkets extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1086,8 +1088,7 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
-        $postOnly = $this->safe_value($order, 'postOnly');
+        $postOnly = $this->safe_bool($order, 'postOnly');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1101,8 +1102,7 @@ class btcmarkets extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'cost' => null,
             'amount' => $amount,
             'filled' => null,

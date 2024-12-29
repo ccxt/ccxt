@@ -596,7 +596,7 @@ class ace extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
