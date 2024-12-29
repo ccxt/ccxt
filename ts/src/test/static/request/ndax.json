@@ -267,6 +267,22 @@
                   2
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit Order",
+                "method": "editOrder",
+                "url": "https://api.ndax.io:8443/AP/CancelReplaceOrder",
+                "input": [
+                  23177549716,
+                  "ADA/CAD",
+                  "limit",
+                  "buy",
+                  1.1,
+                  1
+                ],
+                "output": "{\"OrderIdToReplace\":23177549716,\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":1.1,\"OrderType\":2,\"LimitPrice\":1}"
+            }
         ]
     }
 }
