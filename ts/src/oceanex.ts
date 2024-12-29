@@ -445,7 +445,7 @@ export default class oceanex extends Exchange {
         //         "message":"Operation successful",
         //         "data": [
         //             {
-        //                 "timestamp":1559433057,
+        //                 "timestamp":1559433056,
         //                 "market": "bagvet",
         //                 "asks": [
         //                     ["100.0","20.0"],
