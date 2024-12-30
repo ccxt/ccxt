@@ -6254,8 +6254,10 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -6272,8 +6274,10 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
