@@ -828,6 +828,23 @@
             }
         }
     },
+    "deltaindia": {
+        "skipCSharp": "frequent timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L4301 https://app.travis-ci.com/github/ccxt/ccxt/builds/269533613#L3622",
+        "skipMethods": {
+            "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "orderBook": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5295",
+                "bid": "bid more than ask"
+            },
+            "ticker": {
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "bid": "failing the test"
+            },
+            "fetchOHLCV": {
+                "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
+            }
+        }
+    },
     "deribit": {
         "skipMethods": {
             "fetchCurrencies": {
