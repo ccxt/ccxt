@@ -1538,7 +1538,7 @@ export default class kraken extends Exchange {
         const req = {
             'cost': cost,
         };
-        return await this.createOrder (symbol, 'market', side, 0, undefined, this.extend (req, params));
+        return await this.createOrder (symbol, 'market', side, 1, undefined, this.extend (req, params));
     }
 
     /**
