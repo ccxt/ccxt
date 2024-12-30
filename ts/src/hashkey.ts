@@ -2469,7 +2469,7 @@ export default class hashkey extends Exchange {
         const req = {
             'cost': cost,
         };
-        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, this.extend (req, params));
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
