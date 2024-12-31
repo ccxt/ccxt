@@ -86,32 +86,32 @@ Let's assume you want to have a long position (buy order) at a price `123` with 
 A) Some exchanges support the creation of an entry order with an attached stopLoss (& takeProfit) object:
 ```
 if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss')):
-  params = {
-    'stopLoss': {
-        'triggerPrice': 120,
-    },
-    'takeProfit': ... // you can also have 'takeProfit' similarly as 'stopLoss'
-  }
-  // if you want stopLoss order triggered as a "limit" order, instead of a "market" order:
-  if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
-    params['stopLoss']['price'] = 119; // so, this would be the limit price for triggered stop-loss
-  }
-  order = await exchange.createOrder(symbol, type, side, amount, price, params)
+    params = {
+        'stopLoss': {
+            'triggerPrice': 120,
+        },
+        'takeProfit': ... # you can also have 'takeProfit' similarly as 'stopLoss'
+    }
+    # if you want stopLoss order triggered as a "limit" order, instead of a "market" order:
+    if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
+        params['stopLoss']['price'] = 119; # so, this would be the limit price for triggered stop-loss
+    }
+    order = await exchange.createOrder(symbol, type, side, amount, price, params)
 ```
 B) but if you want to create a separate stop-loss order (for an already open position, or an open 'buy' entry order):
 ```
 side = 'sell'
-price = 119 // limit price for stop-loss
+price = 119 # limit price for stop-loss
 if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLossPrice')):
-  params = {
-    'stopLossPrice': 120, // or use 'takeProfitPrice'
-  }
+    params = {
+    'stopLossPrice': 120, # or use 'takeProfitPrice'
+    }
 # if stopLossPrice is not supported, use regular trigger order, which is supported by most exchanges
 elif (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
-  params = {
+    params = {
     'triggerPrice': 120,
     'reduceOnly': true,
-  }
+    }
 order = await exchange.createOrder(symbol, type, side, amount, price, params)
 ```
 See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
