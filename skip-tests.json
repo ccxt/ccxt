@@ -1421,9 +1421,12 @@
     "okx": {
         "skipCSharp": true,
         "skipMethods": {
-            "loadMarkets": "linear & inverse must not be same",
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
             "fetchCurrencies": {
                 "info": "null",
+                "precision": "undefined",
                 "currencyIdAndCode": "temp skip"
             },
             "ticker": {
