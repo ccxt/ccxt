@@ -80,18 +80,41 @@
 
 
 
-## How to create an order with takeProfit+stopLoss?
-To create an order with both take-profit and stop-loss parameters, you can use one of the two approaches:
+## How to create an order with stopLoss & takeProfit?
+Let's assume you want to have a long position (buy order) at a price `123` and have a *stop-loss* triggered if the price reaches `120` (similar principle applies for take-profit orders). You can use one of the two approaches:
 
-A) Some exchanges support the creation of an entry order with the attached stopLoss & takeProfit objects:
+A) Some exchanges support the creation of an entry order with an attached stopLoss (& takeProfit) object:
 ```
-// check if it's not disabled for the exchange
-if (exchange.features['spot'] && exchange.features['spot']['createOrder'] && exchange.features['spot']['createOrder']['attachedStopLossTakeProfit']) {
-  
-}
-
+if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss')):
+  params = {
+    'stopLoss': {
+        'triggerPrice': 120,
+    },
+    // here you can also have 'takeProfit' param with similar object
+  }
+  // if you want stopLoss order triggered as a "limit" order, instead of a "market" order:
+  if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
+    params['stopLoss']['price'] = 119; // so, this would be the limit price for triggered stop-loss
+  }
+  order = await exchange.createOrder(symbol, type, side, amount, price, params)
 ```
-  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
+B) but if you want to create a separate stop-loss order (for an already open position, or an open 'buy' entry order):
+```
+side = 'sell'
+price = 119 // limit price for stop-loss
+if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLossPrice')):
+  params = {
+    'stopLossPrice': 120, // or use 'takeProfitPrice'
+  }
+# if stopLossPrice is not supported, use regular trigger order, which is supported by most exchanges
+elif (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
+  params = {
+    'triggerPrice': 120,
+    'reduceOnly': true,
+  }
+order = await exchange.createOrder(symbol, type, side, amount, price, params)
+```
+See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
 
   ## How to create a spot market buy with cost?
   To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
