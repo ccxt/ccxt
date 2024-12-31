@@ -1628,7 +1628,7 @@ class okx extends Exchange {
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strikePrice,
+            'strike' => $this->parse_number($strikePrice),
             'optionType' => $optionType,
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(

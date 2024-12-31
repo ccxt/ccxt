@@ -1583,7 +1583,7 @@ public partial class okx : Exchange
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strikePrice },
+            { "strike", this.parseNumber(strikePrice) },
             { "optionType", optionType },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {

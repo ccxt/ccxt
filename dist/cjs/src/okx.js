@@ -1626,7 +1626,7 @@ class okx extends okx$1 {
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
