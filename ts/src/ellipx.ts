@@ -22,7 +22,7 @@ export default class ellipx extends Exchange {
             'id': 'ellipx',
             'name': 'Ellipx',
             'countries': [ 'PL' ],
-            'rateLimit': 200, // todo: check
+            'rateLimit': 200, // todo check
             'version': 'v1',
             'certified': false,
             'pro': false,

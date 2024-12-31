@@ -956,7 +956,8 @@
         "skipMethods": {
             "fetchOrderBook": {
                 "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
-            }
+            },
+            "fetchL2OrderBook": "same as above"
         }
     },
     "gate": {
