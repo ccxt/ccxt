@@ -1189,7 +1189,7 @@ public partial class bybit : Exchange
      */
     public async virtual Task<object> isUnifiedEnabled(object parameters = null)
     {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         parameters ??= new Dictionary<string, object>();

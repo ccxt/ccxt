@@ -1836,7 +1836,7 @@ class okx extends Exchange {
             }
             $firstChain = $this->safe_dict($chains, 0, array());
             $result[$code] = array(
-                'info' => null,
+                'info' => $chains,
                 'code' => $code,
                 'id' => $currencyId,
                 'name' => $this->safe_string($firstChain, 'name'),

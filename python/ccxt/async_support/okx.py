@@ -1835,7 +1835,7 @@ class okx(Exchange, ImplicitAPI):
                     }
             firstChain = self.safe_dict(chains, 0, {})
             result[code] = {
-                'info': None,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': self.safe_string(firstChain, 'name'),

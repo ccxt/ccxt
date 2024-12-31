@@ -1804,7 +1804,7 @@ public partial class okx : Exchange
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", null },
+                { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },

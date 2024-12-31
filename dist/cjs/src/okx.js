@@ -1833,7 +1833,7 @@ class okx extends okx$1 {
             }
             const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString(firstChain, 'name'),
