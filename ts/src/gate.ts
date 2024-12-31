@@ -3169,7 +3169,7 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @name gateio#fetchOHLCV
+     * @name gate#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       // spot
      * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap

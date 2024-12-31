@@ -671,6 +671,7 @@ export default class ellipx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the API endpoint
+     * @param {object} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
