@@ -1432,7 +1432,6 @@
                 "currencyIdAndCode": "messed"
             },
             "fetchCurrencies": {
-                "info": "null",
                 "precision": "undefined",
                 "currencyIdAndCode": "temp skip"
             },
