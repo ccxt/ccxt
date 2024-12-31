@@ -106,13 +106,14 @@ if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLossPrice'
     params = {
         'stopLossPrice': 120, # or use 'takeProfitPrice'
     }
+    order = await exchange.createOrder(symbol, type, side, amount, price, params)
 # if stopLossPrice is not supported, use regular trigger order, which is supported by most exchanges
 elif (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
     params = {
         'triggerPrice': 120,
         'reduceOnly': true,
     }
-order = await exchange.createOrder(symbol, type, side, amount, price, params)
+    order = await exchange.createOrder(symbol, type, side, amount, price, params)
 ```
 See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
 
