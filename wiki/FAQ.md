@@ -80,10 +80,17 @@
 
 
 
-  ## How to create an order with takeProfit+stopLoss?
-  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
+## How to create an order with takeProfit+stopLoss?
+To create an order with both take-profit and stop-loss parameters, you can use one of the two approaches:
 
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
+A) Some exchanges support the creation of an entry order with the attached stopLoss & takeProfit objects:
+```
+// check if it's not disabled for the exchange
+if (exchange.features['spot'] && exchange.features['spot']['createOrder'] && exchange.features['spot']['createOrder']['attachedStopLossTakeProfit']) {
+  
+}
+
+```
   See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
 
   ## How to create a spot market buy with cost?
