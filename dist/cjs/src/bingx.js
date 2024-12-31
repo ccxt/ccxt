@@ -2737,8 +2737,10 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder(symbol, 'market', side, cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2750,8 +2752,10 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2763,8 +2767,10 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        params['quoteOrderQty'] = cost;
-        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'quoteOrderQty': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
