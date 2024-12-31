@@ -67,6 +67,9 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
+            },
+            "fetchLastPrices": {
+                "price": "for some coins it's 0: https://app.travis-ci.com/github/ccxt/ccxt/builds/273588006#L4174"
             }
         }
     },
