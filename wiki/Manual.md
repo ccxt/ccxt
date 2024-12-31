@@ -276,7 +276,7 @@ $exchange = new $exchange_class(array(
 
 ### Features
 
-Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
+Major exchanges have the `.features` property available, where you can see what methods and functionalities are supported for each market-type (if any method is set to `null/undefined` it means method is "not supported" by the exchange)
 
 *this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
 
@@ -300,7 +300,7 @@ console.log(exchange.features);
             mark: true,
             index: true,
         },
-        limitPrice: true,
+        price: true,               // whether 'limit' price can be used (instead of market order)
       },
       marginMode: true,            // if `marginMode` param is supported (cross, isolated)
       timeInForce: {               // supported TIF types
