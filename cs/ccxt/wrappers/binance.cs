@@ -540,6 +540,8 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -551,6 +553,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to edit an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
@@ -580,6 +588,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to edit an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
