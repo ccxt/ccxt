@@ -1140,7 +1140,7 @@ export default class bybit extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2, // 2 years
+                        'daysBack': 365 * 2, // 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,

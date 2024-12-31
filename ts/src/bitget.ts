@@ -1505,7 +1505,7 @@ export default class bitget extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,

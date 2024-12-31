@@ -101,7 +101,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         'fetchClosedOrders': {
             'marginMode': false,
             'limit': 0,
-            'daysBackClosed': 0,
+            'daysBack': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
             'trigger': false,
