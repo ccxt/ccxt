@@ -90,7 +90,7 @@ if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss')):
     'stopLoss': {
         'triggerPrice': 120,
     },
-    // here you can also have 'takeProfit' param with similar object
+    'takeProfit': ... // you can also have 'takeProfit' similarly as 'stopLoss'
   }
   // if you want stopLoss order triggered as a "limit" order, instead of a "market" order:
   if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
