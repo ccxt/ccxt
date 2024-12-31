@@ -952,6 +952,13 @@
             "fetchBalance": "tmp skip"
         }
     },
+    "ellipx": {
+        "skipMethods": {
+            "fetchOrderBook": {
+                "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
+            }
+        }
+    },
     "gate": {
         "skipMethods": {
             "loadMarkets": {
