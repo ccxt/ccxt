@@ -2844,7 +2844,7 @@ export default class Exchange {
      * @param {string} [subType] supported only: "linear", "inverse"
      * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
      * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
-     * @param {string} [paramValueName] to see whether unified param is supported 
+     * @param {string} [paramValueName] to see whether unified param is supported
      * @returns {bool | undefined} returns true if the feature is supported, false if it's not supported, and undefined if it's not known
      */
     featureIsSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
