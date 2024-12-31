@@ -53,7 +53,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
                     'mark': false,
                     'index': false,
                 },
-                'limitPrice': false,
+                'price': false,
             },
             'timeInForce': {
                 'IOC': false,

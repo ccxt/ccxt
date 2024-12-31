@@ -1463,7 +1463,7 @@ export default class bitget extends Exchange {
                                 'mark': false,
                                 'index': false,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1533,7 +1533,7 @@ export default class bitget extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,

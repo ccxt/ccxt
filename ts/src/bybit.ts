@@ -1100,7 +1100,7 @@ export default class bybit extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1157,7 +1157,7 @@ export default class bybit extends Exchange {
                         'triggerDirection': false,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'marketBuyRequiresPrice': true,
                     },
