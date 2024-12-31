@@ -173,6 +173,58 @@ public partial class alpaca
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
+    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/cryptosnapshots-1"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.loc</term>
+    /// <description>
+    /// string : crypto location, default: us
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/cryptosnapshots-1"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.loc</term>
+    /// <description>
+    /// string : crypto location, default: us
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -384,5 +436,306 @@ public partial class alpaca
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/patchorderbyorderid-1"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to create an order in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : 'market', 'limit' or 'stop_limit'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>side</term>
+    /// <description>
+    /// string : 'buy' or 'sell'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much of the currency you want to trade in units of the base currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price for the order, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : the price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : for crypto trading either 'gtc' or 'ioc' can be used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : a unique identifier for the order, automatically generated if not sent
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetch all trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trade structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/listcryptofundingwallets"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    /// <summary>
+    /// make a withdrawal
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/createcryptotransferforaccount"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.withdraw(code, amount, address, tag, parameters);
+        return new Transaction(res);
+    }
+    public async Task<List<Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    {
+        var res = await this.fetchTransactionsHelper(type, code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch history of deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/listcryptofundingtransfers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code for the currency of the deposit/withdrawals, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest deposit/withdrawal, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of deposit/withdrawals to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch all deposits made to an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/listcryptofundingtransfers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch deposits for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of deposit structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDeposits(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch all withdrawals made from an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/listcryptofundingtransfers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawal structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/getaccount-1"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
     }
 }

@@ -235,6 +235,12 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
@@ -523,6 +529,12 @@ public partial class okx
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -797,7 +809,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -862,7 +874,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if fetching trigger or conditional orders
     /// </description>
@@ -1111,7 +1123,7 @@ public partial class okx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1554,7 +1566,7 @@ public partial class okx
     /// <item>
     /// <term>params.posSide</term>
     /// <description>
-    /// string : 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+    /// string : 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
     /// </description>
     /// </item>
     /// </list>
@@ -1578,7 +1590,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.accountId</term>
+    /// <term>params.accountId</term>
     /// <description>
     /// string : if you have multiple accounts, you must specify the account id to fetch the position mode
     /// </description>
@@ -1810,12 +1822,12 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
     /// <summary>
     /// Retrieves the open interest of a currency
@@ -2190,6 +2202,18 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch margin adjustment history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.auto</term>
     /// <description>
     /// boolean : true if fetching auto margin increases
@@ -2274,5 +2298,51 @@ public partial class okx
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetches the long short ratio history for a unified market symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>timeframe</term>
+    /// <description>
+    /// string : the period for the ratio
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch ratios for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of long short ratio structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest ratio to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}.</returns>
+    public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LongShortRatio(item)).ToList<LongShortRatio>();
     }
 }

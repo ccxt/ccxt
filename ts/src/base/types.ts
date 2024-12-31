@@ -340,19 +340,20 @@ export interface Position {
 }
 
 export interface BorrowInterest {
-    account?: Str;
+    info: any;
+    symbol?: Str;
     currency?: Str;
     interest?: number;
     interestRate?: number;
     amountBorrowed?: number;
     marginMode?: Str;
-    timestamp?: number;
+    timestamp?: Int;
     datetime?: Str;
-    info: any;
 }
 
 export interface LeverageTier {
     tier?: number;
+    symbol?: Str;
     currency?: Str;
     minNotional?: number;
     maxNotional?: number;
@@ -441,6 +442,9 @@ export interface OpenInterest {
     timestamp?: number;
     datetime?: Str;
     info: any;
+}
+
+export interface OpenInterests extends Dictionary<OpenInterest> {
 }
 
 export interface Liquidation {
@@ -554,6 +558,15 @@ export interface Leverage {
     marginMode: 'isolated' | 'cross' | Str;
     longLeverage: number;
     shortLeverage: number;
+}
+
+export interface LongShortRatio {
+    info: any,
+    symbol: string,
+    timestamp?: number,
+    datetime?: string,
+    timeframe?: string,
+    longShortRatio: number,
 }
 
 export interface MarginModification {

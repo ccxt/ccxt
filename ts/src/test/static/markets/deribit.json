@@ -315,5 +315,65 @@
             "rfq": false,
             "price_index": "eth_usdt"
         }
+    },
+    "SOL/USDC": {
+        "id": "SOL_USDC",
+        "symbol": "SOL/USDC",
+        "base": "SOL",
+        "quote": "USDC",
+        "baseId": "SOL",
+        "quoteId": "USDC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 0.1,
+        "expiry": 32503708800000,
+        "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.1
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "created": 1709035215000,
+        "info": {
+            "tick_size_steps": [],
+            "quote_currency": "USDC",
+            "min_trade_amount": "0.1",
+            "counter_currency": "USDC",
+            "block_trade_min_trade_amount": "10",
+            "block_trade_commission": "0.0",
+            "creation_timestamp": "1709035215000",
+            "instrument_id": "296588",
+            "base_currency": "SOL",
+            "block_trade_tick_size": "0.0001",
+            "tick_size": "0.01",
+            "contract_size": "0.1",
+            "is_active": true,
+            "expiration_timestamp": "32503708800000",
+            "instrument_type": "linear",
+            "taker_commission": "0.0",
+            "maker_commission": "0.0",
+            "instrument_name": "SOL_USDC",
+            "kind": "spot",
+            "rfq": false,
+            "price_index": "sol_usdc"
+        }
     }
 }

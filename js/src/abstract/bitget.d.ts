@@ -67,12 +67,14 @@ interface Exchange {
     publicMixGetV2MixMarketCurrentFundRate(params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketContracts(params?: {}): Promise<implicitReturnType>;
     publicMixGetV2MixMarketQueryPositionLever(params?: {}): Promise<implicitReturnType>;
+    publicMixGetV2MixMarketAccountLongShort(params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1CrossPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1CrossPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1IsolatedPublicTierData(params?: {}): Promise<implicitReturnType>;
     publicMarginGetMarginV1PublicCurrencies(params?: {}): Promise<implicitReturnType>;
     publicMarginGetV2MarginCurrencies(params?: {}): Promise<implicitReturnType>;
+    publicMarginGetV2MarginMarketLongShortRatio(params?: {}): Promise<implicitReturnType>;
     publicEarnGetV2EarnLoanPublicCoinInfos(params?: {}): Promise<implicitReturnType>;
     publicEarnGetV2EarnLoanPublicHourInterest(params?: {}): Promise<implicitReturnType>;
     privateSpotGetSpotV1WalletDepositAddress(params?: {}): Promise<implicitReturnType>;
@@ -219,6 +221,7 @@ interface Exchange {
     privateMixGetV2MixOrderOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateMixGetV2MixOrderOrdersPlanPending(params?: {}): Promise<implicitReturnType>;
     privateMixGetV2MixOrderOrdersPlanHistory(params?: {}): Promise<implicitReturnType>;
+    privateMixGetV2MixMarketPositionLongShort(params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountSubAccountContractAssets(params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountOpenCount(params?: {}): Promise<implicitReturnType>;
     privateMixPostMixV1AccountSetLeverage(params?: {}): Promise<implicitReturnType>;

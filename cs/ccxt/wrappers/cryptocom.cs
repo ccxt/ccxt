@@ -309,9 +309,9 @@ public partial class cryptocom
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : price to trigger a stop order
+    /// float : price to trigger a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -342,6 +342,12 @@ public partial class cryptocom
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list"/>  <br/>
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -720,7 +726,7 @@ public partial class cryptocom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

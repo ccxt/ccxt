@@ -40,7 +40,6 @@ class Argv(object):
     ws_tests = False
     request_tests = False
     response_tests = False
-    token_bucket = False
     sandbox = False
     privateOnly = False
     private = False
@@ -58,7 +57,6 @@ class Argv(object):
 
 argv = Argv()
 parser = argparse.ArgumentParser()
-parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
@@ -69,7 +67,9 @@ parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
-parser.add_argument('--requestTests', action='store_true', help='run response tests')
+parser.add_argument('--response', action='store_true', help='run response tests')
+parser.add_argument('--requestTests', action='store_true', help='run request tests')
+parser.add_argument('--request', action='store_true', help='run request tests')
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
@@ -226,7 +226,7 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False):
     tests = {}
-    finalPropList = properties + [PROXY_TEST_FILE_NAME]
+    finalPropList = properties + [PROXY_TEST_FILE_NAME, 'features']
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)
@@ -235,8 +235,8 @@ def get_test_files_sync(properties, ws=False):
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/exchange/'
+            module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)

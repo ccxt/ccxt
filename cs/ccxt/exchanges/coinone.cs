@@ -128,16 +128,16 @@ public partial class coinone : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name coinone#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.coinone.co.kr/reference/currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.coinone.co.kr/reference/currencies
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v2PublicGetCurrencies(parameters);
         //
@@ -161,7 +161,7 @@ public partial class coinone : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object currencies = this.safeValue(response, "currencies", new List<object>() {});
+        object currencies = this.safeList(response, "currencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object entry = getValue(currencies, i);
@@ -198,16 +198,16 @@ public partial class coinone : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinone#fetchMarkets
+     * @description retrieves data on all markets for coinone
+     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchMarkets
-        * @description retrieves data on all markets for coinone
-        * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "quote_currency", "KRW" },
@@ -246,7 +246,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "tickers", new List<object>() {});
+        object tickers = this.safeList(response, "tickers", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -330,34 +330,34 @@ public partial class coinone : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.coinone.co.kr/v1.0/reference/v21
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.coinone.co.kr/v1.0/reference/v21
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PrivatePostAccountBalance(parameters);
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -397,18 +397,18 @@ public partial class coinone : Exchange
         return this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty");
     }
 
+    /**
+     * @method
+     * @name coinone#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-        * @see https://docs.coinone.co.kr/v1.0/reference/ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -465,17 +465,17 @@ public partial class coinone : Exchange
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.coinone.co.kr/v1.0/reference/ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -517,7 +517,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "tickers", new List<object>() {});
+        object data = this.safeList(response, "tickers", new List<object>() {});
         object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
@@ -552,8 +552,8 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(ticker, "timestamp");
         object last = this.safeString(ticker, "last");
-        object asks = this.safeValue(ticker, "best_asks");
-        object bids = this.safeValue(ticker, "best_bids");
+        object asks = this.safeList(ticker, "best_asks", new List<object>() {});
+        object bids = this.safeList(ticker, "best_bids", new List<object>() {});
         object baseId = this.safeString(ticker, "target_currency");
         object quoteId = this.safeString(ticker, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -609,7 +609,7 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        object isSellerMaker = this.safeValue(trade, "is_seller_maker");
+        object isSellerMaker = this.safeBool(trade, "is_seller_maker");
         object side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
@@ -649,19 +649,19 @@ public partial class coinone : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -696,22 +696,22 @@ public partial class coinone : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinone#createOrder
+     * @description create a trade order
+     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#createOrder
-        * @description create a trade order
-        * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type must be 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(type, "limit")))
         {
@@ -736,16 +736,17 @@ public partial class coinone : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchOrder
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -907,7 +908,6 @@ public partial class coinone : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "average", this.safeString(order, "averageExecutedPrice") },
@@ -920,18 +920,18 @@ public partial class coinone : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         parameters ??= new Dictionary<string, object>();
@@ -966,18 +966,18 @@ public partial class coinone : Exchange
         return this.parseOrders(limitOrders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1013,17 +1013,17 @@ public partial class coinone : Exchange
         return this.parseTrades(completeOrders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinone#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#cancelOrder
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1054,16 +1054,16 @@ public partial class coinone : Exchange
         return this.safeOrder(response);
     }
 
+    /**
+     * @method
+     * @name coinone#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinone#fetchDepositAddresses
-        * @description fetch deposit addresses for multiple currencies and chain types
-        * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PrivatePostAccountDepositAddress(parameters);
@@ -1081,7 +1081,7 @@ public partial class coinone : Exchange
         //         }
         //     }
         //
-        object walletAddress = this.safeValue(response, "walletAddress", new Dictionary<string, object>() {});
+        object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

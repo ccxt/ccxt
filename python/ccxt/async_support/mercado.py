@@ -569,7 +569,6 @@ class mercado(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'average': average,
@@ -584,6 +583,7 @@ class mercado(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -601,7 +601,7 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_dict(responseData, 'order')
         return self.parse_order(order, market)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
