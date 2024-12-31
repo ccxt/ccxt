@@ -1246,9 +1246,11 @@ export default class whitebit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
-        params['cost'] = cost;
+        const req = {
+            'cost': cost,
+        };
         // only buy side is supported
-        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+        return await this.createOrder (symbol, 'market', side, 0, undefined, this.extend (req, params));
     }
 
     /**

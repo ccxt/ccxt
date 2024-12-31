@@ -761,6 +761,7 @@ interface Exchange {
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;
     papiDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    papiV2GetUmAccount(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

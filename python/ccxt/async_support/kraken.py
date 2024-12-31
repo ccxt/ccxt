@@ -1488,8 +1488,10 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         # only buy orders are supported by the endpoint
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', side, 1, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
