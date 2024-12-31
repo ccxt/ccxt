@@ -2836,6 +2836,78 @@ export default class Exchange {
         return featuresObj;
     }
 
+    /**
+     * @method
+     * @name exchange#featureIsSupported
+     * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+     * @param {string} [marketType] supported only: "spot", "swap", "future"
+     * @param {string} [subType] supported only: "linear", "inverse"
+     * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+     * @param {string} [paramName] to see whether unified param is supported (check docs for supported param names)
+     * @param {string} [paramValueName] to see whether unified param is supported 
+     * @returns {bool | undefined} returns true if the feature is supported, false if it's not supported, and undefined if it's not known
+     */
+    featureIsSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
+        // if exchange does not yet have features manually implemented
+        if (this.features === undefined) {
+            return undefined;
+        }
+        // if marketType does not exist in features (eg. option), return exception, so users are not confused
+        if (!(marketType in this.features)) {
+            throw new NotSupported (this.id + ' unsupported marketType:' + marketType + ', check "exchange.features" to know supported values');
+        }
+        let container = undefined;
+        if (subType === undefined) {
+            container = this.features[marketType];
+        } else {
+            if (!this.inArray (subType, [ 'linear', 'inverse' ])) {
+                throw new NotSupported (this.id + ' unsupported subType:' + subType + ', check "exchange.features" to know supported values');
+            }
+            container = this.safeDict (this.features[marketType], subType);
+        }
+        // if methods container (marketType or subType block) is undefined, then it means not supported by exchange
+        if (container === undefined) {
+            return false;
+        }
+        // return `true` if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if (methodName === undefined) {
+            return true;
+        }
+        // throw an exception for unsupported method
+        if (!(methodName in container)) {
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported method: ' + methodName + ', check "exchange.features" to know supported values');
+        }
+        // if it has `undefined` value, then it means it's not supported
+        if (container[methodName] === undefined) {
+            return false;
+        }
+        // return `true` if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('spot', undefined, 'createOrder')
+        if (paramName === undefined) {
+            return true;
+        }
+        // throw an exception for unsupported paramName
+        if (!(paramName in container[methodName])) {
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramName: ' + paramName + ', check "exchange.features" to know supported values');
+        }
+        // if it has `undefined` value, then it means it's not supported (same for 'false')
+        if (this.inArray (container[methodName][paramName], [ undefined, false ])) {
+            return false;
+        }
+        // if didn't provide `paramValue`, eg: featureIsSupported('spot', undefined, 'createOrder', 'stopLoss')
+        if (paramValueName === undefined) {
+            return true;
+        }
+        // throw an exception for unsupported paramValueName
+        if (!(paramValueName in container[methodName][paramName])) {
+            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramValueName: ' + paramValueName + ', check "exchange.features" to know supported values');
+        }
+        // if it has `undefined` value, then it means it's not supported (same for 'false')
+        if (this.inArray (container[methodName][paramName][paramValueName], [ undefined, false ])) {
+            return false;
+        }
+        return container[methodName][paramName][paramValueName];
+    }
+
     orderbookChecksumMessage (symbol:Str) {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
