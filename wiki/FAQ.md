@@ -104,13 +104,13 @@ side = 'sell'
 price = 119 # limit price for stop-loss
 if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLossPrice')):
     params = {
-    'stopLossPrice': 120, # or use 'takeProfitPrice'
+        'stopLossPrice': 120, # or use 'takeProfitPrice'
     }
 # if stopLossPrice is not supported, use regular trigger order, which is supported by most exchanges
 elif (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
     params = {
-    'triggerPrice': 120,
-    'reduceOnly': true,
+        'triggerPrice': 120,
+        'reduceOnly': true,
     }
 order = await exchange.createOrder(symbol, type, side, amount, price, params)
 ```
