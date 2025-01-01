@@ -1626,7 +1626,7 @@ class okx extends okx$1 {
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
@@ -1833,7 +1833,7 @@ class okx extends okx$1 {
             }
             const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString(firstChain, 'name'),

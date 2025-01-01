@@ -1253,7 +1253,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
-        # The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        # The API key of user id must own one of permissions will be allowed to call following API endpoints:
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
