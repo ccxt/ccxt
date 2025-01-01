@@ -898,35 +898,44 @@ class exmo extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
              * @param {int} [$limit] the maximum amount of $candles $to fetch
              * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $until = $this->safe_integer_product($params, 'until', 0.001);
+            $untilIsDefined = ($until !== null);
             $request = array(
                 'symbol' => $market['id'],
                 'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $maxLimit = 3000;
             $duration = $this->parse_timeframe($timeframe);
-            $now = $this->milliseconds();
+            $now = $this->parse_to_int($this->milliseconds() / 1000);
             if ($since === null) {
+                $to = $untilIsDefined ? min ($until, $now) : $now;
                 if ($limit === null) {
                     $limit = 1000; // cap default at generous amount
                 } else {
                     $limit = min ($limit, $maxLimit);
                 }
-                $request['from'] = $this->parse_to_int($now / 1000) - $limit * $duration - 1;
-                $request['to'] = $this->parse_to_int($now / 1000);
+                $request['from'] = $to - ($limit * $duration) - 1;
+                $request['to'] = $to;
             } else {
                 $request['from'] = $this->parse_to_int($since / 1000) - 1;
-                if ($limit === null) {
-                    $limit = $maxLimit;
+                if ($untilIsDefined) {
+                    $request['to'] = min ($until, $now);
                 } else {
-                    $limit = min ($limit, $maxLimit);
+                    if ($limit === null) {
+                        $limit = $maxLimit;
+                    } else {
+                        $limit = min ($limit, $maxLimit);
+                    }
+                    $to = $this->sum($since, $limit * $duration);
+                    $request['to'] = min ($to, $now);
                 }
-                $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = $this->parse_to_int($to / 1000);
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetCandlesHistory ($this->extend($request, $params)));
             //
             //     {
