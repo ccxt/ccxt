@@ -2589,6 +2589,7 @@ export default class binance extends Exchange {
                         '-4165': BadRequest, // Invalid time interval
                         '-4183': InvalidOrder, // Price is higher than stop price multiplier cap.
                         '-4184': InvalidOrder, // Price is lower than stop price multiplier floor.
+                        '-4408': InvalidOrder, // This symbol is in reduce only mode due to regulation requirements. Please upgrade to Binance Credits Trading Mode.
                         //
                         //        5xxx Order Execution Issues
                         //
