@@ -460,7 +460,8 @@
                 "info": "null"
             },
             "fetchTrades": {
-                "side": "side is undefined"
+                "side": "side is undefined",
+                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4831"
@@ -878,7 +879,10 @@
                 "ask": "same",
                 "average": "same"
             },
-            "fetchTickers": "requires custom param"
+            "fetchTickers": "requires custom param",
+            "fetchTrades": {
+                "cost": "precision needs rewrite for deribit, like it's for bitmex"
+            }
         }
     },
     "fmfwio": {
@@ -1108,7 +1112,8 @@
                 "active":"is undefined"
             },
             "fetchTrades": {
-                "side":"side is undefined"
+                "side":"side is undefined",
+                "cost": "https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L5044"
             },
             "fetchTickers": "negative values",
             "orderBook": {
