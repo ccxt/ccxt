@@ -1218,6 +1218,7 @@
         }
     },
     "lykke": {
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
