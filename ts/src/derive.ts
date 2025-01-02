@@ -97,7 +97,7 @@ export default class derive extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': 'emulated',
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -297,6 +297,25 @@ export default class derive extends Exchange {
     setSandboxMode (enabled) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    /**
+     * @method
+     * @name derive#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.derive.xyz/reference/post_public-get-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}) {
+        const response = await this.publicPostGetTime (params);
+        //
+        // {
+        //     "result": 1735846536758,
+        //     "id": "f1c03d21-f886-4c5a-9a9d-33dd06f180f0"
+        // }
+        //
+        return this.safeInteger (response, 'result');
     }
 
     /**
