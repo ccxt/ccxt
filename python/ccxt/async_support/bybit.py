@@ -1116,7 +1116,7 @@ class bybit(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1156,7 +1156,7 @@ class bybit(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2,  # 2 years
+                        'daysBack': 365 * 2,  # 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': True,
@@ -1173,7 +1173,7 @@ class bybit(Exchange, ImplicitAPI):
                         'triggerDirection': False,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'marketBuyRequiresPrice': True,
                     },

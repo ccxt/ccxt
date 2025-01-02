@@ -315,7 +315,7 @@ public partial class bitmex : Exchange
                         { "fetchClosedOrders", new Dictionary<string, object>() {
                             { "marginMode", false },
                             { "limit", 500 },
-                            { "daysBackClosed", null },
+                            { "daysBack", null },
                             { "daysBackCanceled", null },
                             { "untilDays", 1000000 },
                             { "trigger", false },

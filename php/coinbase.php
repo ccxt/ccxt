@@ -424,7 +424,7 @@ class coinbase extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
                         'trigger' => false,

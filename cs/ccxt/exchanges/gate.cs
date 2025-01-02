@@ -747,7 +747,7 @@ public partial class gate : Exchange
                         { "trailing", false },
                         { "limit", 100 },
                         { "untilDays", 30 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {

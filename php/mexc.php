@@ -731,7 +731,7 @@ class mexc extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 1000,
-                        'daysBackClosed' => 7,
+                        'daysBack' => 7,
                         'daysBackCanceled' => 7,
                         'untilDays' => 7,
                         'trigger' => false,
@@ -787,7 +787,7 @@ class mexc extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBackClosed' => 90,
+                        'daysBack' => 90,
                         'daysBackCanceled' => null,
                         'untilDays' => 90,
                         'trigger' => true,

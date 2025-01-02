@@ -756,7 +756,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 200,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': False,
@@ -785,7 +785,7 @@ class bitmart(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': False,
                             },
-                            'limitPrice': False,
+                            'price': False,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -823,7 +823,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 200,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': False,

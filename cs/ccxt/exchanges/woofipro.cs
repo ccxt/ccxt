@@ -336,7 +336,7 @@ public partial class woofipro : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 500 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", true },
@@ -355,7 +355,7 @@ public partial class woofipro : Exchange
                         { "triggerPriceType", null },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                     } },
                 } },

@@ -386,9 +386,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': {
-                            'triggerPrice': None,
                             'triggerPriceType': None,
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -428,7 +427,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,

@@ -743,7 +743,7 @@ class bitmart extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 200,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,
@@ -772,7 +772,7 @@ class bitmart extends Exchange {
                                 'mark' => true,
                                 'index' => false,
                             ),
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -810,7 +810,7 @@ class bitmart extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 200,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,

@@ -428,7 +428,7 @@ class coinbase extends coinbase$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,

@@ -343,7 +343,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'fetchClosedOrders': {
                             'marginMode': False,
                             'limit': 500,
-                            'daysBackClosed': None,
+                            'daysBack': None,
                             'daysBackCanceled': None,
                             'untilDays': 1000000,
                             'trigger': False,

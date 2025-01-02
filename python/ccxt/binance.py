@@ -1642,7 +1642,7 @@ class binance(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 10000,
                         'trigger': False,
@@ -1712,7 +1712,7 @@ class binance(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
                         'trigger': False,

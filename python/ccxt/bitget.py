@@ -1482,7 +1482,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': False,
                                 'index': False,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1524,7 +1524,7 @@ class bitget(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 100,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -1552,7 +1552,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': False,
+                            'price': False,
                         },
                         'timeInForce': {
                             'IOC': True,

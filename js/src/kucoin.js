@@ -1039,7 +1039,7 @@ export default class kucoin extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': true,

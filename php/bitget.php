@@ -1458,7 +1458,7 @@ class bitget extends Exchange {
                                 'mark' => false,
                                 'index' => false,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1500,7 +1500,7 @@ class bitget extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 100,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 90,
                         'trigger' => true,
@@ -1528,7 +1528,7 @@ class bitget extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,

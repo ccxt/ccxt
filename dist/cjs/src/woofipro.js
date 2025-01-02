@@ -350,7 +350,7 @@ class woofipro extends woofipro$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
@@ -371,7 +371,7 @@ class woofipro extends woofipro$1 {
                         'attachedStopLossTakeProfit': {
                             // todo: implementation needs unification
                             'triggerPriceType': undefined,
-                            'limitPrice': false,
+                            'price': false,
                         },
                     },
                 },

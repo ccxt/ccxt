@@ -1641,7 +1641,7 @@ public partial class binance : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 10000 },
                         { "trigger", false },
@@ -1709,7 +1709,7 @@ public partial class binance : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 1000 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", 3 },
                         { "untilDays", 7 },
                         { "trigger", false },
