@@ -120,7 +120,7 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
     const targetObject = isMarketOrCurrency ? exchange.markets[symbolOrCurrency] : exchange.currencies[symbolOrCurrency];
     if (!targetObject) {
         // @ts-expect-error
-        die ('Symbol or Currency ' + symbolOrCurrency + ' not found in ' + exchangeId, 1);
+        die ('Symbol or Currency not found in ' + exchangeId, 1);
     }
     // write to file
     if (isMarketOrCurrency) {
