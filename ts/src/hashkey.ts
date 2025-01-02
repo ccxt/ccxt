@@ -1468,12 +1468,10 @@ export default class hashkey extends Exchange {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const isBuyerMaker = this.safeBool (trade, 'ibm');
+        // if public trade
         if (isBuyerMaker !== undefined) {
-            if (side === 'buy') {
-                takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
-            } else if (side === 'sell') {
-                takerOrMaker = isBuyerMaker ? 'taker' : 'maker';
-            }
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let feeCost = this.safeString (trade, 'commission');
         let feeCurrncyId = this.safeString (trade, 'commissionAsset');
