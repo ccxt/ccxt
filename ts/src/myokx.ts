@@ -30,6 +30,9 @@ export default class myokx extends okx {
                 },
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,

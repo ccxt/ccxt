@@ -29,6 +29,14 @@ public partial class myokx : okx
                     { "rest", "https://{hostname}" },
                 } },
             } },
+            { "has", new Dictionary<string, object>() {
+                { "CORS", null },
+                { "spot", true },
+                { "margin", null },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+            } },
         });
     }
 }
