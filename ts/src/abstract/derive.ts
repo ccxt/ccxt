@@ -9,12 +9,12 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    publicGetGetAllCurrencies (params?: {}): Promise<implicitReturnType>;
     publicPostBuildRegisterSessionKeyTx (params?: {}): Promise<implicitReturnType>;
     publicPostRegisterSessionKey (params?: {}): Promise<implicitReturnType>;
     publicPostDeregisterSessionKey (params?: {}): Promise<implicitReturnType>;
     publicPostLogin (params?: {}): Promise<implicitReturnType>;
     publicPostStatistics (params?: {}): Promise<implicitReturnType>;
-    publicPostGetAllCurrencies (params?: {}): Promise<implicitReturnType>;
     publicPostGetCurrency (params?: {}): Promise<implicitReturnType>;
     publicPostGetInstrument (params?: {}): Promise<implicitReturnType>;
     publicPostGetAllInstruments (params?: {}): Promise<implicitReturnType>;

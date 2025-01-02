@@ -3,6 +3,7 @@
 
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import type { Str, Dict, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,7 +58,7 @@ export default class derive extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': false,
@@ -148,6 +149,9 @@ export default class derive extends Exchange {
             },
             'api': {
                 'public': {
+                    'get': [
+                        'get_all_currencies',
+                    ],
                     'post': [
                         'build_register_session_key_tx',
                         'register_session_key',
@@ -293,6 +297,60 @@ export default class derive extends Exchange {
     setSandboxMode (enabled) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
+    }
+
+    /**
+     * @method
+     * @name derive#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.derive.xyz/reference/post_public-get-all-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const result: Dict = {};
+        const tokenResponse = await this.publicGetGetAllCurrencies (params);
+        //
+        // {
+        //     "result": [
+        //         {
+        //             "currency": "USDC",
+        //             "spot_price": "1.000066413299999872",
+        //             "spot_price_24h": "1.000327785299999872"
+        //         }
+        //     ],
+        //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
+        // }
+        //
+        const currencies = this.safeList (tokenResponse, 'result', []);
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const currencyId = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            result[code] = {
+                'id': currencyId,
+                'name': undefined,
+                'code': code,
+                'precision': undefined,
+                'active': undefined,
+                'fee': undefined,
+                'networks': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': currency,
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
