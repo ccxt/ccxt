@@ -1218,6 +1218,8 @@
         }
     },
     "lykke": {
+        "skip": "network forbidden",
+        "until": "2025-02-02",
         "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": {
