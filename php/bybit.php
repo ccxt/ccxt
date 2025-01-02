@@ -1094,7 +1094,7 @@ class bybit extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1103,12 +1103,12 @@ class bybit extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -1134,7 +1134,7 @@ class bybit extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
-                        'daysBackClosed' => 365 * 2, // 2 years
+                        'daysBack' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
                         'trigger' => true,
@@ -1147,29 +1147,13 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
-                        'marginMode' => false,
-                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
-                        'stopLossPrice' => true,
-                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
-                        'timeInForce' => array(
-                            'IOC' => true,
-                            'FOK' => true,
-                            'PO' => true,
-                            'GTD' => false,
-                        ),
-                        'hedged' => true,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
-                        'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => false,
-                        'oco' => false,
+                        'marketBuyRequiresPrice' => true,
                     ),
                 ),
                 'swap' => array(
@@ -1255,7 +1239,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID => "Account Transfer"
         // MASTER UID => "Account Transfer", "Subaccount Transfer", "Withdrawal"
         $enableUnifiedMargin = $this->safe_bool($this->options, 'enableUnifiedMargin');
@@ -2094,6 +2078,7 @@ class bybit extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
                     'type' => 'option',
+                    'subType' => 'linear',
                     'spot' => false,
                     'margin' => false,
                     'swap' => false,
@@ -2101,8 +2086,8 @@ class bybit extends Exchange {
                     'option' => true,
                     'active' => $isActive,
                     'contract' => true,
-                    'linear' => null,
-                    'inverse' => null,
+                    'linear' => true,
+                    'inverse' => false,
                     'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                     'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                     'contractSize' => $this->parse_number('1'),

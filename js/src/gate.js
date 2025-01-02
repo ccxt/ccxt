@@ -708,7 +708,7 @@ export default class gate extends Exchange {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
@@ -727,9 +727,11 @@ export default class gate extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
                         'iceberg': true,
                         'selfTradePrevention': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 40, // NOTE! max 10 per symbol
@@ -758,12 +760,15 @@ export default class gate extends Exchange {
                         'trailing': false,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',

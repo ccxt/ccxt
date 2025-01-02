@@ -1034,7 +1034,7 @@ public partial class bybit : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1045,9 +1045,10 @@ public partial class bybit : Exchange
                         { "hedged", true },
                         { "selfTradePrevention", true },
                         { "trailing", true },
-                        { "twap", false },
                         { "iceberg", false },
-                        { "oco", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -1073,7 +1074,7 @@ public partial class bybit : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 50 },
-                        { "daysBackClosed", multiply(365, 2) },
+                        { "daysBack", multiply(365, 2) },
                         { "daysBackCanceled", 1 },
                         { "untilDays", 7 },
                         { "trigger", true },
@@ -1086,28 +1087,13 @@ public partial class bybit : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
-                        { "marginMode", false },
-                        { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
-                        { "stopLossPrice", true },
-                        { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
-                        { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", true },
-                            { "FOK", true },
-                            { "PO", true },
-                            { "GTD", false },
-                        } },
-                        { "hedged", true },
-                        { "selfTradePrevention", true },
-                        { "trailing", true },
-                        { "twap", false },
-                        { "iceberg", false },
-                        { "oco", false },
+                        { "marketBuyRequiresPrice", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -1203,7 +1189,7 @@ public partial class bybit : Exchange
      */
     public async virtual Task<object> isUnifiedEnabled(object parameters = null)
     {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         parameters ??= new Dictionary<string, object>();
@@ -2129,6 +2115,7 @@ public partial class bybit : Exchange
                     { "quoteId", quoteId },
                     { "settleId", settleId },
                     { "type", "option" },
+                    { "subType", "linear" },
                     { "spot", false },
                     { "margin", false },
                     { "swap", false },
@@ -2136,8 +2123,8 @@ public partial class bybit : Exchange
                     { "option", true },
                     { "active", isActive },
                     { "contract", true },
-                    { "linear", null },
-                    { "inverse", null },
+                    { "linear", true },
+                    { "inverse", false },
                     { "taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")) },
                     { "maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")) },
                     { "contractSize", this.parseNumber("1") },

@@ -89,6 +89,7 @@ public partial class htx : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", true },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -1156,6 +1157,9 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "iceberg", false },
                         { "selfTradePrevention", true },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -1191,7 +1195,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 500 },
-                        { "daysBackClosed", 180 },
+                        { "daysBack", 180 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1231,7 +1235,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 50 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -8783,6 +8787,58 @@ public partial class htx : Exchange
 
     /**
      * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        object request = new Dictionary<string, object>() {};
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(marketType, "future")))
+        {
+            response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters));
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["contract_type"] = "swap";
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.parseOpenInterests(data);
+        return this.filterByArray(result, "symbol", symbols);
+    }
+
+    /**
+     * @method
      * @name htx#fetchOpenInterest
      * @description Retrieves the open interest of a currency
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -8951,8 +9007,9 @@ public partial class htx : Exchange
         object timestamp = this.safeInteger(interest, "ts");
         object amount = this.safeNumber(interest, "volume");
         object value = this.safeNumber(interest, "value");
+        object marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market) },
             { "baseVolume", amount },
             { "quoteVolume", value },
             { "openInterestAmount", amount },

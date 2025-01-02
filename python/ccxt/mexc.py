@@ -709,10 +709,12 @@ class mexc(Exchange, ImplicitAPI):
                             'PO': True,
                             'GTD': False,
                         },
-                        'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': False,
+                        'hedged': True,  # todo implement
                         'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -746,7 +748,7 @@ class mexc(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': False,
@@ -768,14 +770,14 @@ class mexc(Exchange, ImplicitAPI):
                             'mark': True,
                             'index': True,
                         },
-                        'triggerDirection': True,
+                        'triggerDirection': True,  # todo
                         'stopLossPrice': False,  # todo
-                        'takeProfitPrice': False,
+                        'takeProfitPrice': False,  # todo
                         'hedged': True,
+                        'leverage': True,  # todo
+                        'marketBuyByCost': False,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': None,  # todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
@@ -802,7 +804,7 @@ class mexc(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -2186,8 +2188,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', 'buy', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2204,8 +2208,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', 'sell', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', 'sell', 0, None, self.extend(req, params))
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

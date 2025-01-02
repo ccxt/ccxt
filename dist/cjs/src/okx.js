@@ -1180,7 +1180,6 @@ class okx extends okx$1 {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': true,
                     'createOrder': {
@@ -1200,7 +1199,7 @@ class okx extends okx$1 {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1209,12 +1208,12 @@ class okx extends okx$1 {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': true,
                         'iceberg': true,
-                        'oco': true,
+                        'leverage': false,
+                        'selfTradePrevention': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                     },
                     'createOrders': {
                         'max': 20,
@@ -1240,7 +1239,7 @@ class okx extends okx$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                         'untilDays': undefined,
                         'trigger': true,
@@ -1627,7 +1626,7 @@ class okx extends okx$1 {
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
@@ -1834,7 +1833,7 @@ class okx extends okx$1 {
             }
             const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString(firstChain, 'name'),

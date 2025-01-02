@@ -371,9 +371,8 @@ class kucoinfutures extends kucoin {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => array(
-                            'triggerPrice' => null,
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -383,11 +382,11 @@ class kucoinfutures extends kucoin {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'iceberg' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'oco' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -413,7 +412,7 @@ class kucoinfutures extends kucoin {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => true,

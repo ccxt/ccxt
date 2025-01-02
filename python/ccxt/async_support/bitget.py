@@ -1483,7 +1483,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': False,
                                 'index': False,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1525,7 +1525,7 @@ class bitget(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 100,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 90,
                         'trigger': True,
@@ -1553,7 +1553,7 @@ class bitget(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': False,
+                            'price': False,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -6614,8 +6614,10 @@ class bitget(Exchange, ImplicitAPI):
         #         },
         #     ]
         # }
+        symbols = self.market_symbols(symbols)
         data = self.safe_list(response, 'data', [])
-        return self.parse_funding_rates(data, market)
+        result = self.parse_funding_rates(data, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

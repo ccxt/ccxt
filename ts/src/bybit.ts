@@ -1100,7 +1100,7 @@ export default class bybit extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1109,12 +1109,12 @@ export default class bybit extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': true,
-                        'twap': false,
                         'iceberg': false,
-                        'oco': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1140,7 +1140,7 @@ export default class bybit extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2, // 2 years
+                        'daysBack': 365 * 2, // 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,
@@ -1153,29 +1153,13 @@ export default class bybit extends Exchange {
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': false,
-                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': true,
-                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
-                        'hedged': true,
-                        // exchange-supported features
-                        'selfTradePrevention': true,
-                        'trailing': true,
-                        'twap': false,
-                        'iceberg': false,
-                        'oco': false,
+                        'marketBuyRequiresPrice': true,
                     },
                 },
                 'swap': {
@@ -1263,7 +1247,7 @@ export default class bybit extends Exchange {
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
     async isUnifiedEnabled (params = {}) {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');
@@ -2102,6 +2086,7 @@ export default class bybit extends Exchange {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
+                    'subType': 'linear',
                     'spot': false,
                     'margin': false,
                     'swap': false,
@@ -2109,8 +2094,8 @@ export default class bybit extends Exchange {
                     'option': true,
                     'active': isActive,
                     'contract': true,
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': true,
+                    'inverse': false,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
                     'contractSize': this.parseNumber ('1'),

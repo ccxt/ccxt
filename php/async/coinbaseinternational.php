@@ -260,7 +260,7 @@ class coinbaseinternational extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => false,
@@ -279,6 +279,11 @@ class coinbaseinternational extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => true, // todo => implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -304,21 +309,20 @@ class coinbaseinternational extends Exchange {
                         'limit' => 300,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
                     'inverse' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
                 ),
                 'future' => array(
-                    'linear' => array(
-                        'extends' => 'spot',
-                    ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));

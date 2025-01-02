@@ -4122,12 +4122,18 @@ public partial class Exchange
     public virtual object handleOptionAndParams2(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
     {
         object value = null;
-        var valueparametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName1, defaultValue);
+        var valueparametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName1);
         value = ((IList<object>)valueparametersVariable)[0];
         parameters = ((IList<object>)valueparametersVariable)[1];
+        if (isTrue(!isEqual(value, null)))
+        {
+            // omit optionName2 too from params
+            parameters = this.omit(parameters, optionName2);
+            return new List<object>() {value, parameters};
+        }
         // if still undefined, try optionName2
         object value2 = null;
-        var value2parametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName2, value);
+        var value2parametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
         value2 = ((IList<object>)value2parametersVariable)[0];
         parameters = ((IList<object>)value2parametersVariable)[1];
         return new List<object>() {value2, parameters};

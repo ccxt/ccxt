@@ -321,6 +321,94 @@ class woo(Exchange, ImplicitAPI):
                 },
                 'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo by triggerPrice
+                        'takeProfitPrice': False,  # todo by triggerPrice
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 90,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forSwap': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'hedged': True,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -965,7 +1053,7 @@ class woo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
             request['margin_mode'] = self.encode_margin_mode(marginMode)
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
@@ -1042,7 +1130,7 @@ class woo(Exchange, ImplicitAPI):
             }
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
-                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1052,7 +1140,7 @@ class woo(Exchange, ImplicitAPI):
                 }
                 outterOrder['childOrders'].append(stopLossOrder)
             if takeProfit is not None:
-                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
@@ -1807,7 +1895,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.woox.io/#get-trades
+        https://docs.woox.io/#get-trade-history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1828,6 +1916,7 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        request, params = self.handle_until_option('end_t', request, params)
         if limit is not None:
             request['size'] = limit
         else:

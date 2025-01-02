@@ -1460,7 +1460,7 @@ class bitget extends bitget$1 {
                                 'mark': false,
                                 'index': false,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1502,7 +1502,7 @@ class bitget extends bitget$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -1530,7 +1530,7 @@ class bitget extends bitget$1 {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -7041,8 +7041,10 @@ class bitget extends bitget$1 {
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRates(data, market);
+        const result = this.parseFundingRates(data, market);
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

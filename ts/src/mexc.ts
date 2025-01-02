@@ -697,10 +697,12 @@ export default class mexc extends Exchange {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
+                        'hedged': true, // todo implement
                         'trailing': false,
+                        'leverage': true, // todo implement
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -734,7 +736,7 @@ export default class mexc extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': false,
@@ -756,14 +758,14 @@ export default class mexc extends Exchange {
                             'mark': true,
                             'index': true,
                         },
-                        'triggerDirection': true,
+                        'triggerDirection': true, // todo
                         'stopLossPrice': false, // todo
-                        'takeProfitPrice': false,
+                        'takeProfitPrice': false, // todo
                         'hedged': true,
+                        'leverage': true, // todo
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined, // todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
@@ -790,7 +792,7 @@ export default class mexc extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -2251,8 +2253,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, this.extend (req, params));
     }
 
     /**
@@ -2271,8 +2275,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, this.extend (req, params));
     }
 
     /**

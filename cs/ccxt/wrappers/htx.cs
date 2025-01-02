@@ -1682,6 +1682,28 @@ public partial class htx
         return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
     }
     /// <summary>
+    /// Retrieves the open interest for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
     /// Retrieves the open interest of a currency
     /// </summary>
     /// <remarks>

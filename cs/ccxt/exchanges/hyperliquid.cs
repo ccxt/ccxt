@@ -13,7 +13,7 @@ public partial class hyperliquid : Exchange
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "rateLimit", 50 },
-            { "certified", false },
+            { "certified", true },
             { "pro", true },
             { "dex", true },
             { "has", new Dictionary<string, object>() {
@@ -226,6 +226,11 @@ public partial class hyperliquid : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 1000 },
@@ -258,7 +263,7 @@ public partial class hyperliquid : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 2000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", false },

@@ -698,10 +698,12 @@ export default class mexc extends Exchange {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
+                        'hedged': true,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -735,7 +737,7 @@ export default class mexc extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': false,
@@ -761,10 +763,10 @@ export default class mexc extends Exchange {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
@@ -791,7 +793,7 @@ export default class mexc extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -2251,8 +2253,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2270,8 +2274,10 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, this.extend(req, params));
     }
     /**
      * @method

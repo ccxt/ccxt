@@ -1418,7 +1418,7 @@ public partial class bitget : Exchange
                                 { "mark", false },
                                 { "index", false },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1455,7 +1455,7 @@ public partial class bitget : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 90 },
                         { "trigger", true },
@@ -1483,7 +1483,7 @@ public partial class bitget : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -7521,8 +7521,10 @@ public partial class bitget : Exchange
         //         },
         //     ]
         // }
+        symbols = this.marketSymbols(symbols);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, market);
+        object result = this.parseFundingRates(data, market);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

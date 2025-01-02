@@ -1115,7 +1115,7 @@ class bybit(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1124,12 +1124,12 @@ class bybit(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': True,
-                        'twap': False,
                         'iceberg': False,
-                        'oco': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -1155,7 +1155,7 @@ class bybit(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2,  # 2 years
+                        'daysBack': 365 * 2,  # 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': True,
@@ -1168,29 +1168,13 @@ class bybit(Exchange, ImplicitAPI):
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
-                        'marginMode': False,
-                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
-                        'stopLossPrice': True,
-                        'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': None,
-                            'limitPrice': True,
+                            'price': True,
                         },
-                        'timeInForce': {
-                            'IOC': True,
-                            'FOK': True,
-                            'PO': True,
-                            'GTD': False,
-                        },
-                        'hedged': True,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
-                        'trailing': True,
-                        'twap': False,
-                        'iceberg': False,
-                        'oco': False,
+                        'marketBuyRequiresPrice': True,
                     },
                 },
                 'swap': {
@@ -1269,7 +1253,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
-        # The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        # The API key of user id must own one of permissions will be allowed to call following API endpoints:
         # SUB UID: "Account Transfer"
         # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_bool(self.options, 'enableUnifiedMargin')
@@ -2056,6 +2040,7 @@ class bybit(Exchange, ImplicitAPI):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': 'option',
+                    'subType': 'linear',
                     'spot': False,
                     'margin': False,
                     'swap': False,
@@ -2063,8 +2048,8 @@ class bybit(Exchange, ImplicitAPI):
                     'option': True,
                     'active': isActive,
                     'contract': True,
-                    'linear': None,
-                    'inverse': None,
+                    'linear': True,
+                    'inverse': False,
                     'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
                     'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                     'contractSize': self.parse_number('1'),

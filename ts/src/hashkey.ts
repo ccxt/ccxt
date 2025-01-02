@@ -357,13 +357,11 @@ export default class hashkey extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': false,
-                        // 'marketBuyByCost': false,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true, // todo fix
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 20,
@@ -2468,8 +2466,10 @@ export default class hashkey extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**

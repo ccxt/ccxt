@@ -343,6 +343,9 @@ public partial class cryptocom : Exchange
                         { "selfTradePrevention", true },
                         { "trailing", false },
                         { "iceberg", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -375,7 +378,7 @@ public partial class cryptocom : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 1 },
                         { "trigger", false },
@@ -456,6 +459,9 @@ public partial class cryptocom : Exchange
                     { "40801", typeof(RequestTimeout) },
                     { "42901", typeof(RateLimitExceeded) },
                     { "43005", typeof(InvalidOrder) },
+                    { "43003", typeof(InvalidOrder) },
+                    { "43004", typeof(InvalidOrder) },
+                    { "43012", typeof(BadRequest) },
                     { "50001", typeof(ExchangeError) },
                     { "9010001", typeof(OnMaintenance) },
                 } },

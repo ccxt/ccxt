@@ -1263,6 +1263,7 @@ public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Lykke: lykke { public Lykke(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
+public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }
 public class  Ndax: ndax { public Ndax(object args = null) : base(args) { } }
 public class  Novadax: novadax { public Novadax(object args = null) : base(args) { } }
 public class  Oceanex: oceanex { public Oceanex(object args = null) : base(args) { } }

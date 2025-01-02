@@ -313,6 +313,94 @@ class woo extends Exchange {
                 ),
                 'brokerId' => 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo by triggerPrice
+                        'takeProfitPrice' => false, // todo by triggerPrice
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 90,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forSwap' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'hedged' => true,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forSwap',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(),
             'exceptions' => array(
                 'exact' => array(
@@ -1009,7 +1097,7 @@ class woo extends Exchange {
             if ($marginMode !== null) {
                 $request['margin_mode'] = $this->encode_margin_mode($marginMode);
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
             $algoType = $this->safe_string($params, 'algoType');
@@ -1097,7 +1185,7 @@ class woo extends Exchange {
                 );
                 $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
                 if ($stopLoss !== null) {
-                    $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                    $stopLossPrice = $this->safe_string($stopLoss, 'triggerPrice', $stopLoss);
                     $stopLossOrder = array(
                         'side' => $closeSide,
                         'algoType' => 'STOP_LOSS',
@@ -1108,7 +1196,7 @@ class woo extends Exchange {
                     $outterOrder['childOrders'][] = $stopLossOrder;
                 }
                 if ($takeProfit !== null) {
-                    $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                    $takeProfitPrice = $this->safe_string($takeProfit, 'triggerPrice', $takeProfit);
                     $takeProfitOrder = array(
                         'side' => $closeSide,
                         'algoType' => 'TAKE_PROFIT',
@@ -1940,7 +2028,7 @@ class woo extends Exchange {
             /**
              * fetch all $trades made by the user
              *
-             * @see https://docs.woox.io/#get-$trades
+             * @see https://docs.woox.io/#get-trade-history
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1964,6 +2052,7 @@ class woo extends Exchange {
             if ($since !== null) {
                 $request['start_t'] = $since;
             }
+            list($request, $params) = $this->handle_until_option('end_t', $request, $params);
             if ($limit !== null) {
                 $request['size'] = $limit;
             } else {

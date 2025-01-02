@@ -369,10 +369,12 @@ class cryptocom extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo => implement
                         'trailing' => false,
                         'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -405,7 +407,7 @@ class cryptocom extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 1,
                         'trigger' => false,
@@ -487,6 +489,9 @@ class cryptocom extends Exchange {
                     '40801' => '\\ccxt\\RequestTimeout',
                     '42901' => '\\ccxt\\RateLimitExceeded',
                     '43005' => '\\ccxt\\InvalidOrder', // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003' => '\\ccxt\\InvalidOrder', // FOK order has not been filled and cancelled
+                    '43004' => '\\ccxt\\InvalidOrder', // IOC order has not been filled and cancelled
+                    '43012' => '\\ccxt\\BadRequest', // Canceled due to Self Trade Prevention
                     '50001' => '\\ccxt\\ExchangeError',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),

@@ -748,7 +748,7 @@ export default class delta extends Exchange {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber ('1');
             }
-            const linear = (settle === base);
+            const linear = (settle === quote);
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {

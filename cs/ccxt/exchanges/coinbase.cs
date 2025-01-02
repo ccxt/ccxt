@@ -328,7 +328,7 @@ public partial class coinbase : Exchange
                 { "user_native_currency", "USD" },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -346,6 +346,11 @@ public partial class coinbase : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -376,7 +381,7 @@ public partial class coinbase : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 10000 },
                         { "trigger", false },
@@ -386,21 +391,20 @@ public partial class coinbase : Exchange
                         { "limit", 350 },
                     } },
                 } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
             } },
         });

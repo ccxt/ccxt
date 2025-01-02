@@ -448,6 +448,11 @@ export default class kraken extends Exchange {
                         },
                         'hedged': false,
                         'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -471,7 +476,7 @@ export default class kraken extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,
@@ -1530,8 +1535,10 @@ export default class kraken extends Exchange {
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
         // only buy orders are supported by the endpoint
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, 1, undefined, this.extend (req, params));
     }
 
     /**
