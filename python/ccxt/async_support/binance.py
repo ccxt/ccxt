@@ -3646,7 +3646,11 @@ class binance(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(entry, 'crossMarginLocked')
                     account['total'] = self.safe_string(entry, 'crossMarginAsset')
                 else:
-                    account['total'] = self.safe_string(entry, 'totalWalletBalance')
+                    usedLinear = self.safe_string(entry, 'umUnrealizedPNL')
+                    usedInverse = self.safe_string(entry, 'cmUnrealizedPNL')
+                    totalUsed = Precise.string_add(usedLinear, usedInverse)
+                    totalWalletBalance = self.safe_string(entry, 'totalWalletBalance')
+                    account['total'] = Precise.string_add(totalUsed, totalWalletBalance)
                 result[code] = account
         elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')

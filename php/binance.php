@@ -3678,7 +3678,11 @@ class binance extends Exchange {
                     $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
                     $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
                 } else {
-                    $account['total'] = $this->safe_string($entry, 'totalWalletBalance');
+                    $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
+                    $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
+                    $totalUsed = Precise::string_add($usedLinear, $usedInverse);
+                    $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
+                    $account['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
                 }
                 $result[$code] = $account;
             }

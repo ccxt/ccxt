@@ -3698,7 +3698,11 @@ class binance extends binance$1 {
                     account['total'] = this.safeString(entry, 'crossMarginAsset');
                 }
                 else {
-                    account['total'] = this.safeString(entry, 'totalWalletBalance');
+                    const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
+                    const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
+                    const totalUsed = Precise["default"].stringAdd(usedLinear, usedInverse);
+                    const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
+                    account['total'] = Precise["default"].stringAdd(totalUsed, totalWalletBalance);
                 }
                 result[code] = account;
             }

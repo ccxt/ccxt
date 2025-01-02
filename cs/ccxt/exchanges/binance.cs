@@ -3695,7 +3695,11 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "crossMarginAsset");
                 } else
                 {
-                    ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "totalWalletBalance");
+                    object usedLinear = this.safeString(entry, "umUnrealizedPNL");
+                    object usedInverse = this.safeString(entry, "cmUnrealizedPNL");
+                    object totalUsed = Precise.stringAdd(usedLinear, usedInverse);
+                    object totalWalletBalance = this.safeString(entry, "totalWalletBalance");
+                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
                 }
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
