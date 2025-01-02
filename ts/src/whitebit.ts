@@ -861,14 +861,22 @@ export default class whitebit extends Exchange {
      * @name whitebit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v4PublicGetTicker (params);
+        let method = 'v4PublicGetTicker';
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', method);
+        let response = undefined;
+        if (method === 'v4PublicGetTicker') {
+            response = await this.v4PublicGetTicker (params);
+        } else {
+            response = await this.v2PublicGetTicker (params);
+        }
         //
         //      "BCH_RUB": {
         //          "base_id":1831,
