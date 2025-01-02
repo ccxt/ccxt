@@ -757,7 +757,7 @@ export default class gate extends Exchange {
                         'trailing': false,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                     },
                     'fetchOHLCV': {

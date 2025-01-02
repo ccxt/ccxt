@@ -1621,7 +1621,7 @@ export default class binance extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,
@@ -1691,7 +1691,7 @@ export default class binance extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
                         'trigger': false,
