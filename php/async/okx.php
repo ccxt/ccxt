@@ -1646,7 +1646,7 @@ class okx extends Exchange {
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strikePrice,
+            'strike' => $this->parse_number($strikePrice),
             'optionType' => $optionType,
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
@@ -1857,7 +1857,7 @@ class okx extends Exchange {
                 }
                 $firstChain = $this->safe_dict($chains, 0, array());
                 $result[$code] = array(
-                    'info' => null,
+                    'info' => $chains,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $this->safe_string($firstChain, 'name'),

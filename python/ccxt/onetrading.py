@@ -865,7 +865,8 @@ class onetrading(Exchange, ImplicitAPI):
         #         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcv = self.safe_list(response, 'candlesticks')
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #

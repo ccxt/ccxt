@@ -276,7 +276,7 @@ $exchange = new $exchange_class(array(
 
 ### Features
 
-Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
+Major exchanges have the `.features` property available, where you can see what methods and functionalities are supported for each market-type (if any method is set to `null/undefined` it means method is "not supported" by the exchange)
 
 *this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
 
@@ -300,7 +300,7 @@ console.log(exchange.features);
             mark: true,
             index: true,
         },
-        limitPrice: true,
+        price: true,               // whether 'limit' price can be used (instead of market order)
       },
       marginMode: true,            // if `marginMode` param is supported (cross, isolated)
       timeInForce: {               // supported TIF types
@@ -310,14 +310,17 @@ console.log(exchange.features);
         PO: true,
         GTD: false
       },
-      hedged: undefined,          // if `hedged` param is supported (true, false)
+      hedged: false,              // if `hedged` param is supported (true, false)
+      leverage: false,            // if `leverage` param is supported (true, false)
       selfTradePrevention: true,  // if `selfTradePrevention` param is supported (true, false)
       trailing: true,             // if trailing order is supported
-      twap: false,                // if twap order is supported
       iceberg: true,              // if iceberg order is supported
-      oco: false                  // if One-Cancels-the-Other order is supported
+      marketBuyByCost: true,      // if creating market buy order is possible with `cost` param
+      marketBuyRequiresPrice: true,// if creating market buy order (if 'cost' not used) requires `price` param to be set
     },
-    createOrders: undefined,      // if batch order creation is supported
+    createOrders: {
+        'max': 50,              // if batch order creation is supported
+    },
     fetchMyTrades: {
       limit: 1000,              // max limit per call
       daysBack: undefined,      // max historical period that can be accessed

@@ -2436,92 +2436,189 @@ class binance(Exchange, ImplicitAPI):
                 'portfolioMargin': {
                     'exact': {
                         #
-                        #        1xxx
+                        #        10xx General Server or Network Issues
                         #
-                        '-1005': PermissionDenied,  # {"code":-1005,"msg":"No such IP has been white listed"}
-                        '-1011': PermissionDenied,  # {"code":-1011,"msg":"This IP cannot access self route."}
-                        '-1023': BadRequest,  # START_TIME_GREATER_THAN_END_TIME
-                        '-1109': BadRequest,  # BAD_ACCOUNT
-                        '-1110': BadSymbol,  # BAD_INSTRUMENT_TYPE
-                        '-1113': BadRequest,  # {"code":-1113,"msg":"Withdrawal amount must be negative."}
-                        '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                        '-1136': BadRequest,  # INVALID_NEW_ORDER_RESP_TYPE
+                        '-1000': OperationFailed,  # An unknown error occured while processing the request.
+                        '-1001': ExchangeError,  # Internal error; unable to process your request. Please try again.
+                        '-1002': PermissionDenied,  # You are not authorized to execute self request.
+                        '-1003': RateLimitExceeded,  # Too many requests use the websocket for live updates to avoid polling the API.
+                        '-1004': BadRequest,  # This IP is already on the white list.
+                        '-1005': PermissionDenied,  # No such IP has been white listed.
+                        '-1006': BadResponse,  # An unexpected response was received from the message bus. Execution status unknown.
+                        '-1007': BadResponse,  # Timeout waiting for response from backend server. Send status unknown, execution status unknown.
+                        '-1008': OperationFailed,  # WS Spot server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1010': ExchangeError,  # ERROR_MSG_RECEIVED
+                        '-1011': PermissionDenied,  # This IP cannot access self route.
+                        '-1013': ExchangeError,  # INVALID_MESSAGE.
+                        '-1014': InvalidOrder,  # Unsupported order combination.
+                        '-1015': InvalidOrder,  # Too many new orders.
+                        '-1016': NotSupported,  # This service is no longer available.
+                        '-1020': NotSupported,  # This operation is not supported.
+                        '-1021': BadRequest,  # Timestamp for self request is outside of the recvWindow 1000ms ahead of the servers time.
+                        '-1022': BadRequest,  # Signature for self request is not valid.
+                        '-1023': BadRequest,  # Start time is greater than end time
+                        '-1099': OperationFailed,  # WS not found authenticated or authorized
                         #
-                        #        2xxx
+                        #        11xx Request Issues
                         #
-                        '-2016': OperationRejected,  # {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
-                        '-2018': InsufficientFunds,  # {"code":-2018,"msg":"Balance is insufficient"}
-                        '-2019': InsufficientFunds,  # Margin is insufficient
-                        '-2020': OrderNotFillable,  # UNABLE_TO_FILL
+                        '-1100': BadRequest,  # Illegal characters found in a parameter.
+                        '-1101': BadRequest,  # Too many parameters sent for self endpoint.
+                        '-1102': BadRequest,  # A mandatory parameter was not sent, was empty/null, or malformed.
+                        '-1103': BadRequest,  # An unknown parameter was sent.
+                        '-1104': BadRequest,  # Not all sent parameters were read.
+                        '-1105': BadRequest,  # A parameter was empty.
+                        '-1106': BadRequest,  # A parameter was sent when not required.
+                        '-1108': BadRequest,  # Invalid asset.
+                        '-1109': BadRequest,  # Invalid account.
+                        '-1110': BadSymbol,  # Invalid symbolType.
+                        '-1111': BadRequest,  # Precision is over the maximum defined for self asset.
+                        '-1112': BadRequest,  # No orders on book for symbol.
+                        '-1113': BadRequest,  # Withdrawal amount must be negative.
+                        '-1114': BadRequest,  # TimeInForce parameter sent when not required.
+                        '-1115': BadRequest,  # Invalid timeInForce.
+                        '-1116': BadRequest,  # Invalid orderType.
+                        '-1117': BadRequest,  # Invalid side.
+                        '-1118': BadRequest,  # New client order ID was empty.
+                        '-1119': BadRequest,  # Original client order ID was empty.
+                        '-1120': BadRequest,  # Invalid interval.
+                        '-1121': BadSymbol,  # Invalid symbol.
+                        '-1125': BadRequest,  # This listenKey does not exist.
+                        '-1127': BadRequest,  # Lookup interval is too big.
+                        '-1128': BadRequest,  # Combination of optional parameters invalid.
+                        '-1130': BadRequest,  # Invalid data sent for a parameter.
+                        '-1131': BadRequest,  # WS recvWindow must be less than 60000
+                        '-1134': BadRequest,  # WS strategyType was less than 1000000.
+                        '-1136': BadRequest,  # Invalid newOrderRespType.
+                        '-1145': BadRequest,  # WS cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
+                        '-1151': BadRequest,  # WS Symbol is present multiple times in the list.
+                        #
+                        #        20xx Processing Issues
+                        #
+                        '-2010': InvalidOrder,  # NEW_ORDER_REJECTED
+                        '-2011': OperationRejected,  # CANCEL_REJECTED
+                        '-2013': BadRequest,  # Order does not exist.
+                        '-2014': OperationRejected,  # API-key format invalid.
+                        '-2015': OperationRejected,  # Invalid API-key, IP, or permissions for action.
+                        '-2016': OperationFailed,  # No trading window could be found for the symbol. Try ticker/24hrs instead.
+                        '-2018': OperationFailed,  # Balance is insufficient.
+                        '-2019': OperationFailed,  # Margin is insufficient.
+                        '-2020': OrderNotFillable,  # Unable to fill.
                         '-2021': OrderImmediatelyFillable,  # Order would immediately trigger.
-                        '-2022': InvalidOrder,  # ReduceOnly Order is rejected
-                        '-2023': OperationFailed,  # User in liquidation mode now
-                        '-2024': OperationRejected,  # Position is not sufficient
+                        '-2022': InvalidOrder,  # ReduceOnly Order is rejected.
+                        '-2023': OperationFailed,  # User in liquidation mode now.
+                        '-2024': OperationRejected,  # Position is not sufficient.
                         '-2025': OperationRejected,  # Reach max open order limit.
                         '-2026': InvalidOrder,  # This OrderType is not supported when reduceOnly.
                         '-2027': OperationRejected,  # Exceeded the maximum allowable position at current leverage.
                         '-2028': OperationRejected,  # Leverage is smaller than permitted: insufficient margin balance.
                         #
-                        #        4xxx
+                        #        4xxx Filters and other issues
                         #
-                        '-4063': BadRequest,  # INVALID_OPTIONS_REQUEST_TYPE
-                        '-4064': BadRequest,  # INVALID_OPTIONS_TIME_FRAME
-                        '-4065': BadRequest,  # INVALID_OPTIONS_AMOUNT
-                        '-4066': BadRequest,  # INVALID_OPTIONS_EVENT_TYPE
-                        '-4069': BadRequest,  # Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4000': BadRequest,  # Invalid order status.
+                        '-4001': BadRequest,  # Price less than 0.
+                        '-4002': BadRequest,  # Price greater than max price.
+                        '-4003': BadRequest,  # Quantity less than zero.
+                        '-4004': BadRequest,  # Quantity less than min quantity.
+                        '-4005': BadRequest,  # Quantity greater than max quantity.
+                        '-4006': BadRequest,  # Stop price less than zero.
+                        '-4007': BadRequest,  # Stop price greater than max price.
+                        '-4008': BadRequest,  # Tick size less than zero.
+                        '-4009': BadRequest,  # Max price less than min price.
+                        '-4010': BadRequest,  # Max qty less than min qty.
+                        '-4011': BadRequest,  # Step size less than zero.
+                        '-4012': BadRequest,  # Max mum orders less than zero.
+                        '-4013': BadRequest,  # Price less than min price.
+                        '-4014': BadRequest,  # Price not increased by tick size.
+                        '-4015': BadRequest,  # Client order id is not valid.
+                        '-4016': BadRequest,  # Price is higher than mark price multiplier cap.
+                        '-4017': BadRequest,  # Multiplier up less than zero.
+                        '-4018': BadRequest,  # Multiplier down less than zero.
+                        '-4019': BadRequest,  # Composite scale too large.
+                        '-4020': BadRequest,  # Target strategy invalid for orderType '%s',reduceOnly '%b'.
+                        '-4021': BadRequest,  # Invalid depth limit.
+                        '-4022': BadRequest,  # market status sent is not valid.
+                        '-4023': BadRequest,  # Qty not increased by step size.
+                        '-4024': BadRequest,  # Price is lower than mark price multiplier floor.
+                        '-4025': BadRequest,  # Multiplier decimal less than zero.
+                        '-4026': BadRequest,  # Commission invalid.
+                        '-4027': BadRequest,  # Invalid account type.
+                        '-4028': BadRequest,  # Invalid leverage
+                        '-4029': BadRequest,  # Tick size precision is invalid.
+                        '-4030': BadRequest,  # Step size precision is invalid.
+                        '-4031': BadRequest,  # Invalid parameter working type
+                        '-4032': BadRequest,  # Exceed maximum cancel order size.
+                        '-4033': BadRequest,  # Insurance account not found.
+                        '-4044': BadRequest,  # Balance Type is invalid.
+                        '-4045': BadRequest,  # Reach max stop order limit.
+                        '-4046': BadRequest,  # No need to change margin type.
+                        '-4047': BadRequest,  # Margin type cannot be changed if there exists open orders.
+                        '-4048': BadRequest,  # Margin type cannot be changed if there exists position.
+                        '-4049': BadRequest,  # Add margin only support for isolated position.
+                        '-4050': BadRequest,  # Cross balance insufficient.
+                        '-4051': BadRequest,  # Isolated balance insufficient.
+                        '-4052': BadRequest,  # No need to change auto add margin.
+                        '-4053': BadRequest,  # Auto add margin only support for isolated position.
+                        '-4054': BadRequest,  # Cannot add position margin: position is 0.
+                        '-4055': BadRequest,  # Amount must be positive.
+                        '-4056': PermissionDenied,  # Invalid api key type.
+                        '-4057': PermissionDenied,  # Invalid api public key
+                        '-4058': BadRequest,  # maxPrice and priceDecimal too large,please check.
+                        '-4059': BadRequest,  # No need to change position side.
+                        '-4060': BadRequest,  # Invalid position side.
+                        '-4061': InvalidOrder,  # Order's position side does not match user's setting.
+                        '-4062': BadRequest,  # Invalid or improper reduceOnly value.
+                        '-4063': BadRequest,  # Invalid options request type
+                        '-4064': BadRequest,  # Invalid options time frame
+                        '-4065': BadRequest,  # Invalid options amount
+                        '-4066': BadRequest,  # Invalid options event type
+                        '-4067': BadRequest,  # Position side cannot be changed if there exists open orders.
+                        '-4068': BadRequest,  # Position side cannot be changed if there exists position.
+                        '-4069': BadRequest,  # Invalid options premium fee
                         '-4070': BadRequest,  # Client options id is not valid.
                         '-4071': BadRequest,  # Invalid options direction
                         '-4072': OperationRejected,  # premium fee is not updated, reject order
-                        '-4073': BadRequest,  # OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4073': BadRequest,  # input premium fee is less than 0, reject order
                         '-4074': BadRequest,  # Order amount is bigger than upper boundary or less than 0, reject order
                         '-4075': BadRequest,  # output premium fee is less than 0, reject order
                         '-4076': OperationRejected,  # original fee is too much higher than last fee
                         '-4077': OperationRejected,  # place order amount has reached to limit, reject order
                         '-4078': OperationFailed,  # options internal error
                         '-4079': BadRequest,  # invalid options id
-                        '-4080': PermissionDenied,  # user not found with id: %s
-                        '-4081': BadRequest,  # OPTIONS_NOT_FOUND
+                        '-4080': PermissionDenied,  # user not found
+                        '-4081': BadRequest,  # options not found
+                        '-4082': BadRequest,  # Invalid number of batch place orders.
+                        '-4083': BadRequest,  # Fail to place batch orders.
+                        '-4084': NotSupported,  # Method is not allowed currently. Upcoming soon.
                         '-4085': BadRequest,  # Invalid notional limit coefficient
                         '-4086': BadRequest,  # Invalid price spread threshold
                         '-4087': PermissionDenied,  # User can only place reduce only order
                         '-4088': PermissionDenied,  # User can not place order currently
-                        '-4114': BadRequest,  # INVALID_CLIENT_TRAN_ID_LEN
-                        '-4115': BadRequest,  # DUPLICATED_CLIENT_TRAN_ID
-                        '-4118': OperationRejected,  # REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4104': BadRequest,  # Invalid contract type
+                        '-4114': BadRequest,  # clientTranId is not valid
+                        '-4115': BadRequest,  # clientTranId is duplicated
+                        '-4118': OperationRejected,  # ReduceOnly Order Failed. Please check your existing position and open orders
                         '-4131': OperationRejected,  # The counterparty's best price does not meet the PERCENT_PRICE filter limit
-                        '-4140': BadRequest,  # Invalid symbol status for opening position
+                        '-4135': BadRequest,  # Invalid activation price
+                        '-4137': BadRequest,  # Quantity must be zero with closePosition equals True
+                        '-4138': BadRequest,  # Reduce only must be True with closePosition equals True
+                        '-4139': BadRequest,  # Order type can not be market if it's unable to cancel
+                        '-4140': OrderImmediatelyFillable,  # Invalid symbol status for opening position
                         '-4141': BadRequest,  # Symbol is closed
+                        '-4142': OrderImmediatelyFillable,  # REJECT: take profit or stop order will be triggered immediately
                         '-4144': BadSymbol,  # Invalid pair
                         '-4161': OperationRejected,  # Leverage reduction is not supported in Isolated Margin Mode with open positions
-                        '-4164': OperationRejected,  # Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164': InvalidOrder,  # Order's notional must be no smaller than 5.0(unless you choose reduce only)
                         '-4165': BadRequest,  # Invalid time interval
-                        '-4183': BadRequest,  # Price is higher than stop price multiplier cap.
-                        '-4184': BadRequest,  # Price is lower than stop price multiplier floor.
+                        '-4183': InvalidOrder,  # Price is higher than stop price multiplier cap.
+                        '-4184': InvalidOrder,  # Price is lower than stop price multiplier floor.
+                        '-4408': InvalidOrder,  # This symbol is in reduce only mode due to regulation requirements. Please upgrade to Binance Credits Trading Mode.
                         #
-                        #        5xxx
+                        #        5xxx Order Execution Issues
                         #
                         '-5021': OrderNotFillable,  # Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022': OrderNotFillable,  # Due to the order could not be executed, the Post Only order will be rejected.
-                        #
-                        #        2xxxx
-                        #
-                        '-20121': ExchangeError,  # override commons
-                        '-20124': ExchangeError,  # override commons
-                        '-20130': ExchangeError,  # override commons
-                        '-20132': ExchangeError,  # override commons
-                        '-20194': ExchangeError,  # override commons
-                        '-20195': ExchangeError,  # override commons
-                        '-20196': ExchangeError,  # override commons
-                        '-20198': ExchangeError,  # override commons
-                        '-20204': ExchangeError,  # override commons
-                        #   21xxx - PORTFOLIO MARGIN(documented in spot docs)
-                        '-21001': BadRequest,  # Request ID is not a Portfolio Margin Account.
-                        '-21002': BadRequest,  # Portfolio Margin Account doesn't support transfer from margin to futures.
-                        '-21003': BadResponse,  # Fail to retrieve margin assets.
-                        '-21004': OperationRejected,  # User doesn’t have portfolio margin bankruptcy loan
-                        '-21005': InsufficientFunds,  # User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
-                        '-21006': OperationFailed,  # User had portfolio margin bankruptcy loan repayment in process
-                        '-21007': OperationFailed,  # User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-5028': OperationFailed,  # The requested timestamp is outside the recvWindow of the matching engine
+                        '-5041': RateLimitExceeded,  # Time out for too many requests from self account queueing at the same time.
                     },
                 },
                 'exact': {
@@ -11167,7 +11264,7 @@ class binance(Exchange, ImplicitAPI):
         elif url.startswith('https://eapi.' + hostname + '/'):
             marketType = 'option'
         elif url.startswith('https://papi.' + hostname + '/'):
-            marketType = 'portfoliomargin'
+            marketType = 'portfolioMargin'
         if marketType is not None:
             exceptionsForMarketType = self.safe_dict(self.exceptions, marketType, {})
             return self.safe_dict(exceptionsForMarketType, exactOrBroad, {})

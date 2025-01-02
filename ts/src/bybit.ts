@@ -1100,7 +1100,7 @@ export default class bybit extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1140,7 +1140,7 @@ export default class bybit extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2, // 2 years
+                        'daysBack': 365 * 2, // 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,
@@ -1157,7 +1157,7 @@ export default class bybit extends Exchange {
                         'triggerDirection': false,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'marketBuyRequiresPrice': true,
                     },
@@ -1247,7 +1247,7 @@ export default class bybit extends Exchange {
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
     async isUnifiedEnabled (params = {}) {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');

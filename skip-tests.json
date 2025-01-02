@@ -561,7 +561,8 @@
                 "currencyIdAndCode": "temp skip"
             },
             "ticker": {
-                "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
+                "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
+                "quoteVolume": "incorrect calcs: https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4452"
             },
             "fetchPositions": "currently returns a lot of default/non open positions",
             "fetchLedger": {
@@ -950,6 +951,16 @@
                 "notional":"undefined"
             },
             "fetchBalance": "tmp skip"
+        }
+    },
+    "ellipx": {
+        "skipMethods": {
+            "fetchOrderBook": {
+                "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
+            },
+            "fetchL2OrderBook": {
+                "bid":"messed bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4611"
+            }
         }
     },
     "gate": {
@@ -1421,9 +1432,11 @@
     "okx": {
         "skipCSharp": true,
         "skipMethods": {
-            "loadMarkets": "linear & inverse must not be same",
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
             "fetchCurrencies": {
-                "info": "null",
+                "precision": "undefined",
                 "currencyIdAndCode": "temp skip"
             },
             "ticker": {

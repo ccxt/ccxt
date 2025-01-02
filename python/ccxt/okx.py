@@ -1635,7 +1635,7 @@ class okx(Exchange, ImplicitAPI):
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': self.parse_number(strikePrice),
             'optionType': optionType,
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
@@ -1834,7 +1834,7 @@ class okx(Exchange, ImplicitAPI):
                     }
             firstChain = self.safe_dict(chains, 0, {})
             result[code] = {
-                'info': None,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': self.safe_string(firstChain, 'name'),

@@ -2651,8 +2651,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2662,8 +2664,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2673,8 +2677,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

@@ -1583,7 +1583,7 @@ public partial class okx : Exchange
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strikePrice },
+            { "strike", this.parseNumber(strikePrice) },
             { "optionType", optionType },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
@@ -1804,7 +1804,7 @@ public partial class okx : Exchange
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", null },
+                { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
