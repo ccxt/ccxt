@@ -289,11 +289,13 @@
             },
             "watchTrades":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "timestamp": "messed order coming from exchange"
+                "timestamp": "messed order coming from exchange",
+                "cost": "assertAmountPriceCost fails: https://app.travis-ci.com/github/ccxt/ccxt/builds/273689721#L4102"
             },
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
-                "timestamp": "messed order coming from exchange"
+                "timestamp": "messed order coming from exchange",
+                "cost": "same as watchTrades"
             },
             "ohlcv": {
                 "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
@@ -1796,7 +1798,13 @@
             "fetchCurrencies": {
                 "precision": "not provided"
             },
-            "loadMarkets": "linear and inverse values are same"
+            "loadMarkets": "linear and inverse values are same",
+            "watchTrades": {
+                "cost": "absent market.precision.amount"
+            },
+            "watchTradesForSymbols": {
+                "cost": "same as above"
+            }
         }
     }
 }

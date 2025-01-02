@@ -422,6 +422,9 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
 
 
 function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, method: string, symbol: string, entry: any, amountKey: string | number, priceKey: string | number, costKey: string | number) {
+    if ('cost' in skippedProperties) {
+        return;
+    }
     const logText = logTemplate (exchange, method, entry);
     // check `cost, amount, price` correlation
     const market = exchange.market (symbol);
@@ -432,13 +435,14 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
     const precision = market['precision'];
     const contractSize = exchange.safeString (market, 'contractSize');
     const amountPrecision = exchange.safeString (precision, 'amount');
+    assert (amountPrecision !== undefined, 'amount precision is not defined, you might add that in skips-json' + logText); // some exchanges might have absent from fetchMarkets
     const amount = exchange.safeString (entry, amountKey);
     // let consider contractSize too for non-spot markets
-    const amountMultipliesContractSize = (contractSize !== undefined) ? Precise.stringMul (amount, contractSize) : amount;
+    const amountWithContractSize = (contractSize !== undefined) ? Precise.stringMul (amount, contractSize) : amount;
     const price = exchange.safeString (entry, priceKey);
     const cost = exchange.safeString (entry, costKey);
     const amountCalculated = Precise.stringDiv (cost, price);
-    const compareResult = Precise.stringSub (amountMultipliesContractSize, amountCalculated);
+    const compareResult = Precise.stringSub (amountWithContractSize, amountCalculated);
     // the remainder should be >= 0 and < amountPrecision
     const isValid = Precise.stringGe (compareResult, '0') && Precise.stringLt (compareResult, amountPrecision);
     assert (isValid, 'cost & amount & price math is not correct' + logText);
