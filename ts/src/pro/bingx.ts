@@ -189,6 +189,7 @@ export default class bingx extends bingxRest {
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, this.getMessageHash ('ticker', symbol));
         if (this.safeString (message, 'dataType') === 'all@ticker') {
             client.resolve (ticker, this.getMessageHash ('ticker'));
@@ -610,6 +611,7 @@ export default class bingx extends bingxRest {
         }
         for (let j = 0; j < trades.length; j++) {
             stored.append (trades[j]);
+            this.streamProduce ('trades', trades[j]);
         }
         client.resolve (stored, messageHash);
     }
@@ -770,6 +772,7 @@ export default class bingx extends bingxRest {
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = this.getMessageHash ('orderbook', symbol);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
         // resolve for "all"
         if (isAllEndpoint) {
@@ -907,6 +910,8 @@ export default class bingx extends bingxRest {
             const candle = candles[i];
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, unifiedTimeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = this.getMessageHash ('ohlcv', symbol, unifiedTimeframe);
@@ -1185,6 +1190,7 @@ export default class bingx extends bingxRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             }
         } catch (e) {
+            this.streamProduce ('errors', undefined, e);
             client.reject (e);
         }
         return true;
@@ -1207,6 +1213,7 @@ export default class bingx extends bingxRest {
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
                     const messageHash = messageHashes[j];
+                    this.streamProduce ('errors', undefined, error);
                     client.reject (error, messageHash);
                 }
             }
@@ -1254,6 +1261,7 @@ export default class bingx extends bingxRest {
             }
         } catch (e) {
             const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
+            this.streamProduce ('errors', undefined, error);
             client.reset (error);
         }
     }
@@ -1355,6 +1363,7 @@ export default class bingx extends bingxRest {
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
         const messageHash = (isSpot) ? spotHash : swapHash;
+        this.streamProduce ('orders', parsedOrder);
         client.resolve (stored, messageHash);
         client.resolve (stored, messageHash + ':' + symbol);
     }
@@ -1433,6 +1442,7 @@ export default class bingx extends bingxRest {
         const swapHash = 'swap:mytrades';
         const messageHash = isSpot ? spotHash : swapHash;
         cachedTrades.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         client.resolve (cachedTrades, messageHash);
         client.resolve (cachedTrades, messageHash + ':' + symbol);
     }
@@ -1497,10 +1507,12 @@ export default class bingx extends bingxRest {
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

@@ -102,6 +102,7 @@ export default class wazirx extends wazirxRest {
         }
         this.balance = this.safeBalance (this.balance);
         const messageHash = 'balance';
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -245,6 +246,7 @@ export default class wazirx extends wazirxRest {
             const symbol = parsedTicker['symbol'];
             this.tickers[symbol] = parsedTicker;
             const messageHash = 'ticker:' + symbol;
+            this.streamProduce ('tickers', parsedTicker);
             client.resolve (parsedTicker, messageHash);
         }
         client.resolve (this.tickers, 'tickers');
@@ -357,6 +359,7 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const parsedTrade = this.parseWsTrade (rawTrades[i], market);
             trades.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
         }
         client.resolve (trades, messageHash);
     }
@@ -456,6 +459,8 @@ export default class wazirx extends wazirxRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const parsed = this.parseWsOHLCV (data, market);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
@@ -560,6 +565,7 @@ export default class wazirx extends wazirxRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
             this.orderbooks[symbol] = orderbook;
         }
+        this.streamProduce ('orderbooks', this.orderbooks[symbol]);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
@@ -613,6 +619,7 @@ export default class wazirx extends wazirxRest {
         }
         const orders = this.orders;
         orders.append (parsedOrder);
+        this.streamProduce ('orders', orders);
         let messageHash = 'orders';
         client.resolve (this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
@@ -701,6 +708,7 @@ export default class wazirx extends wazirxRest {
         }
         const parsedTrade = this.parseWsTrade (trade);
         myTrades.append (parsedTrade);
+        this.streamProduce ('myTrades', myTrades);
         client.resolve (myTrades, messageHash);
     }
 
@@ -745,10 +753,16 @@ export default class wazirx extends wazirxRest {
         //         "status": "error"
         //     }
         //
-        throw new ExchangeError (this.id + ' ' + this.json (message));
+        try {
+            throw new ExchangeError (this.id + ' ' + this.json (message));
+        } catch (e) {
+            this.streamProduce ('errors', undefined, e);
+            client.reject (e);
+        }
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleError (client, message);

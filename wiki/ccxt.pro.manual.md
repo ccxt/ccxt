@@ -174,29 +174,27 @@ while (condition) {
 In CCXT Pro each public and private unified RESTful method having a `fetch*` prefix also has a corresponding stream-based counterpart method prefixed with `watch*`, as follows:
 
 - Public API
-  - `fetchStatus` → `watchStatus`
-  - `fetchOrderBook` → `watchOrderBook`
-  - `fetchOrderBookForSymbols` → `watchOrderBookForSymbols`
-  - `fetchTicker` → `watchTicker`
-  - `fetchTickers` → `watchTickers`
-  - `fetchOHLCV` → `watchOHLCV`
-  - `fetchOHLCVForSymbols` → `watchOHLCVForSymbols`
-  - `fetchTrades` → `watchTrades`
-  - `fetchTradesForSymbols` → `watchTradesForSymbols`
-  - `fetchBidsAsks` → `watchBidsAsks`
-  - `fetchLiquidations` → `watchLiquidations`
-  - `fetchLiquidationsForSymbols` → `watchLiquidationsForSymbols`
+  - `fetchStatus` → `watchStatus` → `subscribeStatus`
+  - `fetchOrderBook` → `watchOrderBook` → `subscribeOrderBook`
+  - `fetchTicker` → `watchTicker` → `subscribeTicker`
+  - `fetchTickers` → `watchTickers` → `subscribeTickers`
+  - `fetchOHLCV` → `watchOHLCV` → `subscribeOHLCV`
+  - `fetchTrades` → `watchTrades` → `subscribeTrades`
+  - `fetchTradesForSymbols` → `watchTradesForSymbols`  → `subscribeTradesForSymbols`
+  - `fetchBidsAsks` → `watchBidsAsks` → `subscribeBidsAsks`
+  - `fetchLiquidations` → `watchLiquidations` → `subscribeLiquidations`
+  - `fetchLiquidationsForSymbols` → `watchLiquidationsForSymbols` → `subscribeLiquidationsForSymbols`
 - Private API
-  - `fetchBalance` → `watchBalance`
-  - `fetchOrders` → `watchOrders`
-  - `fetchOrdersForSymbols` → `watchOrdersForSymbols`
-  - `fetchMyTrades` → `watchMyTrades`
-  - `fetchPosition` → `watchPosition`
-  - `fetchPositions` → `watchPositions`
-  - `fetchLiquidations` → `watchLiquidations`
-  - `fetchMyLiquidations` → `watchMyLiquidations`
-  - `fetchMyLiquidationsForSymbols` → `watchMyLiquidationsForSymbols`
-  - `fetchFundingRates` → `watchFundingRates`
+  - `fetchBalance` → `watchBalance` → `subscribeBalance`
+  - `fetchOrders` → `watchOrders` → `subscribeOrders`
+  - `fetchOrdersForSymbols` → `watchOrdersForSymbols` → `subscribeOrdersForSymbols`
+  - `fetchMyTrades` → `watchMyTrades` → `subscribeMyTrades`
+  - `fetchPosition` → `watchPosition` → `subscribePosition`
+  - `fetchPositions` → `watchPositions` → `subscribePositions`
+  - `fetchLiquidations` → `watchLiquidations` → `subscribeLiquidations`
+  - `fetchMyLiquidations` → `watchMyLiquidations` → `subscribeMyLiquidations`
+  - `fetchMyLiquidationsForSymbols` → `watchMyLiquidationsForSymbols` → `subscribeLiquidationsForSymbols`
+  - `fetchFundingRates` → `watchFundingRates` → `subscribeFundingRates`
 - REST alternatives
   - `fetchTrades` → `fetchTradesWs`
   - `createOrder` → `createOrderWs`
@@ -245,6 +243,152 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 - CCXT Pro will throw standard CCXT exceptions where necessary
 - ...
 
+
+## Subscribe functions (Beta)
+Note: this feature is in beta and will apreciate any feedback.
+Subscribe functions allow you to listen for updates from a specific stream and use callbacks on every update. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
+
+### Callback Functions
+When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
+
+#### Accessing Metadata and Message History
+Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily.
+
+```typescript
+export interface Message {
+    payload: any; // payload of the message
+    error: any; // any error returned
+    metadata: {
+        stream: BaseStream // reference to the exchange stream
+        topic: Topic // string identifying the topic of the stream
+        index: number // index of the message being consumed
+        history: Message []; // reference to the history of the topic
+    }
+}
+```
+
+### Synchronous vs. Asynchronous Consumption
+You can choose to consume messages synchronously or asynchronously:
+
+Synchronous consumption means that the library will wait for one message to be fully processed in the callback before moving on to the next message. This is useful for ensuring order but can slow down processing if the callback function takes a long time to execute.
+Asynchronous consumption allows the library to continue delivering messages without waiting for the callback to complete, suitable for high-throughput environments where order may not be as critical.
+
+### Example Usage
+#### subscribeTickers example
+**Syntax**
+```typescript
+async subscribeTickers(symbols?: string[], callback: ConsumerFunction, synchronous: boolean = true, params: object = {}): Promise<void>
+```
+**Parameters:**
+
+- **symbols**: Optional array of symbols to monitor. If omitted, subscribes to updates for all symbols.
+- **callback**: Function to execute with each message.
+- **synchronous**: Determines if messages should be processed synchronously (true by default).
+*params*: Extra parameters for the exchange API endpoint.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const handleTickerUpdate: ConsumerFunction = (message: Message): void => {
+    console.log('New ticker update:', message.payload);
+    // Access metadata and history
+    console.log('Metadata:', message.metadata);
+    console.log('History:', message.history);
+};
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, true)
+```
+#### **Python**
+```python
+from types import ConsumerFunction, Message
+
+def handle_ticker_update(message: Message) -> None:
+    print('New ticker update:', message.payload)
+    # Access metadata and history
+    print('Metadata:', message.metadata.__dict__)
+    print('History:', [msg.payload for msg in message.history])
+
+# Subscribe to ticker updates for BTC/USD and ETH/USD
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, True)
+```
+#### **PHP**
+```php
+function handleTickerUpdate($message) {
+    echo 'New ticker update: ', $message->payload, PHP_EOL;
+    // Access metadata and history
+    echo 'Metadata: ', json_encode($message->metadata), PHP_EOL;
+    echo 'History: ', json_encode(array_map(fn($msg) => $msg->payload, $message->history)), PHP_EOL;
+}
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
+```
+#### **C#**
+```csharp
+    public static async Task HandleTickerUpdate(Message message)
+    {
+        Console.WriteLine($"New ticker update: {message.Payload}");
+        // Access metadata and history
+        Console.WriteLine($"Metadata: {message.Metadata}");
+        Console.WriteLine($"History: {string.Join(", ", message.History.Select(m => m.Payload))}");
+    }
+
+    public static async Task Main(string[] args)
+    {
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, true);
+    }
+```
+<!-- tabs:end -->
+### Streaming helpers
+#### All raw messages
+You can use the function `subscribeRaw(callback, synchroneous = true)` to subscribe to all raw messages published to the stream
+### Subscribe to errors
+You can use the function `subscribeErrors(callback, synchroneous = true)` to subscribe to all errors thrown to the stream
+#### Access topic history 
+The stream will keep a history of all the messages, use `getMessageHistory(topic)` to access them.
+The history size is set by `stream.maxMessagesPerTopic`
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = exchange.stream.getMessageHistory (topic)
+```
+#### **Python**
+```python
+history = exchange.stream.get_message_history (topic)
+```
+#### **PHP**
+```php
+$history = $exchange->stream->get_message_history($topic)
+```
+#### **C#**
+```csharp
+var history = exchange.stream.getMessageHistory(topic);
+```
+<!-- tabs:end -->
+
+#### Unsubscribe stream callback
+You can use `exchange.stream.unsubcribe(topic, consumeFunction)` to unsubscribe a callback from stream topic. However notice this won't unsubscribe the stream from the exchange.
+The function will return true if the callback as found and unsubscribed and false if not.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = exchange.stream.getMessageHistory (topic)
+```
+#### **Python**
+```python
+history = exchange.stream.get_message_history (topic)
+```
+#### **PHP**
+```php
+$history = $exchange->stream->get_message_history($topic)
+```
+#### **C#**
+```csharp
+var history = exchange.stream.getMessageHistory(topic);
+```
+<!-- tabs:end -->
 ## Streaming Specifics
 
 Despite of the numerous commonalities, streaming-based APIs have their own specifics, because of their connection-based nature.
