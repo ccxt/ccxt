@@ -2737,10 +2737,10 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
-        this.featuresGenerator ();
+        this.generateFeatures ();
     }
 
-    featuresGenerator () {
+    generateFeatures () {
         //
         // the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
@@ -2790,19 +2790,19 @@ export default class Exchange {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.mapFeatures (initialFeatures, marketType, undefined);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
                         const subType = subTypes[j];
-                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+                        this.features[marketType][subType] = this.mapFeatures (initialFeatures, marketType, subType);
                     }
                 }
             }
         }
     }
 
-    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+    mapFeatures (initialFeatures: any, marketType: Str, subType: Str = undefined) {
         let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
         // if exchange does not have that market-type (eg. future>inverse)
         if (featuresObj === undefined) {
@@ -2811,7 +2811,7 @@ export default class Exchange {
         const extendsStr: Str = this.safeString (featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit (featuresObj, 'extends');
-            const extendObj = this.featuresMapper (initialFeatures, extendsStr);
+            const extendObj = this.mapFeatures (initialFeatures, extendsStr);
             featuresObj = this.deepExtend (extendObj, featuresObj);
         }
         //
