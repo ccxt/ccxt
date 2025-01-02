@@ -435,16 +435,24 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
     const precision = market['precision'];
     const contractSize = exchange.safeString (market, 'contractSize');
     const amountPrecision = exchange.safeString (precision, 'amount');
-    assert (amountPrecision !== undefined, 'amount precision is not defined, you might add that in skips-json' + logText); // some exchanges might have absent from fetchMarkets
     const amount = exchange.safeString (entry, amountKey);
     // let consider contractSize too for non-spot markets
     const amountWithContractSize = (contractSize !== undefined) ? Precise.stringMul (amount, contractSize) : amount;
     const price = exchange.safeString (entry, priceKey);
     const cost = exchange.safeString (entry, costKey);
     const amountCalculated = Precise.stringDiv (cost, price);
-    const compareResult = Precise.stringSub (amountWithContractSize, amountCalculated);
-    // the remainder should be >= 0 and < amountPrecision
-    const isValid = Precise.stringGe (compareResult, '0') && Precise.stringLt (compareResult, amountPrecision);
+    const compareResult = Precise.stringAbs (Precise.stringSub (amountWithContractSize, amountCalculated));
+    let isValid = false;
+    if (Precise.stringEq (compareResult, '0')) {
+        // if exact calculation is correct
+        isValid = true;
+    } else {
+        // else we need to know the amountPrecision, so we would pass the test if the remainder is less than amountPrecision
+        assert (amountPrecision !== undefined, 'amount precision is not defined, you might add in skips-json' + logText);
+        // rounding loss more than then half of the market.precision.amount is not tolerable
+        const amountPrecisionHalf = Precise.stringDiv (amountPrecision, '2');
+        isValid = Precise.stringLt (compareResult, amountPrecisionHalf);
+    }
     assert (isValid, 'cost & amount & price math is not correct' + logText);
 }
 

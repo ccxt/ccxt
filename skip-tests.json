@@ -138,6 +138,12 @@
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
                 "bid":"sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+            },
+            "watchTrades": {
+                "cost": "absent market.precision.amount"
+            },
+            "watchTradesForSymbols": {
+                "cost": "same as above"
             }
         }
     },
