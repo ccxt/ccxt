@@ -29,6 +29,11 @@ export default class myokx extends okx {
                     'rest': 'https://{hostname}',
                 },
             },
+            'has': {
+                'swap': false,
+                'future': false,
+                'option': false,
+            },
         });
     }
 }
