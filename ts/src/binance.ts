@@ -3686,7 +3686,11 @@ export default class binance extends Exchange {
                     account['used'] = this.safeString (entry, 'crossMarginLocked');
                     account['total'] = this.safeString (entry, 'crossMarginAsset');
                 } else {
-                    account['total'] = this.safeString (entry, 'totalWalletBalance');
+                    const usedLinear = this.safeString (entry, 'umUnrealizedPNL');
+                    const usedInverse = this.safeString (entry, 'cmUnrealizedPNL');
+                    const totalUsed = Precise.stringAdd (usedLinear, usedInverse);
+                    const totalWalletBalance = this.safeString (entry, 'totalWalletBalance');
+                    account['total'] = Precise.stringAdd (totalUsed, totalWalletBalance);
                 }
                 result[code] = account;
             }
