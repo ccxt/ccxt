@@ -2838,7 +2838,7 @@ export default class Exchange {
 
     /**
      * @method
-     * @name exchange#featureIsSupported
+     * @name exchange#featureSupported
      * @description this method is a very deterministic to help users to know what feature is supported by the exchange
      * @param {string} [marketType] supported only: "spot", "swap", "future"
      * @param {string} [subType] supported only: "linear", "inverse"
@@ -2847,7 +2847,7 @@ export default class Exchange {
      * @param {string} [paramValueName] to see whether unified param is supported
      * @returns {bool | undefined} returns true if the feature is supported, false if it's not supported, and undefined if it's not known
      */
-    featureIsSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
+    featureSupported (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, paramValueName: Str = undefined): Bool {
         // if exchange does not yet have features manually implemented
         if (this.features === undefined) {
             return undefined;
@@ -2869,37 +2869,37 @@ export default class Exchange {
         if (container === undefined) {
             return false;
         }
-        // return `true` if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        // return `true` if user wanted only marketType and didn't provide methodName, eg: featureSupported('spot')
         if (methodName === undefined) {
             return true;
         }
         // throw an exception for unsupported method
         if (!(methodName in container)) {
-            throw new NotSupported (this.id + ' featureIsSupported() unsupported method: ' + methodName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureSupported() unsupported method: ' + methodName + ', check "exchange.features" to know supported values');
         }
         // if it has `undefined` value, then it means it's not supported
         if (container[methodName] === undefined) {
             return false;
         }
-        // return `true` if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('spot', undefined, 'createOrder')
+        // return `true` if user wanted only method and didn't provide `paramName`, eg: featureSupported('spot', undefined, 'createOrder')
         if (paramName === undefined) {
             return true;
         }
         // throw an exception for unsupported paramName
         if (!(paramName in container[methodName])) {
-            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramName: ' + paramName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureSupported() unsupported paramName: ' + paramName + ', check "exchange.features" to know supported values');
         }
         // if it has `undefined` value, then it means it's not supported (same for 'false')
         if (this.inArray (container[methodName][paramName], [ undefined, false ])) {
             return false;
         }
-        // if didn't provide `paramValue`, eg: featureIsSupported('spot', undefined, 'createOrder', 'stopLoss')
+        // if didn't provide `paramValue`, eg: featureSupported('spot', undefined, 'createOrder', 'stopLoss')
         if (paramValueName === undefined) {
             return true;
         }
         // throw an exception for unsupported paramValueName
         if (!(paramValueName in container[methodName][paramName])) {
-            throw new NotSupported (this.id + ' featureIsSupported() unsupported paramValueName: ' + paramValueName + ', check "exchange.features" to know supported values');
+            throw new NotSupported (this.id + ' featureSupported() unsupported paramValueName: ' + paramValueName + ', check "exchange.features" to know supported values');
         }
         // if it has `undefined` value, then it means it's not supported (same for 'false')
         if (this.inArray (container[methodName][paramName][paramValueName], [ undefined, false ])) {

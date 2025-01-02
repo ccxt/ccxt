@@ -85,7 +85,7 @@ Let's assume you want to have a long position (buy order) at a price `123` with 
 
 A) Some exchanges support the creation of an entry order with an attached stopLoss (& takeProfit) object:
 ```
-if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss')):
+if (exchange.featureSupported('swap', 'linear', 'createOrder', 'stopLoss')):
     params = {
         'stopLoss': {
             'triggerPrice': 120,
@@ -93,7 +93,7 @@ if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss')):
         'takeProfit': ... # similar structure as 'stopLoss'
     }
     # if you want stopLoss order triggered as a "limit" order, instead of a "market" order:
-    if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
+    if (exchange.featureSupported('swap', 'linear', 'createOrder', 'stopLoss', 'price')) {
         params['stopLoss']['price'] = 119; # so, this would be the limit price for triggered stop-loss
     }
     order = await exchange.createOrder(symbol, type, side, amount, price, params)
@@ -102,13 +102,13 @@ B) but if you want to create a separate stop-loss order (for an already open pos
 ```
 side = 'sell'
 price = 119 # limit price for stop-loss
-if (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'stopLossPrice')):
+if (exchange.featureSupported('swap', 'linear', 'createOrder', 'stopLossPrice')):
     params = {
         'stopLossPrice': 120, # or use 'takeProfitPrice'
     }
     order = await exchange.createOrder(symbol, type, side, amount, price, params)
 # if stopLossPrice is not supported, use regular trigger order, which is supported by most exchanges
-elif (exchange.featureIsSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
+elif (exchange.featureSupported('swap', 'linear', 'createOrder', 'triggerPrice')):
     params = {
         'triggerPrice': 120,
         'reduceOnly': true,
