@@ -104,6 +104,7 @@ const {
     , packb
     , TRUNCATE
     , ROUND
+    , DECIMAL_PLACES
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
@@ -3044,7 +3045,7 @@ export default class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === TICK_SIZE) ? this.parseNumber ('1e-8') : this.parseNumber ('8');
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeDict (market, 'precision', {});
                 if ('base' in market) {
                     const currency = this.safeCurrencyStructure ({
