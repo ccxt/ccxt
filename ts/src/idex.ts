@@ -524,7 +524,7 @@ export default class idex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 50, maximum 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -540,7 +540,7 @@ export default class idex extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 1000);
+            request['limit'] = limit;
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
@@ -598,6 +598,8 @@ export default class idex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {string} [params.fromId] trade id of the earliest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -612,18 +614,25 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        // [
-        //   {
-        //     "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
-        //     "price": "0.09771286",
-        //     "quantity": "1.45340410",
-        //     "quoteQuantity": "0.14201627",
-        //     "time": 1598345638994,
-        //     "makerSide": "buy",
-        //     "sequence": 3853
-        //   }, ...
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //             "price": "0.09771286",
+        //             "quantity": "1.45340410",
+        //             "quoteQuantity": "0.14201627",
+        //             "time": 1598345638994,
+        //             "makerSide": "buy",
+        //             "sequence": 3853
+        //         }, ...
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -695,7 +704,7 @@ export default class idex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': 'limit',
+            'type': 'limit', // todo must be checked
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
