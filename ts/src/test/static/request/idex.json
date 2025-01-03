@@ -5,15 +5,6 @@
     ],
     "outputType": "json",
     "methods": {
-        "fetchCurrencies": [
-            {
-                "description": "Fetch currencies",
-                "method": "fetchCurrencies",
-                "url": "https://api.idex.io/v4/markets",
-                "input": [],
-                "output": null
-            }
-        ],
     "fetchTime": [
             {
                 "description": "Fetch time",
