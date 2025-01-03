@@ -1421,10 +1421,17 @@ public partial class hashkey : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         object takerOrMaker = null;
-        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker", "ibm"});
+        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker"});
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        }
+        object isBuyerMaker = this.safeBool(trade, "ibm");
+        // if public trade
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         object feeCost = this.safeString(trade, "commission");
         object feeCurrncyId = this.safeString(trade, "commissionAsset");

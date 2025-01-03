@@ -201,7 +201,7 @@ class lykke extends Exchange {
         //     {
         //         "payload":array(
         //             {
-        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9075",
         //                 "name":"Monaco Token",
         //                 "symbol":"MCO",
         //                 "accuracy":6,
