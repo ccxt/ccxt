@@ -137,25 +137,37 @@ export default class idex extends Exchange {
                         'tickers': 1,
                         'candles': 1,
                         'trades': 1,
+                        'liquidations': 1, // todo
                         'orderbook': 1,
+                        'fundingRates': 1, // todo
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
+                        'user': 1, // todo not documented in new API
                         'wallets': 1,
-                        'balances': 1,
+                        'positions': 1, // todo
+                        'fundingPayments': 1, // todo
+                        'balances': 1, // todo not documented in new API
+                        'historicalPnL': 1, // todo
+                        'initialMarginFractionOverride': 1, // todo
                         'orders': 0.1,
                         'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
+                        'gasFees': 1, // todo
+                        'marketMakerRewardsV1/epochs': 1, // todo
+                        'marketMakerRewardsV1/epoch': 1, // todo
+                        'payouts': 1, // todo
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
+                        'initialMarginFractionOverride': 1, // todo
                         'orders': 0.1,
-                        'orders/test': 0.1,
+                        'orders/test': 0.1, // todo not documented in new API
                         'withdrawals': 1,
+                        'payouts': 1, // todo
                     },
                     'delete': {
                         'orders': 0.1,
