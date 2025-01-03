@@ -23,7 +23,7 @@ export default class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': [ 'US' ],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v4',
             'pro': true,
             'dex': true,
@@ -130,47 +130,47 @@ export default class idex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'exchange': 1,
-                        'markets': 1,
-                        'tickers': 1,
-                        'candles': 1,
-                        'trades': 1,
-                        'liquidations': 1, // todo
-                        'orderbook': 1,
-                        'fundingRates': 1, // todo
+                        'ping': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'exchange': { 'cost': 1 },
+                        'markets': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'candles': { 'cost': 1, 'bundled': 10 },
+                        'trades': { 'cost': 1, 'bundled': 10 },
+                        'liquidations': { 'cost': 1, 'bundled': 10 }, // todo
+                        'orderbook': { 'cost': 1, 'bundled': 10 },
+                        'fundingRates': { 'cost': 1, 'bundled': 10 }, // todo
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1, // todo not documented in new API
-                        'wallets': 1,
-                        'positions': 1, // todo
-                        'fundingPayments': 1, // todo
-                        'balances': 1, // todo not documented in new API
-                        'historicalPnL': 1, // todo
-                        'initialMarginFractionOverride': 1, // todo
-                        'orders': 0.1,
-                        'fills': 0.1,
-                        'deposits': 1,
-                        'withdrawals': 1,
-                        'gasFees': 1, // todo
-                        'marketMakerRewardsV1/epochs': 1, // todo
-                        'marketMakerRewardsV1/epoch': 1, // todo
-                        'payouts': 1, // todo
-                        'wsToken': 1,
+                        'user': { 'cost': 1 }, // todo not documented in new API
+                        'wallets': { 'cost': 1 },
+                        'positions': { 'cost': 1 }, // todo
+                        'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo
+                        'balances': { 'cost': 1 }, // todo not documented in new API
+                        'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo
+                        'orders': { 'cost': 1, 'bundled': 10 },
+                        'fills': { 'cost': 1, 'bundled': 10 },
+                        'deposits': { 'cost': 1, 'bundled': 10 },
+                        'withdrawals': { 'cost': 1, 'bundled': 10 },
+                        'gasFees': { 'cost': 1 }, // todo
+                        'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
+                        'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
+                        'payouts': { 'cost': 1 }, // todo
+                        'wsToken': { 'cost': 1 },
                     },
                     'post': {
-                        'wallets': 1,
-                        'initialMarginFractionOverride': 1, // todo
-                        'orders': 0.1,
-                        'orders/test': 0.1, // todo not documented in new API
-                        'withdrawals': 1,
-                        'payouts': 1, // todo
+                        'wallets': { 'cost': 1 },
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo
+                        'orders': { 'cost': 1, 'bundled': 10 },
+                        'orders/test': { 'cost': 1 }, // todo not documented in new API
+                        'withdrawals': { 'cost': 1 },
+                        'payouts': { 'cost': 1 }, // todo
                     },
                     'delete': {
-                        'orders': 0.1,
+                        'orders': { 'cost': 1, 'bundled': 10 },
                     },
                 },
             },
@@ -1755,13 +1755,18 @@ export default class idex extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const hasApiKey = (this.apiKey !== undefined);
-        const hasSecret = (this.secret !== undefined);
-        const hasWalletAddress = (this.walletAddress !== undefined);
-        const hasPrivateKey = (this.privateKey !== undefined);
-        const defaultCost = this.safeValue (config, 'cost', 1);
-        const authenticated = hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey;
-        return authenticated ? (defaultCost / 2) : defaultCost;
+        let cost = this.safeNumber (config, 'cost', 1);
+        const bundled = this.safeValue (config, 'bundled');
+        const limit = this.safeNumber (params, 'limit');
+        if ((bundled !== undefined) && (limit !== undefined) && (limit > 100)) {
+            cost = bundled;
+        } else if (api === 'public') {
+            const signed = this.checkRequiredCredentials (false);
+            if (!signed) {
+                cost = cost * 2;
+            }
+        }
+        return cost;
     }
 
     /**
