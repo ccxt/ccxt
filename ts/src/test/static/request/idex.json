@@ -5,40 +5,31 @@
     ],
     "outputType": "json",
     "methods": {
-        "fetchDeposits": [
+        "fetchCurrencies": [
             {
-                "description": "Fetch Deposits",
-                "method": "fetchDeposits",
-                "url": "https://api-matic.idex.io/v1/deposits?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
-                "input": [
-                    "USDT"
-                ]
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.idex.io/v4/markets",
+                "input": [],
+                "output": null
             }
         ],
-        "fetchWithdrawals": [
+        "fetchMarkets": [
             {
-                "description": "Fetch Withdrawals",
-                "method": "fetchWithdrawals",
-                "url": "https://api-matic.idex.io/v1/withdrawals?nonce=7d8435b0901a11ee9696ffffffffffff&asset=USDT&wallet=wallet",
-                "input": [
-                    "USDT"
-                ]
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.idex.io/v4/exchange",
+                "input": [],
+                "output": null
             }
         ],
-        "fetchDepositAddress": [
+    "fetchTime": [
             {
-                "description": "Fetch Deposit Address",
-                "method": "fetchDepositAddress",
-                "url": "https://api-matic.idex.io/v1/wallets?nonce=1ab69e90cbbc11ee9696ffffffffffff",
-                "input": []
-            }
-        ],
-        "fetchTime": [
-            {
-                "description": "fetchTime",
+                "description": "Fetch time",
                 "method": "fetchTime",
-                "url": "https://api-matic.idex.io/v1/time",
-                "input": []
+                "url": "https://api.idex.io/v4/time",
+                "input": [],
+                "output": null
             }
         ]
     }
