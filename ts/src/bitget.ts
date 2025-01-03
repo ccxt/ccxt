@@ -2333,14 +2333,14 @@ export default class bitget extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
-        const chain = this.safeString2 (params, 'chain', 'network');
-        params = this.omit (params, 'network');
-        if (chain === undefined) {
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId (chain);
+        const networkId = this.networkCodeToId (networkCode);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
