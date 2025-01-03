@@ -36,12 +36,15 @@ PAD_WITH_ZERO = 6
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None
     if counting_mode == TICK_SIZE:
-        assert(isinstance(precision, float) or isinstance(precision, numbers.Integral))
+        assert(isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral) or isinstance(precision, str))
     else:
         assert(isinstance(precision, numbers.Integral))
     assert rounding_mode in [TRUNCATE, ROUND]
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
+
+    if isinstance(precision, str):
+        precision = float(precision)
 
     context = decimal.getcontext()
 

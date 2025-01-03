@@ -1,5 +1,7 @@
-const ccxt = require('../../ccxt')
-    , asTable  = require ('as-table').configure ({ delimiter: ' | ' })
+import ccxt from '../../js/ccxt.js';
+import asTable from 'as-table';
+
+const table  = asTable.configure ({ delimiter: ' | ' });
 
 console.log ('CCXT Version:', ccxt.version)
 
@@ -16,7 +18,7 @@ async function main () {
 
     const response = await exchange.fetchFundingRateHistory (symbol, since, limit, params)
 
-    console.log (asTable (response))
+    console.log (table (response))
 
 }
 

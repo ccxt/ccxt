@@ -1,17 +1,19 @@
-'use strict';
+import ccxt from '../../js/ccxt.js';
+import ololog from 'ololog'
 
-const ccxt = require ('../../ccxt')
-    , log = require ('ololog').unlimited.handleNodeErrors ()
-    , { NotSupported } = ccxt
-    , symbol = 'ADA/BTC'
-    , side = 'buy'
-    , type = 'market'
-    // set createMarketBuyOrderRequiresPrice to true or false to see the difference
-    , createMarketBuyOrderRequiresPrice = true // default is true
-    , amount = 191.03
-    , price = 0.000011
-    , options = { createMarketBuyOrderRequiresPrice }
-    , exchange = new ccxt.huobipro ({ options })
+const log = ololog.configure .unlimited.handleNodeErrors (),
+      { NotSupported } = ccxt,
+      enableRateLimit = true,
+      symbol = 'ADA/BTC',
+      side = 'buy',
+      // set createMarketBuyOrderRequiresPrice to true or false to see the difference
+      type = 'market',
+      // default is true
+      createMarketBuyOrderRequiresPrice = true,
+      amount = 191.03,
+      price = 0.000011,
+      options = { createMarketBuyOrderRequiresPrice },
+      exchange = new ccxt.huobipro ({ enableRateLimit, options });
 
 // This is an example that demonstrates the issues discussed here:
 // https://github.com/ccxt/ccxt/issues/564

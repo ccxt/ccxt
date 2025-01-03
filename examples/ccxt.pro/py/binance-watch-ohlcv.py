@@ -1,7 +1,7 @@
-import ccxtpro
+import ccxt.pro
 from asyncio import run
 
-print('CCXT Pro version', ccxtpro.__version__)
+print('CCXT Pro version', ccxt.pro.__version__)
 
 
 def table(values):
@@ -13,7 +13,7 @@ def table(values):
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         # 'options': {
         #     'OHLCVLimit': 1000, # how many candles to store in memory by default
         # },

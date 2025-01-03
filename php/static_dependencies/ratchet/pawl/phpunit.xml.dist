@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- PHPUnit configuration file with new format for PHPUnit 9.3+ -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        bootstrap="vendor/autoload.php"
+        cacheResult="false"
+        colors="true"
+        stopOnError="false">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <coverage>
+        <include>
+            <directory>./src/</directory>
+        </include>
+    </coverage>
+</phpunit>

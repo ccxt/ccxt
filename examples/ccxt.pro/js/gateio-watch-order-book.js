@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 
-console.log ("CCXT Pro Version:", ccxtpro.version)
+console.log ("CCXT Pro Version:", ccxt.version)
 
 const orderbooks = {}
 
@@ -41,7 +41,7 @@ async function watchOrderBook (exchange, symbol) {
 }
 
 async function main () {
-    const exchange = new ccxtpro.gateio ({
+     const exchange = new ccxt.pro.gateio ({
         'options': {
             'defaultType': 'swap',
         },

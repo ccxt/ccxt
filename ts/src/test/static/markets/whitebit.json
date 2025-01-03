@@ -1,0 +1,810 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.000001,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "BTC_USDT",
+            "stock": "BTC",
+            "money": "USDT",
+            "stockPrec": "6",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "0.0001",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "10000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "BTC/USD": {
+        "id": "BTC_USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "contractSize": 0.000001,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "BTC_USD",
+            "stock": "BTC",
+            "money": "USD",
+            "stockPrec": "6",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "0.0001",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": false,
+            "maxTotal": "10000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.00001,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "ETH_USDT",
+            "stock": "ETH",
+            "money": "USDT",
+            "stockPrec": "5",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "0.001",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "100000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 3
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "ADA_USDT",
+            "stock": "ADA",
+            "money": "USDT",
+            "stockPrec": "2",
+            "moneyPrec": "6",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "3",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "10000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.00001,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "LTC_USDT",
+            "stock": "LTC",
+            "money": "USDT",
+            "stockPrec": "5",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "0.1",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "100000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.1,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 5
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 1000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "XRP_USDT",
+            "stock": "XRP",
+            "money": "USDT",
+            "stockPrec": "1",
+            "moneyPrec": "5",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "5",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "1000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "DOGE/USDT": {
+        "id": "DOGE_USDT",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 1e-7
+        },
+        "limits": {
+            "amount": {
+                "min": 120
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "DOGE_USDT",
+            "stock": "DOGE",
+            "money": "USDT",
+            "stockPrec": "0",
+            "moneyPrec": "7",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "120",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "100000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "TRX/USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 100
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 10000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "TRX_USDT",
+            "stock": "TRX",
+            "money": "USDT",
+            "stockPrec": "2",
+            "moneyPrec": "6",
+            "feePrec": "6",
+            "makerFee": "0.1",
+            "takerFee": "0.1",
+            "minAmount": "100",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "spot",
+            "isCollateral": true,
+            "maxTotal": "10000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC_PERP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.001,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "BTC_PERP",
+            "stock": "BTC",
+            "money": "USDT",
+            "stockPrec": "3",
+            "moneyPrec": "1",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "0.001",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "100000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH_PERP",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.01,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "ETH_PERP",
+            "stock": "ETH",
+            "money": "USDT",
+            "stockPrec": "2",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "0.01",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "100000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTC_PERP",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 1000000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "LTC_PERP",
+            "stock": "LTC",
+            "money": "USDT",
+            "stockPrec": "1",
+            "moneyPrec": "2",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "0.1",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "1000000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA_PERP",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 10
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 10000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "ADA_PERP",
+            "stock": "ADA",
+            "money": "USDT",
+            "stockPrec": "-1",
+            "moneyPrec": "6",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "10",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "10000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRP_PERP",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 10
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "XRP_PERP",
+            "stock": "XRP",
+            "money": "USDT",
+            "stockPrec": "-1",
+            "moneyPrec": "5",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "10",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "100000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGE_PERP",
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 100
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "DOGE_PERP",
+            "stock": "DOGE",
+            "money": "USDT",
+            "stockPrec": "-2",
+            "moneyPrec": "6",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "100",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "100000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRX_PERP",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.1,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 100
+            },
+            "price": {},
+            "cost": {
+                "min": 5.05,
+                "max": 100000000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "name": "TRX_PERP",
+            "stock": "TRX",
+            "money": "USDT",
+            "stockPrec": "-2",
+            "moneyPrec": "6",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.035",
+            "minAmount": "100",
+            "minTotal": "5.05",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "100000000000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00035,
+        "maker": 0.0001
+    }
+}

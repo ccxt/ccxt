@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro
+import ccxt.pro
 from pprint import pprint
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
     def handle_ohlcv(self, client, message):
         # add your handling of the original message here
         print('intercepted', message)
@@ -27,5 +27,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    print('CCXT Pro Version:', ccxtpro.__version__)
+    print('CCXT Version:', ccxt.__version__)
     run(main())

@@ -1,8 +1,8 @@
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 
-class MyBinance(ccxtpro.binance):
+class MyBinance(ccxt.pro.binance):
 
     def handle_mini_ticker(self, client, message):
         market_id = self.safe_string_lower(message, 's')

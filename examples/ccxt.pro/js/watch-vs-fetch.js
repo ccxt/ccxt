@@ -1,9 +1,9 @@
 // see this issue for details
 // https://github.com/ccxt/ccxt/issues/6659
 
-const ccxtpro = require ('ccxt.pro')
+const ccxt = require ('ccxt')
 
-const exchange = new ccxtpro.kraken ()
+ const exchange = new ccxt.pro.kraken ()
 
 function yellow (s) {
     return '\x1b[33m' + s + '\x1b[0m'

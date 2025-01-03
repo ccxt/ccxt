@@ -1,12 +1,12 @@
-import ccxtpro
+import ccxt.pro
 from asyncio import run
 
 
-print('CCXT Pro version', ccxtpro.__version__)
+print('CCXT Pro version', ccxt.pro.__version__)
 
 
 async def main():
-    exchange = ccxtpro.okx({
+    exchange = ccxt.pro.okx({
         'options': {
             'watchOrderBook': {
                 'depth': 'bbo-tbt',  # tick-by-tick best bidask

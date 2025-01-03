@@ -1,12 +1,12 @@
-"use strict";
+
 
 // ----------------------------------------------------------------------------
 
-const ccxt = require ('../../ccxt.js')
+import ccxt from '../../js/ccxt.js';
 
 // ----------------------------------------------------------------------------
 
-;(async () => {
+(async () => {
 
     const exchange = new ccxt.bittrex ({
         'apiKey': 'YOUR_API_KEY',

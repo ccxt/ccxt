@@ -4,7 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.bithumb import ImplicitAPI
+import asyncio
 import hashlib
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -19,7 +23,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bithumb(Exchange):
+class bithumb(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bithumb, self).describe(), {
@@ -27,6 +31,7 @@ class bithumb(Exchange):
             'name': 'Bithumb',
             'countries': ['KR'],  # South Korea
             'rateLimit': 500,
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -36,20 +41,23 @@ class bithumb(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -59,7 +67,11 @@ class bithumb(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -76,7 +88,7 @@ class bithumb(Exchange):
             },
             'hostname': 'bithumb.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d',
                 'api': {
                     'public': 'https://api.{hostname}/public',
                     'private': 'https://api.{hostname}',
@@ -88,15 +100,19 @@ class bithumb(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'ticker/{currency}',
-                        'ticker/all',
-                        'ticker/ALL_BTC',
-                        'ticker/ALL_KRW',
-                        'orderbook/{currency}',
-                        'orderbook/all',
-                        'transaction_history/{currency}',
-                        'transaction_history/all',
-                        'candlestick/{currency}/{interval}',
+                        'ticker/ALL_{quoteId}',
+                        'ticker/{baseId}_{quoteId}',
+                        'orderbook/ALL_{quoteId}',
+                        'orderbook/{baseId}_{quoteId}',
+                        'transaction_history/{baseId}_{quoteId}',
+                        'network-info',
+                        'assetsstatus/multichain/ALL',
+                        'assetsstatus/multichain/{currency}',
+                        'withdraw/minimum/ALL',
+                        'withdraw/minimum/{currency}',
+                        'assetsstatus/ALL',
+                        'assetsstatus/{baseId}',
+                        'candlestick/{baseId}_{quoteId}/{interval}',
                     ],
                 },
                 'private': {
@@ -115,6 +131,7 @@ class bithumb(Exchange):
                         'trade/krw_withdrawal',
                         'trade/market_buy',
                         'trade/market_sell',
+                        'trade/stop_limit',
                     ],
                 },
             },
@@ -172,30 +189,82 @@ class bithumb(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
         })
 
+    def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
+        # bithumb has a different type of conflict in markets, because
+        # their ids are the base currency(BTC for instance), so we can have
+        # multiple "BTC" ids representing the different markets(BTC/ETH, "BTC/DOGE", etc)
+        # since they're the same we just need to return one
+        return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
+
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bithumb
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
         result = []
-        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+            #
+            #    {
+            #        "status": "0000",
+            #        "data": {
+            #            "ETH": {
+            #                "opening_price": "0.05153399",
+            #                "closing_price": "0.05145144",
+            #                "min_price": "0.05145144",
+            #                "max_price": "0.05160781",
+            #                "units_traded": "6.541124172077830855",
+            #                "acc_trade_value": "0.33705472498492329997697755",
+            #                "prev_closing_price": "0.0515943",
+            #                "units_traded_24H": "43.368879902677400513",
+            #                "acc_trade_value_24H": "2.24165339555398079994373342",
+            #                "fluctate_24H": "-0.00018203",
+            #                "fluctate_rate_24H": "-0.35"
+            #            },
+            #            "XRP": {
+            #                "opening_price": "0.00000918",
+            #                "closing_price": "0.0000092",
+            #                "min_price": "0.00000918",
+            #                "max_price": "0.0000092",
+            #                "units_traded": "6516.949363",
+            #                "acc_trade_value": "0.0598792533602796",
+            #                "prev_closing_price": "0.00000916",
+            #                "units_traded_24H": "229161.50354738",
+            #                "acc_trade_value_24H": "2.0446589371637117",
+            #                "fluctate_24H": "0.00000049",
+            #                "fluctate_rate_24H": "5.63"
+            #            },
+            #            ...
+            #            "date": "1721675913145"
+            #        }
+            #    }
+            #
+        results = await asyncio.gather(*promises)
         for i in range(0, len(quotes)):
             quote = quotes[i]
             quoteId = quote
-            extension = self.safe_value(quoteCurrencies, quote, {})
-            method = 'publicGetTickerALL' + quote
-            response = await getattr(self, method)(params)
-            data = self.safe_value(response, 'data')
+            response = results[i]
+            data = self.safe_dict(response, 'data')
+            extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
                 currencyId = currencyIds[j]
@@ -251,14 +320,15 @@ class bithumb(Exchange):
                         },
                         'cost': {},  # set via options
                     },
+                    'created': None,
                     'info': market,
                 }, extension)
                 result.append(entry)
         return result
 
-    def parse_balance(self, response):
-        result = {'info': response}
-        balances = self.safe_value(response, 'data')
+    def parse_balance(self, response) -> Balances:
+        result: dict = {'info': response}
+        balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -271,35 +341,42 @@ class bithumb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'currency': 'ALL',
         }
         response = await self.privatePostInfoBalance(self.extend(request, params))
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency': market['base'] + '_' + market['quote'],
+        request: dict = {
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
         if limit is not None:
             request['count'] = limit  # default 30, max 30
-        response = await self.publicGetOrderbookCurrency(self.extend(request, params))
+        response = await self.publicGetOrderbookBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -320,11 +397,11 @@ class bithumb(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #
@@ -372,66 +449,82 @@ class bithumb(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        response = await self.publicGetTickerAll(params)
-        #
-        #     {
-        #         "status":"0000",
-        #         "data":{
-        #             "BTC":{
-        #                 "opening_price":"9045000",
-        #                 "closing_price":"9132000",
-        #                 "min_price":"8938000",
-        #                 "max_price":"9168000",
-        #                 "units_traded":"4619.79967497",
-        #                 "acc_trade_value":"42021363832.5187",
-        #                 "prev_closing_price":"9041000",
-        #                 "units_traded_24H":"8793.5045804",
-        #                 "acc_trade_value_24H":"78933458515.4962",
-        #                 "fluctate_24H":"530000",
-        #                 "fluctate_rate_24H":"6.16"
-        #             },
-        #             "date":"1587710878669"
-        #         }
-        #     }
-        #
-        result = {}
-        data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'date')
-        tickers = self.omit(data, 'date')
-        ids = list(tickers.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.safe_market(id)
-            symbol = market['symbol']
-            ticker = tickers[id]
-            isArray = isinstance(ticker, list)
-            if not isArray:
+        result: dict = {}
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
+        quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request: dict = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+        responses = await asyncio.gather(*promises)
+        for i in range(0, len(quotes)):
+            quote = quotes[i]
+            response = responses[i]
+            #
+            #     {
+            #         "status":"0000",
+            #         "data":{
+            #             "BTC":{
+            #                 "opening_price":"9045000",
+            #                 "closing_price":"9132000",
+            #                 "min_price":"8938000",
+            #                 "max_price":"9168000",
+            #                 "units_traded":"4619.79967497",
+            #                 "acc_trade_value":"42021363832.5187",
+            #                 "prev_closing_price":"9041000",
+            #                 "units_traded_24H":"8793.5045804",
+            #                 "acc_trade_value_24H":"78933458515.4962",
+            #                 "fluctate_24H":"530000",
+            #                 "fluctate_rate_24H":"6.16"
+            #             },
+            #             "date":"1587710878669"
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            timestamp = self.safe_integer(data, 'date')
+            tickers = self.omit(data, 'date')
+            currencyIds = list(tickers.keys())
+            for j in range(0, len(currencyIds)):
+                currencyId = currencyIds[j]
+                ticker = data[currencyId]
+                base = self.safe_currency_code(currencyId)
+                symbol = base + '/' + quote
+                market = self.safe_market(symbol)
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency': market['base'],
+        request: dict = {
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
-        response = await self.publicGetTickerCurrency(self.extend(request, params))
+        response = await self.publicGetTickerBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -451,18 +544,18 @@ class bithumb(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
-        #         '8284000',  # 시가
-        #         '8286000',  # 종가
-        #         '8289000',  # 고가
-        #         '8276000',  # 저가
-        #         '15.41503692'  # 거래량
+        #         "8284000",  # 시가
+        #         "8286000",  # 종가
+        #         "8289000",  # 고가
+        #         "8276000",  # 저가
+        #         "15.41503692"  # 거래량
         #     ]
         #
         return [
@@ -474,50 +567,54 @@ class bithumb(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency': market['base'],
-            'interval': self.timeframes[timeframe],
+        request: dict = {
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        response = await self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
+        response = await self.publicGetCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
         #
         #     {
-        #         'status': '0000',
-        #         'data': {
+        #         "status": "0000",
+        #         "data": {
         #             [
         #                 1576823400000,  # 기준 시간
-        #                 '8284000',  # 시가
-        #                 '8286000',  # 종가
-        #                 '8289000',  # 고가
-        #                 '8276000',  # 저가
-        #                 '15.41503692'  # 거래량
+        #                 "8284000",  # 시가
+        #                 "8286000",  # 종가
+        #                 "8289000",  # 고가
+        #                 "8276000",  # 저가
+        #                 "15.41503692"  # 거래량
         #             ],
         #             [
         #                 1576824000000,  # 기준 시간
-        #                 '8284000',  # 시가
-        #                 '8281000',  # 종가
-        #                 '8289000',  # 고가
-        #                 '8275000',  # 저가
-        #                 '6.19584467'  # 거래량
+        #                 "8284000",  # 시가
+        #                 "8281000",  # 종가
+        #                 "8289000",  # 고가
+        #                 "8275000",  # 저가
+        #                 "6.19584467"  # 거래량
         #             ],
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -589,23 +686,27 @@ class bithumb(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
+
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'currency': market['base'],
+        request: dict = {
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
-        if limit is None:
+        if limit is not None:
             request['count'] = limit  # default 20, max 100
-        response = await self.publicGetTransactionHistoryCurrency(self.extend(request, params))
+        response = await self.publicGetTransactionHistoryBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -620,23 +721,28 @@ class bithumb(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -651,26 +757,30 @@ class bithumb(Exchange):
         id = self.safe_string(response, 'order_id')
         if id is None:
             raise InvalidOrder(self.id + ' createOrder() did not return an order id')
-        return {
+        return self.safe_order({
             'info': response,
             'symbol': symbol,
             'type': type,
             'side': side,
             'id': id,
-        }
+        }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -681,41 +791,41 @@ class bithumb(Exchange):
         #     {
         #         "status": "0000",
         #         "data": {
-        #             order_date: '1603161798539254',
-        #             type: 'ask',
-        #             order_status: 'Cancel',
-        #             order_currency: 'BTC',
-        #             payment_currency: 'KRW',
-        #             watch_price: '0',
-        #             order_price: '13344000',
-        #             order_qty: '0.0125',
-        #             cancel_date: '1603161803809993',
-        #             cancel_type: '사용자취소',
-        #             contract: [
+        #             "order_date": "1603161798539254",
+        #             "type": "ask",
+        #             "order_status": "Cancel",
+        #             "order_currency": "BTC",
+        #             "payment_currency": "KRW",
+        #             "watch_price": "0",
+        #             "order_price": "13344000",
+        #             "order_qty": "0.0125",
+        #             "cancel_date": "1603161803809993",
+        #             "cancel_type": "사용자취소",
+        #             "contract": [
         #                 {
-        #                     transaction_date: '1603161799976383',
-        #                     price: '13344000',
-        #                     units: '0.0015',
-        #                     fee_currency: 'KRW',
-        #                     fee: '0',
-        #                     total: '20016'
+        #                     "transaction_date": "1603161799976383",
+        #                     "price": "13344000",
+        #                     "units": "0.0015",
+        #                     "fee_currency": "KRW",
+        #                     "fee": "0",
+        #                     "total": "20016"
         #                 }
         #             ],
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(self.extend(data, {'order_id': id}), market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
         # fetchOrder
@@ -726,7 +836,7 @@ class bithumb(Exchange):
         #         "order_status": "Completed",  # Completed, Cancel ...
         #         "order_currency": "BTC",
         #         "payment_currency": "KRW",
-        #         "watch_price": '0',  # present in Cancel order
+        #         "watch_price": "0",  # present in Cancel order
         #         "order_price": "8601000",
         #         "order_qty": "0.007",
         #         "cancel_date": "",  # filled in Cancel order
@@ -757,7 +867,7 @@ class bithumb(Exchange):
         #     }
         #
         timestamp = self.safe_integer_product(order, 'order_date', 0.001)
-        sideProperty = self.safe_value_2(order, 'type', 'side')
+        sideProperty = self.safe_string_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
         price = self.safe_string_2(order, 'order_price', 'price')
@@ -782,7 +892,7 @@ class bithumb(Exchange):
             market = self.safe_market(None, market)
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_value(order, 'contract', [])
+        rawTrades = self.safe_list(order, 'contract', [])
         return self.safe_order({
             'info': order,
             'id': id,
@@ -796,7 +906,7 @@ class bithumb(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,
@@ -807,14 +917,17 @@ class bithumb(Exchange):
             'trades': rawTrades,
         }, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
+
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -822,7 +935,7 @@ class bithumb(Exchange):
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request = {
+        request: dict = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -847,60 +960,74 @@ class bithumb(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         side_in_params = ('side' in params)
         if not side_in_params:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         market = self.market(symbol)
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
         # https://github.com/ccxt/ccxt/issues/6771
-        request = {
+        request: dict = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         }
-        return await self.privatePostTradeCancel(self.extend(request, params))
+        response = await self.privatePostTradeCancel(self.extend(request, params))
+        #
+        #    {
+        #       'status': 'string',
+        #    }
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
-    def cancel_unified_order(self, order, params={}):
-        request = {
+    async def cancel_unified_order(self, order, params={}):
+        request: dict = {
             'side': order['side'],
         }
-        return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
+        return await self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
+
+        https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
         }
-        if currency == 'XRP' or currency == 'XMR' or currency == 'EOS' or currency == 'STEEM':
+        if code == 'XRP' or code == 'XMR' or code == 'EOS' or code == 'STEEM' or code == 'TON':
             destination = self.safe_string(params, 'destination')
             if (tag is None) and (destination is None):
                 raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
@@ -912,7 +1039,7 @@ class bithumb(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -937,6 +1064,7 @@ class bithumb(Exchange):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }
@@ -968,7 +1096,7 @@ class bithumb(Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            signature64 = self.decode(self.string_to_base64(signature))
+            signature64 = self.string_to_base64(signature)
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -978,9 +1106,9 @@ class bithumb(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'status' in response:
             #
             #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
@@ -989,11 +1117,12 @@ class bithumb(Exchange):
             message = self.safe_string(response, 'message')
             if status is not None:
                 if status == '0000':
-                    return  # no error
-                elif message == '거래 진행중인 내역이 존재하지 않습니다':
+                    return None  # no error
+                elif message == '거래 진행중인 내역이 존재하지 않습니다.':
                     # https://github.com/ccxt/ccxt/issues/9017
-                    return  # no error
-                feedback = self.id + ' ' + body
+                    return None  # no error
+                feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)
+        return None

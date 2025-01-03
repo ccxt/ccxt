@@ -1,5 +1,7 @@
 *.* text eol=lf
 php/test/*.php linguist-generated=true
 php/*.php linguist-generated=true
-python/ccxt/*.py linguist-generated=true
-python/ccxt/__init__.py linguist-generated=false
+php/abstract/*.php linguist-generated=true
+php/async/abstract/*.php linguist-generated=true
+php/pro/*.php linguist-generated=true
+*.png binary

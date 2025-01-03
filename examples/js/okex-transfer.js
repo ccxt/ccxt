@@ -1,6 +1,6 @@
-"use strict";
 
-const ccxt = require ('../../ccxt.js')
+
+import ccxt from '../../js/ccxt.js';
 
 console.log ('CCXT version:', ccxt.version)
 console.log ('This example requires CCXT version 1.54.92 or higher')

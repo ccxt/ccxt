@@ -1,7 +1,7 @@
-"use strict"
 
-const log = require ('ololog')
-    , ccxt = require ('../../ccxt.js')
+
+import log from 'ololog';
+import ccxt from '../../js/ccxt.js';
 
 const exchange = new ccxt.coinone ({
     'verbose': process.argv.includes ('--verbose'),

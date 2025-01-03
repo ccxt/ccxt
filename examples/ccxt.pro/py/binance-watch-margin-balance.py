@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import run
-import ccxtpro as ccxt
+import ccxt.pro as ccxt
 from pprint import pprint
 
 
@@ -14,7 +14,7 @@ from pprint import pprint
 
 
 async def main():
-    exchange = ccxt.binance({
+    exchange = ccxt.pro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         'options': {
