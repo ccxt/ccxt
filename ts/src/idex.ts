@@ -526,6 +526,7 @@ export default class idex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -541,42 +542,50 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const response = await this.publicGetCandles (this.extend (request, params));
-        if (Array.isArray (response)) {
-            // [
-            //   {
-            //     "start": 1598345580000,
-            //     "open": "0.09771286",
-            //     "high": "0.09771286",
-            //     "low": "0.09771286",
-            //     "close": "0.09771286",
-            //     "volume": "1.45340410",
-            //     "sequence": 3853
-            //   }, ...
-            // ]
-            return this.parseOHLCVs (response, market, timeframe, since, limit);
-        } else {
-            //  {"nextTime":1595536440000}
-            return [];
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
         }
+        const response = await this.publicGetCandles (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "start": 1735913340000,
+        //             "open": "3495.90000000",
+        //             "high": "3496.60000000",
+        //             "low": "3495.90000000",
+        //             "close": "3496.60000000",
+        //             "baseVolume": "0.02000000",
+        //             "quoteVolume": "69.92500000",
+        //             "trades": 2,
+        //             "sequence": 214495
+        //         }, ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        // {
-        //   "start": 1598345580000,
-        //   "open": "0.09771286",
-        //   "high": "0.09771286",
-        //   "low": "0.09771286",
-        //   "close": "0.09771286",
-        //   "volume": "1.45340410",
-        //   "sequence": 3853
-        // }
+        //
+        //     {
+        //         "start": 1735913340000,
+        //         "open": "3495.90000000",
+        //         "high": "3496.60000000",
+        //         "low": "3495.90000000",
+        //         "close": "3496.60000000",
+        //         "baseVolume": "0.02000000",
+        //         "quoteVolume": "69.92500000",
+        //         "trades": 2,
+        //         "sequence": 214495
+        //     }
+        //
         const timestamp = this.safeInteger (ohlcv, 'start');
         const open = this.safeNumber (ohlcv, 'open');
         const high = this.safeNumber (ohlcv, 'high');
         const low = this.safeNumber (ohlcv, 'low');
         const close = this.safeNumber (ohlcv, 'close');
-        const volume = this.safeNumber (ohlcv, 'volume');
+        const volume = this.safeNumber (ohlcv, 'baseVolume');
         return [ timestamp, open, high, low, close, volume ];
     }
 
@@ -796,7 +805,7 @@ export default class idex extends Exchange {
     }
 
     parseSide (book, side) {
-        const bookSide = this.safeValue (book, side, []);
+        const bookSide = this.safeList (book, side, []);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const order = bookSide[i];
@@ -1125,7 +1134,7 @@ export default class idex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'time');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeList (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'market');
@@ -1790,7 +1799,7 @@ export default class idex extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
         let cost = this.safeNumber (config, 'cost', 1);
-        const bundled = this.safeValue (config, 'bundled');
+        const bundled = this.safeNumber (config, 'bundled');
         const limit = this.safeNumber (params, 'limit');
         if ((bundled !== undefined) && (limit !== undefined) && (limit > 100)) {
             cost = bundled;
