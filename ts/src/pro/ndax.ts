@@ -3,7 +3,7 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,6 +15,7 @@ export default class ndax extends ndaxRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchTicker': true,
                 'watchOHLCV': true,
             },
@@ -40,15 +41,16 @@ export default class ndax extends ndaxRest {
         return requestId;
     }
 
-    async watchTicker (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name ndax#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name ndax#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidoc.ndax.io/#subscribelevel1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -56,12 +58,12 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -107,17 +109,18 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ndax#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name ndax#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidoc.ndax.io/#subscribetrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -126,12 +129,12 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             'IncludeLastCount': 100, // the number of previous trades to retrieve in the immediate snapshot, 100 by default
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -167,7 +170,7 @@ export default class ndax extends ndaxRest {
         //     ]
         //
         const name = 'SubscribeTrades';
-        const updates = {};
+        const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
             const symbol = trade['symbol'];
@@ -190,18 +193,19 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ndax#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
+    /**
+     * @method
+     * @name ndax#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidoc.ndax.io/#subscribeticker
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -210,13 +214,13 @@ export default class ndax extends ndaxRest {
         const messageHash = name + ':' + timeframe + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
@@ -233,10 +237,10 @@ export default class ndax extends ndaxRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeTicker',
-        //         o: [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeTicker",
+        //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -256,7 +260,7 @@ export default class ndax extends ndaxRest {
         //         ]
         //     ]
         //
-        const updates = {};
+        const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
             const ohlcv = payload[i];
             const marketId = this.safeString (ohlcv, 8);
@@ -322,16 +326,17 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ndax#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name ndax#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidoc.ndax.io/#subscribelevel2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -341,19 +346,19 @@ export default class ndax extends ndaxRest {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         limit = (limit === undefined) ? 100 : limit;
-        const payload = {
+        const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': parseInt (market['id']), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
             'Depth': limit, // default 100
         };
-        const request = {
+        const request: Dict = {
             'm': 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
             'i': requestId, // sequence number identifies an individual request or request-and-response pair, to your application
             'n': name, // function name is the name of the function being called or that the server is responding to, the server echoes your call
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'name': name,
@@ -371,10 +376,10 @@ export default class ndax extends ndaxRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -395,13 +400,13 @@ export default class ndax extends ndaxRest {
         const firstBidAsk = this.safeValue (payload, 0, []);
         const marketId = this.safeString (firstBidAsk, 7);
         if (marketId === undefined) {
-            return message;
+            return;
         }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            return message;
+            return;
         }
         let timestamp = undefined;
         let nonce = undefined;
@@ -447,10 +452,10 @@ export default class ndax extends ndaxRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -482,10 +487,10 @@ export default class ndax extends ndaxRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
@@ -493,10 +498,8 @@ export default class ndax extends ndaxRest {
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         }
     }
@@ -511,25 +514,25 @@ export default class ndax extends ndaxRest {
         //     }
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: '[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]'
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
         const payload = this.safeString (message, 'o');
         if (payload === undefined) {
-            return message;
+            return;
         }
         message['o'] = JSON.parse (payload);
-        const methods = {
+        const methods: Dict = {
             'SubscribeLevel2': this.handleSubscriptionStatus,
             'SubscribeLevel1': this.handleTicker,
             'Level2UpdateEvent': this.handleOrderBook,
@@ -541,10 +544,8 @@ export default class ndax extends ndaxRest {
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
         }
     }
 }

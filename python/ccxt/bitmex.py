@@ -6,11 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +19,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -50,10 +48,16 @@ class bitmex(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': None,
                 'cancelAllOrders': True,
+                'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopOrder': True,
+                'createTrailingAmountOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -62,19 +66,23 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDepositsWithdrawals': 'emulated',
-                'fetchDepositWithdrawalFee': 'emulated',
-                'fetchDepositWithdrawalFees': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': 'emulated',  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
+                'fetchLeverage': 'emulated',
+                'fetchLeverages': True,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': True,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -82,7 +90,9 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositions': True,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -92,6 +102,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': None,
+                'sandbox': True,
                 'setLeverage': True,
                 'setMargin': None,
                 'setMarginMode': True,
@@ -110,7 +121,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -121,7 +132,10 @@ class bitmex(Exchange, ImplicitAPI):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
-                'referral': 'https://www.bitmex.com/register/upZpOX',
+                'referral': {
+                    'url': 'https://www.bitmex.com/app/register/NZTR1q',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {
@@ -133,6 +147,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'chat/connected': 5,
                         'chat/pinned': 5,
                         'funding': 5,
+                        'guild': 5,
                         'instrument': 5,
                         'instrument/active': 5,
                         'instrument/activeAndIndices': 5,
@@ -161,6 +176,7 @@ class bitmex(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'address': 5,
                         'apiKey': 5,
                         'execution': 5,
                         'execution/tradeHistory': 5,
@@ -173,21 +189,33 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/affiliateStatus': 5,
                         'user/checkReferralCode': 5,
                         'user/commission': 5,
+                        'user/csa': 5,
                         'user/depositAddress': 5,
                         'user/executionHistory': 5,
+                        'user/getWalletTransferAccounts': 5,
                         'user/margin': 5,
                         'user/quoteFillRatio': 5,
                         'user/quoteValueRatio': 5,
+                        'user/staking': 5,
+                        'user/staking/instruments': 5,
+                        'user/staking/tiers': 5,
                         'user/tradingVolume': 5,
+                        'user/unstakingRequests': 5,
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'userAffiliates': 5,
                         'userEvent': 5,
                     },
                     'post': {
+                        'address': 5,
                         'chat': 5,
+                        'guild': 5,
+                        'guild/archive': 5,
                         'guild/join': 5,
+                        'guild/kick': 5,
                         'guild/leave': 5,
+                        'guild/sharesTrades': 5,
                         'order': 1,
                         'order/cancelAllAfter': 5,
                         'order/closePosition': 5,
@@ -195,6 +223,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'position/leverage': 1,
                         'position/riskLimit': 5,
                         'position/transferMargin': 1,
+                        'user/addSubaccount': 5,
                         'user/cancelWithdrawal': 5,
                         'user/communicationToken': 5,
                         'user/confirmEmail': 5,
@@ -202,13 +231,18 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/logout': 5,
                         'user/preferences': 5,
                         'user/requestWithdrawal': 5,
+                        'user/unstakingRequests': 5,
+                        'user/updateSubaccount': 5,
+                        'user/walletTransfer': 5,
                     },
                     'put': {
+                        'guild': 5,
                         'order': 1,
                     },
                     'delete': {
                         'order': 1,
                         'order/all': 1,
+                        'user/unstakingRequests': 5,
                     },
                 },
             },
@@ -221,6 +255,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'orderQty is invalid': InvalidOrder,
                     'Invalid price': InvalidOrder,
                     'Invalid stopPx for ordType': InvalidOrder,
+                    'Account is restricted': PermissionDenied,  # {"error":{"message":"Account is restricted","name":"HTTPError"}}
                 },
                 'broad': {
                     'Signature not valid': AuthenticationError,
@@ -241,34 +276,115 @@ class bitmex(Exchange, ImplicitAPI):
                 'oldPrecision': False,
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
                     'BEP20': 'bsc',
-                    'BSC': 'bsc',
                     'TRC20': 'tron',
-                    'TRON': 'tron',
-                    'TRX': 'tron',
-                    'AVALANCHEC': 'avax',
+                    'AVAXC': 'avax',
                     'NEAR': 'near',
-                    'TEZOS': 'xtz',
                     'XTZ': 'xtz',
-                    'POLKADOT': 'dot',
                     'DOT': 'dot',
-                    'SOLANA': 'sol',
                     'SOL': 'sol',
-                    'CARDANO': 'ada',
+                    'ADA': 'ada',
                 },
-                'networksById': {
-                    'btc': 'BTC',
-                    'eth': 'ERC20',
-                    'bsc': 'BEP20',
-                    'tron': 'TRC20',
-                    'avax': 'AVALANCHEC',
-                    'near': 'NEAR',
-                    'xtz': 'TEZOS',
-                    'dot': 'POLKADOT',
-                    'sol': 'SOLANA',
-                    'ada': 'CARDANO',
+                'features': {
+                    'default': {
+                        'sandbox': True,
+                        'createOrder': {
+                            'marginMode': True,
+                            'triggerPrice': True,
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                            },
+                            'triggerDirection': True,
+                            'stopLossPrice': False,
+                            'takeProfitPrice': False,
+                            'attachedStopLossTakeProfit': None,
+                            'timeInForce': {
+                                'IOC': True,
+                                'FOK': True,
+                                'PO': True,
+                                'GTD': False,
+                            },
+                            'hedged': False,
+                            'trailing': True,
+                            'marketBuyRequiresPrice': False,
+                            'marketBuyByCost': False,
+                            'leverage': False,
+                            'selfTradePrevention': False,
+                            'iceberg': True,  # todo
+                        },
+                        'createOrders': None,
+                        'fetchMyTrades': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBack': None,
+                            'untilDays': 1000000,
+                        },
+                        'fetchOrder': {
+                            'marginMode': False,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOpenOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBack': None,
+                            'untilDays': 1000000,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchClosedOrders': {
+                            'marginMode': False,
+                            'limit': 500,
+                            'daysBack': None,
+                            'daysBackCanceled': None,
+                            'untilDays': 1000000,
+                            'trigger': False,
+                            'trailing': False,
+                        },
+                        'fetchOHLCV': {
+                            'limit': 10000,
+                        },
+                    },
+                    'spot': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': False,
+                            },
+                        },
+                    },
+                    'forDeriv': {
+                        'extends': 'default',
+                        'createOrder': {
+                            'triggerPriceType': {
+                                'index': True,
+                            },
+                        },
+                    },
+                    'swap': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
+                    'future': {
+                        'linear': {
+                            'extends': 'forDeriv',
+                        },
+                        'inverse': {
+                            'extends': 'forDeriv',
+                        },
+                    },
                 },
             },
             'commonCurrencies': {
@@ -282,10 +398,13 @@ class bitmex(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the mexc3 api endpoint
+
+        https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetWalletAssets(params)
@@ -322,7 +441,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        },
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             asset = self.safe_string(currency, 'asset')
@@ -332,7 +451,7 @@ class bitmex(Exchange, ImplicitAPI):
             chains = self.safe_value(currency, 'networks', [])
             depositEnabled = False
             withdrawEnabled = False
-            networks = {}
+            networks: dict = {}
             scale = self.safe_string(currency, 'scale')
             precisionString = self.parse_precision(scale)
             precision = self.parse_number(precisionString)
@@ -342,8 +461,8 @@ class bitmex(Exchange, ImplicitAPI):
                 network = self.network_id_to_code(networkId)
                 withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
                 withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
-                isDepositEnabled = self.safe_value(chain, 'depositEnabled', False)
-                isWithdrawEnabled = self.safe_value(chain, 'withdrawalEnabled', False)
+                isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
+                isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 if isDepositEnabled:
                     depositEnabled = True
@@ -412,12 +531,14 @@ class bitmex(Exchange, ImplicitAPI):
         finalAmount = Precise.string_div(amountString, precision)
         return self.parse_number(finalAmount)
 
-    def convert_to_real_amount(self, code, amount):
+    def convert_to_real_amount(self, code: Str, amount: Str):
+        if code is None:
+            return amount
+        elif amount is None:
+            return None
         currency = self.currency(code)
         precision = self.safe_string(currency, 'precision')
-        amountString = self.number_to_string(amount)
-        finalAmount = Precise.string_mul(amountString, precision)
-        return self.parse_number(finalAmount)
+        return Precise.string_mul(amount, precision)
 
     def amount_to_precision(self, symbol, amount):
         symbol = self.safe_symbol(symbol)
@@ -436,19 +557,22 @@ class bitmex(Exchange, ImplicitAPI):
             return self.parse_number(rawQuantity)
         market = self.market(symbol)
         if market['spot']:
-            return self.convert_to_real_amount(market[currencySide], rawQuantity)
+            return self.parse_number(self.convert_to_real_amount(market[currencySide], rawQuantity))
         return self.parse_number(rawQuantity)
 
     def convert_from_raw_cost(self, symbol, rawQuantity):
         return self.convert_from_raw_quantity(symbol, rawQuantity, 'quote')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitmex
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+
+        https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActive
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetInstrumentActiveAndIndices(params)
+        response = self.publicGetInstrumentActive(params)
         #
         #  [
         #    {
@@ -560,124 +684,125 @@ class bitmex(Exchange, ImplicitAPI):
         #    }
         #  ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'underlying')
-            quoteId = self.safe_string(market, 'quoteCurrency')
-            settleId = self.safe_string(market, 'settlCurrency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            settle = self.safe_currency_code(settleId)
-            # 'positionCurrency' may be empty("", currently returns for ETHUSD)
-            # so let's take the settlCurrency first and then adjust if needed
-            typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
-            types = {
-                'FFWCSX': 'swap',
-                'FFWCSF': 'swap',
-                'IFXXXP': 'spot',
-                'FFCCSX': 'future',
-                'MRBXXX': 'index',
-                'MRCXXX': 'index',
-                'MRFXXX': 'index',
-                'MRRXXX': 'index',
-                'MRIXXX': 'index',
-            }
-            type = self.safe_string(types, typ, typ)
-            swap = type == 'swap'
-            future = type == 'future'
-            spot = type == 'spot'
-            contract = swap or future
-            contractSize = None
-            index = type == 'index'
-            isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-            isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-            linear = (not isInverse and not isQuanto) if contract else None
-            status = self.safe_string(market, 'state')
-            active = status != 'Unlisted'
-            expiry = None
-            expiryDatetime = None
-            symbol = None
-            if spot:
-                symbol = base + '/' + quote
-            elif contract:
-                symbol = base + '/' + quote + ':' + settle
-                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
-                if linear:
-                    contractSize = self.parse_number(Precise.string_div('1', market['underlyingToPositionMultiplier']))
-                else:
-                    contractSize = self.parse_number(multiplierString)
-                if future:
-                    expiryDatetime = self.safe_string(market, 'expiry')
-                    expiry = self.parse8601(expiryDatetime)
-                    symbol = symbol + '-' + self.yymmdd(expiry)
-            else:
-                # for index/exotic markets, default to id
-                symbol = id
-            positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
-            position = self.safe_currency_code(positionId)
-            positionIsQuote = (position == quote)
-            maxOrderQty = self.safe_number(market, 'maxOrderQty')
-            initMargin = self.safe_string(market, 'initMargin', '1')
-            maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': False,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'index': index,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': isInverse,
-                'quanto': isQuanto,
-                'taker': self.safe_number(market, 'takerFee'),
-                'maker': self.safe_number(market, 'makerFee'),
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': self.safe_number(market, 'optionStrikePrice'),
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
-                    'quote': self.safe_number(market, 'tickSize'),
-                    'base': self.safe_number(market, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1') if contract else None,
-                        'max': maxLeverage if contract else None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None if positionIsQuote else maxOrderQty,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': self.safe_number(market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': maxOrderQty if positionIsQuote else None,
-                    },
-                },
-                'info': market,
-            })
-        return result
+        return self.parse_markets(response)
 
-    def parse_balance(self, response):
+    def parse_market(self, market: dict) -> Market:
+        id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'underlying')
+        quoteId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'settlCurrency')
+        settle = self.safe_currency_code(settleId)
+        # 'positionCurrency' may be empty("", currently returns for ETHUSD)
+        # so let's take the settlCurrency first and then adjust if needed
+        typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
+        type: MarketType
+        swap = False
+        spot = False
+        future = False
+        if typ == 'FFWCSX':
+            type = 'swap'
+            swap = True
+        elif typ == 'IFXXXP':
+            type = 'spot'
+            spot = True
+        elif typ == 'FFCCSX':
+            type = 'future'
+            future = True
+        elif typ == 'FFICSX':
+            # prediction markets(without any volume)
+            quoteId = baseId
+            baseId = self.safe_string(market, 'rootSymbol')
+            type = 'future'
+            future = True
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        contract = swap or future
+        contractSize = None
+        isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        linear = (not isInverse and not isQuanto) if contract else None
+        status = self.safe_string(market, 'state')
+        active = status != 'Unlisted'
+        expiry = None
+        expiryDatetime = None
+        symbol = None
+        if spot:
+            symbol = base + '/' + quote
+        elif contract:
+            symbol = base + '/' + quote + ':' + settle
+            if linear:
+                multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
+                contractSize = self.parse_number(Precise.string_div('1', multiplierString))
+            else:
+                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
+                contractSize = self.parse_number(multiplierString)
+            if future:
+                expiryDatetime = self.safe_string(market, 'expiry')
+                expiry = self.parse8601(expiryDatetime)
+                symbol = symbol + '-' + self.yymmdd(expiry)
+        else:
+            # for index/exotic markets, default to id
+            symbol = id
+        positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
+        position = self.safe_currency_code(positionId)
+        positionIsQuote = (position == quote)
+        maxOrderQty = self.safe_number(market, 'maxOrderQty')
+        initMargin = self.safe_string(market, 'initMargin', '1')
+        maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': False,
+            'swap': swap,
+            'future': future,
+            'option': False,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': isInverse,
+            'quanto': isQuanto,
+            'taker': self.safe_number(market, 'takerFee'),
+            'maker': self.safe_number(market, 'makerFee'),
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
+            'strike': self.safe_number(market, 'optionStrikePrice'),
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'lotSize'),
+                'price': self.safe_number(market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': self.parse_number('1') if contract else None,
+                    'max': maxLeverage if contract else None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None if positionIsQuote else maxOrderQty,
+                },
+                'price': {
+                    'min': None,
+                    'max': self.safe_number(market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': None,
+                    'max': maxOrderQty if positionIsQuote else None,
+                },
+            },
+            'created': self.parse8601(self.safe_string(market, 'listing')),
+            'info': market,
+        }
+
+    def parse_balance(self, response) -> Balances:
         #
         #     [
         #         {
@@ -725,7 +850,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -738,14 +863,17 @@ class bitmex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+
+        https://www.bitmex.com/api/explorer/#not /User/User_getMargin
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'currency': 'all',
         }
         response = self.privateGetUserMargin(self.extend(request, params))
@@ -798,23 +926,26 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.bitmex.com/api/explorer/#not /OrderBook/OrderBook_getL2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetOrderBookL2(self.extend(request, params))
-        result = {
+        result: dict = {
             'symbol': symbol,
             'bids': [],
             'asks': [],
@@ -836,14 +967,18 @@ class bitmex(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        filter = {
+        filter: dict = {
             'filter': {
                 'orderID': id,
             },
@@ -854,18 +989,27 @@ class bitmex(Exchange, ImplicitAPI):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the earliest time in ms to fetch orders for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -873,6 +1017,10 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -882,54 +1030,72 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'filter': {
                 'open': True,
             },
         }
         return self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # Bitmex barfs if you set 'open': False in the filter...
         orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://www.bitmex.com/api/explorer/#not /Execution/Execution_getTradeHistory
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(500, limit)
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -993,33 +1159,34 @@ class bitmex(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
             'UnrealisedPNL': 'margin',
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
-        #         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        #         account:  24321,
-        #         currency: "XBt",
-        #         transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        #         amount:  -1000000,
-        #         fee:  300000,
-        #         transactStatus: "Completed",  # "Canceled", ...
-        #         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        #         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        #         text: "",
-        #         transactTime: "2017-03-21T20:05:14.388Z",
-        #         walletBalance:  0,  # balance after
-        #         marginBalance:  null,
-        #         timestamp: "2017-03-22T13:09:23.514Z"
+        #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        #         "account":  24321,
+        #         "currency": "XBt",
+        #         "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #         "amount":  -1000000,
+        #         "fee":  300000,
+        #         "transactStatus": "Completed",  # "Canceled", ...
+        #         "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #         "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #         "text": "",
+        #         "transactTime": "2017-03-21T20:05:14.388Z",
+        #         "walletBalance":  0,  # balance after
+        #         "marginBalance":  null,
+        #         "timestamp": "2017-03-22T13:09:23.514Z"
         #     }
         #
         # ButMEX returns the unrealized pnl from the wallet history endpoint.
@@ -1052,6 +1219,7 @@ class bitmex(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         amountString = self.safe_string(item, 'amount')
         amount = self.convert_to_real_amount(code, amountString)
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
@@ -1060,14 +1228,15 @@ class bitmex(Exchange, ImplicitAPI):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
-        feeCost = self.safe_number(item, 'fee', 0)
+        fee = None
+        feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
-        fee = {
-            'cost': feeCost,
-            'currency': code,
-        }
-        after = self.safe_number(item, 'walletBalance')
+            fee = {
+                'cost': self.parse_number(feeCost),
+                'currency': code,
+            }
+        after = self.safe_string(item, 'walletBalance')
         if after is not None:
             after = self.convert_to_real_amount(code, after)
         before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
@@ -1078,9 +1247,9 @@ class bitmex(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
-        return {
-            'id': id,
+        return self.safe_ledger_entry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'direction': direction,
@@ -1089,24 +1258,27 @@ class bitmex(Exchange, ImplicitAPI):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': before,
-            'after': after,
+            'after': self.parse_number(after),
             'status': status,
             'fee': fee,
-        }
+        }, currency)
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://www.bitmex.com/api/explorer/#not /User/User_getWalletHistory
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :param int [limit]: max number of ledger entries to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'start': 123,
         }
         #
@@ -1124,37 +1296,39 @@ class bitmex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        #             account:  24321,
-        #             currency: "XBt",
-        #             transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        #             amount:  -1000000,
-        #             fee:  300000,
-        #             transactStatus: "Completed",  # "Canceled", ...
-        #             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        #             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        #             text: "",
-        #             transactTime: "2017-03-21T20:05:14.388Z",
-        #             walletBalance:  0,  # balance after
-        #             marginBalance:  null,
-        #             timestamp: "2017-03-22T13:09:23.514Z"
+        #             "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        #             "account":  24321,
+        #             "currency": "XBt",
+        #             "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #             "amount":  -1000000,
+        #             "fee":  300000,
+        #             "transactStatus": "Completed",  # "Canceled", ...
+        #             "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #             "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #             "text": "",
+        #             "transactTime": "2017-03-21T20:05:14.388Z",
+        #             "walletBalance":  0,  # balance after
+        #             "marginBalance":  null,
+        #             "timestamp": "2017-03-22T13:09:23.514Z"
         #         }
         #     ]
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-         * @deprecated
-        use fetchDepositsWithdrawals instead
-        :param str code: unified currency code for the currency of the transactions, default is None
-        :param int [since]: timestamp in ms of the earliest transaction, default is None
-        :param int [limit]: max number of transactions to return, default is None
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        fetch history of deposits and withdrawals
+
+        https://www.bitmex.com/api/explorer/#not /User/User_getWalletHistory
+
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'currency': 'all',
             # 'start': 123,
         }
@@ -1173,32 +1347,33 @@ class bitmex(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
+            'Confirmed': 'pending',
             'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
-        #        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        #        'account': 123456,
-        #        'currency': 'XBt',
-        #        'network':'',  # "tron" for USDt, etc...
-        #        'transactType': 'Withdrawal',
-        #        'amount': -100100000,
-        #        'fee': 100000,
-        #        'transactStatus': 'Completed',
-        #        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        #        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        #        'text': '',
-        #        'transactTime': '2019-01-02T01:00:00.000Z',
-        #        'walletBalance': 99900000,  # self field might be inexistent
-        #        'marginBalance': None,  # self field might be inexistent
-        #        'timestamp': '2019-01-02T13:00:00.000Z'
+        #        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
+        #        "account": 123456,
+        #        "currency": "XBt",
+        #        "network":'',  # "tron" for USDt, etc...
+        #        "transactType": "Withdrawal",
+        #        "amount": -100100000,
+        #        "fee": 100000,
+        #        "transactStatus": "Completed",
+        #        "address": "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP",
+        #        "tx": "3BMEXabcdefghijklmnopqrstuvwxyz123",
+        #        "text": '',
+        #        "transactTime": "2019-01-02T01:00:00.000Z",
+        #        "walletBalance": 99900000,  # self field might be inexistent
+        #        "marginBalance": None,  # self field might be inexistent
+        #        "timestamp": "2019-01-02T13:00:00.000Z"
         #    }
         #
         currencyId = self.safe_string(transaction, 'currency')
@@ -1220,7 +1395,8 @@ class bitmex(Exchange, ImplicitAPI):
             addressTo = self.safe_string(transaction, 'address')
             addressFrom = self.safe_string(transaction, 'tx')
         amountString = self.safe_string(transaction, 'amount')
-        amount = self.convert_to_real_amount(currency['code'], amountString)
+        amountStringAbs = Precise.string_abs(amountString)
+        amount = self.convert_to_real_amount(currency['code'], amountStringAbs)
         feeCostString = self.safe_string(transaction, 'fee')
         feeCost = self.convert_to_real_amount(currency['code'], feeCostString)
         status = self.safe_string(transaction, 'transactStatus')
@@ -1232,8 +1408,8 @@ class bitmex(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
             'currency': currency['code'],
-            'network': self.safe_string(transaction, 'network'),
-            'amount': amount,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
+            'amount': self.parse_number(amount),
             'status': status,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
@@ -1244,24 +1420,28 @@ class bitmex(Exchange, ImplicitAPI):
             'tagFrom': None,
             'tagTo': None,
             'updated': timestamp,
+            'internal': None,
             'comment': None,
             'fee': {
                 'currency': currency['code'],
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetInstrument(self.extend(request, params))
@@ -1270,26 +1450,29 @@ class bitmex(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' not found')
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActiveAndIndices
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetInstrumentActiveAndIndices(params)
         # same response "fetchMarkets"
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1314,12 +1497,13 @@ class bitmex(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'homeNotional24h')),
-            'quoteVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'foreignNotional24h')),
+            'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1349,25 +1533,33 @@ class bitmex(Exchange, ImplicitAPI):
             volume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.bitmex.com/api/explorer/#not /Trade/Trade_getBucketed
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params)
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
-        # filter = {'key': 'value'}
+        # filter: Dict = {'key': 'value'}
         # send a bare series(e.g. XBU) to nearest expiring contract in that series
         # you can also send a timeframe, e.g. XBU:monthly
         # timeframes: daily, weekly, monthly, quarterly, and biquarterly
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
             'partial': True,     # True == include yet-incomplete current bins
@@ -1379,15 +1571,19 @@ class bitmex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         duration = self.parse_timeframe(timeframe) * 1000
-        fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
+        fetchOHLCVOpenTimestamp = self.safe_bool(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             timestamp = since
             if fetchOHLCVOpenTimestamp:
                 timestamp = self.sum(timestamp, duration)
-            ymdhms = self.ymdhms(timestamp)
-            request['startTime'] = ymdhms  # starting date filter for results
+            startTime = self.iso8601(timestamp)
+            request['startTime'] = startTime  # starting date filter for results
         else:
             request['reverse'] = True
         response = self.publicGetTradeBucketed(self.extend(request, params))
@@ -1407,21 +1603,21 @@ class bitmex(Exchange, ImplicitAPI):
                 result[i][0] = result[i][0] - duration
         return result
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
         #     {
-        #         timestamp: '2018-08-28T00:00:02.735Z',
-        #         symbol: 'XBTUSD',
-        #         side: 'Buy',
-        #         size: 2000,
-        #         price: 6906.5,
-        #         tickDirection: 'PlusTick',
-        #         trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        #         grossValue: 28958000,
-        #         homeNotional: 0.28958,
-        #         foreignNotional: 2000
+        #         "timestamp": "2018-08-28T00:00:02.735Z",
+        #         "symbol": "XBTUSD",
+        #         "side": "Buy",
+        #         "size": 2000,
+        #         "price": 6906.5,
+        #         "tickDirection": "PlusTick",
+        #         "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        #         "grossValue": 28958000,
+        #         "homeNotional": 0.28958,
+        #         "foreignNotional": 2000
         #     }
         #
         # fetchMyTrades(private)
@@ -1489,13 +1685,11 @@ class bitmex(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.number_to_string(self.convert_from_raw_cost(symbol, self.safe_string(trade, 'execComm')))
         if feeCostString is not None:
-            currencyId = self.safe_string(trade, 'settlCurrency')
-            feeCurrencyCode = self.safe_currency_code(currencyId)
-            feeRateString = self.safe_string(trade, 'commission')
+            currencyId = self.safe_string_2(trade, 'settlCurrency', 'currency')
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'currency': self.safe_currency_code(currencyId),
+                'rate': self.safe_string(trade, 'commission'),
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
@@ -1519,8 +1713,8 @@ class bitmex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'New': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
@@ -1536,8 +1730,8 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -1545,7 +1739,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1583,21 +1777,18 @@ class bitmex(Exchange, ImplicitAPI):
         #         "timestamp":"2021-01-02T21:38:49.246Z"
         #     }
         #
-        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
-        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
-        price = self.safe_string(order, 'price')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         qty = self.safe_string(order, 'orderQty')
         cost = None
         amount = None
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         isInverse = False
-        if market is None:
+        if marketId is None:
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_value(market, 'inverse', False)
+            isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -1609,53 +1800,57 @@ class bitmex(Exchange, ImplicitAPI):
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
-        id = self.safe_string(order, 'orderID')
-        type = self.safe_string_lower(order, 'ordType')
-        side = self.safe_string_lower(order, 'side')
-        clientOrderId = self.safe_string(order, 'clOrdID')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.safe_number(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
         postOnly = None
         if execInst is not None:
             postOnly = (execInst == 'ParticipateDoNotInitiate')
+        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
+        triggerPrice = self.safe_number(order, 'stopPx')
+        remaining = self.safe_string(order, 'leavesQty')
         return self.safe_order({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'orderID'),
+            'clientOrderId': self.safe_string(order, 'clOrdID'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'transactTime')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': self.safe_string_lower(order, 'ordType'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'timeInForce')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'side': self.safe_string_lower(order, 'side'),
+            'price': self.safe_string(order, 'price'),
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': None,
-            'status': status,
+            'remaining': self.convert_from_raw_quantity(symbol, remaining),
+            'status': self.parse_order_status(self.safe_string(order, 'ordStatus')),
             'fee': None,
             'trades': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://www.bitmex.com/api/explorer/#not /Trade/Trade_get
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1664,74 +1859,111 @@ class bitmex(Exchange, ImplicitAPI):
             # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
             request['reverse'] = True
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(limit, 1000)  # api maximum 1000
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         response = self.publicGetTrade(self.extend(request, params))
         #
         #     [
         #         {
-        #             timestamp: '2018-08-28T00:00:02.735Z',
-        #             symbol: 'XBTUSD',
-        #             side: 'Buy',
-        #             size: 2000,
-        #             price: 6906.5,
-        #             tickDirection: 'PlusTick',
-        #             trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        #             grossValue: 28958000,
-        #             homeNotional: 0.28958,
-        #             foreignNotional: 2000
+        #             "timestamp": "2018-08-28T00:00:02.735Z",
+        #             "symbol": "XBTUSD",
+        #             "side": "Buy",
+        #             "size": 2000,
+        #             "price": 6906.5,
+        #             "tickDirection": "PlusTick",
+        #             "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        #             "grossValue": 28958000,
+        #             "homeNotional": 0.28958,
+        #             "foreignNotional": 2000
         #         },
         #         {
-        #             timestamp: '2018-08-28T00:00:03.778Z',
-        #             symbol: 'XBTUSD',
-        #             side: 'Sell',
-        #             size: 1000,
-        #             price: 6906,
-        #             tickDirection: 'MinusTick',
-        #             trdMatchID: '0d4f1682-5270-a800-569b-4a0eb92db97c',
-        #             grossValue: 14480000,
-        #             homeNotional: 0.1448,
-        #             foreignNotional: 1000
+        #             "timestamp": "2018-08-28T00:00:03.778Z",
+        #             "symbol": "XBTUSD",
+        #             "side": "Sell",
+        #             "size": 1000,
+        #             "price": 6906,
+        #             "tickDirection": "MinusTick",
+        #             "trdMatchID": "0d4f1682-5270-a800-569b-4a0eb92db97c",
+        #             "grossValue": 14480000,
+        #             "homeNotional": 0.1448,
+        #             "foreignNotional": 1000
         #         },
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_new
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param float [params.trailingAmount]: the quote amount to trail away from the current market price
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'future'):
+            if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': qty,  # lot size multiplied by the number of contracts
             'ordType': orderType,
             'text': brokerId,
         }
-        if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
-            stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type')
+        # support for unified trigger format
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTriggerOrder = triggerPrice is not None
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTriggerOrder or isTrailingAmountOrder:
+            triggerDirection = self.safe_string(params, 'triggerDirection')
+            triggerAbove = (triggerDirection == 'above')
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
+            if type == 'limit':
+                if side == 'buy':
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                else:
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+            elif type == 'market':
+                if side == 'buy':
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
+                else:
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            if isTrailingAmountOrder:
+                isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+                isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+                if isStopSellOrder or isBuyIfTouchedOrder:
+                    trailingAmount = '-' + trailingAmount
+                request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+                request['pegPriceType'] = 'TrailingStopPeg'
             else:
-                request['stopPx'] = float(self.price_to_precision(symbol, stopPrice))
-                params = self.omit(params, ['stopPx', 'stopPrice'])
+                if triggerPrice is None:
+                    # if exchange specific trigger types were provided
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type')
+                request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
+            request['ordType'] = orderType
+            params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
         if (orderType == 'Limit') or (orderType == 'StopLimit') or (orderType == 'LimitIfTouched'):
-            request['price'] = float(self.price_to_precision(symbol, price))
+            request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
@@ -1739,9 +1971,33 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.load_markets()
-        request = {}
+        request: dict = {}
+        trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
+        isTrailingAmountOrder = trailingAmount is not None
+        if isTrailingAmountOrder:
+            triggerDirection = self.safe_string(params, 'triggerDirection')
+            triggerAbove = (triggerDirection == 'above')
+            if (type == 'limit') or (type == 'market'):
+                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
+            orderType = None
+            if type == 'limit':
+                if side == 'buy':
+                    orderType = 'StopLimit' if triggerAbove else 'LimitIfTouched'
+                else:
+                    orderType = 'LimitIfTouched' if triggerAbove else 'StopLimit'
+            elif type == 'market':
+                if side == 'buy':
+                    orderType = 'Stop' if triggerAbove else 'MarketIfTouched'
+                else:
+                    orderType = 'MarketIfTouched' if triggerAbove else 'Stop'
+            isStopSellOrder = (side == 'sell') and ((orderType == 'Stop') or (orderType == 'StopLimit'))
+            isBuyIfTouchedOrder = (side == 'buy') and ((orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'))
+            if isStopSellOrder or isBuyIfTouchedOrder:
+                trailingAmount = '-' + trailingAmount
+            request['pegOffsetValue'] = self.parse_to_numeric(trailingAmount)
+            params = self.omit(params, ['triggerDirection', 'trailingAmount'])
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
         if origClOrdID is not None:
             request['origClOrdID'] = origClOrdID
@@ -1761,18 +2017,21 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_cancel
+
         :param str id: order id
         :param str symbol: not used by bitmex cancelOrder()
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
         clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
-        request = {}
+        request: dict = {}
         if clientOrderId is None:
             request['orderID'] = id
         else:
@@ -1786,19 +2045,22 @@ class bitmex(Exchange, ImplicitAPI):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_cancel
+
         :param str[] ids: order ids
         :param str symbol: not used by bitmex cancelOrders()
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # return self.cancel_order(ids, symbol, params)
         self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
         clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
-        request = {}
+        request: dict = {}
         if clientOrderId is None:
             request['orderID'] = ids
         else:
@@ -1807,15 +2069,18 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_orders(response)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_cancelAll
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1862,11 +2127,61 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params={}):
+        """
+        dead man's switch, cancel all orders after the given timeout
+
+        https://www.bitmex.com/api/explorer/#not /Order/Order_cancelAllAfter
+
+        :param number timeout: time in milliseconds, 0 represents cancel the timer
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the api result
+        """
+        self.load_markets()
+        request: dict = {
+            'timeout': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
+        }
+        response = self.privatePostOrderCancelAllAfter(self.extend(request, params))
+        #
+        #     {
+        #         now: '2024-04-09T09:01:56.560Z',
+        #         cancelTime: '2024-04-09T09:01:56.660Z'
+        #     }
+        #
+        return response
+
+    def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
+        """
+        fetch the set leverage for all contract markets
+
+        https://www.bitmex.com/api/explorer/#not /Position/Position_get
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        self.load_markets()
+        leverages = self.fetch_positions(symbols, params)
+        return self.parse_leverages(leverages, symbols, 'symbol')
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverage, 'marginMode'),
+            'longLeverage': self.safe_integer(leverage, 'leverage'),
+            'shortLeverage': self.safe_integer(leverage, 'leverage'),
+        }
+
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
+
+        https://www.bitmex.com/api/explorer/#not /Position/Position_get
+
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -1968,9 +2283,10 @@ class bitmex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_positions(response, symbols)
+        results = self.parse_positions(response, symbols)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     {
         #         "account": 9371654,
@@ -2071,7 +2387,7 @@ class bitmex(Exchange, ImplicitAPI):
         datetime = self.safe_string(position, 'timestamp')
         crossMargin = self.safe_value(position, 'crossMargin')
         marginMode = 'cross' if (crossMargin is True) else 'isolated'
-        notionalString = Precise.string_abs(self.safe_string(position, 'foreignNotional', 'homeNotional'))
+        notionalString = Precise.string_abs(self.safe_string_2(position, 'foreignNotional', 'homeNotional'))
         settleCurrencyCode = self.safe_string(market, 'settle')
         maintenanceMargin = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'maintMargin'))
         unrealisedPnl = self.convert_to_real_amount(settleCurrencyCode, self.safe_string(position, 'unrealisedPnl'))
@@ -2110,16 +2426,21 @@ class bitmex(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'marginRatio': None,
             'percentage': self.safe_number(position, 'unrealisedPnlPcnt'),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
-    def withdraw(self, code: str, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
+
+        https://www.bitmex.com/api/explorer/#not /User/User_requestWithdrawal
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2129,7 +2450,7 @@ class bitmex(Exchange, ImplicitAPI):
         qty = self.convert_from_real_amount(code, amount)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': qty,
             'address': address,
@@ -2137,6 +2458,8 @@ class bitmex(Exchange, ImplicitAPI):
             # 'otpToken': '123456',  # requires if two-factor auth(OTP) is enabled
             # 'fee': 0.001,  # bitcoin network fee
         }
+        if self.twofa is not None:
+            request['otpToken'] = self.totp(self.twofa)
         response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
         #
         #     {
@@ -2157,12 +2480,15 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
+
+        https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActiveAndIndices
+
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetInstrumentActiveAndIndices(params)
@@ -2172,12 +2498,14 @@ class bitmex(Exchange, ImplicitAPI):
             item = response[i]
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
-            swap = self.safe_value(market, 'swap', False)
+            swap = self.safe_bool(market, 'swap', False)
             if swap:
                 filteredResponse.append(item)
-        return self.parse_funding_rates(filteredResponse, symbols)
+        symbols = self.market_symbols(symbols)
+        result = self.parse_funding_rates(filteredResponse)
+        return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         datetime = self.safe_string(contract, 'timestamp')
         marketId = self.safe_string(contract, 'symbol')
@@ -2192,7 +2520,7 @@ class bitmex(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'fundingRate'),
-            'fundingTimestamp': self.iso8601(fundingDatetime),
+            'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': self.safe_number(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': None,
@@ -2200,24 +2528,28 @@ class bitmex(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetches the history of funding rates
+
+        https://www.bitmex.com/api/explorer/#not /Funding/Funding_get
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for ending date filter
         :param bool [params.reverse]: if True, will sort results newest first
         :param int [params.start]: starting point for results
         :param str [params.columns]: array of column names to fetch in info, if omitted, will return all columns
         :param str [params.filter]: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         market = None
         if symbol in self.currencies:
             code = self.currency(symbol)
@@ -2237,10 +2569,12 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
+        if (since is None) and (until is None):
+            request['reverse'] = True
         response = self.publicGetFunding(self.extend(request, params))
         #
         #    [
@@ -2255,7 +2589,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market=None):
+    def parse_funding_rate_history(self, info, market: Market = None):
         #
         #    {
         #        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -2275,12 +2609,15 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
+
+        https://www.bitmex.com/api/explorer/#not /Position/Position_updateLeverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2291,18 +2628,21 @@ class bitmex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['type'] != 'swap' and market['type'] != 'future':
             raise BadSymbol(self.id + ' setLeverage() supports future and swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'leverage': leverage,
         }
         return self.privatePostPositionLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+
+        https://www.bitmex.com/api/explorer/#not /Position/Position_isolateMargin
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2315,18 +2655,20 @@ class bitmex(Exchange, ImplicitAPI):
         if (market['type'] != 'swap') and (market['type'] != 'future'):
             raise BadSymbol(self.id + ' setMarginMode() supports swap and future contracts only')
         enabled = False if (marginMode == 'cross') else True
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'enabled': enabled,
         }
         return self.privatePostPositionIsolate(self.extend(request, params))
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
+
+        https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
+
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
@@ -2336,12 +2678,9 @@ class bitmex(Exchange, ImplicitAPI):
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         currency = self.currency(code)
-        currencyId = currency['id']
-        idLength = len(currencyId)
-        currencyId = currencyId[0:idLength - 1] + currencyId[idLength - 1:idLength].lower()  # make the last letter lowercase
         params = self.omit(params, 'network')
-        request = {
-            'currency': currencyId,
+        request: dict = {
+            'currency': currency['id'],
             'network': self.network_code_to_id(networkCode, currency['code']),
         }
         response = self.privateGetUserDepositAddress(self.extend(request, params))
@@ -2349,43 +2688,43 @@ class bitmex(Exchange, ImplicitAPI):
         #    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         #
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': response.replace('"', '').replace('"', ''),  # Done twice because some languages only replace the first instance
             'tag': None,
-            'network': networkCode,
-            'info': response,
         }
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
-        #        asset: 'XBT',
-        #        currency: 'XBt',
-        #        majorCurrency: 'XBT',
-        #        name: 'Bitcoin',
-        #        currencyType: 'Crypto',
-        #        scale: '8',
-        #        enabled: True,
-        #        isMarginCurrency: True,
-        #        minDepositAmount: '10000',
-        #        minWithdrawalAmount: '1000',
-        #        maxWithdrawalAmount: '100000000000000',
-        #        networks: [
+        #        "asset": "XBT",
+        #        "currency": "XBt",
+        #        "majorCurrency": "XBT",
+        #        "name": "Bitcoin",
+        #        "currencyType": "Crypto",
+        #        "scale": "8",
+        #        "enabled": True,
+        #        "isMarginCurrency": True,
+        #        "minDepositAmount": "10000",
+        #        "minWithdrawalAmount": "1000",
+        #        "maxWithdrawalAmount": "100000000000000",
+        #        "networks": [
         #            {
-        #                asset: 'btc',
-        #                tokenAddress: '',
-        #                depositEnabled: True,
-        #                withdrawalEnabled: True,
-        #                withdrawalFee: '20000',
-        #                minFee: '20000',
-        #                maxFee: '10000000'
+        #                "asset": "btc",
+        #                "tokenAddress": '',
+        #                "depositEnabled": True,
+        #                "withdrawalEnabled": True,
+        #                "withdrawalFee": "20000",
+        #                "minFee": "20000",
+        #                "maxFee": "10000000"
         #            }
         #        ]
         #    }
         #
         networks = self.safe_value(fee, 'networks', [])
         networksLength = len(networks)
-        result = {
+        result: dict = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2416,39 +2755,41 @@ class bitmex(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
+
+        https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
+
         :param str[]|None codes: list of unified currency codes
-        :param dict [params]: extra parameters specific to the bitmex api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         assets = self.publicGetWalletAssets(params)
         #
         #    [
         #        {
-        #            asset: 'XBT',
-        #            currency: 'XBt',
-        #            majorCurrency: 'XBT',
-        #            name: 'Bitcoin',
-        #            currencyType: 'Crypto',
-        #            scale: '8',
-        #            enabled: True,
-        #            isMarginCurrency: True,
-        #            minDepositAmount: '10000',
-        #            minWithdrawalAmount: '1000',
-        #            maxWithdrawalAmount: '100000000000000',
-        #            networks: [
+        #            "asset": "XBT",
+        #            "currency": "XBt",
+        #            "majorCurrency": "XBT",
+        #            "name": "Bitcoin",
+        #            "currencyType": "Crypto",
+        #            "scale": "8",
+        #            "enabled": True,
+        #            "isMarginCurrency": True,
+        #            "minDepositAmount": "10000",
+        #            "minWithdrawalAmount": "1000",
+        #            "maxWithdrawalAmount": "100000000000000",
+        #            "networks": [
         #                {
-        #                    asset: 'btc',
-        #                    tokenAddress: '',
-        #                    depositEnabled: True,
-        #                    withdrawalEnabled: True,
-        #                    withdrawalFee: '20000',
-        #                    minFee: '20000',
-        #                    maxFee: '10000000'
+        #                    "asset": "btc",
+        #                    "tokenAddress": '',
+        #                    "depositEnabled": True,
+        #                    "withdrawalEnabled": True,
+        #                    "withdrawalFee": "20000",
+        #                    "minFee": "20000",
+        #                    "maxFee": "10000000"
         #                }
         #            ]
         #        },
@@ -2467,7 +2808,72 @@ class bitmex(Exchange, ImplicitAPI):
                 return 20
         return cost
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+
+        https://www.bitmex.com/api/explorer/#not /Liquidation/Liquidation_get
+
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchLiquidations', symbol, since, limit, params)
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['count'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = self.publicGetLiquidation(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "orderID": "string",
+        #             "symbol": "string",
+        #             "side": "string",
+        #             "price": 0,
+        #             "leavesQty": 0
+        #         }
+        #     ]
+        #
+        return self.parse_liquidations(response, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market: Market = None):
+        #
+        #     {
+        #         "orderID": "string",
+        #         "symbol": "string",
+        #         "side": "string",
+        #         "price": 0,
+        #         "leavesQty": 0
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': None,
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'price'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': None,
+            'datetime': None,
+        })
+
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if code == 429:

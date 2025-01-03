@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testDepositWithdrawal (exchange, skippedProperties, method, entry, requestedCode, now) {
+function testDepositWithdrawal (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string, now: number) {
     const format = {
         'info': {}, // or []
         'id': '1234',
@@ -24,7 +24,7 @@ function testDepositWithdrawal (exchange, skippedProperties, method, entry, requ
     };
     const emptyAllowedFor = [ 'address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom' ]; // below we still do assertion for to/from
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);

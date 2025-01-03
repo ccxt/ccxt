@@ -13,6 +13,7 @@ class bitcoincom extends fmfwio {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitcoincom',
+            'name' => 'Bitcoin.com',
             'alias' => true,
         ));
     }

@@ -5,6 +5,7 @@ class ImplicitAPI:
     public_get_depth = publicGetDepth = Entry('depth', 'public', 'GET', {})
     public_get_orders = publicGetOrders = Entry('orders', 'public', 'GET', {})
     public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {})
+    public_get_tickers = publicGetTickers = Entry('tickers', 'public', 'GET', {})
     private_post_balance = privatePostBalance = Entry('balance', 'private', 'POST', {})
     private_post_trade_add = privatePostTradeAdd = Entry('trade_add', 'private', 'POST', {})
     private_post_trade_cancel = privatePostTradeCancel = Entry('trade_cancel', 'private', 'POST', {})

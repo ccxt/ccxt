@@ -1,0 +1,1417 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "BTC_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "BTC/USDT",
+            "base_ccy": "BTC",
+            "quote_ccy": "USDT",
+            "quote_decimals": 2,
+            "quantity_decimals": 5,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.00001",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "BTC/USD": {
+        "id": "BTC_USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "BTC_USD",
+            "inst_type": "CCY_PAIR",
+            "display_name": "BTC/USD",
+            "base_ccy": "BTC",
+            "quote_ccy": "USD",
+            "quote_decimals": 2,
+            "quantity_decimals": 5,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.00001",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": true,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.0001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "ETH_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "ETH/USDT",
+            "base_ccy": "ETH",
+            "quote_ccy": "USDT",
+            "quote_decimals": 2,
+            "quantity_decimals": 4,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.0001",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.00001,
+            "amount": 1
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "ADA_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "ADA/USDT",
+            "base_ccy": "ADA",
+            "quote_ccy": "USDT",
+            "quote_decimals": 5,
+            "quantity_decimals": 0,
+            "price_tick_size": "0.00001",
+            "qty_tick_size": "1",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.001,
+            "amount": 0.001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "LTC_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "LTC/USDT",
+            "base_ccy": "LTC",
+            "quote_ccy": "USDT",
+            "quote_decimals": 3,
+            "quantity_decimals": 3,
+            "price_tick_size": "0.001",
+            "qty_tick_size": "0.001",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.00001,
+            "amount": 1
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "XRP_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "XRP/USDT",
+            "base_ccy": "XRP",
+            "quote_ccy": "USDT",
+            "quote_decimals": 5,
+            "quantity_decimals": 0,
+            "price_tick_size": "0.00001",
+            "qty_tick_size": "1",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "DOGE/USDT": {
+        "id": "DOGE_USDT",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.000001,
+            "amount": 1
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "DOGE_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "DOGE/USDT",
+            "base_ccy": "DOGE",
+            "quote_ccy": "USDT",
+            "quote_decimals": 6,
+            "quantity_decimals": 0,
+            "price_tick_size": "0.000001",
+            "qty_tick_size": "1",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "BTC/USD:USD": {
+        "id": "BTCUSD-PERP",
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USD",
+        "settleId": "USD",
+        "precision": {
+            "price": 0.1,
+            "amount": 0.0001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "symbol": "BTCUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "BTCUSD Perpetual",
+            "base_ccy": "BTC",
+            "quote_ccy": "USD",
+            "quote_decimals": 1,
+            "quantity_decimals": 4,
+            "price_tick_size": "0.1",
+            "qty_tick_size": "0.0001",
+            "max_leverage": "100",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "BTCUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "ETH/USD:USD": {
+        "id": "ETHUSD-PERP",
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USD",
+        "settleId": "USD",
+        "precision": {
+            "price": 0.01,
+            "amount": 0.0001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "symbol": "ETHUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "ETHUSD Perpetual",
+            "base_ccy": "ETH",
+            "quote_ccy": "USD",
+            "quote_decimals": 2,
+            "quantity_decimals": 4,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.0001",
+            "max_leverage": "100",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "ETHUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "LTC/USD:USD": {
+        "id": "LTCUSD-PERP",
+        "symbol": "LTC/USD:USD",
+        "base": "LTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "LTCUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "LTCUSD Perpetual",
+            "base_ccy": "LTC",
+            "quote_ccy": "USD",
+            "quote_decimals": 2,
+            "quantity_decimals": 2,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.01",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "LTCUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    },
+    "ADA/USD:USD": {
+        "id": "ADAUSD-PERP",
+        "symbol": "ADA/USD:USD",
+        "base": "ADA",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ADA",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.00001,
+            "amount": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "ADAUSD-PERP",
+            "inst_type": "PERPETUAL_SWAP",
+            "display_name": "ADAUSD Perpetual",
+            "base_ccy": "ADA",
+            "quote_ccy": "USD",
+            "quote_decimals": 5,
+            "quantity_decimals": 0,
+            "price_tick_size": "0.00001",
+            "qty_tick_size": "1",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "underlying_symbol": "ADAUSD-INDEX",
+            "contract_size": "1",
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": false
+        },
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    }
+}

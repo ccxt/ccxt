@@ -130,6 +130,21 @@ abstract class coinsph extends \ccxt\Exchange {
     public function private_post_openapi_convert_v1_accpet_quote($params = array()) {
         return $this->request('openapi/convert/v1/accpet-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_openapi_fiat_v1_support_channel($params = array()) {
+        return $this->request('openapi/fiat/v1/support-channel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_fiat_v1_cash_out($params = array()) {
+        return $this->request('openapi/fiat/v1/cash-out', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_fiat_v1_history($params = array()) {
+        return $this->request('openapi/fiat/v1/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_migration_v4_sellorder($params = array()) {
+        return $this->request('openapi/migration/v4/sellorder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_migration_v4_validate_field($params = array()) {
+        return $this->request('openapi/migration/v4/validate-field', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_openapi_transfer_v3_transfers($params = array()) {
         return $this->request('openapi/transfer/v3/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -264,6 +279,21 @@ abstract class coinsph extends \ccxt\Exchange {
     }
     public function privatePostOpenapiConvertV1AccpetQuote($params = array()) {
         return $this->request('openapi/convert/v1/accpet-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiFiatV1SupportChannel($params = array()) {
+        return $this->request('openapi/fiat/v1/support-channel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiFiatV1CashOut($params = array()) {
+        return $this->request('openapi/fiat/v1/cash-out', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiFiatV1History($params = array()) {
+        return $this->request('openapi/fiat/v1/history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiMigrationV4Sellorder($params = array()) {
+        return $this->request('openapi/migration/v4/sellorder', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiMigrationV4ValidateField($params = array()) {
+        return $this->request('openapi/migration/v4/validate-field', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenapiTransferV3Transfers($params = array()) {
         return $this->request('openapi/transfer/v3/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));

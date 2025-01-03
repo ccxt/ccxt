@@ -1,2 +1,3 @@
-declare function testOHLCV(exchange: any, skippedProperties: any, method: any, entry: any, symbol: any, now: any): void;
+import { Exchange } from "../../../../ccxt";
+declare function testOHLCV(exchange: Exchange, skippedProperties: object, method: string, entry: number[], symbol: string, now: number): void;
 export default testOHLCV;

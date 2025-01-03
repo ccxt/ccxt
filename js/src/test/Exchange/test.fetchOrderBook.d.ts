@@ -1,2 +1,3 @@
-declare function testFetchOrderBook(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
+import { Exchange } from "../../../ccxt";
+declare function testFetchOrderBook(exchange: Exchange, skippedProperties: object, symbol: string): Promise<void>;
 export default testFetchOrderBook;

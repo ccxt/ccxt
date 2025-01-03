@@ -10,14 +10,19 @@ use Exception; // a common import
 class bitcoincom extends \ccxt\pro\hitbtc {
 
     public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+        // eslint-disable-next-line new-cap
+        $describeExtended = $this->get_describe_for_extended_ws_exchange(new \ccxt\async\bitcoincom (), new \ccxt\async\hitbtc (), parent::describe());
+        return $this->deep_extend($describeExtended, array(
             'id' => 'bitcoincom',
             'name' => 'bitcoin.com',
             'countries' => array( 'KN' ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg',
                 'api' => array(
-                    'ws' => 'wss://api.fmfw.io/api/2/ws',
+                    'ws' => array(
+                        'public' => 'wss://api.fmfw.io/api/3/ws/public',
+                        'private' => 'wss://api.fmfw.io/api/3/ws/trading',
+                    ),
                 ),
             ),
             'fees' => array(

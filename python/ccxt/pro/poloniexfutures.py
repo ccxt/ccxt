@@ -5,11 +5,12 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import BadRequest
+from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import ChecksumError
 
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):
@@ -18,11 +19,21 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': True,
                 'watchOrders': True,
                 'watchMyTrades': False,
@@ -46,7 +57,8 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
                 'watchOrderBook': {
                     'method': '/contractMarket/level2',  # can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'streamLimit': 5,  # called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
@@ -58,72 +70,81 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             },
         })
 
-    def negotiate(self, privateChannel, params={}):
+    async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
         if connectId in urls:
-            return urls[connectId]
+            # return urls[connectId]
+            storedFuture = urls[connectId]
+            return await storedFuture
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
         urls[connectId] = self.spawn(self.negotiate_helper, privateChannel, params)
         self.options['urls'] = urls
-        return urls[connectId]
+        future = urls[connectId]
+        return await future
 
     async def negotiate_helper(self, privateChannel, params={}):
         response = None
         connectId = 'private' if privateChannel else 'public'
-        if privateChannel:
-            response = await self.privatePostBulletPrivate(params)
-            #
-            #     {
-            #         code: "200000",
-            #         data: {
-            #             instanceServers: [
-            #                 {
-            #                     pingInterval:  50000,
-            #                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            #                     protocol: "websocket",
-            #                     encrypt: True,
-            #                     pingTimeout: 10000
-            #                 }
-            #             ],
-            #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-            #         }
-            #     }
-            #
-        else:
-            response = await self.publicPostBulletPublic(params)
-        data = self.safe_value(response, 'data', {})
-        instanceServers = self.safe_value(data, 'instanceServers', [])
-        firstInstanceServer = self.safe_value(instanceServers, 0)
-        pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
-        endpoint = self.safe_string(firstInstanceServer, 'endpoint')
-        token = self.safe_string(data, 'token')
-        result = endpoint + '?' + self.urlencode({
-            'token': token,
-            'privateChannel': privateChannel,
-            'connectId': connectId,
-        })
-        client = self.client(result)
-        client.keepAlive = pingInterval
-        return result
+        try:
+            if privateChannel:
+                response = await self.privatePostBulletPrivate(params)
+                #
+                #     {
+                #         "code": "200000",
+                #         "data": {
+                #             "instanceServers": [
+                #                 {
+                #                     "pingInterval":  50000,
+                #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+                #                     "protocol": "websocket",
+                #                     "encrypt": True,
+                #                     "pingTimeout": 10000
+                #                 }
+                #             ],
+                #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                #         }
+                #     }
+                #
+            else:
+                response = await self.publicPostBulletPublic(params)
+            data = self.safe_value(response, 'data', {})
+            instanceServers = self.safe_value(data, 'instanceServers', [])
+            firstInstanceServer = self.safe_value(instanceServers, 0)
+            pingInterval = self.safe_integer(firstInstanceServer, 'pingInterval')
+            endpoint = self.safe_string(firstInstanceServer, 'endpoint')
+            token = self.safe_string(data, 'token')
+            result = endpoint + '?' + self.urlencode({
+                'token': token,
+                'privateChannel': privateChannel,
+                'connectId': connectId,
+            })
+            client = self.client(result)
+            client.keepAlive = pingInterval
+            return result
+        except Exception as e:
+            future = self.safe_value(self.options['urls'], connectId)
+            future.reject(e)
+            del self.options['urls'][connectId]
+        return None
 
     def request_id(self):
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Optional[str] = None, subscription=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: Str = None, subscription=None, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel and suscriptionHash
         :param bool isPrivate: True for the authenticated url, False for the public url
         :param str symbol: is required for all public channels, not required for private channels(except position)
-        :param Object subscription: subscription parameters
-        :param Object [params]: extra parameters specific to the poloniex api
-        :returns Object: data from the websocket stream
+        :param dict subscription: subscription parameters
+        :param dict [params]: extra parameters specific to the poloniex api
+        :returns dict: data from the websocket stream
         """
         url = await self.negotiate(isPrivate)
         if symbol is not None:
@@ -133,7 +154,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         messageHash = name
         tunnelId = await self.stream(url, messageHash)
         requestId = self.request_id()
-        subscribe = {
+        subscribe: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 # Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -141,7 +162,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             'response': True,              # Whether the server needs to return the receipt information of self subscription or not. Set by default.
             'tunnelId': tunnelId,
         }
-        subscriptionRequest = {
+        subscriptionRequest: dict = {
             'id': requestId,
         }
         if subscription is None:
@@ -168,13 +189,13 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             stream = 'stream-' + streamIndexString
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
             messageHash = 'tunnel:' + stream
-            request = {
+            request: dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': True,
             }
-            subscription = {
+            subscription: dict = {
                 'id': messageHash,
                 'method': self.handle_new_stream,
             }
@@ -189,8 +210,8 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090438322',
-        #         type: 'ack'
+        #         "id": "1578090438322",
+        #         "type": "ack"
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -211,28 +232,32 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         messageHash = self.safe_string(message, 'id')
         client.resolve(message, messageHash)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
+
+        https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
         name = '/contractMarket/ticker'
         return await self.subscribe(name, False, symbol, None, params)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
+
+        https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchTrades')
@@ -244,15 +269,17 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://futures-docs.poloniex.com/#level-2-market-data
+
+        https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniexfutures watchOrderBook
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrderBook')
@@ -262,7 +289,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             if limit != 5 and limit != 50:
                 raise BadRequest(self.id + ' watchOrderBook limit argument must be none, 5 or 50 if using method /contractMarket/level2')
             name += 'Depth' + self.number_to_string(limit)
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'method': self.handle_order_book_subscription,
@@ -270,16 +297,18 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         orderbook = await self.subscribe(name, False, symbol, subscription, params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        see https://futures-docs.poloniex.com/#private-messages
+
+        https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages
+
         :param str symbol: filter by unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrders')
@@ -288,19 +317,19 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         orders = self.filter_by_symbol_since_limit(orders, symbol, since, limit)
-        if len(orders) == 0:
+        length = len(orders)
+        if length == 0:
             return await self.watch_orders(symbol, since, limit, params)
         return orders
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        watches information on multiple orders made by the user
-        see https://futures-docs.poloniex.com/#account-balance-events
-        :param str symbol: not used by poloniexfutures watchBalance
-        :param int [since]: not used by poloniexfutures watchBalance
-        :param int [limit]: not used by poloniexfutures watchBalance
-        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         name = '/contractAccount/wallet'
@@ -309,22 +338,22 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_trade(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #            makerUserId: "1410336",
-        #            symbol: "BTCUSDTPERP",
-        #            sequence: 267913,
-        #            side: "buy",
-        #            size: 2,
-        #            price: 28409.5,
-        #            takerOrderId: "6426f9f15782c8000776995f",
-        #            makerOrderId: "6426f9f141406b0008df976e",
-        #            takerUserId: "1410880",
-        #            tradeId: "6426f9f1de029f0001e334dd",
-        #            ts: 1680275953739092500,
+        #        "data": {
+        #            "makerUserId": "1410336",
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 267913,
+        #            "side": "buy",
+        #            "size": 2,
+        #            "price": 28409.5,
+        #            "takerOrderId": "6426f9f15782c8000776995f",
+        #            "makerOrderId": "6426f9f141406b0008df976e",
+        #            "takerUserId": "1410880",
+        #            "tradeId": "6426f9f1de029f0001e334dd",
+        #            "ts": 1680275953739092500,
         #        },
-        #        subject: "match",
-        #        topic: "/contractMarket/execution:BTCUSDTPERP",
-        #        type: "message",
+        #        "subject": "match",
+        #        "topic": "/contractMarket/execution:BTCUSDTPERP",
+        #        "type": "message",
         #    }
         #
         data = self.safe_value(message, 'data', {})
@@ -347,17 +376,17 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         # handleTrade
         #
         #    {
-        #        makerUserId: '1410880',
-        #        symbol: 'BTCUSDTPERP',
-        #        sequence: 731390,
-        #        side: 'sell',
-        #        size: 2,
-        #        price: 29372.4,
-        #        takerOrderId: '644ef0fdd64748000759218a',
-        #        makerOrderId: '644ef0fd25f4a50007f12fc5',
-        #        takerUserId: '1410880',
-        #        tradeId: '644ef0fdde029f0001eec346',
-        #        ts: 1682895101923194000
+        #        "makerUserId": "1410880",
+        #        "symbol": "BTCUSDTPERP",
+        #        "sequence": 731390,
+        #        "side": "sell",
+        #        "size": 2,
+        #        "price": 29372.4,
+        #        "takerOrderId": "644ef0fdd64748000759218a",
+        #        "makerOrderId": "644ef0fd25f4a50007f12fc5",
+        #        "takerUserId": "1410880",
+        #        "tradeId": "644ef0fdde029f0001eec346",
+        #        "ts": 1682895101923194000
         #    }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -433,52 +462,52 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_order(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #          symbol: 'ADAUSDTPERP',
-        #          orderType: 'limit',
-        #          side: 'buy',
-        #          canceledSize: '1',
-        #          orderId: '642b4d4c0494cd0007c76813',
-        #          type: 'canceled',
-        #          orderTime: '1680559436101909048',
-        #          size: '1',
-        #          filledSize: '0',
-        #          marginType: 1,
-        #          price: '0.25',
-        #          remainSize: '0',
-        #          clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        #          status: 'done',
-        #          ts: 1680559677560686600
+        #        "data": {
+        #          "symbol": "ADAUSDTPERP",
+        #          "orderType": "limit",
+        #          "side": "buy",
+        #          "canceledSize": "1",
+        #          "orderId": "642b4d4c0494cd0007c76813",
+        #          "type": "canceled",
+        #          "orderTime": "1680559436101909048",
+        #          "size": "1",
+        #          "filledSize": "0",
+        #          "marginType": 1,
+        #          "price": "0.25",
+        #          "remainSize": "0",
+        #          "clientOid": "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        #          "status": "done",
+        #          "ts": 1680559677560686600
         #        },
-        #        subject: 'orderChange',
-        #        topic: '/contractMarket/tradeOrders',
-        #        channelType: 'private',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "orderChange",
+        #        "topic": "/contractMarket/tradeOrders",
+        #        "channelType": "private",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         # stop order
         #    {
-        #        data: {
-        #            orderType: 'stop',
-        #            symbol: 'BTCUSDTPERP',
-        #            side: 'buy',
-        #            stopPriceType: 'TP',
-        #            orderId: '64514fe1850d2100074378f6',
-        #            type: 'open',
-        #            createdAt: 1683050465847,
-        #            stopPrice: '29000',
-        #            size: 2,
-        #            stop: 'up',
-        #            marginType: 0,
-        #            orderPrice: '28552.9',
-        #            ts: 1683050465847597300
+        #        "data": {
+        #            "orderType": "stop",
+        #            "symbol": "BTCUSDTPERP",
+        #            "side": "buy",
+        #            "stopPriceType": "TP",
+        #            "orderId": "64514fe1850d2100074378f6",
+        #            "type": "open",
+        #            "createdAt": 1683050465847,
+        #            "stopPrice": "29000",
+        #            "size": 2,
+        #            "stop": "up",
+        #            "marginType": 0,
+        #            "orderPrice": "28552.9",
+        #            "ts": 1683050465847597300
         #        },
-        #        subject: 'stopOrder',
-        #        topic: '/contractMarket/advancedOrders',
-        #        channelType: 'private',
-        #        id: '64514fe1850d2100074378fa',
-        #        type: 'message',
-        #        userId: '1160396'
+        #        "subject": "stopOrder",
+        #        "topic": "/contractMarket/advancedOrders",
+        #        "channelType": "private",
+        #        "id": "64514fe1850d2100074378fa",
+        #        "type": "message",
+        #        "userId": "1160396"
         #    }
         #
         data = self.safe_value(message, 'data', {})
@@ -495,19 +524,19 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
 
     def parse_order_status(self, status: str, type: str):
         """
-         * @ignore
+ @ignore
         :param str status: "match", "open", "done"
         :param str type: "open", "match", "filled", "canceled", "update"
         :returns str:
         """
-        types = {
+        types: dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         }
         parsedStatus = self.safe_string(types, type)
         if parsedStatus is None:
-            statuses = {
+            statuses: dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -518,37 +547,37 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def parse_ws_order(self, order, market=None):
         #
         #    {
-        #        symbol: 'ADAUSDTPERP',
-        #        orderType: 'limit',
-        #        side: 'buy',
-        #        canceledSize: '1',
-        #        orderId: '642b4d4c0494cd0007c76813',
-        #        type: 'canceled',
-        #        orderTime: '1680559436101909048',
-        #        size: '1',
-        #        filledSize: '0',
-        #        marginType: 1,
-        #        price: '0.25',
-        #        remainSize: '0',
-        #        clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        #        status: 'done',
-        #        ts: 1680559677560686600
+        #        "symbol": "ADAUSDTPERP",
+        #        "orderType": "limit",
+        #        "side": "buy",
+        #        "canceledSize": "1",
+        #        "orderId": "642b4d4c0494cd0007c76813",
+        #        "type": "canceled",
+        #        "orderTime": "1680559436101909048",
+        #        "size": "1",
+        #        "filledSize": "0",
+        #        "marginType": 1,
+        #        "price": "0.25",
+        #        "remainSize": "0",
+        #        "clientOid": "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        #        "status": "done",
+        #        "ts": 1680559677560686600
         #    }
         # stop
         #    {
-        #        orderType: 'stop',
-        #        symbol: 'BTCUSDTPERP',
-        #        side: 'buy',
-        #        stopPriceType: 'TP',
-        #        orderId: '64514fe1850d2100074378f6',
-        #        type: 'open',
-        #        createdAt: 1683050465847,
-        #        stopPrice: '29000',
-        #        size: 2,
-        #        stop: 'up',
-        #        marginType: 0,
-        #        orderPrice: '28552.9',
-        #        ts: 1683050465847597300
+        #        "orderType": "stop",
+        #        "symbol": "BTCUSDTPERP",
+        #        "side": "buy",
+        #        "stopPriceType": "TP",
+        #        "orderId": "64514fe1850d2100074378f6",
+        #        "type": "open",
+        #        "createdAt": 1683050465847,
+        #        "stopPrice": "29000",
+        #        "size": 2,
+        #        "stop": "up",
+        #        "marginType": 0,
+        #        "orderPrice": "28552.9",
+        #        "ts": 1683050465847597300
         #    }
         #
         id = self.safe_string(order, 'orderId')
@@ -627,51 +656,51 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_l3_order_book(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            sequence: 1679593048010,
-        #            orderId: '6426fec8586b9500089d64d8',
-        #            clientOid: '14e6ee8e-8757-462c-84db-ed12c2b62f55',
-        #            ts: 1680277192127513900
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 1679593048010,
+        #            "orderId": "6426fec8586b9500089d64d8",
+        #            "clientOid": "14e6ee8e-8757-462c-84db-ed12c2b62f55",
+        #            "ts": 1680277192127513900
         #        },
-        #        subject: 'received',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "received",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            sequence: 1679593047982,
-        #            side: 'sell',
-        #            orderTime: '1680277191900131371',
-        #            size: '1',
-        #            orderId: '6426fec7d32b6e000790268b',
-        #            price: '28376.4',
-        #            ts: 1680277191939042300
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 1679593047982,
+        #            "side": "sell",
+        #            "orderTime": "1680277191900131371",
+        #            "size": "1",
+        #            "orderId": "6426fec7d32b6e000790268b",
+        #            "price": "28376.4",
+        #            "ts": 1680277191939042300
         #        },
-        #        subject: 'open',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "open",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            reason: 'canceled',   # or 'filled'
-        #            sequence: 1679593047983,
-        #            orderId: '6426fec74026fa0008e7046f',
-        #            ts: 1680277191949842000
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "reason": "canceled",   # or "filled"
+        #            "sequence": 1679593047983,
+        #            "orderId": "6426fec74026fa0008e7046f",
+        #            "ts": 1680277191949842000
         #        },
-        #        subject: 'done',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "done",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         messageHash = self.safe_string(message, 'topic')
         subject = self.safe_string(message, 'subject')
         if subject == 'received':
-            return message
+            return
         # At the time of writting self, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         client.resolve(message, messageHash)
 
@@ -689,8 +718,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         topic = self.safe_string(message, 'topic')
         isSnapshot = topic.find('Depth') >= 0
         if isSnapshot:
-            return self.hande_l2_snapshot(client, message)
-        return self.handle_l2_order_book(client, message)
+            self.hande_l2_snapshot(client, message)
+            return
+        self.handle_l2_order_book(client, message)
 
     def handle_l2_order_book(self, client: Client, message):
         #
@@ -726,7 +756,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
                 limit = 0
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             orderBook.cache.append(data)
             return
         try:
@@ -791,55 +821,64 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_delta(self, orderbook, delta):
         #
         #    {
-        #        "sequence": 18,                   # Sequence number which is used to judge the continuity of pushed messages
-        #        "change": "5000.0,sell,83"        # Price, side, quantity
-        #        "timestamp": 1551770400000
-        #    }
+        #      sequence: 123677914,
+        #      lastSequence: 123677913,
+        #      change: '80.36,buy,4924',
+        #      changes: ['80.19,buy,0',"80.15,buy,10794"],
+        #      timestamp: 1715643483528
+        #    },
         #
         sequence = self.safe_integer(delta, 'sequence')
+        lastSequence = self.safe_integer(delta, 'lastSequence')
         nonce = self.safe_integer(orderbook, 'nonce')
-        if nonce != sequence - 1:
-            raise ExchangeError(self.id + ' watchOrderBook received an out-of-order nonce')
-        change = self.safe_string(delta, 'change')
-        splitChange = change.split(',')
-        price = self.safe_number(splitChange, 0)
-        side = self.safe_string(splitChange, 1)
-        size = self.safe_number(splitChange, 2)
+        if nonce > sequence:
+            return
+        if nonce != lastSequence:
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(''))
+        changes = self.safe_list(delta, 'changes')
+        for i in range(0, len(changes)):
+            change = changes[i]
+            splitChange = change.split(',')
+            price = self.safe_number(splitChange, 0)
+            side = self.safe_string(splitChange, 1)
+            size = self.safe_number(splitChange, 2)
+            orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
+            orderBookSide.store(price, size)
         timestamp = self.safe_integer(delta, 'timestamp')
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = sequence
-        orderBookSide = orderbook['bids'] if (side == 'buy') else orderbook['asks']
-        orderBookSide.store(price, size)
 
     def handle_balance(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #          currency: 'USDT',
-        #          availableBalance: '4.0000000000',
-        #          timestamp: '1680557568670'
+        #        "data": {
+        #          "currency": "USDT",
+        #          "availableBalance": "4.0000000000",
+        #          "timestamp": "1680557568670"
         #        },
-        #        subject: 'availableBalance.change',
-        #        topic: '/contractAccount/wallet',
-        #        channelType: 'private',
-        #        id: '642b4600cae86800074b5ab7',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "availableBalance.change",
+        #        "topic": "/contractAccount/wallet",
+        #        "channelType": "private",
+        #        "id": "642b4600cae86800074b5ab7",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         #
         #    {
-        #        data: {
-        #          currency: 'USDT',
-        #          orderMargin: '0.0000000000',
-        #          timestamp: '1680558743307'
+        #        "data": {
+        #          "currency": "USDT",
+        #          "orderMargin": "0.0000000000",
+        #          "timestamp": "1680558743307"
         #        },
-        #        subject: 'orderMargin.change',
-        #        topic: '/contractAccount/wallet',
-        #        channelType: 'private',
-        #        id: '642b4a97b58e360007c3a237',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "orderMargin.change",
+        #        "topic": "/contractAccount/wallet",
+        #        "channelType": "private",
+        #        "id": "642b4a97b58e360007c3a237",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         #
         data = self.safe_value(message, 'data', [])
@@ -854,19 +893,19 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def parse_ws_balance(self, response):
         #
         #    {
-        #        currency: 'USDT',
-        #        availableBalance: '4.0000000000',
-        #        timestamp: '1680557568670'
+        #        "currency": "USDT",
+        #        "availableBalance": "4.0000000000",
+        #        "timestamp": "1680557568670"
         #    }
         #
         #    {
-        #        currency: 'USDT',
-        #        orderMargin: '0.0000000000',
-        #        timestamp: '1680558743307'
+        #        "currency": "USDT",
+        #        "orderMargin": "0.0000000000",
+        #        "timestamp": "1680558743307"
         #    }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -881,15 +920,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_system_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090234088',  # connectId
-        #         type: 'welcome',
+        #         "id": "1578090234088",  # connectId
+        #         "type": "welcome",
         #     }
         #
         return message
 
     def handle_subject(self, client: Client, message):
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'auth': self.handle_authenticate,
             'received': self.handle_l3_order_book,
             'open': self.handle_l3_order_book,
@@ -906,7 +945,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         }
         method = self.safe_value(methods, subject)
         if method is not None:
-            return method(client, message)
+            method(client, message)
 
     def ping(self, client: Client):
         id = str(self.request_id())
@@ -922,17 +961,17 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_error_message(self, client: Client, message):
         #
         #    {
-        #        code: 404,
-        #        data: 'tunnel stream-0 is not exist',
-        #        id: '3',
-        #        type: 'error'
+        #        "code": 404,
+        #        "data": "tunnel stream-0 is not exist",
+        #        "id": "3",
+        #        "type": "error"
         #    }
         #
         client.reject(message)
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'welcome': self.handle_system_status,
             'ack': self.handle_subscription_status,
             'message': self.handle_subject,
@@ -941,15 +980,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         }
         method = self.safe_value(methods, type)
         if method is not None:
-            return method(client, message)
+            method(client, message)
 
     def handle_authenticate(self, client, message):
         #
         #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        op: 'auth',
-        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        #        "success": True,
+        #        "ret_msg": '',
+        #        "op": "auth",
+        #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
         data = self.safe_value(message, 'data')

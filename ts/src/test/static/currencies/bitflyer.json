@@ -1,0 +1,78 @@
+{
+    "BTC": {
+        "info": null,
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "USDT": {
+        "info": null,
+        "id": "EUR",
+        "numericId": null,
+        "code": "EUR",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "JPY": {
+        "info": null,
+        "id": "JPY",
+        "numericId": null,
+        "code": "JPY",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    },
+    "ETH": {
+        "info": null,
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": null, "max": null },
+          "withdraw": { "min": null, "max": null }
+        }
+    }
+}

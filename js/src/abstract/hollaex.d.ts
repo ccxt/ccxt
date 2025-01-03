@@ -12,6 +12,9 @@ interface Exchange {
     publicGetTrades(params?: {}): Promise<implicitReturnType>;
     publicGetChart(params?: {}): Promise<implicitReturnType>;
     publicGetCharts(params?: {}): Promise<implicitReturnType>;
+    publicGetMinicharts(params?: {}): Promise<implicitReturnType>;
+    publicGetOraclePrices(params?: {}): Promise<implicitReturnType>;
+    publicGetQuickTrade(params?: {}): Promise<implicitReturnType>;
     publicGetUdfConfig(params?: {}): Promise<implicitReturnType>;
     publicGetUdfHistory(params?: {}): Promise<implicitReturnType>;
     publicGetUdfSymbols(params?: {}): Promise<implicitReturnType>;

@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -21,7 +21,8 @@ use React\Promise;
 function example() {
     // ########## user inputs ##########
     return Async\async(function () {
-        $exchange = new ('\\ccxt\\async\binance')(array(
+        $exchange_class = '\ccxt\async\\'.'binance';
+        $exchange = new $exchange_class(array(
             'apiKey' => 'xxx',
             'secret' => 'xxx',
         ));
@@ -56,7 +57,7 @@ function example() {
                 $balance_spot = Async\await($exchange->fetch_balance(array(
                     'type' => 'spot',
                 )));
-                if ($balance_spot[$collateral_coin]['free'] < $needed_collateral_amount) {
+                if ($exchange->parse_number($balance_spot[$collateral_coin]['free']) < $needed_collateral_amount) {
                     var_dump('hmm, I neither do have enough balance on spot - only ', $balance_spot[$collateral_coin]['free'], '. Script can not continue...');
                     return;
                 } else {

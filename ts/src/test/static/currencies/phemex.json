@@ -1,0 +1,281 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "info": {
+            "currency": "BTC",
+            "name": "Bitcoin",
+            "code": "1",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "BTC",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "BTC",
+        "name": "Bitcoin",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "USDT": {
+        "id": "USDT",
+        "info": {
+            "currency": "USDT",
+            "name": "TetherUS",
+            "code": "3",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "USDT",
+            "inAssetsDisplay": "1",
+            "perpetual": "2",
+            "stableCoin": "1",
+            "assetsPrecision": "8"
+        },
+        "code": "USDT",
+        "name": "TetherUS",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "USD": {
+        "id": "USD",
+        "info": {
+            "currency": "USD",
+            "name": "USD",
+            "code": "2",
+            "valueScale": "4",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "USD",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "2"
+        },
+        "code": "USD",
+        "name": "USD",
+        "active": true,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 500000000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 4,
+        "networks": {}
+    },
+    "LTC": {
+        "id": "LTC",
+        "info": {
+            "currency": "LTC",
+            "name": "Litecoin",
+            "code": "8",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "LTC",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "LTC",
+        "name": "Litecoin",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "ETH": {
+        "id": "ETH",
+        "info": {
+            "currency": "ETH",
+            "name": "Ethereum",
+            "code": "4",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "ETH",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "ETH",
+        "name": "Ethereum",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "ADA": {
+        "id": "ADA",
+        "info": {
+            "currency": "ADA",
+            "name": "Cardano",
+            "code": "10",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "ADA",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "ADA",
+        "name": "Cardano",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "XRP": {
+        "id": "XRP",
+        "info": {
+            "currency": "XRP",
+            "name": "Ripple",
+            "code": "5",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "1",
+            "status": "Listed",
+            "displayCurrency": "XRP",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "XRP",
+        "name": "Ripple",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "info": {
+            "currency": "USDC",
+            "name": "USD Coin",
+            "code": "57",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "USDC",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "6"
+        },
+        "code": "USDC",
+        "name": "USD Coin",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    },
+    "SOL": {
+        "id": "SOL",
+        "info": {
+            "currency": "SOL",
+            "name": "Solana",
+            "code": "41",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "needAddrTag": "0",
+            "status": "Listed",
+            "displayCurrency": "SOL",
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
+        },
+        "code": "SOL",
+        "name": "Solana",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
+    }
+}

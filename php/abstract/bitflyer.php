@@ -34,6 +34,9 @@ abstract class bitflyer extends \ccxt\Exchange {
     public function public_get_getchats($params = array()) {
         return $this->request('getchats', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_getfundingrate($params = array()) {
+        return $this->request('getfundingrate', 'public', 'GET', $params, null, null, array());
+    }
     public function private_get_getpermissions($params = array()) {
         return $this->request('getpermissions', 'private', 'GET', $params, null, null, array());
     }
@@ -135,6 +138,9 @@ abstract class bitflyer extends \ccxt\Exchange {
     }
     public function publicGetGetchats($params = array()) {
         return $this->request('getchats', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetGetfundingrate($params = array()) {
+        return $this->request('getfundingrate', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetGetpermissions($params = array()) {
         return $this->request('getpermissions', 'private', 'GET', $params, null, null, array());

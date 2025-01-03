@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class xt
+ * @augments Exchange
+ */
 class xt extends xt$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -20,8 +24,8 @@ class xt extends xt$1 {
             // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
-            'certified': true,
-            'pro': false,
+            'certified': false,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -35,6 +39,8 @@ class xt extends xt$1 {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
@@ -52,11 +58,15 @@ class xt extends xt$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -132,16 +142,16 @@ class xt extends xt$1 {
                     'spot': {
                         'get': {
                             'currencies': 1,
-                            'depth': 0.05,
-                            'kline': 0.1,
+                            'depth': 10,
+                            'kline': 1,
                             'symbol': 1,
                             'ticker': 1,
                             'ticker/book': 1,
                             'ticker/price': 1,
                             'ticker/24h': 1,
                             'time': 1,
-                            'trade/history': 0.1,
-                            'trade/recent': 0.1,
+                            'trade/history': 1,
+                            'trade/recent': 1,
                             'wallet/support/currency': 1,
                         },
                     },
@@ -211,9 +221,10 @@ class xt extends xt$1 {
                         },
                         'post': {
                             'order': 0.2,
-                            'withdraw': 1,
+                            'withdraw': 10,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
+                            'ws-token': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -667,15 +678,15 @@ class xt extends xt$1 {
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
+    /**
+     * @method
+     * @name xt#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the xt server
+     * @see https://doc.xt.com/#market1serverInfo
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the xt server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name xt#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the xt server
-         * @see https://doc.xt.com/#market1serverInfo
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the xt server
-         */
         const response = await this.publicSpotGetTime(params);
         //
         //     {
@@ -690,15 +701,15 @@ class xt extends xt$1 {
         const data = this.safeValue(response, 'result');
         return this.safeInteger(data, 'serverTime');
     }
+    /**
+     * @method
+     * @name xt#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name xt#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const promisesRaw = [this.publicSpotGetWalletSupportCurrency(params), this.publicSpotGetCurrencies(params)];
         const [chainsResponse, currenciesResponse] = await Promise.all(promisesRaw);
         //
@@ -821,7 +832,7 @@ class xt extends xt$1 {
                 'name': this.safeString(entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': undefined,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
@@ -843,16 +854,16 @@ class xt extends xt$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name xt#fetchMarkets
+     * @description retrieves data on all markets for xt
+     * @see https://doc.xt.com/#market2symbol
+     * @see https://doc.xt.com/#futures_quotesgetSymbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name xt#fetchMarkets
-         * @description retrieves data on all markets for xt
-         * @see https://doc.xt.com/#market2symbol
-         * @see https://doc.xt.com/#futures_quotesgetSymbols
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} an array of objects representing market data
-         */
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
@@ -1128,12 +1139,14 @@ class xt extends xt$1 {
         let maxCost = undefined;
         let minPrice = undefined;
         let maxPrice = undefined;
+        let amountPrecision = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString(entry, 'filter');
             if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber(entry, 'min');
                 maxAmount = this.safeNumber(entry, 'max');
+                amountPrecision = this.safeNumber(entry, 'tickSize');
             }
             if (filter === 'QUOTE_QTY') {
                 minCost = this.safeNumber(entry, 'min');
@@ -1142,6 +1155,9 @@ class xt extends xt$1 {
                 minPrice = this.safeNumber(entry, 'min');
                 maxPrice = this.safeNumber(entry, 'max');
             }
+        }
+        if (amountPrecision === undefined) {
+            amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision')));
         }
         const underlyingType = this.safeString(market, 'underlyingType');
         let linear = undefined;
@@ -1197,7 +1213,7 @@ class xt extends xt$1 {
                 isActive = true;
             }
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -1225,7 +1241,7 @@ class xt extends xt$1 {
             'optionType': undefined,
             'precision': {
                 'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseCoinPrecision'))),
                 'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteCoinPrecision'))),
             },
@@ -1248,22 +1264,22 @@ class xt extends xt$1 {
                 },
             },
             'info': market,
-        };
+        });
     }
+    /**
+     * @method
+     * @name xt#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.xt.com/#market4kline
+     * @see https://doc.xt.com/#futures_quotesgetKLine
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://doc.xt.com/#market4kline
-         * @see https://doc.xt.com/#futures_quotesgetKLine
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1365,21 +1381,21 @@ class xt extends xt$1 {
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
             this.safeNumber(ohlcv, 'c'),
-            this.safeNumber2(ohlcv, volumeIndex, 'v'),
+            this.safeNumber2(ohlcv, 'q', volumeIndex),
         ];
     }
+    /**
+     * @method
+     * @name xt#fetchOrderBook
+     * @see https://doc.xt.com/#market3depth
+     * @see https://doc.xt.com/#futures_quotesgetDepth
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified market symbol to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOrderBook
-         * @see https://doc.xt.com/#market3depth
-         * @see https://doc.xt.com/#futures_quotesgetDepth
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified market symbol to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1455,21 +1471,25 @@ class xt extends xt$1 {
         const orderBook = this.safeValue(response, 'result', {});
         const timestamp = this.safeInteger2(orderBook, 'timestamp', 't');
         if (market['spot']) {
-            return this.parseOrderBook(orderBook, symbol, timestamp);
+            const ob = this.parseOrderBook(orderBook, symbol, timestamp);
+            ob['nonce'] = this.safeInteger(orderBook, 'lastUpdateId');
+            return ob;
         }
-        return this.parseOrderBook(orderBook, symbol, timestamp, 'b', 'a');
+        const swapOb = this.parseOrderBook(orderBook, symbol, timestamp, 'b', 'a');
+        swapOb['nonce'] = this.safeInteger2(orderBook, 'u', 'lastUpdateId');
+        return swapOb;
     }
+    /**
+     * @method
+     * @name xt#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#market10ticker24h
+     * @see https://doc.xt.com/#futures_quotesgetAggTicker
+     * @param {string} symbol unified market symbol to fetch the ticker for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://doc.xt.com/#market10ticker24h
-         * @see https://doc.xt.com/#futures_quotesgetAggTicker
-         * @param {string} symbol unified market symbol to fetch the ticker for
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1537,17 +1557,17 @@ class xt extends xt$1 {
         }
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name xt#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+     * @see https://doc.xt.com/#market10ticker24h
+     * @see https://doc.xt.com/#futures_quotesgetAggTickers
+     * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://doc.xt.com/#market10ticker24h
-         * @see https://doc.xt.com/#futures_quotesgetAggTickers
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbols !== undefined) {
@@ -1626,16 +1646,16 @@ class xt extends xt$1 {
         }
         return this.filterByArray(result, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name xt#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://doc.xt.com/#market9tickerBook
+     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchBidsAsks
-         * @description fetches the bid and ask price and volume for multiple markets
-         * @see https://doc.xt.com/#market9tickerBook
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {};
@@ -1717,12 +1737,17 @@ class xt extends xt$1 {
         //
         const marketId = this.safeString(ticker, 's');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
-            marketType = ('cv' in ticker) || ('aq' in ticker) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket(marketId, market, '_', marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(ticker, 't');
+        let percentage = this.safeString2(ticker, 'cr', 'r');
+        if (percentage !== undefined) {
+            percentage = Precise["default"].stringMul(percentage, '100');
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1739,26 +1764,26 @@ class xt extends xt$1 {
             'last': this.safeString(ticker, 'c'),
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'cv'),
-            'percentage': this.safeNumber2(ticker, 'cr', 'r'),
+            'percentage': this.parseNumber(percentage),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name xt#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.xt.com/#market5tradeRecent
+     * @see https://doc.xt.com/#futures_quotesgetDeal
+     * @param {string} symbol unified market symbol to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://doc.xt.com/#market5tradeRecent
-         * @see https://doc.xt.com/#futures_quotesgetDeal
-         * @param {string} symbol unified market symbol to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1821,19 +1846,19 @@ class xt extends xt$1 {
         const trades = this.safeValue(response, 'result', []);
         return this.parseTrades(trades, market);
     }
+    /**
+     * @method
+     * @name xt#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://doc.xt.com/#tradetradeGet
+     * @see https://doc.xt.com/#futures_ordergetTrades
+     * @param {string} [symbol] unified market symbol to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://doc.xt.com/#tradetradeGet
-         * @see https://doc.xt.com/#futures_ordergetTrades
-         * @param {string|undefined} symbol unified market symbol to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -1945,6 +1970,29 @@ class xt extends xt$1 {
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
+        // spot: watchMyTrades
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time
+        //        "i": "6316559590087251233",     // tradeId
+        //        "oi": "6216559590087220004",    // orderId
+        //        "p": "30000",                   // trade price
+        //        "q": "3",                       // qty quantity
+        //        "v": "90000"                    // volume trade amount
+        //    }
+        //
         // swap and future: fetchTrades
         //
         //     {
@@ -1989,21 +2037,69 @@ class xt extends xt$1 {
         //         "takerMaker": "TAKER"
         //     }
         //
+        // contract watchMyTrades
+        //
+        //    {
+        //        "symbol": 'btc_usdt',
+        //        "orderSide": 'SELL',
+        //        "positionSide": 'LONG',
+        //        "orderId": '231485367663419328',
+        //        "price": '27152.7',
+        //        "quantity": '33',
+        //        "marginUnfrozen": '2.85318000',
+        //        "timestamp": 1684892412565
+        //    }
+        //
+        // watchMyTrades (ws, swap)
+        //
+        //    {
+        //        'fee': '0.04080840',
+        //        'isMaker': False,
+        //        'marginUnfrozen': '0.75711984',
+        //        'orderId': '376172779053188416',
+        //        'orderSide': 'BUY',
+        //        'positionSide': 'LONG',
+        //        'price': '3400.70',
+        //        'quantity': '2',
+        //        'symbol': 'eth_usdt',
+        //        'timestamp': 1719388579622
+        //    }
+        //
         const marketId = this.safeString2(trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
-            marketType = ('b' in trade) || ('bizType' in trade) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket(marketId, market, '_', marketType);
-        const bidOrAsk = this.safeString(trade, 'm');
-        let side = this.safeStringLower(trade, 'orderSide');
-        if (bidOrAsk !== undefined) {
-            side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+        let side = undefined;
+        let takerOrMaker = undefined;
+        const isBuyerMaker = this.safeBool(trade, 'b');
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // public trades always taker
         }
-        const buyerMaker = this.safeValue(trade, 'b');
-        let takerOrMaker = this.safeStringLower(trade, 'takerMaker');
-        if (buyerMaker !== undefined) {
-            takerOrMaker = buyerMaker ? 'maker' : 'taker';
+        else {
+            const takerMaker = this.safeStringLower(trade, 'takerMaker');
+            if (takerMaker !== undefined) {
+                takerOrMaker = takerMaker;
+            }
+            else {
+                const isMaker = this.safeBool(trade, 'isMaker');
+                if (isMaker !== undefined) {
+                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                }
+            }
+            const orderSide = this.safeStringLower(trade, 'orderSide');
+            if (orderSide !== undefined) {
+                side = orderSide;
+            }
+            else {
+                const bidOrAsk = this.safeString(trade, 'm');
+                if (bidOrAsk !== undefined) {
+                    side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         const timestamp = this.safeIntegerN(trade, ['t', 'time', 'timestamp']);
         const quantity = this.safeString2(trade, 'q', 'quantity');
@@ -2025,7 +2121,7 @@ class xt extends xt$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': this.safeString(trade, 'orderId'),
+            'order': this.safeString2(trade, 'orderId', 'oi'),
             'type': this.safeStringLower(trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -2035,20 +2131,19 @@ class xt extends xt$1 {
             'fee': {
                 'currency': this.safeCurrencyCode(this.safeString2(trade, 'feeCurrency', 'feeCoin')),
                 'cost': this.safeString(trade, 'fee'),
-                'rate': undefined,
             },
         }, market);
     }
+    /**
+     * @method
+     * @name xt#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://doc.xt.com/#balancebalancesGet
+     * @see https://doc.xt.com/#futures_usergetBalances
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name xt#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://doc.xt.com/#balancebalancesGet
-         * @see https://doc.xt.com/#futures_usergetBalances
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         let type = undefined;
         let subType = undefined;
@@ -2166,29 +2261,48 @@ class xt extends xt$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name xt#createMarketBuyOrderWithCost
+     * @see https://doc.xt.com/#orderorderPost
+     * @description create a market buy order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
+    }
+    /**
+     * @method
+     * @name xt#createOrder
+     * @description create a trade order
+     * @see https://doc.xt.com/#orderorderPost
+     * @see https://doc.xt.com/#futures_ordercreate
+     * @see https://doc.xt.com/#futures_entrustcreatePlan
+     * @see https://doc.xt.com/#futures_entrustcreateProfit
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
+     * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#createOrder
-         * @description create a trade order
-         * @see https://doc.xt.com/#orderorderPost
-         * @see https://doc.xt.com/#futures_ordercreate
-         * @see https://doc.xt.com/#futures_entrustcreatePlan
-         * @see https://doc.xt.com/#futures_entrustcreateProfit
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, can be ignored in market orders
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'GTX'
-         * @param {string|undefined} params.entrustType 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
-         * @param {string|undefined} params.triggerPriceType 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-         * @param {float|undefined} params.stopPrice price to trigger a stop order
-         * @param {float|undefined} params.stopLoss price to set a stop-loss on an open position
-         * @param {float|undefined} params.takeProfit price to set a take-profit on an open position
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -2215,20 +2329,29 @@ class xt extends xt$1 {
         if (type === 'market') {
             timeInForce = this.safeStringUpper(params, 'timeInForce', 'FOK');
             if (side === 'buy') {
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeString(params, 'cost');
+                params = this.omit(params, 'cost');
+                const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
-                    if (price === undefined) {
-                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    if (price === undefined && (cost === undefined)) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     }
                     else {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
-                        const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        request['quoteQty'] = this.costToPrecision(symbol, cost);
+                        let costCalculated = undefined;
+                        if (price !== undefined) {
+                            costCalculated = Precise["default"].stringMul(amountString, priceString);
+                        }
+                        else {
+                            costCalculated = cost;
+                        }
+                        request['quoteQty'] = this.costToPrecision(symbol, costCalculated);
                     }
                 }
                 else {
-                    request['quoteQty'] = this.amountToPrecision(symbol, amount);
+                    const amountCost = (cost !== undefined) ? cost : amount;
+                    request['quoteQty'] = this.costToPrecision(symbol, amountCost);
                 }
             }
         }
@@ -2336,22 +2459,22 @@ class xt extends xt$1 {
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name xt#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://doc.xt.com/#orderorderGet
+     * @see https://doc.xt.com/#futures_ordergetById
+     * @see https://doc.xt.com/#futures_entrustgetPlanById
+     * @see https://doc.xt.com/#futures_entrustgetProfitById
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://doc.xt.com/#orderorderGet
-         * @see https://doc.xt.com/#futures_ordergetById
-         * @see https://doc.xt.com/#futures_entrustgetPlanById
-         * @see https://doc.xt.com/#futures_entrustgetProfitById
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2363,9 +2486,9 @@ class xt extends xt$1 {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
-        const stop = this.safeValue(params, 'stop');
+        const trigger = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        if (stop) {
+        if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
@@ -2374,7 +2497,7 @@ class xt extends xt$1 {
         else {
             request['orderId'] = id;
         }
-        if (stop) {
+        if (trigger) {
             params = this.omit(params, 'stop');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, params));
@@ -2521,21 +2644,21 @@ class xt extends xt$1 {
         const order = this.safeValue(response, 'result', {});
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name xt#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetHistory
+     * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://doc.xt.com/#orderhistoryOrderGet
-         * @see https://doc.xt.com/#futures_ordergetHistory
-         * @see https://doc.xt.com/#futures_entrustgetPlanHistory
-         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -2554,9 +2677,9 @@ class xt extends xt$1 {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrders', market, params);
-        const stop = this.safeValue(params, 'stop');
-        if (stop) {
-            params = this.omit(params, 'stop');
+        const trigger = this.safeValue2(params, 'trigger', 'stop');
+        if (trigger) {
+            params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, params));
             }
@@ -2704,10 +2827,10 @@ class xt extends xt$1 {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, params);
-        const stop = this.safeValue(params, 'stop');
+        const trigger = this.safeValue(params, 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (status === 'open') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             }
             else if (subType !== undefined) {
@@ -2715,7 +2838,7 @@ class xt extends xt$1 {
             }
         }
         else if (status === 'closed') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'TRIGGERED';
             }
             else {
@@ -2723,7 +2846,7 @@ class xt extends xt$1 {
             }
         }
         else if (status === 'canceled') {
-            if (stop || stopLossTakeProfit) {
+            if (trigger || stopLossTakeProfit) {
                 request['state'] = 'USER_REVOCATION';
             }
             else {
@@ -2733,7 +2856,7 @@ class xt extends xt$1 {
         else {
             request['state'] = status;
         }
-        if (stop || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if (trigger || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -2741,7 +2864,7 @@ class xt extends xt$1 {
                 request['size'] = limit;
             }
         }
-        if (stop) {
+        if (trigger) {
             params = this.omit(params, 'stop');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, params));
@@ -2968,79 +3091,79 @@ class xt extends xt$1 {
         const orders = isSpotOpenOrders ? this.safeValue(response, 'result', []) : this.safeValue(data, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
+    /**
+     * @method
+     * @name xt#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://doc.xt.com/#orderopenOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://doc.xt.com/#orderopenOrderGet
-         * @see https://doc.xt.com/#futures_ordergetOrders
-         * @see https://doc.xt.com/#futures_entrustgetPlan
-         * @see https://doc.xt.com/#futures_entrustgetProfit
-         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum number of open order structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name xt#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://doc.xt.com/#orderhistoryOrderGet
-         * @see https://doc.xt.com/#futures_ordergetOrders
-         * @see https://doc.xt.com/#futures_entrustgetPlan
-         * @see https://doc.xt.com/#futures_entrustgetProfit
-         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         return await this.fetchOrdersByStatus('closed', symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name xt#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://doc.xt.com/#orderhistoryOrderGet
-         * @see https://doc.xt.com/#futures_ordergetOrders
-         * @see https://doc.xt.com/#futures_entrustgetPlan
-         * @see https://doc.xt.com/#futures_entrustgetProfit
-         * @param {string|undefined} symbol unified market symbol of the market the orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum number of order structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         return await this.fetchOrdersByStatus('canceled', symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name xt#cancelOrder
+     * @description cancels an open order
+     * @see https://doc.xt.com/#orderorderDel
+     * @see https://doc.xt.com/#futures_ordercancel
+     * @see https://doc.xt.com/#futures_entrustcancelPlan
+     * @see https://doc.xt.com/#futures_entrustcancelProfit
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#cancelOrder
-         * @description cancels an open order
-         * @see https://doc.xt.com/#orderorderDel
-         * @see https://doc.xt.com/#futures_ordercancel
-         * @see https://doc.xt.com/#futures_entrustcancelPlan
-         * @see https://doc.xt.com/#futures_entrustcancelProfit
-         * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
@@ -3052,9 +3175,9 @@ class xt extends xt$1 {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
-        const stop = this.safeValue(params, 'stop');
+        const trigger = this.safeValue2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        if (stop) {
+        if (trigger) {
             request['entrustId'] = id;
         }
         else if (stopLossTakeProfit) {
@@ -3063,8 +3186,8 @@ class xt extends xt$1 {
         else {
             request['orderId'] = id;
         }
-        if (stop) {
-            params = this.omit(params, 'stop');
+        if (trigger) {
+            params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, params));
             }
@@ -3115,21 +3238,21 @@ class xt extends xt$1 {
         const order = isContractResponse ? response : this.safeValue(response, 'result', {});
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name xt#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://doc.xt.com/#orderopenOrderDel
+     * @see https://doc.xt.com/#futures_ordercancelBatch
+     * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
+     * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.trigger] if the order is a trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#cancelAllOrders
-         * @description cancel all open orders in a market
-         * @see https://doc.xt.com/#orderopenOrderDel
-         * @see https://doc.xt.com/#futures_ordercancelBatch
-         * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
-         * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
-         * @param {string|undefined} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
-         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -3142,10 +3265,10 @@ class xt extends xt$1 {
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         [subType, params] = this.handleSubTypeAndParams('cancelAllOrders', market, params);
-        const stop = this.safeValue(params, 'stop');
+        const trigger = this.safeValue2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
-        if (stop) {
-            params = this.omit(params, 'stop');
+        if (trigger) {
+            params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, params));
             }
@@ -3194,19 +3317,21 @@ class xt extends xt$1 {
         //         "result": true
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
+    /**
+     * @method
+     * @name xt#cancelOrders
+     * @description cancel multiple orders
+     * @see https://doc.xt.com/#orderbatchOrderDel
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#cancelOrders
-         * @description cancel multiple orders
-         * @see https://doc.xt.com/#orderbatchOrderDel
-         * @param {[string]} ids order ids
-         * @param {string|undefined} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderIds': ids,
@@ -3231,7 +3356,9 @@ class xt extends xt$1 {
         //         "result": null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     parseOrder(order, market = undefined) {
         //
@@ -3376,7 +3503,7 @@ class xt extends xt$1 {
             'postOnly': undefined,
             'side': this.safeStringLower2(order, 'side', 'orderSide'),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'stopLoss': this.safeNumber(order, 'triggerStopPrice'),
             'takeProfit': this.safeNumber(order, 'triggerProfitPrice'),
             'amount': amount,
@@ -3410,18 +3537,18 @@ class xt extends xt$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name xt#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://doc.xt.com/#futures_usergetBalanceBill
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://doc.xt.com/#futures_usergetBalanceBill
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since timestamp in ms of the earliest ledger entry
-         * @param {int|undefined} limit max number of ledger entries to return
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let currency = undefined;
@@ -3491,8 +3618,10 @@ class xt extends xt$1 {
         const side = this.safeString(item, 'side');
         const direction = (side === 'ADD') ? 'in' : 'out';
         const currencyId = this.safeString(item, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'createdTime');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -3510,8 +3639,7 @@ class xt extends xt$1 {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -3526,17 +3654,17 @@ class xt extends xt$1 {
         };
         return this.safeString(ledgerType, type, type);
     }
+    /**
+     * @method
+     * @name xt#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+     * @param {string} code unified currency code
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.network required network id
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.network required network id
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
         await this.loadMarkets();
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
@@ -3572,25 +3700,25 @@ class xt extends xt$1 {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': undefined,
-            'info': depositAddress,
         };
     }
+    /**
+     * @method
+     * @name xt#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let currency = undefined;
@@ -3635,18 +3763,18 @@ class xt extends xt$1 {
         const deposits = this.safeValue(data, 'items', []);
         return this.parseTransactions(deposits, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name xt#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let currency = undefined;
@@ -3691,19 +3819,19 @@ class xt extends xt$1 {
         const withdrawals = this.safeValue(data, 'items', []);
         return this.parseTransactions(withdrawals, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name xt#withdraw
+     * @description make a withdrawal
+     * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#withdraw
-         * @description make a withdrawal
-         * @see https://doc.xt.com/#deposit_withdrawalwithdraw
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -3807,6 +3935,7 @@ class xt extends xt$1 {
                 'cost': fee,
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {
@@ -3821,19 +3950,21 @@ class xt extends xt$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name xt#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://doc.xt.com/#futures_useradjustLeverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://doc.xt.com/#futures_useradjustLeverage
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.positionSide 'LONG' or 'SHORT'
-         * @returns {object} response from the exchange
-         */
-        this.checkRequiredSymbol('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
         const positionSide = this.safeString(params, 'positionSide');
         this.checkRequiredArgument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT']);
         if ((leverage < 1) || (leverage > 125)) {
@@ -3868,32 +3999,32 @@ class xt extends xt$1 {
         //
         return response;
     }
+    /**
+     * @method
+     * @name xt#addMargin
+     * @description add margin to a position
+     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     async addMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name xt#addMargin
-         * @description add margin to a position
-         * @see https://doc.xt.com/#futures_useradjustMargin
-         * @param {string} symbol unified market symbol
-         * @param {float} amount amount of margin to add
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.positionSide 'LONG' or 'SHORT'
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
     }
+    /**
+     * @method
+     * @name xt#reduceMargin
+     * @description remove margin from a position
+     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     async reduceMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name xt#reduceMargin
-         * @description remove margin from a position
-         * @see https://doc.xt.com/#futures_useradjustMargin
-         * @param {string} symbol unified market symbol
-         * @param {float} amount the amount of margin to remove
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @param {string} params.positionSide 'LONG' or 'SHORT'
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, amount, 'SUB', params);
     }
     async modifyMarginHelper(symbol, amount, addOrReduce, params = {}) {
@@ -3934,18 +4065,22 @@ class xt extends xt$1 {
             'code': undefined,
             'symbol': this.safeSymbol(undefined, market),
             'status': undefined,
+            'marginMode': undefined,
+            'total': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
+    /**
+     * @method
+     * @name xt#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage for different trade sizes
+     * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+     * @param {string} [symbols] a list of unified market symbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
-         * @description retrieve information on the maximum leverage for different trade sizes
-         * @param {[string]|undefined} symbols a list of unified market symbols
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-         */
         await this.loadMarkets();
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLeverageTiers', undefined, params);
@@ -4019,16 +4154,16 @@ class xt extends xt$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name xt#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage for different trade sizes of a single market
+     * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchMarketLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
-         * @description retrieve information on the maximum leverage for different trade sizes of a single market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -4094,6 +4229,7 @@ class xt extends xt$1 {
             market = this.safeMarket(marketId, market, '_', 'contract');
             tiers.push({
                 'tier': this.safeInteger(tier, 'bracket'),
+                'symbol': this.safeSymbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': this.safeNumber(tier, 'maxNominalValue'),
@@ -4104,19 +4240,21 @@ class xt extends xt$1 {
         }
         return tiers;
     }
+    /**
+     * @method
+     * @name xt#fetchFundingRateHistory
+     * @description fetches historical funding rates
+     * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+     * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+     */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchFundingRateHistory
-         * @description fetches historical funding rates
-         * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
-         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
-         * @param {int|undefined} limit the maximum amount of [funding rate structures] to fetch
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
-         */
-        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -4176,16 +4314,28 @@ class xt extends xt$1 {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
+    /**
+     * @method
+     * @name xt#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingInterval(symbol, params = {}) {
+        return await this.fetchFundingRate(symbol, params);
+    }
+    /**
+     * @method
+     * @name xt#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://doc.xt.com/#futures_quotesgetFundingRate
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -4231,6 +4381,10 @@ class xt extends xt$1 {
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_', 'swap');
         const timestamp = this.safeInteger(contract, 'nextCollectionTime');
+        let interval = this.safeString(contract, 'collectionInternal');
+        if (interval !== undefined) {
+            interval = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -4249,20 +4403,21 @@ class xt extends xt$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': interval,
         };
     }
-    async fetchFundingHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchFundingHistory
-         * @description fetch the funding history
-         * @see https://doc.xt.com/#futures_usergetFunding
-         * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the starting timestamp in milliseconds
-         * @param {int|undefined} limit the number of entries to return
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-         */
+    /**
+     * @method
+     * @name xt#fetchFundingHistory
+     * @description fetch the funding history
+     * @see https://doc.xt.com/#futures_usergetFunding
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -4343,16 +4498,16 @@ class xt extends xt$1 {
             'amount': this.safeNumber(contract, 'cast'),
         };
     }
+    /**
+     * @method
+     * @name xt#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://doc.xt.com/#futures_usergetPosition
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPosition(symbol, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @see https://doc.xt.com/#futures_usergetPosition
-         * @param {string} symbol unified market symbol of the market the position is held in
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -4404,20 +4559,17 @@ class xt extends xt$1 {
         }
         return undefined;
     }
+    /**
+     * @method
+     * @name xt#fetchPositions
+     * @description fetch all open positions
+     * @see https://doc.xt.com/#futures_usergetPosition
+     * @param {string} [symbols] list of unified market symbols, not supported with xt
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name xt#fetchPositions
-         * @description fetch all open positions
-         * @see https://doc.xt.com/#futures_usergetPosition
-         * @param {[string]|undefined} symbols list of unified market symbols, not supported with xt
-         * @param {object} params extra parameters specific to the xt api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
-        if (symbols !== undefined) {
-            throw new errors.BadRequest(this.id + ' fetchPositions() only supports the symbols argument as undefined');
-        }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
         let response = undefined;
@@ -4460,7 +4612,7 @@ class xt extends xt$1 {
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             result.push(this.parsePosition(entry, marketInner));
         }
-        return this.filterByArray(result, 'symbol', undefined, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -4513,19 +4665,19 @@ class xt extends xt$1 {
             'marginRatio': undefined,
         });
     }
+    /**
+     * @method
+     * @name xt#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://doc.xt.com/#transfersubTransferPost
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
+     * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
+     * @param {object} params extra parameters specific to the whitebit api endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name xt#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://doc.xt.com/#transfersubTransferPost
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
-         * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const accountsByType = this.safeValue(this.options, 'accountsById');
@@ -4669,7 +4821,7 @@ class xt extends xt$1 {
                     body['media'] = id;
                 }
             }
-            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
+            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {
@@ -4677,7 +4829,7 @@ class xt extends xt$1 {
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded;
+                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     }
                     else {
                         payloadString += '#' + method + '#' + payload;

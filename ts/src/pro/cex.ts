@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import cexRest from '../cex.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -19,11 +19,20 @@ export default class cex extends cexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPosition': undefined,
+                'createOrderWs': true,
+                'editOrderWs': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'fetchOrderWs': true,
+                'fetchOpenOrdersWs': true,
+                'fetchTickerWs': true,
+                'fetchBalanceWs': true,
             },
             'urls': {
                 'api': {
@@ -43,22 +52,22 @@ export default class cex extends cexRest {
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
-        return requestId;
+        return requestId.toString ();
     }
 
-    async watchBalance (params = {}) {
-        /**
-         * @method
-         * @name cex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://cex.io/websocket-api#get-balance
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
+    /**
+     * @method
+     * @name cex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://cex.io/websocket-api#get-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
-        const messageHash = 'balance';
+        const messageHash = this.requestId ();
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'get-balance',
             'data': {},
             'oid': this.requestId (),
@@ -70,28 +79,28 @@ export default class cex extends cexRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         e: 'get-balance',
-        //         data: {
-        //             balance: {
-        //                 BTC: '0.00000000',
-        //                 USD: '0.00',
+        //         "e": "get-balance",
+        //         "data": {
+        //             "balance": {
+        //                 "BTC": "0.00000000",
+        //                 "USD": "0.00",
         //                 ...
         //             },
-        //             obalance: {
-        //                 BTC: '0.00000000',
-        //                 USD: '0.00',
+        //             "obalance": {
+        //                 "BTC": "0.00000000",
+        //                 "USD": "0.00",
         //                 ...
         //             },
-        //             time: 1663761159605
+        //             "time": 1663761159605
         //         },
-        //         oid: 1,
-        //         ok: 'ok'
+        //         "oid": 1,
+        //         "ok": "ok"
         //     }
         //
         const data = this.safeValue (message, 'data', {});
         const freeBalance = this.safeValue (data, 'balance', {});
         const usedBalance = this.safeValue (data, 'obalance', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         const currencyIds = Object.keys (freeBalance);
@@ -104,27 +113,29 @@ export default class cex extends cexRest {
             result[code] = account;
         }
         this.balance = this.safeBalance (result);
-        client.resolve (this.balance, 'balance');
+        const messageHash = this.safeString (message, 'oid');
+        client.resolve (this.balance, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchTrades
-         * @description get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
-         * @see https://cex.io/websocket-api#old-pair-room
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name cex#watchTrades
+     * @description get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
+     * @see https://cex.io/websocket-api#old-pair-room
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
+        this.options['currentWatchTradeSymbol'] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         const client = this.safeValue (this.clients, url);
         if (client !== undefined) {
             const subscriptionKeys = Object.keys (client.subscriptions);
@@ -139,7 +150,7 @@ export default class cex extends cexRest {
                 }
             }
         }
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [ 'pair-' + market['base'] + '-' + market['quote'] ],
         };
@@ -155,38 +166,47 @@ export default class cex extends cexRest {
     handleTradesSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'history',
-        //         data: [
-        //             'sell:1665467367741:3888551:19058.8:14541219',
-        //             'buy:1665467367741:1059339:19071.5:14541218',
+        //         "e": "history",
+        //         "data": [
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const stored = new ArrayCache (limit);
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
-            const parsed = this.parseWsOldTrade (rawTrade);
+        const symbol = this.safeString (this.options, 'currentWatchTradeSymbol');
+        if (symbol === undefined) {
+            return;
+        }
+        const market = this.market (symbol);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
+            const parsed = this.parseWsOldTrade (rawTrade, market);
             stored.append (parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
+        this.trades = stored as any; // trades don't have symbol
         client.resolve (this.trades, messageHash);
     }
 
     parseWsOldTrade (trade, market = undefined) {
         //
         //  snapshot trade
-        //    'sell:1665467367741:3888551:19058.8:14541219'
+        //    "sell:1665467367741:3888551:19058.8:14541219"
         //  update trade
-        //    ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
         if (!Array.isArray (trade)) {
             trade = trade.split (':');
         }
         const side = this.safeString (trade, 0);
-        const timestamp = this.safeNumber (trade, 1);
+        const timestamp = this.safeInteger (trade, 1);
         const amount = this.safeString (trade, 2);
         const price = this.safeString (trade, 3);
         const id = this.safeString (trade, 4);
@@ -195,7 +215,7 @@ export default class cex extends cexRest {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString (market, 'symbol'),
             'type': undefined,
             'side': side,
             'order': undefined,
@@ -210,16 +230,18 @@ export default class cex extends cexRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         e: 'history-update',
-        //         data: [
-        //             ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        //         "e": "history-update",
+        //         "data": [
+        //             ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //         ]
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        const stored = this.trades;
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
         }
@@ -228,17 +250,17 @@ export default class cex extends cexRest {
         client.resolve (this.trades, messageHash);
     }
 
-    async watchTicker (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name cex#watchTicker
-         * @see https://cex.io/websocket-api#ticker-subscription
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @param {string} [params.method] public or private
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name cex#watchTicker
+     * @see https://cex.io/websocket-api#ticker-subscription
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] public or private
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -267,21 +289,21 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchTickers
-         * @see https://cex.io/websocket-api#ticker-subscription
-         * @description watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
+    /**
+     * @method
+     * @name cex#watchTickers
+     * @see https://cex.io/websocket-api#ticker-subscription
+     * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
-        const message = {
+        const message: Dict = {
             'e': 'subscribe',
             'rooms': [
                 'tickers',
@@ -294,58 +316,87 @@ export default class cex extends cexRest {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[tickerSymbol] = ticker;
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name cex#fetchTickerWs
+     * @see https://docs.cex.io/#ws-api-ticker-deprecated
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request = this.extend ({
+            'e': 'ticker',
+            'oid': messageHash,
+            'data': [ market['base'], market['quote'] ],
+        }, params);
+        return await this.watch (url, messageHash, request, messageHash) as Ticker;
+    }
+
     handleTicker (client: Client, message) {
         //
         //     {
-        //         e: 'tick',
-        //         data: {
-        //             symbol1: 'LRC',
-        //             symbol2: 'USD',
-        //             price: '0.305',
-        //             open24: '0.301',
-        //             volume: '241421.641700'
+        //         "e": "tick",
+        //         "data": {
+        //             "symbol1": "LRC",
+        //             "symbol2": "USD",
+        //             "price": "0.305",
+        //             "open24": "0.301",
+        //             "volume": "241421.641700"
         //         }
         //     }
         //
         const data = this.safeValue (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
-        const messageHash = 'ticker:' + symbol;
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
+        let messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
+        messageHash = this.safeString (message, 'oid');
+        if (messageHash !== undefined) {
+            client.resolve (ticker, messageHash);
+        }
     }
 
     parseWsTicker (ticker, market = undefined) {
         //
         //  public
         //    {
-        //        symbol1: 'LRC',
-        //        symbol2: 'USD',
-        //        price: '0.305',
-        //        open24: '0.301',
-        //        volume: '241421.641700'
+        //        "symbol1": "LRC",
+        //        "symbol2": "USD",
+        //        "price": "0.305",
+        //        "open24": "0.301",
+        //        "volume": "241421.641700"
         //    }
         //  private
         //    {
-        //        timestamp: '1663764969',
-        //        low: '18756.3',
-        //        high: '19200',
-        //        last: '19200',
-        //        volume: '0.94735907',
-        //        volume30d: '64.61299999',
-        //        bid: 19217.2,
-        //        ask: 19247.5,
-        //        priceChange: '44.3',
-        //        priceChangePercentage: '0.23',
-        //        pair: ['BTC', 'USDT']
+        //        "timestamp": "1663764969",
+        //        "low": "18756.3",
+        //        "high": "19200",
+        //        "last": "19200",
+        //        "volume": "0.94735907",
+        //        "volume30d": "64.61299999",
+        //        "bid": 19217.2,
+        //        "ask": 19247.5,
+        //        "priceChange": "44.3",
+        //        "priceChangePercentage": "0.23",
+        //        "pair": ["BTC", "USDT"]
         //    }
         const pair = this.safeValue (ticker, 'pair', []);
         let baseId = this.safeString (ticker, 'symbol1');
@@ -387,20 +438,40 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchOrders
-         * @description get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-         * @see https://docs.cex.io/#ws-api-open-orders
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name cex#fetchBalanceWs
+     * @see https://docs.cex.io/#ws-api-get-balance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalanceWs (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request = this.extend ({
+            'e': 'get-balance',
+            'oid': messageHash,
+        }, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    /**
+     * @method
+     * @name cex#watchOrders
+     * @description get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -408,7 +479,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -426,20 +497,20 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchMyTrades
-         * @description get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-         * @see https://docs.cex.io/#ws-api-open-orders
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    /**
+     * @method
+     * @name cex#watchMyTrades
+     * @description get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -447,7 +518,7 @@ export default class cex extends cexRest {
         const market = this.market (symbol);
         const messageHash = 'myTrades:' + market['symbol'];
         const subscriptionHash = 'orders:' + market['symbol'];
-        const message = {
+        const message: Dict = {
             'e': 'open-orders',
             'data': {
                 'pair': [
@@ -475,44 +546,44 @@ export default class cex extends cexRest {
     handleMyTrades (client: Client, message) {
         //
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59091012956:a:USD',
-        //             c: 'user:up105393824:a:USD',
-        //             a: '0.01',
-        //             ds: 0,
-        //             cs: '15.27',
-        //             user: 'up105393824',
-        //             symbol: 'USD',
-        //             order: 59091012956,
-        //             amount: '-18.49',
-        //             type: 'buy',
-        //             time: '2022-09-24T19:36:18.466Z',
-        //             balance: '15.27',
-        //             id: '59091012966'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59091012956:a:USD",
+        //             "c": "user:up105393824:a:USD",
+        //             "a": "0.01",
+        //             "ds": 0,
+        //             "cs": "15.27",
+        //             "user": "up105393824",
+        //             "symbol": "USD",
+        //             "order": 59091012956,
+        //             "amount": "-18.49",
+        //             "type": "buy",
+        //             "time": "2022-09-24T19:36:18.466Z",
+        //             "balance": "15.27",
+        //             "id": "59091012966"
         //         }
         //     }
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59091012956:a:BTC',
-        //             c: 'user:up105393824:a:BTC',
-        //             a: '0.00096420',
-        //             ds: 0,
-        //             cs: '0.00096420',
-        //             user: 'up105393824',
-        //             symbol: 'BTC',
-        //             symbol2: 'USD',
-        //             amount: '0.00096420',
-        //             buy: 59091012956,
-        //             order: 59091012956,
-        //             sell: 59090796005,
-        //             price: 19135,
-        //             type: 'buy',
-        //             time: '2022-09-24T19:36:18.466Z',
-        //             balance: '0.00096420',
-        //             fee_amount: '0.05',
-        //             id: '59091012962'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59091012956:a:BTC",
+        //             "c": "user:up105393824:a:BTC",
+        //             "a": "0.00096420",
+        //             "ds": 0,
+        //             "cs": "0.00096420",
+        //             "user": "up105393824",
+        //             "symbol": "BTC",
+        //             "symbol2": "USD",
+        //             "amount": "0.00096420",
+        //             "buy": 59091012956,
+        //             "order": 59091012956,
+        //             "sell": 59090796005,
+        //             "price": 19135,
+        //             "type": "buy",
+        //             "time": "2022-09-24T19:36:18.466Z",
+        //             "balance": "0.00096420",
+        //             "fee_amount": "0.05",
+        //             "id": "59091012962"
         //         }
         //     }
         const data = this.safeValue (message, 'data', {});
@@ -531,24 +602,24 @@ export default class cex extends cexRest {
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         d: 'order:59091012956:a:BTC',
-        //         c: 'user:up105393824:a:BTC',
-        //         a: '0.00096420',
-        //         ds: 0,
-        //         cs: '0.00096420',
-        //         user: 'up105393824',
-        //         symbol: 'BTC',
-        //         symbol2: 'USD',
-        //         amount: '0.00096420',
-        //         buy: 59091012956,
-        //         order: 59091012956,
-        //         sell: 59090796005,
-        //         price: 19135,
-        //         type: 'buy',
-        //         time: '2022-09-24T19:36:18.466Z',
-        //         balance: '0.00096420',
-        //         fee_amount: '0.05',
-        //         id: '59091012962'
+        //         "d": "order:59091012956:a:BTC",
+        //         "c": "user:up105393824:a:BTC",
+        //         "a": "0.00096420",
+        //         "ds": 0,
+        //         "cs": "0.00096420",
+        //         "user": "up105393824",
+        //         "symbol": "BTC",
+        //         "symbol2": "USD",
+        //         "amount": "0.00096420",
+        //         "buy": 59091012956,
+        //         "order": 59091012956,
+        //         "sell": 59090796005,
+        //         "price": 19135,
+        //         "type": "buy",
+        //         "time": "2022-09-24T19:36:18.466Z",
+        //         "balance": "0.00096420",
+        //         "fee_amount": "0.05",
+        //         "id": "59091012962"
         //     }
         // Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
         //
@@ -565,7 +636,7 @@ export default class cex extends cexRest {
             symbol = quote + '/' + base;
             amount = Precise.stringDiv (amount, price); // due to rounding errors amount in not exact to trade
         }
-        const parsedTrade = {
+        const parsedTrade: Dict = {
             'id': this.safeString (trade, 'id'),
             'order': this.safeString (trade, 'order'),
             'info': trade,
@@ -624,39 +695,39 @@ export default class cex extends cexRest {
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
-        //         e: 'order',
-        //         data: {
-        //             id: '59098421630',
-        //             remains: '0',
-        //             pair: {
-        //                 symbol1: 'BTC',
-        //                 symbol2: 'USD'
+        //         "e": "order",
+        //         "data": {
+        //             "id": "59098421630",
+        //             "remains": "0",
+        //             "pair": {
+        //                 "symbol1": "BTC",
+        //                 "symbol2": "USD"
         //             }
         //         }
         //     }
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59425993014:a:BTC',
-        //             c: 'user:up105393824:a:BTC',
-        //             a: '0.00098152',
-        //             ds: 0,
-        //             cs: '0.00098152',
-        //             user: 'up105393824',
-        //             symbol: 'BTC',
-        //             symbol2: 'USD',
-        //             amount: '0.00098152',
-        //             buy: 59425993014,
-        //             order: 59425993014,
-        //             sell: 59425986168,
-        //             price: 19306.6,
-        //             type: 'buy',
-        //             time: '2022-10-02T01:11:15.148Z',
-        //             balance: '0.00098152',
-        //             fee_amount: '0.05',
-        //             id: '59425993020'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59425993014:a:BTC",
+        //             "c": "user:up105393824:a:BTC",
+        //             "a": "0.00098152",
+        //             "ds": 0,
+        //             "cs": "0.00098152",
+        //             "user": "up105393824",
+        //             "symbol": "BTC",
+        //             "symbol2": "USD",
+        //             "amount": "0.00098152",
+        //             "buy": 59425993014,
+        //             "order": 59425993014,
+        //             "sell": 59425986168,
+        //             "price": 19306.6,
+        //             "type": "buy",
+        //             "time": "2022-10-02T01:11:15.148Z",
+        //             "balance": "0.00098152",
+        //             "fee_amount": "0.05",
+        //             "id": "59425993020"
         //         }
         //     }
         //
@@ -680,13 +751,14 @@ export default class cex extends cexRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const ordersBySymbol = this.safeValue (this.orders['hashmap'], symbol, {});
+        const storedOrders = this.orders;
+        const ordersBySymbol = this.safeValue (storedOrders.hashmap, symbol, {});
         let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
             order = this.parseWsOrderUpdate (data, market);
         }
         order['remaining'] = remains;
-        const canceled = this.safeValue (data, 'cancel', false);
+        const canceled = this.safeBool (data, 'cancel', false);
         if (canceled) {
             order['status'] = 'canceled';
         }
@@ -701,11 +773,10 @@ export default class cex extends cexRest {
                 'rate': undefined,
             };
         }
-        const timestamp = this.safeInteger (data, 'time', this.milliseconds ());
+        const timestamp = this.safeInteger (data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601 (timestamp);
         order = this.safeOrder (order);
-        const storedOrders = this.orders;
         storedOrders.append (order);
         const messageHash = 'orders:' + symbol;
         client.resolve (storedOrders, messageHash);
@@ -728,24 +799,24 @@ export default class cex extends cexRest {
         //      }
         //  transaction
         //      {
-        //           d: 'order:59425993014:a:BTC',
-        //           c: 'user:up105393824:a:BTC',
-        //           a: '0.00098152',
-        //           ds: 0,
-        //           cs: '0.00098152',
-        //           user: 'up105393824',
-        //           symbol: 'BTC',
-        //           symbol2: 'USD',
-        //           amount: '0.00098152',
-        //           buy: 59425993014,
-        //           order: 59425993014,
-        //           sell: 59425986168,
-        //           price: 19306.6,
-        //           type: 'buy',
-        //           time: '2022-10-02T01:11:15.148Z',
-        //           balance: '0.00098152',
-        //           fee_amount: '0.05',
-        //           id: '59425993020'
+        //           "d": "order:59425993014:a:BTC",
+        //           "c": "user:up105393824:a:BTC",
+        //           "a": "0.00098152",
+        //           "ds": 0,
+        //           "cs": "0.00098152",
+        //           "user": "up105393824",
+        //           "symbol": "BTC",
+        //           "symbol2": "USD",
+        //           "amount": "0.00098152",
+        //           "buy": 59425993014,
+        //           "order": 59425993014,
+        //           "sell": 59425986168,
+        //           "price": 19306.6,
+        //           "type": "buy",
+        //           "time": "2022-10-02T01:11:15.148Z",
+        //           "balance": "0.00098152",
+        //           "fee_amount": "0.05",
+        //           "id": "59425993020"
         //       }
         //
         const isTransaction = this.safeValue (order, 'd') !== undefined;
@@ -767,21 +838,24 @@ export default class cex extends cexRest {
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol = undefined;
+        if (base !== undefined && quote !== undefined) {
+            symbol = base + '/' + quote;
+        }
         market = this.safeMarket (symbol, market);
         const time = this.safeInteger (order, 'time', this.milliseconds ());
         let timestamp = time;
         if (isTransaction) {
             timestamp = this.parse8601 (time);
         }
-        const canceled = this.safeValue (order, 'cancel', false);
+        const canceled = this.safeBool (order, 'cancel', false);
         let status = 'open';
         if (canceled) {
             status = 'canceled';
         } else if (isTransaction) {
             status = 'closed';
         }
-        const parsedOrder = {
+        const parsedOrder: Dict = {
             'id': this.safeString2 (order, 'id', 'order'),
             'clientOrderId': undefined,
             'info': order,
@@ -833,17 +907,17 @@ export default class cex extends cexRest {
     handleOrdersSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'open-orders',
-        //         data: [{
-        //             id: '59098421630',
-        //             time: '1664062285425',
-        //             type: 'buy',
-        //             price: '18920',
-        //             amount: '0.00100000',
-        //             pending: '0.00100000'
+        //         "e": "open-orders",
+        //         "data": [{
+        //             "id": "59098421630",
+        //             "time": "1664062285425",
+        //             "type": "buy",
+        //             "price": "18920",
+        //             "amount": "0.00100000",
+        //             "pending": "0.00100000"
         //         }],
-        //         oid: 1,
-        //         ok: 'ok'
+        //         "oid": 1,
+        //         "ok": "ok"
         //     }
         //
         const symbol = this.safeString (message, 'oid'); // symbol is set as requestId in watchOrders
@@ -868,17 +942,17 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://cex.io/websocket-api#orderbook-subscribe
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name cex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://cex.io/websocket-api#orderbook-subscribe
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -886,7 +960,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const depth = (limit === undefined) ? 0 : limit;
-        const subscribe = {
+        const subscribe: Dict = {
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [
@@ -906,24 +980,24 @@ export default class cex extends cexRest {
     handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'order-book-subscribe',
-        //         data: {
-        //             timestamp: 1663762032,
-        //             timestamp_ms: 1663762031680,
-        //             bids: [
+        //         "e": "order-book-subscribe",
+        //         "data": {
+        //             "timestamp": 1663762032,
+        //             "timestamp_ms": 1663762031680,
+        //             "bids": [
         //                 [ 241.947, 155.91626 ],
         //                 [ 241, 154 ],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [ 242.947, 155.91626 ],
         //                 [ 243, 154 ],    ],
-        //             pair: 'BTC:USDT',
-        //             id: 616267120,
-        //             sell_total: '13.59066946',
-        //             buy_total: '163553.625948'
+        //             "pair": "BTC:USDT",
+        //             "id": 616267120,
+        //             "sell_total": "13.59066946",
+        //             "buy_total": "163553.625948"
         //         },
-        //         oid: '1',
-        //         ok: 'ok'
+        //         "oid": "1",
+        //         "ok": "ok"
         //     }
         //
         const data = this.safeValue (message, 'data', {});
@@ -931,16 +1005,16 @@ export default class cex extends cexRest {
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
-        const incrementalId = this.safeNumber (data, 'id');
-        const storedOrderBook = this.orderBook ({});
+        const incrementalId = this.safeInteger (data, 'id');
+        const orderbook = this.orderBook ({});
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
-        storedOrderBook.reset (snapshot);
+        orderbook.reset (snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         };
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, messageHash);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     pairToSymbol (pair) {
@@ -956,20 +1030,20 @@ export default class cex extends cexRest {
     handleOrderBookUpdate (client: Client, message) {
         //
         //     {
-        //         e: 'md_update',
-        //         data: {
-        //             id: 616267121,
-        //             pair: 'BTC:USDT',
-        //             time: 1663762031719,
-        //             bids: [],
-        //             asks: [
+        //         "e": "md_update",
+        //         "data": {
+        //             "id": 616267121,
+        //             "pair": "BTC:USDT",
+        //             "time": 1663762031719,
+        //             "bids": [],
+        //             "asks": [
         //                 [122, 23]
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const incrementalId = this.safeNumber (data, 'id');
+        const incrementalId = this.safeInteger (data, 'id');
         const pair = this.safeString (data, 'pair', '');
         const symbol = this.pairToSymbol (pair);
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -1000,25 +1074,25 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#watchOHLCV
-         * @see https://cex.io/websocket-api#minute-data
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents.
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
+    /**
+     * @method
+     * @name cex#watchOHLCV
+     * @see https://cex.io/websocket-api#minute-data
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents.
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
@@ -1035,19 +1109,19 @@ export default class cex extends cexRest {
     handleInitOHLCV (client: Client, message) {
         //
         //     {
-        //         e: 'init-ohlcv-data',
-        //         data: [
+        //         "e": "init-ohlcv-data",
+        //         "data": [
         //             [
         //                 1663660680,
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '1262861'
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "1262861"
         //             ],
         //             ...
         //         ],
-        //         pair: 'BTC:USDT'
+        //         "pair": "BTC:USDT"
         //     }
         //
         const pair = this.safeString (message, 'pair');
@@ -1066,16 +1140,19 @@ export default class cex extends cexRest {
         for (let i = 0; i < sorted.length; i++) {
             stored.append (this.parseOHLCV (sorted[i], market));
         }
-        this.ohlcvs[symbol] = stored;
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        this.ohlcvs[symbol]['unknown'] = stored;
         client.resolve (stored, messageHash);
     }
 
     handleOHLCV24 (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv24',
-        //         data: [ '18793.2', '19630', '18793.2', '19104.1', '314157273' ],
-        //         pair: 'BTC:USDT'
+        //         "e": "ohlcv24",
+        //         "data": [ '18793.2', '19630', '18793.2', "19104.1", "314157273" ],
+        //         "pair": "BTC:USDT"
         //     }
         //
         return message;
@@ -1084,16 +1161,16 @@ export default class cex extends cexRest {
     handleOHLCV1m (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv1m',
-        //         data: {
-        //             pair: 'BTC:USD',
-        //             time: '1665436800',
-        //             o: '19279.6',
-        //             h: '19279.6',
-        //             l: '19266.7',
-        //             c: '19266.7',
-        //             v: 3343884,
-        //             d: 3343884
+        //         "e": "ohlcv1m",
+        //         "data": {
+        //             "pair": "BTC:USD",
+        //             "time": "1665436800",
+        //             "o": "19279.6",
+        //             "h": "19279.6",
+        //             "l": "19266.7",
+        //             "c": "19266.7",
+        //             "v": 3343884,
+        //             "d": 3343884
         //         }
         //     }
         //
@@ -1117,18 +1194,19 @@ export default class cex extends cexRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv',
-        //         data: [
-        //             [1665461100, '19068.2', '19068.2', '19068.2', '19068.2', 268478]
+        //         "e": "ohlcv",
+        //         "data": [
+        //             [1665461100, '19068.2', '19068.2', '19068.2', "19068.2", 268478]
         //         ],
-        //         pair: 'BTC:USD'
+        //         "pair": "BTC:USD"
         //     }
         //
         const data = this.safeValue (message, 'data', []);
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue (this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp (data[i], 0),
@@ -1146,6 +1224,244 @@ export default class cex extends cexRest {
         }
     }
 
+    /**
+     * @method
+     * @name cex#fetchOrderWs
+     * @description fetches information on an order made by the user
+     * @see https://docs.cex.io/#ws-api-get-order
+     * @param {string} id the order id
+     * @param {string} symbol not used by cex fetchOrder
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const data = this.extend ({
+            'order_id': id.toString (),
+        }, params);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const request: Dict = {
+            'e': 'get-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        const response = await this.watch (url, messageHash, request, messageHash);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name cex#fetchOpenOrdersWs
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrdersWs requires a symbol.');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'pair': [ market['baseId'], market['quoteId'] ],
+        }, params);
+        const request: Dict = {
+            'e': 'open-orders',
+            'oid': messageHash,
+            'data': data,
+        };
+        const response = await this.watch (url, messageHash, request, messageHash);
+        return this.parseOrders (response, market, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name cex#createOrderWs
+     * @see https://docs.cex.io/#ws-api-order-placement
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        if (price === undefined) {
+            throw new BadRequest (this.id + ' createOrderWs requires a price argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'pair': [ market['baseId'], market['quoteId'] ],
+            'amount': amount,
+            'price': price,
+            'type': side,
+        }, params);
+        const request: Dict = {
+            'e': 'place-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        const rawOrder = await this.watch (url, messageHash, request, messageHash);
+        return this.parseOrder (rawOrder, market);
+    }
+
+    /**
+     * @method
+     * @name cex#editOrderWs
+     * @description edit a trade order
+     * @see https://docs.cex.io/#ws-api-cancel-replace
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const data = this.extend ({
+            'pair': [ market['baseId'], market['quoteId'] ],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        }, params);
+        const messageHash = this.requestId ();
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'e': 'cancel-replace-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name cex#cancelOrderWs
+     * @see https://docs.cex.io/#ws-api-order-cancel
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol not used by cex cancelOrder ()
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const data = this.extend ({
+            'order_id': id,
+        }, params);
+        const messageHash = this.requestId ();
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'e': 'cancel-order',
+            'oid': messageHash,
+            'data': data,
+        };
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name cex#cancelOrdersWs
+     * @description cancel multiple orders
+     * @see https://docs.cex.io/#ws-api-mass-cancel-place
+     * @param {string[]} ids order ids
+     * @param {string} symbol not used by cex cancelOrders()
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new BadRequest (this.id + ' cancelOrderWs does not allow filtering by symbol');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const messageHash = this.requestId ();
+        const data = this.extend ({
+            'cancel-orders': ids,
+        }, params);
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'e': 'mass-cancel-place-orders',
+            'oid': messageHash,
+            'data': data,
+        };
+        const response = await this.watch (url, messageHash, request, messageHash, messageHash);
+        //
+        //    {
+        //        "cancel-orders": [{
+        //            "order_id": 69202557979,
+        //            "fremains": "0.15000000"
+        //        }],
+        //        "place-orders": [],
+        //        "placed-cancelled": []
+        //    }
+        //
+        const canceledOrders = this.safeValue (response, 'cancel-orders');
+        return this.parseOrders (canceledOrders, undefined, undefined, undefined, params);
+    }
+
+    resolveData (client: Client, message) {
+        //
+        //    "e": "open-orders",
+        //    "data": [
+        //       {
+        //          "id": "2477098",
+        //          "time": "1435927928618",
+        //          "type": "buy",
+        //          "price": "241.9477",
+        //          "amount": "0.02000000",
+        //          "pending": "0.02000000"
+        //       },
+        //       ...
+        //    ],
+        //    "oid": "1435927928274_9_open-orders",
+        //    "ok": "ok"
+        //    }
+        //
+        const data = this.safeValue (message, 'data');
+        const messageHash = this.safeString (message, 'oid');
+        client.resolve (data, messageHash);
+    }
+
     handleConnected (client: Client, message) {
         //
         //     {
@@ -1158,22 +1474,39 @@ export default class cex extends cexRest {
     handleErrorMessage (client: Client, message) {
         //
         //     {
-        //         e: 'get-balance',
-        //         data: { error: 'Please Login' },
-        //         oid: 1,
-        //         ok: 'error'
+        //         "e": "get-balance",
+        //         "data": { error: "Please Login" },
+        //         "oid": 1,
+        //         "ok": "error"
         //     }
         //
-        throw new ExchangeError (this.id + ' ' + this.json (message));
+        try {
+            const data = this.safeValue (message, 'data', {});
+            const error = this.safeString (data, 'error');
+            const event = this.safeString (message, 'e', '');
+            const feedback = this.id + ' ' + event + ' ' + error;
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback);
+        } catch (error) {
+            const messageHash = this.safeString (message, 'oid');
+            const future = this.safeValue (client['futures'], messageHash);
+            if (future !== undefined) {
+                client.reject (error, messageHash);
+            } else {
+                throw error;
+            }
+        }
     }
 
     handleMessage (client: Client, message) {
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const event = this.safeString (message, 'e');
-        const handlers = {
+        const handlers: Dict = {
             'auth': this.handleAuthenticationMessage,
             'connected': this.handleConnected,
             'tick': this.handleTicker,
@@ -1185,17 +1518,21 @@ export default class cex extends cexRest {
             'get-balance': this.handleBalance,
             'order-book-subscribe': this.handleOrderBookSnapshot,
             'md_update': this.handleOrderBookUpdate,
-            'open-orders': this.handleOrdersSnapshot,
+            'open-orders': this.resolveData,
             'order': this.handleOrderUpdate,
             'history-update': this.handleTrade,
             'history': this.handleTradesSnapshot,
             'tx': this.handleTransaction,
+            'place-order': this.resolveData,
+            'cancel-replace-order': this.resolveData,
+            'cancel-order': this.resolveData,
+            'mass-cancel-place-orders': this.resolveData,
+            'get-order': this.resolveData,
         };
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
         }
-        return message;
     }
 
     handleAuthenticationMessage (client: Client, message) {
@@ -1226,7 +1563,7 @@ export default class cex extends cexRest {
             const nonce = this.seconds ().toString ();
             const auth = nonce + this.apiKey;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request = {
+            const request: Dict = {
                 'e': 'auth',
                 'auth': {
                     'key': this.apiKey,

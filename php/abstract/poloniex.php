@@ -19,6 +19,12 @@ abstract class poloniex extends \ccxt\Exchange {
     public function public_get_currencies_currency($params = array()) {
         return $this->request('currencies/{currency}', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function public_get_v2_currencies($params = array()) {
+        return $this->request('v2/currencies', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function public_get_v2_currencies_currency($params = array()) {
+        return $this->request('v2/currencies/{currency}', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_get_timestamp($params = array()) {
         return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -27,6 +33,15 @@ abstract class poloniex extends \ccxt\Exchange {
     }
     public function public_get_markets_symbol_price($params = array()) {
         return $this->request('markets/{symbol}/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_markprice($params = array()) {
+        return $this->request('markets/markPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_symbol_markprice($params = array()) {
+        return $this->request('markets/{symbol}/markPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_symbol_markpricecomponents($params = array()) {
+        return $this->request('markets/{symbol}/markPriceComponents', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_markets_symbol_orderbook($params = array()) {
         return $this->request('markets/{symbol}/orderBook', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -43,11 +58,17 @@ abstract class poloniex extends \ccxt\Exchange {
     public function public_get_markets_symbol_ticker24h($params = array()) {
         return $this->request('markets/{symbol}/ticker24h', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function public_get_markets_collateralinfo($params = array()) {
+        return $this->request('markets/collateralInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_currency_collateralinfo($params = array()) {
+        return $this->request('markets/{currency}/collateralInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_markets_borrowratesinfo($params = array()) {
+        return $this->request('markets/borrowRatesInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function private_get_accounts_activity($params = array()) {
-        return $this->request('accounts/activity', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_accounts_balances($params = array()) {
         return $this->request('accounts/balances', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -55,11 +76,20 @@ abstract class poloniex extends \ccxt\Exchange {
     public function private_get_accounts_id_balances($params = array()) {
         return $this->request('accounts/{id}/balances', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_accounts_activity($params = array()) {
+        return $this->request('accounts/activity', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_accounts_transfer($params = array()) {
         return $this->request('accounts/transfer', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_accounts_transfer_id($params = array()) {
         return $this->request('accounts/transfer/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_feeinfo($params = array()) {
+        return $this->request('feeinfo', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_accounts_interest_history($params = array()) {
+        return $this->request('accounts/interest/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_subaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -76,26 +106,29 @@ abstract class poloniex extends \ccxt\Exchange {
     public function private_get_subaccounts_transfer_id($params = array()) {
         return $this->request('subaccounts/transfer/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
-    public function private_get_feeinfo($params = array()) {
-        return $this->request('feeinfo', 'private', 'GET', $params, null, null, array("cost" => 20));
-    }
     public function private_get_wallets_addresses($params = array()) {
         return $this->request('wallets/addresses', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_wallets_addresses_currency($params = array()) {
+        return $this->request('wallets/addresses/{currency}', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_wallets_activity($params = array()) {
         return $this->request('wallets/activity', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
-    public function private_get_wallets_addresses_currency($params = array()) {
-        return $this->request('wallets/addresses/{currency}', 'private', 'GET', $params, null, null, array("cost" => 20));
+    public function private_get_margin_accountmargin($params = array()) {
+        return $this->request('margin/accountMargin', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_margin_borrowstatus($params = array()) {
+        return $this->request('margin/borrowStatus', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_margin_maxsize($params = array()) {
+        return $this->request('margin/maxSize', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_orders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function private_get_orders_history($params = array()) {
-        return $this->request('orders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_orders_killswitchstatus($params = array()) {
         return $this->request('orders/killSwitchStatus', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -105,6 +138,9 @@ abstract class poloniex extends \ccxt\Exchange {
     }
     public function private_get_smartorders_id($params = array()) {
         return $this->request('smartorders/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_orders_history($params = array()) {
+        return $this->request('orders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_get_smartorders_history($params = array()) {
         return $this->request('smartorders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
@@ -127,14 +163,17 @@ abstract class poloniex extends \ccxt\Exchange {
     public function private_post_wallets_withdraw($params = array()) {
         return $this->request('wallets/withdraw', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function private_post_v2_wallets_withdraw($params = array()) {
+        return $this->request('v2/wallets/withdraw', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
-    public function private_post_orders_killswitch($params = array()) {
-        return $this->request('orders/killSwitch', 'private', 'POST', $params, null, null, array("cost" => 4));
-    }
     public function private_post_orders_batch($params = array()) {
         return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_post_orders_killswitch($params = array()) {
+        return $this->request('orders/killSwitch', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_post_smartorders($params = array()) {
         return $this->request('smartorders', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -158,10 +197,10 @@ abstract class poloniex extends \ccxt\Exchange {
         return $this->request('smartorders', 'private', 'DELETE', $params, null, null, array("cost" => 20));
     }
     public function private_put_orders_id($params = array()) {
-        return $this->request('orders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 4));
+        return $this->request('orders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
     }
     public function private_put_smartorders_id($params = array()) {
-        return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 4));
+        return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
     }
     public function publicGetMarkets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array("cost" => 20));
@@ -175,6 +214,12 @@ abstract class poloniex extends \ccxt\Exchange {
     public function publicGetCurrenciesCurrency($params = array()) {
         return $this->request('currencies/{currency}', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function publicGetV2Currencies($params = array()) {
+        return $this->request('v2/currencies', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function publicGetV2CurrenciesCurrency($params = array()) {
+        return $this->request('v2/currencies/{currency}', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function publicGetTimestamp($params = array()) {
         return $this->request('timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -183,6 +228,15 @@ abstract class poloniex extends \ccxt\Exchange {
     }
     public function publicGetMarketsSymbolPrice($params = array()) {
         return $this->request('markets/{symbol}/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsMarkPrice($params = array()) {
+        return $this->request('markets/markPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsSymbolMarkPrice($params = array()) {
+        return $this->request('markets/{symbol}/markPrice', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsSymbolMarkPriceComponents($params = array()) {
+        return $this->request('markets/{symbol}/markPriceComponents', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketsSymbolOrderBook($params = array()) {
         return $this->request('markets/{symbol}/orderBook', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -199,11 +253,17 @@ abstract class poloniex extends \ccxt\Exchange {
     public function publicGetMarketsSymbolTicker24h($params = array()) {
         return $this->request('markets/{symbol}/ticker24h', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function publicGetMarketsCollateralInfo($params = array()) {
+        return $this->request('markets/collateralInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsCurrencyCollateralInfo($params = array()) {
+        return $this->request('markets/{currency}/collateralInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketsBorrowRatesInfo($params = array()) {
+        return $this->request('markets/borrowRatesInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function privateGetAccountsActivity($params = array()) {
-        return $this->request('accounts/activity', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetAccountsBalances($params = array()) {
         return $this->request('accounts/balances', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -211,11 +271,20 @@ abstract class poloniex extends \ccxt\Exchange {
     public function privateGetAccountsIdBalances($params = array()) {
         return $this->request('accounts/{id}/balances', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetAccountsActivity($params = array()) {
+        return $this->request('accounts/activity', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetAccountsTransfer($params = array()) {
         return $this->request('accounts/transfer', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetAccountsTransferId($params = array()) {
         return $this->request('accounts/transfer/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetFeeinfo($params = array()) {
+        return $this->request('feeinfo', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetAccountsInterestHistory($params = array()) {
+        return $this->request('accounts/interest/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetSubaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -232,26 +301,29 @@ abstract class poloniex extends \ccxt\Exchange {
     public function privateGetSubaccountsTransferId($params = array()) {
         return $this->request('subaccounts/transfer/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
-    public function privateGetFeeinfo($params = array()) {
-        return $this->request('feeinfo', 'private', 'GET', $params, null, null, array("cost" => 20));
-    }
     public function privateGetWalletsAddresses($params = array()) {
         return $this->request('wallets/addresses', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetWalletsAddressesCurrency($params = array()) {
+        return $this->request('wallets/addresses/{currency}', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetWalletsActivity($params = array()) {
         return $this->request('wallets/activity', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
-    public function privateGetWalletsAddressesCurrency($params = array()) {
-        return $this->request('wallets/addresses/{currency}', 'private', 'GET', $params, null, null, array("cost" => 20));
+    public function privateGetMarginAccountMargin($params = array()) {
+        return $this->request('margin/accountMargin', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetMarginBorrowStatus($params = array()) {
+        return $this->request('margin/borrowStatus', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetMarginMaxSize($params = array()) {
+        return $this->request('margin/maxSize', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetOrders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetOrdersId($params = array()) {
         return $this->request('orders/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
-    }
-    public function privateGetOrdersHistory($params = array()) {
-        return $this->request('orders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetOrdersKillSwitchStatus($params = array()) {
         return $this->request('orders/killSwitchStatus', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -261,6 +333,9 @@ abstract class poloniex extends \ccxt\Exchange {
     }
     public function privateGetSmartordersId($params = array()) {
         return $this->request('smartorders/{id}', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetOrdersHistory($params = array()) {
+        return $this->request('orders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateGetSmartordersHistory($params = array()) {
         return $this->request('smartorders/history', 'private', 'GET', $params, null, null, array("cost" => 20));
@@ -283,14 +358,17 @@ abstract class poloniex extends \ccxt\Exchange {
     public function privatePostWalletsWithdraw($params = array()) {
         return $this->request('wallets/withdraw', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function privatePostV2WalletsWithdraw($params = array()) {
+        return $this->request('v2/wallets/withdraw', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
-    public function privatePostOrdersKillSwitch($params = array()) {
-        return $this->request('orders/killSwitch', 'private', 'POST', $params, null, null, array("cost" => 4));
-    }
     public function privatePostOrdersBatch($params = array()) {
         return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privatePostOrdersKillSwitch($params = array()) {
+        return $this->request('orders/killSwitch', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
     public function privatePostSmartorders($params = array()) {
         return $this->request('smartorders', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -314,9 +392,9 @@ abstract class poloniex extends \ccxt\Exchange {
         return $this->request('smartorders', 'private', 'DELETE', $params, null, null, array("cost" => 20));
     }
     public function privatePutOrdersId($params = array()) {
-        return $this->request('orders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 4));
+        return $this->request('orders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
     }
     public function privatePutSmartordersId($params = array()) {
-        return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 4));
+        return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
     }
 }

@@ -8,7 +8,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 /**
  * @class coinsph
- * @extends Exchange
+ * @augments Exchange
  */
 class coinsph extends coinsph$1 {
     describe() {
@@ -28,11 +28,15 @@ class coinsph extends coinsph$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
@@ -45,14 +49,13 @@ class coinsph extends coinsph$1 {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -66,6 +69,8 @@ class coinsph extends coinsph$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
@@ -84,7 +89,11 @@ class coinsph extends coinsph$1 {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -103,7 +112,8 @@ class coinsph extends coinsph$1 {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
-                'repayMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -111,6 +121,7 @@ class coinsph extends coinsph$1 {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': true,
+                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -201,6 +212,11 @@ class coinsph extends coinsph$1 {
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
                         'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/fiat/v1/support-channel': 1,
+                        'openapi/fiat/v1/cash-out': 1,
+                        'openapi/fiat/v1/history': 1,
+                        'openapi/migration/v4/sellorder': 1,
+                        'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
@@ -426,14 +442,15 @@ class coinsph extends coinsph$1 {
         }
         return this.safeValue(config, 'cost', 1);
     }
+    /**
+     * @method
+     * @name coinsph#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coins-docs.github.io/rest-api/#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus(params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         const response = await this.publicGetOpenapiV1Ping(params);
         return {
             'status': 'ok',
@@ -443,89 +460,91 @@ class coinsph extends coinsph$1 {
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name coinsph#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://coins-docs.github.io/rest-api/#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.publicGetOpenapiV1Time(params);
         //
         //     {"serverTime":1677705408268}
         //
         return this.safeInteger(response, 'serverTime');
     }
+    /**
+     * @method
+     * @name coinsph#fetchMarkets
+     * @description retrieves data on all markets for coinsph
+     * @see https://coins-docs.github.io/rest-api/#exchange-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchMarkets
-         * @description retrieves data on all markets for coinsph
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetOpenapiV1ExchangeInfo(params);
         //
         //     {
-        //         timezone: 'UTC',
-        //         serverTime: '1677449496897',
-        //         exchangeFilters: [],
-        //         symbols: [
+        //         "timezone": "UTC",
+        //         "serverTime": "1677449496897",
+        //         "exchangeFilters": [],
+        //         "symbols": [
         //             {
-        //                 symbol: 'XRPPHP',
-        //                 status: 'TRADING',
-        //                 baseAsset: 'XRP',
-        //                 baseAssetPrecision: '2',
-        //                 quoteAsset: 'PHP',
-        //                 quoteAssetPrecision: '4',
-        //                 orderTypes: [
-        //                     'LIMIT',
-        //                     'MARKET',
-        //                     'LIMIT_MAKER',
-        //                     'STOP_LOSS_LIMIT',
-        //                     'STOP_LOSS',
-        //                     'TAKE_PROFIT_LIMIT',
-        //                     'TAKE_PROFIT'
+        //                 "symbol": "XRPPHP",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "XRP",
+        //                 "baseAssetPrecision": "2",
+        //                 "quoteAsset": "PHP",
+        //                 "quoteAssetPrecision": "4",
+        //                 "orderTypes": [
+        //                     "LIMIT",
+        //                     "MARKET",
+        //                     "LIMIT_MAKER",
+        //                     "STOP_LOSS_LIMIT",
+        //                     "STOP_LOSS",
+        //                     "TAKE_PROFIT_LIMIT",
+        //                     "TAKE_PROFIT"
         //                 ],
-        //                 filters: [
+        //                 "filters": [
         //                     {
-        //                         minPrice: '0.01',
-        //                         maxPrice: '99999999.00000000',
-        //                         tickSize: '0.01',
-        //                         filterType: 'PRICE_FILTER'
+        //                         "minPrice": "0.01",
+        //                         "maxPrice": "99999999.00000000",
+        //                         "tickSize": "0.01",
+        //                         "filterType": "PRICE_FILTER"
         //                     },
         //                     {
-        //                         minQty: '0.01',
-        //                         maxQty: '99999999999.00000000',
-        //                         stepSize: '0.01',
-        //                         filterType: 'LOT_SIZE'
+        //                         "minQty": "0.01",
+        //                         "maxQty": "99999999999.00000000",
+        //                         "stepSize": "0.01",
+        //                         "filterType": "LOT_SIZE"
         //                     },
-        //                     { minNotional: '50', filterType: 'NOTIONAL' },
-        //                     { minNotional: '50', filterType: 'MIN_NOTIONAL' },
+        //                     { minNotional: "50", filterType: "NOTIONAL" },
+        //                     { minNotional: "50", filterType: "MIN_NOTIONAL" },
         //                     {
-        //                         priceUp: '99999999',
-        //                         priceDown: '0.01',
-        //                         filterType: 'STATIC_PRICE_RANGE'
-        //                     },
-        //                     {
-        //                         multiplierUp: '1.1',
-        //                         multiplierDown: '0.9',
-        //                         filterType: 'PERCENT_PRICE_INDEX'
+        //                         "priceUp": "99999999",
+        //                         "priceDown": "0.01",
+        //                         "filterType": "STATIC_PRICE_RANGE"
         //                     },
         //                     {
-        //                         multiplierUp: '1.1',
-        //                         multiplierDown: '0.9',
-        //                         filterType: 'PERCENT_PRICE_ORDER_SIZE'
+        //                         "multiplierUp": "1.1",
+        //                         "multiplierDown": "0.9",
+        //                         "filterType": "PERCENT_PRICE_INDEX"
         //                     },
-        //                     { maxNumOrders: '200', filterType: 'MAX_NUM_ORDERS' },
-        //                     { maxNumAlgoOrders: '5', filterType: 'MAX_NUM_ALGO_ORDERS' }
+        //                     {
+        //                         "multiplierUp": "1.1",
+        //                         "multiplierDown": "0.9",
+        //                         "filterType": "PERCENT_PRICE_ORDER_SIZE"
+        //                     },
+        //                     { maxNumOrders: "200", filterType: "MAX_NUM_ORDERS" },
+        //                     { maxNumAlgoOrders: "5", filterType: "MAX_NUM_ALGO_ORDERS" }
         //                 ]
         //             },
         //         ]
         //     }
         //
-        const markets = this.safeValue(response, 'symbols');
+        const markets = this.safeList(response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -534,8 +553,7 @@ class coinsph extends coinsph$1 {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const isActive = this.safeString(market, 'status') === 'TRADING';
-            const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
+            const limits = this.indexBy(this.safeList(market, 'filters', []), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
             const costLimits = this.safeValue(limits, 'NOTIONAL', {});
@@ -554,7 +572,7 @@ class coinsph extends coinsph$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isActive,
+                'active': this.safeStringLower(market, 'status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -587,21 +605,25 @@ class coinsph extends coinsph$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         this.setMarkets(result);
         return result;
     }
+    /**
+     * @method
+     * @name coinsph#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const request = {};
         if (symbols !== undefined) {
@@ -614,56 +636,77 @@ class coinsph extends coinsph$1 {
             request['symbols'] = ids;
         }
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTickers', {});
+        const options = this.safeDict(this.options, 'fetchTickers', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        const tickers = await this[method](this.extend(request, params));
+        let tickers = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
+        }
+        else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            tickers = await this.publicGetOpenapiQuoteV1TickerBookTicker(this.extend(request, params));
+        }
+        else {
+            tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
+        }
         return this.parseTickers(tickers, symbols, params);
     }
+    /**
+     * @method
+     * @name coinsph#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-        const options = this.safeValue(this.options, 'fetchTicker', {});
+        const options = this.safeDict(this.options, 'fetchTicker', {});
         const method = this.safeString(options, 'method', defaultMethod);
-        const ticker = await this[method](this.extend(request, params));
+        let ticker = undefined;
+        if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, params));
+        }
+        else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
+            ticker = await this.publicGetOpenapiQuoteV1TickerBookTicker(this.extend(request, params));
+        }
+        else {
+            ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
+        }
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
-        //         symbol: 'ETHUSDT',
-        //         priceChange: '41.440000000000000000',
-        //         priceChangePercent: '0.0259',
-        //         weightedAvgPrice: '1631.169825783972125436',
-        //         prevClosePrice: '1601.520000000000000000',
-        //         lastPrice: '1642.96',
-        //         lastQty: '0.000001000000000000',
-        //         bidPrice: '1638.790000000000000000',
-        //         bidQty: '0.280075000000000000',
-        //         askPrice: '1647.340000000000000000',
-        //         askQty: '0.165183000000000000',
-        //         openPrice: '1601.52',
-        //         highPrice: '1648.28',
-        //         lowPrice: '1601.52',
-        //         volume: '0.000287',
-        //         quoteVolume: '0.46814574',
-        //         openTime: '1677417000000',
-        //         closeTime: '1677503415200',
-        //         firstId: '1364680572697591809',
-        //         lastId: '1365389809203560449',
-        //         count: '100'
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "41.440000000000000000",
+        //         "priceChangePercent": "0.0259",
+        //         "weightedAvgPrice": "1631.169825783972125436",
+        //         "prevClosePrice": "1601.520000000000000000",
+        //         "lastPrice": "1642.96",
+        //         "lastQty": "0.000001000000000000",
+        //         "bidPrice": "1638.790000000000000000",
+        //         "bidQty": "0.280075000000000000",
+        //         "askPrice": "1647.340000000000000000",
+        //         "askQty": "0.165183000000000000",
+        //         "openPrice": "1601.52",
+        //         "highPrice": "1648.28",
+        //         "lowPrice": "1601.52",
+        //         "volume": "0.000287",
+        //         "quoteVolume": "0.46814574",
+        //         "openTime": "1677417000000",
+        //         "closeTime": "1677503415200",
+        //         "firstId": "1364680572697591809",
+        //         "lastId": "1365389809203560449",
+        //         "count": "100"
         //     }
         //
         // publicGetOpenapiQuoteV1TickerPrice
@@ -717,16 +760,17 @@ class coinsph extends coinsph$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name coinsph#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://coins-docs.github.io/rest-api/#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -753,18 +797,19 @@ class coinsph extends coinsph$1 {
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         return orderbook;
     }
+    /**
+     * @method
+     * @name coinsph#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe);
@@ -775,7 +820,7 @@ class coinsph extends coinsph$1 {
         if (since !== undefined) {
             request['startTime'] = since;
             request['limit'] = 1000;
-            // since work properly only when it is "younger" than last 'limit' candle
+            // since work properly only when it is "younger" than last "limit" candle
             if (limit !== undefined) {
                 const duration = this.parseTimeframe(timeframe) * 1000;
                 request['endTime'] = this.sum(since, duration * (limit - 1));
@@ -819,17 +864,18 @@ class coinsph extends coinsph$1 {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name coinsph#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -848,29 +894,30 @@ class coinsph extends coinsph$1 {
         //
         //     [
         //         {
-        //             price: '89685.8',
-        //             id: '1365561108437680129',
-        //             qty: '0.000004',
-        //             quoteQty: '0.000004000000000000',
-        //             time: '1677523569575',
-        //             isBuyerMaker: false,
-        //             isBestMatch: true
+        //             "price": "89685.8",
+        //             "id": "1365561108437680129",
+        //             "qty": "0.000004",
+        //             "quoteQty": "0.000004000000000000",
+        //             "time": "1677523569575",
+        //             "isBuyerMaker": false,
+        //             "isBestMatch": true
         //         },
         //     ]
         //
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinsph#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -890,18 +937,19 @@ class coinsph extends coinsph$1 {
         const response = await this.privateGetOpenapiV1MyTrades(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinsph#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
         }
@@ -914,13 +962,13 @@ class coinsph extends coinsph$1 {
         //
         // fetchTrades
         //     {
-        //         price: '89685.8',
-        //         id: '1365561108437680129',
-        //         qty: '0.000004',
-        //         quoteQty: '0.000004000000000000', // warning: report to exchange - this is not quote quantity, this is base quantity
-        //         time: '1677523569575',
-        //         isBuyerMaker: false,
-        //         isBestMatch: true
+        //         "price": "89685.8",
+        //         "id": "1365561108437680129",
+        //         "qty": "0.000004",
+        //         "quoteQty": "0.000004000000000000", // warning: report to exchange - this is not quote quantity, this is base quantity
+        //         "time": "1677523569575",
+        //         "isBuyerMaker": false,
+        //         "isBestMatch": true
         //     },
         //
         // fetchMyTrades
@@ -966,10 +1014,10 @@ class coinsph extends coinsph$1 {
                 'currency': this.safeCurrencyCode(feeCurrencyId),
             };
         }
-        const isBuyer = this.safeString2(trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker', undefined);
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === 'true') ? 'buy' : 'sell';
+            side = (isBuyer === true) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString2(trade, 'isMaker', undefined);
         let takerOrMaker = undefined;
@@ -996,20 +1044,21 @@ class coinsph extends coinsph$1 {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name coinsph#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetOpenapiV1Account(params);
         //
         //     {
-        //         accountType: 'SPOT',
-        //         balances: [
+        //         "accountType": "SPOT",
+        //         "balances": [
         //             {
         //                 "asset": "BTC",
         //                 "free": "4723846.89208129",
@@ -1021,21 +1070,20 @@ class coinsph extends coinsph$1 {
         //                 "locked": "0.00000000"
         //             }
         //         ],
-        //         canDeposit: true,
-        //         canTrade: true,
-        //         canWithdraw: true,
-        //         updateTime: '1677430932528'
+        //         "canDeposit": true,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "updateTime": "1677430932528"
         //     }
         //
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
-        const timestamp = this.milliseconds();
+        const balances = this.safeList(response, 'balances', []);
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1048,22 +1096,27 @@ class coinsph extends coinsph$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name coinsph#createOrder
+     * @description create a trade order
+     * @see https://coins-docs.github.io/rest-api/#new-order--trade
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+     * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         // todo: add test order low priority
         await this.loadMarkets();
         const market = this.market(symbol);
+        const testOrder = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
         let orderType = this.safeString(params, 'type', type);
         orderType = this.encodeOrderType(orderType);
         params = this.omit(params, 'type');
@@ -1094,75 +1147,87 @@ class coinsph extends coinsph$1 {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
             else if (orderSide === 'BUY') {
-                const quoteOrderQty = this.safeNumber2(params, 'cost', 'quoteOrderQty');
-                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (quoteOrderQty !== undefined) {
-                    amount = quoteOrderQty;
+                let quoteAmount = undefined;
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
                 }
                 else if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined) {
-                        throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
                     else {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
-                        const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                        amount = this.parseNumber(quoteAmount);
+                        const costRequest = Precise["default"].stringMul(amountString, priceString);
+                        quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 }
-                request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
-                params = this.omit(params, 'cost', 'quoteOrderQty');
+                else {
+                    quoteAmount = this.costToPrecision(symbol, amount);
+                }
+                request['quoteOrderQty'] = quoteAmount;
             }
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
-            const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-            if (stopPrice === undefined) {
+            const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+            if (triggerPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        const response = await this.privatePostOpenapiV1Order(this.extend(request, params));
+        let response = undefined;
+        if (testOrder) {
+            response = await this.privatePostOpenapiV1OrderTest(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostOpenapiV1Order(this.extend(request, params));
+        }
         //
         //     {
-        //         symbol: 'ETHUSDT',
-        //         orderId: '1375407140139731486',
-        //         clientOrderId: '1375407140139733169',
-        //         transactTime: '1678697308023',
-        //         price: '1600',
-        //         origQty: '0.02',
-        //         executedQty: '0.02',
-        //         cummulativeQuoteQty: '31.9284',
-        //         status: 'FILLED',
-        //         timeInForce: 'GTC',
-        //         type: 'LIMIT',
-        //         side: 'BUY',
-        //         stopPrice: '0',
-        //         origQuoteOrderQty: '0',
-        //         fills: [
+        //         "symbol": "ETHUSDT",
+        //         "orderId": "1375407140139731486",
+        //         "clientOrderId": "1375407140139733169",
+        //         "transactTime": "1678697308023",
+        //         "price": "1600",
+        //         "origQty": "0.02",
+        //         "executedQty": "0.02",
+        //         "cummulativeQuoteQty": "31.9284",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0",
+        //         "origQuoteOrderQty": "0",
+        //         "fills": [
         //             {
-        //                 price: '1596.42',
-        //                 qty: '0.02',
-        //                 commission: '0',
-        //                 commissionAsset: 'ETH',
-        //                 tradeId: '1375407140281532417'
+        //                 "price": "1596.42",
+        //                 "qty": "0.02",
+        //                 "commission": "0",
+        //                 "commissionAsset": "ETH",
+        //                 "tradeId": "1375407140281532417"
         //             }
         //         ]
         //     },
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name coinsph#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @param {int|string} id order id
+     * @param {string} symbol not used by coinsph fetchOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {int|string} id order id
-         * @param {string} symbol not used by coinsph fetchOrder ()
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
@@ -1176,17 +1241,18 @@ class coinsph extends coinsph$1 {
         const response = await this.privateGetOpenapiV1Order(this.extend(request, params));
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name coinsph#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         const request = {};
@@ -1197,17 +1263,18 @@ class coinsph extends coinsph$1 {
         const response = await this.privateGetOpenapiV1OpenOrders(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinsph#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1227,16 +1294,17 @@ class coinsph extends coinsph$1 {
         const response = await this.privateGetOpenapiV1HistoryOrders(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinsph#cancelOrder
+     * @description cancels an open order
+     * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+     * @param {string} id order id
+     * @param {string} symbol not used by coinsph cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol not used by coinsph cancelOrder ()
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
@@ -1250,15 +1318,16 @@ class coinsph extends coinsph$1 {
         const response = await this.privateDeleteOpenapiV1Order(this.extend(request, params));
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name coinsph#cancelAllOrders
+     * @description cancel open orders of market
+     * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#cancelAllOrders
-         * @description cancel open orders of market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1346,9 +1415,9 @@ class coinsph extends coinsph$1 {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'time', 'transactTime');
         const trades = this.safeValue(order, 'fills', undefined);
-        let stopPrice = this.safeString(order, 'stopPrice');
-        if (Precise["default"].stringEq(stopPrice, '0')) {
-            stopPrice = undefined;
+        let triggerPrice = this.safeString(order, 'stopPrice');
+        if (Precise["default"].stringEq(triggerPrice, '0')) {
+            triggerPrice = undefined;
         }
         return this.safeOrder({
             'id': id,
@@ -1362,8 +1431,7 @@ class coinsph extends coinsph$1 {
             'timeInForce': this.parseOrderTimeInForce(this.safeString(order, 'timeInForce')),
             'side': this.parseOrderSide(this.safeString(order, 'side')),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': undefined,
             'amount': this.safeString(order, 'origQty'),
             'cost': this.safeString(order, 'cummulativeQuoteQty'),
@@ -1432,15 +1500,16 @@ class coinsph extends coinsph$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name coinsph#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchTradingFee(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTradingFee
-         * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1456,30 +1525,31 @@ class coinsph extends coinsph$1 {
         //       }
         //     ]
         //
-        const tradingFee = this.safeValue(response, 0, {});
+        const tradingFee = this.safeDict(response, 0, {});
         return this.parseTradingFee(tradingFee, market);
     }
+    /**
+     * @method
+     * @name coinsph#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privateGetOpenapiV1AssetTradeFee(params);
         //
         //     [
         //         {
-        //             symbol: 'ETHPHP',
-        //             makerCommission: '0.0025',
-        //             takerCommission: '0.003'
+        //             "symbol": "ETHPHP",
+        //             "makerCommission": "0.0025",
+        //             "takerCommission": "0.003"
         //         },
         //         {
-        //             symbol: 'UNIPHP',
-        //             makerCommission: '0.0025',
-        //             takerCommission: '0.003'
+        //             "symbol": "UNIPHP",
+        //             "makerCommission": "0.0025",
+        //             "takerCommission": "0.003"
         //         },
         //     ]
         //
@@ -1507,23 +1577,25 @@ class coinsph extends coinsph$1 {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommission'),
             'taker': this.safeNumber(fee, 'takerCommission'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
+    /**
+     * @method
+     * @name coinsph#withdraw
+     * @description make a withdrawal to coins_ph account
+     * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address not used by coinsph withdraw ()
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#withdraw
-         * @description make a withdrawal to coins_ph account
-         * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address not used by coinsph withdraw ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const options = this.safeValue(this.options, 'withdraw');
-        const warning = this.safeValue(options, 'warning', true);
+        const warning = this.safeBool(options, 'warning', true);
         if (warning) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
@@ -1547,47 +1619,18 @@ class coinsph extends coinsph$1 {
         const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, params));
         return this.parseTransaction(response, currency);
     }
-    async deposit(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#deposit
-         * @description make a deposit from coins_ph account to exchange account
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to deposit
-         * @param {string} address not used by coinsph deposit ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
-        const options = this.safeValue(this.options, 'deposit');
-        const warning = this.safeValue(options, 'warning', true);
-        if (warning) {
-            throw new errors.InvalidAddress(this.id + " deposit() makes a deposits only from your coins_ph account, add .options['deposit']['warning'] = false to make a deposit to your exchange account");
-        }
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'coin': currency['id'],
-            'amount': this.numberToString(amount),
-        };
-        if (tag !== undefined) {
-            request['depositOrderId'] = tag;
-        }
-        const response = await this.privatePostOpenapiV1CapitalDepositApply(this.extend(request, params));
-        return this.parseTransaction(response, currency);
-    }
+    /**
+     * @method
+     * @name coinsph#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         // todo: returns an empty array - find out why
         await this.loadMarkets();
         let currency = undefined;
@@ -1633,18 +1676,18 @@ class coinsph extends coinsph$1 {
         //
         return this.parseTransactions(response, currency, since, limit);
     }
+    /**
+     * @method
+     * @name coinsph#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         // todo: returns an empty array - find out why
         await this.loadMarkets();
         let currency = undefined;
@@ -1763,11 +1806,8 @@ class coinsph extends coinsph$1 {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger(transaction, 'transferType');
-        if (internal !== undefined) {
-            internal = internal ? true : false;
-        }
         const network = this.safeString(transaction, 'network');
+        const internal = network === 'Internal';
         return {
             'info': transaction,
             'id': id,
@@ -1787,6 +1827,7 @@ class coinsph extends coinsph$1 {
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1799,17 +1840,17 @@ class coinsph extends coinsph$1 {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name coinsph#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.network] network for fetch deposit address
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         const networkCode = this.safeString(params, 'network');
         const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
@@ -1843,11 +1884,11 @@ class coinsph extends coinsph$1 {
         const currencyId = this.safeString(depositAddress, 'coin');
         const parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': null,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'addressTag'),
-            'network': null,
-            'info': depositAddress,
         };
     }
     urlEncodeQuery(query = {}) {
@@ -1859,9 +1900,9 @@ class coinsph extends coinsph$1 {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
-                const array = query[key];
+                const innerArray = query[key];
                 query = this.omit(query, key);
-                const encodedArrayParam = this.parseArrayParam(array, key);
+                const encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }

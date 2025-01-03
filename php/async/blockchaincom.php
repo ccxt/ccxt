@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\InsufficientFunds;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends Exchange {
 
@@ -42,6 +43,8 @@ class blockchaincom extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -77,7 +80,7 @@ class blockchaincom extends Exchange {
             ),
             'timeframes' => null,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo' => 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test' => array(
                     'public' => 'https://testnet-api.delta.exchange',
                     'private' => 'https://testnet-api.delta.exchange',
@@ -137,9 +140,9 @@ class blockchaincom extends Exchange {
                     'percentage' => true,
                     'tiers' => array(
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0022') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0045') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
@@ -151,11 +154,11 @@ class blockchaincom extends Exchange {
                             array( $this->parse_number('1000000000'), $this->parse_number('0.0006') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0012') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0017') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0007000000000000001') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0007') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
                             array( $this->parse_number('2500000'), $this->parse_number('0.0005') ),
                             array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
@@ -171,6 +174,49 @@ class blockchaincom extends Exchange {
                 'apiKey' => false,
                 'secret' => true,
             ),
+            'options' => array(
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'ALGO' => 'ALGO',
+                    'ADA' => 'ADA',
+                    'AR' => 'AR',
+                    'ATOM' => 'ATOM',
+                    'AVAXC' => 'AVAX',
+                    'BCH' => 'BCH',
+                    'BSV' => 'BSV',
+                    'BTC' => 'BTC',
+                    // 'BEP20' => 'BNB', // todo
+                    'DCR' => 'DCR',
+                    'DESO' => 'DESO',
+                    'DASH' => 'DASH',
+                    'CELO' => 'CELO',
+                    'CHZ' => 'CHZ',
+                    'MATIC' => 'MATIC',
+                    'SOL' => 'SOL',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EOS' => 'EOS',
+                    'ETC' => 'ETC',
+                    'FIL' => 'FIL',
+                    'KAVA' => 'KAVA',
+                    'LTC' => 'LTC',
+                    'IOTA' => 'MIOTA',
+                    'NEAR' => 'NEAR',
+                    'STX' => 'STX',
+                    'XLM' => 'XLM',
+                    'XMR' => 'XMR',
+                    'XRP' => 'XRP',
+                    'XTZ' => 'XTZ',
+                    'ZEC' => 'ZEC',
+                    'ZIL' => 'ZIL',
+                    // 'THETA' => 'THETA', // todo => possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    // todo => uncomment below after consensus
+                    // 'MOBILECOIN' => 'MOB',
+                    // 'KIN' => 'KIN',
+                    // 'DIGITALGOLD' => 'DGLD',
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -182,11 +228,14 @@ class blockchaincom extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for blockchaincom
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             *
+             * @see https://api.blockchain.com/v3/#getsymbols
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
             //
@@ -304,19 +353,23 @@ class blockchaincom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                 );
             }
             return $result;
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://api.blockchain.com/v3/#getl3orderbook
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             return Async\await($this->fetch_l3_order_book($symbol, $limit, $params));
@@ -327,9 +380,12 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://api.blockchain.com/v3/#getl3orderbook
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$limit] max number of orders to return, default is null
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
@@ -340,7 +396,7 @@ class blockchaincom extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL3Symbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetL3Symbol ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
         }) ();
     }
@@ -355,12 +411,12 @@ class blockchaincom extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL2Symbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetL2Symbol ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -398,12 +454,15 @@ class blockchaincom extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
+             * @see https://api.blockchain.com/v3/#gettickerbysymbol
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -411,17 +470,20 @@ class blockchaincom extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
+             * @see https://api.blockchain.com/v3/#gettickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
@@ -442,23 +504,23 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         clOrdId => '00001',
-        //         ordType => 'MARKET',
-        //         ordStatus => 'FILLED',
-        //         $side => 'BUY',
-        //         $symbol => 'USDC-USDT',
-        //         exOrdId => '281775861306290',
-        //         $price => null,
-        //         text => 'Fill',
-        //         lastShares => '30.0',
-        //         lastPx => '0.9999',
-        //         leavesQty => '0.0',
-        //         cumQty => '30.0',
-        //         avgPx => '0.9999',
-        //         $timestamp => '1633940339619'
+        //         "clOrdId" => "00001",
+        //         "ordType" => "MARKET",
+        //         "ordStatus" => "FILLED",
+        //         "side" => "BUY",
+        //         "symbol" => "USDC-USDT",
+        //         "exOrdId" => "281775861306290",
+        //         "price" => null,
+        //         "text" => "Fill",
+        //         "lastShares" => "30.0",
+        //         "lastPx" => "0.9999",
+        //         "leavesQty" => "0.0",
+        //         "cumQty" => "30.0",
+        //         "avgPx" => "0.9999",
+        //         "timestamp" => "1633940339619"
         //     }
         //
         $clientOrderId = $this->safe_string($order, 'clOrdId');
@@ -499,16 +561,19 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
+             * @see https://api.blockchain.com/v3/#createorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -528,14 +593,14 @@ class blockchaincom extends Exchange {
                 'orderQty' => $this->amount_to_precision($symbol, $amount),
                 'clOrdId' => $clientOrderId,
             );
-            $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
+            $triggerPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
             $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
             if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
-                if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
+                if ($triggerPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
                 }
             }
-            if ($stopPrice !== null) {
+            if ($triggerPrice !== null) {
                 if ($uppercaseOrderType === 'MARKET') {
                     $request['ordType'] = 'STOP';
                 } elseif ($uppercaseOrderType === 'LIMIT') {
@@ -554,9 +619,9 @@ class blockchaincom extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($stopPriceRequired) {
-                $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPx'] = $this->price_to_precision($symbol, $triggerPrice);
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -565,19 +630,22 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
+             * @see https://api.blockchain.com/v3/#deleteorder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
-            return array(
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+            return $this->safe_order(array(
                 'id' => $id,
                 'info' => $response,
-            );
+            ));
         }) ();
     }
 
@@ -585,8 +653,11 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
+             * @see https://api.blockchain.com/v3/#deleteallorders
+             *
              * @param {string} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             // cancels all open orders if no $symbol specified
@@ -599,28 +670,35 @@ class blockchaincom extends Exchange {
                 $marketId = $this->market_id($symbol);
                 $request['symbol'] = $marketId;
             }
-            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            //
+            // array()
+            //
             return array(
-                'symbol' => $symbol,
-                'info' => $response,
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
             );
         }) ();
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             *
+             * @see https://api.blockchain.com/v3/#getfees
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetFees ($params));
             //
             //     {
-            //         makerRate => "0.002",
-            //         takerRate => "0.004",
-            //         volumeInUSD => "0.0"
+            //         "makerRate" => "0.002",
+            //         "takerRate" => "0.004",
+            //         "volumeInUSD" => "0.0"
             //     }
             //
             $makerFee = $this->safe_number($response, 'makerRate');
@@ -643,10 +721,13 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
+             * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] max number of orders to return, default is null
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $state = 'CANCELED';
@@ -654,14 +735,17 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
+             * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $state = 'FILLED';
@@ -669,14 +753,17 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
+             * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $state = 'OPEN';
@@ -698,12 +785,12 @@ class blockchaincom extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -754,10 +841,13 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
+             * @see https://api.blockchain.com/v3/#getfills
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
@@ -770,17 +860,20 @@ class blockchaincom extends Exchange {
                 $request['symbol'] = $this->market_id($symbol);
                 $market = $this->market($symbol);
             }
-            $trades = Async\await($this->privateGetFills (array_merge($request, $params)));
+            $trades = Async\await($this->privateGetFills ($this->extend($request, $params)));
             return $this->parse_trades($trades, $market, $since, $limit, $params); // need to define
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             *
+             * @see https://api.blockchain.com/v3/#getdepositaddress
+             *
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
@@ -788,21 +881,23 @@ class blockchaincom extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostDepositsCurrency (array_merge($request, $params)));
+            $response = Async\await($this->privatePostDepositsCurrency ($this->extend($request, $params)));
             $rawAddress = $this->safe_string($response, 'address');
             $tag = null;
             $address = null;
             if ($rawAddress !== null) {
+                $addressParts = explode(';', $rawAddress);
                 // if a $tag or memo is used it is separated by a colon in the 'address' value
-                list($address, $tag) = explode(':', $rawAddress);
+                $tag = $this->safe_string($addressParts, 0);
+                $address = $this->safe_string($addressParts, 1);
             }
-            $result = array( 'info' => $response );
-            $result['currency'] = $currency['code'];
-            $result['address'] = $address;
-            if ($tag !== null) {
-                $result['tag'] = $tag;
-            }
-            return $result;
+            return array(
+                'info' => $response,
+                'currency' => $currency['code'],
+                'network' => null,
+                'address' => $address,
+                'tag' => $tag,
+            );
         }) ();
     }
 
@@ -817,7 +912,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
         //
@@ -864,7 +959,7 @@ class blockchaincom extends Exchange {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'txhash');
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -883,65 +978,23 @@ class blockchaincom extends Exchange {
             'status' => $this->parse_transaction_state($state), // 'status' =>   'pending',   // 'ok', 'failed', 'canceled', string
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
-    public function fetch_withdrawal_whitelist($params = array ()) {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the list of withdrawal addresses on the whitelist
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} dictionary with keys beneficiaryId, name, currency
-             */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetWhitelist ());
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $result[] = array(
-                    'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                    'name' => $this->safe_string($entry, 'name'),
-                    'currency' => $this->safe_string($entry, 'currency'),
-                    'info' => $entry,
-                );
-            }
-            return $result;
-        }) ();
-    }
-
-    public function fetch_withdrawal_whitelist_by_currency(string $code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'currency' => $currency['id'],
-            );
-            $response = Async\await($this->privateGetWhitelistCurrency (array_merge($request, $params)));
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $result[] = array(
-                    'beneficiaryId' => $this->safe_string($entry, 'whitelistId'),
-                    'name' => $this->safe_string($entry, 'name'),
-                    'currency' => $this->safe_string($entry, 'currency'),
-                    'info' => $entry,
-                );
-            }
-            return $result;
-        }) ();
-    }
-
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
+             * @see https://api.blockchain.com/v3/#createwithdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
@@ -952,30 +1005,33 @@ class blockchaincom extends Exchange {
                 'beneficiary' => $address,
                 'sendMax' => false,
             );
-            $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));
             //
             //     array(
-            //         $amount => "30.0",
-            //         $currency => "USDT",
-            //         beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-            //         withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
-            //         fee => "34.005078",
-            //         state => "PENDING",
-            //         timestamp => "1634218452595"
+            //         "amount" => "30.0",
+            //         "currency" => "USDT",
+            //         "beneficiary" => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+            //         "withdrawalId" => "99df5ef7-eab6-4033-be49-312930fbd1ea",
+            //         "fee" => "34.005078",
+            //         "state" => "PENDING",
+            //         "timestamp" => "1634218452595"
             //     ),
             //
             return $this->parse_transaction($response, $currency);
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
+             * @see https://api.blockchain.com/v3/#getwithdrawals
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -990,7 +1046,7 @@ class blockchaincom extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdrawals ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -999,28 +1055,34 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a currency withdrawal via the withdrawal $id
+             *
+             * @see https://api.blockchain.com/v3/#getwithdrawalbyid
+             *
              * @param {string} $id withdrawal $id
              * @param {string} $code not used by blockchaincom.fetchWithdrawal
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 'withdrawalId' => $id,
             );
-            $response = Async\await($this->privateGetWithdrawalsWithdrawalId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdrawalsWithdrawalId ($this->extend($request, $params)));
             return $this->parse_transaction($response);
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
+             * @see https://api.blockchain.com/v3/#getdeposits
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -1035,7 +1097,7 @@ class blockchaincom extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
         }) ();
     }
@@ -1044,9 +1106,12 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a $deposit
+             *
+             * @see https://api.blockchain.com/v3/#getdepositbyid
+             *
              * @param {string} $id $deposit $id
              * @param {string} $code not used by blockchaincom fetchDeposit ()
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
@@ -1054,17 +1119,20 @@ class blockchaincom extends Exchange {
             $request = array(
                 'depositId' => $depositId,
             );
-            $deposit = Async\await($this->privateGetDepositsDepositId (array_merge($request, $params)));
+            $deposit = Async\await($this->privateGetDepositsDepositId ($this->extend($request, $params)));
             return $this->parse_transaction($deposit);
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             *
+             * @see https://api.blockchain.com/v3/#getaccounts
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $accountName = $this->safe_string($params, 'account', 'primary');
@@ -1072,7 +1140,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'account' => $accountName,
             );
-            $response = Async\await($this->privateGetAccounts (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccounts ($this->extend($request, $params)));
             //
             //     {
             //         "primary" => array(
@@ -1110,8 +1178,12 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
+             * @see https://api.blockchain.com/v3/#getorderbyid
+             *
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by blockchaincom fetchOrder
-             * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             // note => only works with exchange-order-$id
@@ -1120,7 +1192,7 @@ class blockchaincom extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "exOrdId" => 11111111,
@@ -1168,7 +1240,7 @@ class blockchaincom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
             return null;

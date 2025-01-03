@@ -50,6 +50,11 @@ interface Exchange {
     privatePostOpenapiConvertV1GetSupportedTradingPairs (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiConvertV1GetQuote (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiConvertV1AccpetQuote (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiFiatV1SupportChannel (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiFiatV1CashOut (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiFiatV1History (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiMigrationV4Sellorder (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiMigrationV4ValidateField (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiTransferV3Transfers (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType>;

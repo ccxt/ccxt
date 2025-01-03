@@ -6,14 +6,14 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/ace.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class ace
- * @extends Exchange
+ * @augments Exchange
  */
 export default class ace extends Exchange {
     describe() {
@@ -34,14 +34,16 @@ export default class ace extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -50,6 +52,8 @@ export default class ace extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -61,8 +65,13 @@ export default class ace extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -80,6 +89,7 @@ export default class ace extends Exchange {
                 'setMarginMode': false,
                 'transfer': false,
                 'withdraw': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,
@@ -96,7 +106,7 @@ export default class ace extends Exchange {
                 '1M': 31,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg',
+                'logo': 'https://github.com/user-attachments/assets/115f1e4a-0fd0-4b76-85d5-a49ebf64d1c8',
                 'api': {
                     'public': 'https://ace.io/polarisex',
                     'private': 'https://ace.io/polarisex/open',
@@ -164,15 +174,15 @@ export default class ace extends Exchange {
             'commonCurrencies': {},
         });
     }
+    /**
+     * @method
+     * @name ace#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name ace#fetchMarkets
-         * @description retrieves data on all markets for ace
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetOapiV2ListMarketPair();
         //
         //     [
@@ -188,66 +198,77 @@ export default class ace extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const base = this.safeString(market, 'base');
-            const baseCode = this.safeCurrencyCode(base);
-            const quote = this.safeString(market, 'quote');
-            const quoteCode = this.safeCurrencyCode(quote);
-            const symbol = base + '/' + quote;
-            result.push({
-                'id': this.safeString(market, 'symbol'),
-                'uppercaseId': undefined,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': this.safeInteger(market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': this.safeInteger(market, 'quoteCurrencyId'),
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(market, 'minLimitBaseAmount'),
-                        'max': this.safeNumber(market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        //
+        //     {
+        //         "symbol": "ADA/TWD",
+        //         "base": "ADA",
+        //         "baseCurrencyId": "122",
+        //         "quote": "TWD",
+        //         "quoteCurrencyId": "1",
+        //         "basePrecision": "2",
+        //         "quotePrecision": "3",
+        //         "minLimitBaseAmount": "1.0",
+        //         "maxLimitBaseAmount": "150000.0"
+        //     }
+        //
+        const baseId = this.safeString(market, 'baseCurrencyId');
+        const base = this.safeCurrencyCode(this.safeString(market, 'base'));
+        const quoteId = this.safeString(market, 'quoteCurrencyId');
+        const quote = this.safeCurrencyCode(this.safeString(market, 'quote'));
+        const symbol = base + '/' + quote;
+        return {
+            'id': this.safeString(market, 'symbol'),
+            'uppercaseId': undefined,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(market, 'minLimitBaseAmount'),
+                    'max': this.safeNumber(market, 'maxLimitBaseAmount'),
                 },
-                'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'active': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -282,21 +303,21 @@ export default class ace extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name ace#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.publicGetOapiV2ListTradePrice(params);
         const marketId = market['id'];
-        const ticker = this.safeValue(response, marketId, {});
+        const ticker = this.safeDict(response, marketId, {});
         //
         //     {
         //         "BTC/USDT":{
@@ -308,16 +329,16 @@ export default class ace extends Exchange {
         //
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name ace#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const response = await this.publicGetOapiV2ListTradePrice();
         //
@@ -334,23 +355,23 @@ export default class ace extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
             const market = this.safeMarket(marketId);
-            const rawTicker = this.safeValue(response, marketId);
+            const rawTicker = this.safeDict(response, marketId, {});
             const ticker = this.parseTicker(rawTicker, market);
             tickers.push(ticker);
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name ace#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -398,7 +419,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue(response, 'attachment');
+        const orderBook = this.safeDict(response, 'attachment');
         return this.parseOrderBook(orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -430,19 +451,19 @@ export default class ace extends Exchange {
             this.safeNumber(ohlcv, 'volume'),
         ];
     }
+    /**
+     * @method
+     * @name ace#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -457,7 +478,7 @@ export default class ace extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.privatePostV2KlineGetKline(this.extend(request, params));
-        const data = this.safeValue(response, 'attachment', []);
+        const data = this.safeList(response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -515,7 +536,7 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
+        let id;
         let timestamp = undefined;
         let symbol = undefined;
         let price = undefined;
@@ -539,9 +560,9 @@ export default class ace extends Exchange {
                     timestamp = timestamp - 28800000; // 8 hours
                 }
             }
-            const orderSide = this.safeNumber(order, 'buyOrSell');
+            const orderSide = this.safeString(order, 'buyOrSell');
             if (orderSide !== undefined) {
-                side = (orderSide === 1) ? 'buy' : 'sell';
+                side = (orderSide === '1') ? 'buy' : 'sell';
             }
             amount = this.safeString(order, 'num');
             price = this.safeString(order, 'price');
@@ -550,9 +571,9 @@ export default class ace extends Exchange {
             if (quoteId !== undefined && baseId !== undefined) {
                 symbol = baseId + '/' + quoteId;
             }
-            const orderType = this.safeNumber(order, 'type');
+            const orderType = this.safeString(order, 'type');
             if (orderType !== undefined) {
-                type = (orderType === 1) ? 'limit' : 'market';
+                type = (orderType === '1') ? 'limit' : 'market';
             }
             filled = this.safeString(order, 'tradeNum');
             remaining = this.safeString(order, 'remainNum');
@@ -571,7 +592,7 @@ export default class ace extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -583,20 +604,20 @@ export default class ace extends Exchange {
             'info': order,
         }, market);
     }
+    /**
+     * @method
+     * @name ace#createOrder
+     * @description create a trade order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#createOrder
-         * @description create a trade order
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const orderType = type.toUpperCase();
@@ -620,20 +641,20 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name ace#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#cancelOrder
-         * @description cancels an open order
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderNo': id,
@@ -649,16 +670,17 @@ export default class ace extends Exchange {
         //
         return response;
     }
+    /**
+     * @method
+     * @name ace#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderNo': id,
@@ -686,23 +708,23 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, undefined);
     }
+    /**
+     * @method
+     * @name ace#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires the symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -715,7 +737,7 @@ export default class ace extends Exchange {
             request['size'] = limit;
         }
         const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params));
-        const orders = this.safeValue(response, 'attachment');
+        const orders = this.safeList(response, 'attachment');
         //
         //     {
         //         "attachment": [
@@ -797,7 +819,7 @@ export default class ace extends Exchange {
             symbol = baseId + '/' + quoteId;
         }
         let side = undefined;
-        const tradeSide = this.safeNumber(trade, 'buyOrSell');
+        const tradeSide = this.safeInteger(trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }
@@ -826,19 +848,19 @@ export default class ace extends Exchange {
             'datetime': this.iso8601(timestamp),
         }, market);
     }
+    /**
+     * @method
+     * @name ace#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
         const request = {
@@ -878,25 +900,22 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
-        const trades = this.safeValue(data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const data = this.safeDict(response, 'attachment');
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
+    /**
+     * @method
+     * @name ace#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
         const request = {
@@ -941,7 +960,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue(response, 'attachment', []);
+        const trades = this.safeList(response, 'attachment', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -973,18 +992,18 @@ export default class ace extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name ace#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name ace#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
-         * @param {object} [params] extra parameters specific to the ace api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostV2CoinCustomerAccount(params);
-        const balances = this.safeValue(response, 'attachment', []);
+        const balances = this.safeList(response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -996,9 +1015,9 @@ export default class ace extends Exchange {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);
@@ -1015,14 +1034,17 @@ export default class ace extends Exchange {
             let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend({
                 'apiKey': this.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': this.numberToString(nonce),
             }, params);
-            const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0);
-            for (let i = 0; i < sortedDataKeys.length; i++) {
-                const key = sortedDataKeys[i];
-                auth += this.safeString(data, key);
+            const sortedData = this.keysort(data);
+            const values = Object.values(sortedData);
+            const stringifiedValues = [];
+            for (let i = 0; i < values.length; i++) {
+                const value = values[i];
+                const strValue = value.toString();
+                stringifiedValues.push(strValue);
             }
+            auth += stringifiedValues.join('');
             const signature = this.hash(this.encode(auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
@@ -1051,8 +1073,9 @@ export default class ace extends Exchange {
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
         if (status > 200) {
-            this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
+            const statusStr = status.toString();
+            this.throwExactlyMatchedException(this.exceptions['exact'], statusStr, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], statusStr, feedback);
         }
         return undefined;
     }

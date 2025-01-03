@@ -5,9 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from ccxt.base.errors import ArgumentsRequired
+from typing import List
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -36,15 +36,17 @@ class bitrue(ccxt.async_support.bitrue):
             },
             'api': {
                 'open': {
-                    'private': {
-                        'post': {
-                            'poseidon/api/v1/listenKey': 1,
-                        },
-                        'put': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
-                        },
-                        'delete': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'poseidon/api/v1/listenKey': 1,
+                            },
+                            'put': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
+                            'delete': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
                         },
                     },
                 },
@@ -57,16 +59,18 @@ class bitrue(ccxt.async_support.bitrue):
             },
         })
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-        :param dict [params]: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         url = await self.authenticate()
         messageHash = 'balance'
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -78,47 +82,47 @@ class bitrue(ccxt.async_support.bitrue):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         e: 'BALANCE',
-        #         x: 'OutboundAccountPositionTradeEvent',
-        #         E: 1657799510175,
-        #         I: '302274978401288200',
-        #         i: 1657799510175,
-        #         B: [{
-        #                 a: 'btc',
-        #                 F: '0.0006000000000000',
-        #                 T: 1657799510000,
-        #                 f: '0.0006000000000000',
-        #                 t: 0
+        #         "e": "BALANCE",
+        #         "x": "OutboundAccountPositionTradeEvent",
+        #         "E": 1657799510175,
+        #         "I": "302274978401288200",
+        #         "i": 1657799510175,
+        #         "B": [{
+        #                 "a": "btc",
+        #                 "F": "0.0006000000000000",
+        #                 "T": 1657799510000,
+        #                 "f": "0.0006000000000000",
+        #                 "t": 0
         #             },
         #             {
-        #                 a: 'usdt',
-        #                 T: 0,
-        #                 L: '0.0000000000000000',
-        #                 l: '-11.8705317318000000',
-        #                 t: 1657799510000
+        #                 "a": "usdt",
+        #                 "T": 0,
+        #                 "L": "0.0000000000000000",
+        #                 "l": "-11.8705317318000000",
+        #                 "t": 1657799510000
         #             }
         #         ],
-        #         u: 1814396
+        #         "u": 1814396
         #     }
         #
         #     {
-        #      e: 'BALANCE',
-        #      x: 'OutboundAccountPositionOrderEvent',
-        #      E: 1670051332478,
-        #      I: '353662845694083072',
-        #      i: 1670051332478,
-        #      B: [
+        #      "e": "BALANCE",
+        #      "x": "OutboundAccountPositionOrderEvent",
+        #      "E": 1670051332478,
+        #      "I": "353662845694083072",
+        #      "i": 1670051332478,
+        #      "B": [
         #        {
-        #          a: 'eth',
-        #          F: '0.0400000000000000',
-        #          T: 1670051332000,
-        #          f: '-0.0100000000000000',
-        #          L: '0.0100000000000000',
-        #          l: '0.0100000000000000',
-        #          t: 1670051332000
+        #          "a": "eth",
+        #          "F": "0.0400000000000000",
+        #          "T": 1670051332000,
+        #          "f": "-0.0100000000000000",
+        #          "L": "0.0100000000000000",
+        #          "l": "0.0100000000000000",
+        #          "t": 1670051332000
         #        }
         #      ],
-        #      u: 2285311
+        #      "u": 2285311
         #    }
         #
         balances = self.safe_value(message, 'B', [])
@@ -129,18 +133,18 @@ class bitrue(ccxt.async_support.bitrue):
     def parse_ws_balances(self, balances):
         #
         #    [{
-        #         a: 'btc',
-        #         F: '0.0006000000000000',
-        #         T: 1657799510000,
-        #         f: '0.0006000000000000',
-        #         t: 0
+        #         "a": "btc",
+        #         "F": "0.0006000000000000",
+        #         "T": 1657799510000,
+        #         "f": "0.0006000000000000",
+        #         "t": 0
         #     },
         #     {
-        #         a: 'usdt',
-        #         T: 0,
-        #         L: '0.0000000000000000',
-        #         l: '-11.8705317318000000',
-        #         t: 1657799510000
+        #         "a": "usdt",
+        #         "T": 0,
+        #         "L": "0.0000000000000000",
+        #         "l": "-11.8705317318000000",
+        #         "t": 1657799510000
         #     }]
         #
         self.balance['info'] = balances
@@ -163,14 +167,16 @@ class bitrue(ccxt.async_support.bitrue):
                 self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on user orders
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-        :param str[] symbols: unified symbols of the market to watch the orders for
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+
+        :param str symbol:
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum amount of orders to return
-        :param dict [params]: extra parameters specific to the bitrue api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order structure <https://docs.ccxt.com/#/?id=order-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -179,7 +185,7 @@ class bitrue(ccxt.async_support.bitrue):
             symbol = market['symbol']
         url = await self.authenticate()
         messageHash = 'orders'
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -194,25 +200,25 @@ class bitrue(ccxt.async_support.bitrue):
     def handle_order(self, client: Client, message):
         #
         #    {
-        #        e: 'ORDER',
-        #        i: 16122802798,
-        #        E: 1657882521876,
-        #        I: '302623154710888464',
-        #        u: 1814396,
-        #        s: 'btcusdt',
-        #        S: 2,
-        #        o: 1,
-        #        q: '0.0005',
-        #        p: '60000',
-        #        X: 0,
-        #        x: 1,
-        #        z: '0',
-        #        n: '0',
-        #        N: 'usdt',
-        #        O: 1657882521876,
-        #        L: '0',
-        #        l: '0',
-        #        Y: '0'
+        #        "e": "ORDER",
+        #        "i": 16122802798,
+        #        "E": 1657882521876,
+        #        "I": "302623154710888464",
+        #        "u": 1814396,
+        #        "s": "btcusdt",
+        #        "S": 2,
+        #        "o": 1,
+        #        "q": "0.0005",
+        #        "p": "60000",
+        #        "X": 0,
+        #        "x": 1,
+        #        "z": "0",
+        #        "n": "0",
+        #        "N": "usdt",
+        #        "O": 1657882521876,
+        #        "L": "0",
+        #        "l": "0",
+        #        "Y": "0"
         #    }
         #
         parsed = self.parse_ws_order(message)
@@ -227,25 +233,25 @@ class bitrue(ccxt.async_support.bitrue):
     def parse_ws_order(self, order, market=None):
         #
         #    {
-        #        e: 'ORDER',
-        #        i: 16122802798,
-        #        E: 1657882521876,
-        #        I: '302623154710888464',
-        #        u: 1814396,
-        #        s: 'btcusdt',
-        #        S: 2,
-        #        o: 1,
-        #        q: '0.0005',
-        #        p: '60000',
-        #        X: 0,
-        #        x: 1,
-        #        z: '0',
-        #        n: '0',
-        #        N: 'usdt',
-        #        O: 1657882521876,
-        #        L: '0',
-        #        l: '0',
-        #        Y: '0'
+        #        "e": "ORDER",
+        #        "i": 16122802798,
+        #        "E": 1657882521876,
+        #        "I": "302623154710888464",
+        #        "u": 1814396,
+        #        "s": "btcusdt",
+        #        "S": 2,
+        #        "o": 1,
+        #        "q": "0.0005",
+        #        "p": "60000",
+        #        "X": 0,
+        #        "x": 1,
+        #        "z": "0",
+        #        "n": "0",
+        #        "N": "usdt",
+        #        "O": 1657882521876,
+        #        "L": "0",
+        #        "l": "0",
+        #        "Y": "0"
         #    }
         #
         timestamp = self.safe_integer(order, 'E')
@@ -283,9 +289,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrderBook() requires a symbol argument')
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -293,7 +297,7 @@ class bitrue(ccxt.async_support.bitrue):
         marketIdLowercase = market['id'].lower()
         channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
         url = self.urls['api']['ws']['public']
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'cb_id': marketIdLowercase,
@@ -343,13 +347,16 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
-        orderbook = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
-        self.orderbooks[symbol] = orderbook
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
+        snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
+        orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     def parse_ws_order_type(self, typeId):
-        types = {
+        types: dict = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -357,7 +364,7 @@ class bitrue(ccxt.async_support.bitrue):
         return self.safe_string(types, typeId, typeId)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
             '2': 'closed',  # The order has been completed.
@@ -377,7 +384,7 @@ class bitrue(ccxt.async_support.bitrue):
         #     }
         #
         time = self.safe_integer(message, 'ping')
-        pong = {
+        pong: dict = {
             'pong': time,
         }
         await client.send(pong)
@@ -389,7 +396,7 @@ class bitrue(ccxt.async_support.bitrue):
             self.handle_ping(client, message)
         else:
             event = self.safe_string(message, 'e')
-            handlers = {
+            handlers: dict = {
                 'BALANCE': self.handle_balance,
                 'ORDER': self.handle_order,
             }
@@ -400,13 +407,7 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = None
-            try:
-                response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
-            except Exception as error:
-                self.options['listenKey'] = None
-                self.options['listenKeyUrl'] = None
-                return
+            response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
             #
             #     {
             #         "msg": "succ",
@@ -426,11 +427,11 @@ class bitrue(ccxt.async_support.bitrue):
 
     async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
-        request = {
+        request: dict = {
             'listenKey': listenKey,
         }
         try:
-            await self.openPrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
+            await self.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(self.extend(request, params))
             #
             # ಠ_ಠ
             #     {

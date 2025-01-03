@@ -16,11 +16,15 @@ interface Exchange {
     publicGetPairTransactions (params?: {}): Promise<implicitReturnType>;
     publicGetPairTransactionsYyyymmdd (params?: {}): Promise<implicitReturnType>;
     publicGetPairCandlestickCandletypeYyyymmdd (params?: {}): Promise<implicitReturnType>;
+    publicGetPairCircuitBreakInfo (params?: {}): Promise<implicitReturnType>;
     privateGetUserAssets (params?: {}): Promise<implicitReturnType>;
     privateGetUserSpotOrder (params?: {}): Promise<implicitReturnType>;
     privateGetUserSpotActiveOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetUserMarginPositions (params?: {}): Promise<implicitReturnType>;
     privateGetUserSpotTradeHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUserDepositHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetUserUnconfirmedDeposits (params?: {}): Promise<implicitReturnType>;
+    privateGetUserDepositOriginators (params?: {}): Promise<implicitReturnType>;
     privateGetUserWithdrawalAccount (params?: {}): Promise<implicitReturnType>;
     privateGetUserWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
     privateGetSpotStatus (params?: {}): Promise<implicitReturnType>;
@@ -29,6 +33,8 @@ interface Exchange {
     privatePostUserSpotCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostUserSpotCancelOrders (params?: {}): Promise<implicitReturnType>;
     privatePostUserSpotOrdersInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostUserConfirmDeposits (params?: {}): Promise<implicitReturnType>;
+    privatePostUserConfirmDepositsAll (params?: {}): Promise<implicitReturnType>;
     privatePostUserRequestWithdrawal (params?: {}): Promise<implicitReturnType>;
     marketsGetSpotPairs (params?: {}): Promise<implicitReturnType>;
 }

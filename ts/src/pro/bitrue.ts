@@ -2,8 +2,7 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -33,15 +32,17 @@ export default class bitrue extends bitrueRest {
             },
             'api': {
                 'open': {
-                    'private': {
-                        'post': {
-                            'poseidon/api/v1/listenKey': 1,
-                        },
-                        'put': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
-                        },
-                        'delete': {
-                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                    'v1': {
+                        'private': {
+                            'post': {
+                                'poseidon/api/v1/listenKey': 1,
+                            },
+                            'put': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
+                            'delete': {
+                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                            },
                         },
                     },
                 },
@@ -55,18 +56,18 @@ export default class bitrue extends bitrueRest {
         });
     }
 
-    async watchBalance (params = {}) {
-        /**
-         * @method
-         * @name bitrue#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
+    /**
+     * @method
+     * @name bitrue#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
         const url = await this.authenticate ();
         const messageHash = 'balance';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -79,47 +80,47 @@ export default class bitrue extends bitrueRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         e: 'BALANCE',
-        //         x: 'OutboundAccountPositionTradeEvent',
-        //         E: 1657799510175,
-        //         I: '302274978401288200',
-        //         i: 1657799510175,
-        //         B: [{
-        //                 a: 'btc',
-        //                 F: '0.0006000000000000',
-        //                 T: 1657799510000,
-        //                 f: '0.0006000000000000',
-        //                 t: 0
+        //         "e": "BALANCE",
+        //         "x": "OutboundAccountPositionTradeEvent",
+        //         "E": 1657799510175,
+        //         "I": "302274978401288200",
+        //         "i": 1657799510175,
+        //         "B": [{
+        //                 "a": "btc",
+        //                 "F": "0.0006000000000000",
+        //                 "T": 1657799510000,
+        //                 "f": "0.0006000000000000",
+        //                 "t": 0
         //             },
         //             {
-        //                 a: 'usdt',
-        //                 T: 0,
-        //                 L: '0.0000000000000000',
-        //                 l: '-11.8705317318000000',
-        //                 t: 1657799510000
+        //                 "a": "usdt",
+        //                 "T": 0,
+        //                 "L": "0.0000000000000000",
+        //                 "l": "-11.8705317318000000",
+        //                 "t": 1657799510000
         //             }
         //         ],
-        //         u: 1814396
+        //         "u": 1814396
         //     }
         //
         //     {
-        //      e: 'BALANCE',
-        //      x: 'OutboundAccountPositionOrderEvent',
-        //      E: 1670051332478,
-        //      I: '353662845694083072',
-        //      i: 1670051332478,
-        //      B: [
+        //      "e": "BALANCE",
+        //      "x": "OutboundAccountPositionOrderEvent",
+        //      "E": 1670051332478,
+        //      "I": "353662845694083072",
+        //      "i": 1670051332478,
+        //      "B": [
         //        {
-        //          a: 'eth',
-        //          F: '0.0400000000000000',
-        //          T: 1670051332000,
-        //          f: '-0.0100000000000000',
-        //          L: '0.0100000000000000',
-        //          l: '0.0100000000000000',
-        //          t: 1670051332000
+        //          "a": "eth",
+        //          "F": "0.0400000000000000",
+        //          "T": 1670051332000,
+        //          "f": "-0.0100000000000000",
+        //          "L": "0.0100000000000000",
+        //          "l": "0.0100000000000000",
+        //          "t": 1670051332000
         //        }
         //      ],
-        //      u: 2285311
+        //      "u": 2285311
         //    }
         //
         const balances = this.safeValue (message, 'B', []);
@@ -131,18 +132,18 @@ export default class bitrue extends bitrueRest {
     parseWSBalances (balances) {
         //
         //    [{
-        //         a: 'btc',
-        //         F: '0.0006000000000000',
-        //         T: 1657799510000,
-        //         f: '0.0006000000000000',
-        //         t: 0
+        //         "a": "btc",
+        //         "F": "0.0006000000000000",
+        //         "T": 1657799510000,
+        //         "f": "0.0006000000000000",
+        //         "t": 0
         //     },
         //     {
-        //         a: 'usdt',
-        //         T: 0,
-        //         L: '0.0000000000000000',
-        //         l: '-11.8705317318000000',
-        //         t: 1657799510000
+        //         "a": "usdt",
+        //         "T": 0,
+        //         "L": "0.0000000000000000",
+        //         "l": "-11.8705317318000000",
+        //         "t": 1657799510000
         //     }]
         //
         this.balance['info'] = balances;
@@ -170,18 +171,18 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitrue#watchOrders
-         * @description watches information on user orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-         * @param {string[]} symbols unified symbols of the market to watch the orders for
-         * @param {int} [since] timestamp in ms of the earliest order
-         * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
-         */
+    /**
+     * @method
+     * @name bitrue#watchOrders
+     * @description watches information on user orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+     * @param {string} symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum amount of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -189,7 +190,7 @@ export default class bitrue extends bitrueRest {
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -206,25 +207,25 @@ export default class bitrue extends bitrueRest {
     handleOrder (client: Client, message) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const parsed = this.parseWsOrder (message);
@@ -241,25 +242,25 @@ export default class bitrue extends bitrueRest {
     parseWsOrder (order, market = undefined) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const timestamp = this.safeInteger (order, 'E');
@@ -298,10 +299,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
-        }
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -309,7 +307,7 @@ export default class bitrue extends bitrueRest {
         const marketIdLowercase = market['id'].toLowerCase ();
         const channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
         const url = this.urls['api']['ws']['public'];
-        const message = {
+        const message: Dict = {
             'event': 'sub',
             'params': {
                 'cb_id': marketIdLowercase,
@@ -360,14 +358,18 @@ export default class bitrue extends bitrueRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeValue (message, 'tick', {});
-        const orderbook = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
-        this.orderbooks[symbol] = orderbook;
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const snapshot = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
     parseWsOrderType (typeId) {
-        const types = {
+        const types: Dict = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -376,7 +378,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'open', // The order has not been accepted by the engine.
             '1': 'open', // The order has been accepted by the engine.
             '2': 'closed', // The order has been completed.
@@ -398,7 +400,7 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const time = this.safeInteger (message, 'ping');
-        const pong = {
+        const pong: Dict = {
             'pong': time,
         };
         await client.send (pong);
@@ -411,7 +413,7 @@ export default class bitrue extends bitrueRest {
             this.handlePing (client, message);
         } else {
             const event = this.safeString (message, 'e');
-            const handlers = {
+            const handlers: Dict = {
                 'BALANCE': this.handleBalance,
                 'ORDER': this.handleOrder,
             };
@@ -425,14 +427,7 @@ export default class bitrue extends bitrueRest {
     async authenticate (params = {}) {
         const listenKey = this.safeValue (this.options, 'listenKey');
         if (listenKey === undefined) {
-            let response = undefined;
-            try {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
-            } catch (error) {
-                this.options['listenKey'] = undefined;
-                this.options['listenKeyUrl'] = undefined;
-                return;
-            }
+            const response = await this.openV1PrivatePostPoseidonApiV1ListenKey (params);
             //
             //     {
             //         "msg": "succ",
@@ -454,11 +449,11 @@ export default class bitrue extends bitrueRest {
 
     async keepAliveListenKey (params = {}) {
         const listenKey = this.safeString (this.options, 'listenKey');
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {

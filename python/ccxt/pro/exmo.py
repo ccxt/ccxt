@@ -6,8 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from typing import List
 from ccxt.base.errors import NotSupported
 
 
@@ -19,10 +20,10 @@ class exmo(ccxt.async_support.exmo):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
-                'watchOrders': False,  # TODO
+                'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': False,
             },
@@ -48,17 +49,17 @@ class exmo(ccxt.async_support.exmo):
         self.options['requestId'] = requestId
         return requestId
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         url = self.urls['api']['ws'][type]
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'topics': [type + '/wallet'],
             'id': self.request_id(),
@@ -70,18 +71,18 @@ class exmo(ccxt.async_support.exmo):
         #
         #  spot
         #     {
-        #         ts: 1654208766007,
-        #         event: 'snapshot',
-        #         topic: 'spot/wallet',
-        #         data: {
-        #             balances: {
-        #                 ADA: '0',
-        #                 ALGO: '0',
+        #         "ts": 1654208766007,
+        #         "event": "snapshot",
+        #         "topic": "spot/wallet",
+        #         "data": {
+        #             "balances": {
+        #                 "ADA": "0",
+        #                 "ALGO": "0",
         #                 ...
         #             },
-        #             reserved: {
-        #                 ADA: '0',
-        #                 ALGO: '0',
+        #             "reserved": {
+        #                 "ADA": "0",
+        #                 "ALGO": "0",
         #                 ...
         #             }
         #         }
@@ -153,18 +154,16 @@ class exmo(ccxt.async_support.exmo):
             for i in range(0, len(currencies)):
                 currencyId = currencies[i]
                 code = self.safe_currency_code(currencyId)
-                free = balances[currencyId]
-                used = reserved[currencyId]
                 account = self.account()
-                account['free'] = self.parse_number(free)
-                account['used'] = self.parse_number(used)
+                account['free'] = self.safe_string(balances, currencyId)
+                account['used'] = self.safe_string(reserved, currencyId)
                 self.balance[code] = account
         elif event == 'update':
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(data, 'balance')
-            account['used'] = self.safe_number(data, 'reserved')
+            account['free'] = self.safe_string(data, 'balance')
+            account['used'] = self.safe_string(data, 'reserved')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
@@ -191,17 +190,20 @@ class exmo(ccxt.async_support.exmo):
             code = self.safe_currency_code(currencyId)
             wallet = self.safe_value(data, currencyId)
             account = self.account()
-            account['free'] = self.safe_number(wallet, 'free')
-            account['used'] = self.safe_number(wallet, 'used')
-            account['total'] = self.safe_number(wallet, 'balance')
+            account['free'] = self.safe_string(wallet, 'free')
+            account['used'] = self.safe_string(wallet, 'used')
+            account['total'] = self.safe_string(wallet, 'balance')
             self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -209,7 +211,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -219,23 +221,51 @@ class exmo(ccxt.async_support.exmo):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            messageHashes.append('ticker:' + market['symbol'])
+            args.append('spot/ticker:' + market['id'])
+        url = self.urls['api']['ws']['public']
+        message: dict = {
+            'method': 'subscribe',
+            'topics': args,
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, params)
+        await self.watch_multiple(url, messageHashes, request, messageHashes, request)
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     def handle_ticker(self, client: Client, message):
         #
         #  spot
         #      {
-        #          ts: 1654205085473,
-        #          event: 'update',
-        #          topic: 'spot/ticker:BTC_USDT',
-        #          data: {
-        #              buy_price: '30285.84',
-        #              sell_price: '30299.97',
-        #              last_trade: '30295.01',
-        #              high: '30386.7',
-        #              low: '29542.76',
-        #              avg: '29974.16178449',
-        #              vol: '118.79538518',
-        #              vol_curr: '3598907.38200826',
-        #              updated: 1654205084
+        #          "ts": 1654205085473,
+        #          "event": "update",
+        #          "topic": "spot/ticker:BTC_USDT",
+        #          "data": {
+        #              "buy_price": "30285.84",
+        #              "sell_price": "30299.97",
+        #              "last_trade": "30295.01",
+        #              "high": "30386.7",
+        #              "low": "29542.76",
+        #              "avg": "29974.16178449",
+        #              "vol": "118.79538518",
+        #              "vol_curr": "3598907.38200826",
+        #              "updated": 1654205084
         #          }
         #      }
         #
@@ -250,21 +280,21 @@ class exmo(ccxt.async_support.exmo):
         self.tickers[symbol] = parsedTicker
         client.resolve(parsedTicker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -278,16 +308,16 @@ class exmo(ccxt.async_support.exmo):
     def handle_trades(self, client: Client, message):
         #
         #      {
-        #          ts: 1654206084001,
-        #          event: 'update',
-        #          topic: 'spot/trades:BTC_USDT',
-        #          data: [{
-        #              trade_id: 389704729,
-        #              type: 'sell',
-        #              price: '30310.95',
-        #              quantity: '0.0197',
-        #              amount: '597.125715',
-        #              date: 1654206083
+        #          "ts": 1654206084001,
+        #          "event": "update",
+        #          "topic": "spot/trades:BTC_USDT",
+        #          "data": [{
+        #              "trade_id": 389704729,
+        #              "type": "sell",
+        #              "price": "30310.95",
+        #              "quantity": "0.0197",
+        #              "amount": "597.125715",
+        #              "date": 1654206083
         #          }]
         #      }
         #
@@ -310,14 +340,14 @@ class exmo(ccxt.async_support.exmo):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -330,7 +360,7 @@ class exmo(ccxt.async_support.exmo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -345,23 +375,23 @@ class exmo(ccxt.async_support.exmo):
         #
         #  spot
         #     {
-        #         ts: 1654210290219,
-        #         event: 'update',
-        #         topic: 'spot/user_trades',
-        #         data: {
-        #             trade_id: 389715807,
-        #             type: 'buy',
-        #             price: '30527.77',
-        #             quantity: '0.0001',
-        #             amount: '3.052777',
-        #             date: 1654210290,
-        #             order_id: 27352777112,
-        #             client_id: 0,
-        #             pair: 'BTC_USDT',
-        #             exec_type: 'taker',
-        #             commission_amount: '0.0000001',
-        #             commission_currency: 'BTC',
-        #             commission_percent: '0.1'
+        #         "ts": 1654210290219,
+        #         "event": "update",
+        #         "topic": "spot/user_trades",
+        #         "data": {
+        #             "trade_id": 389715807,
+        #             "type": "buy",
+        #             "price": "30527.77",
+        #             "quantity": "0.0001",
+        #             "amount": "3.052777",
+        #             "date": 1654210290,
+        #             "order_id": 27352777112,
+        #             "client_id": 0,
+        #             "pair": "BTC_USDT",
+        #             "exec_type": "taker",
+        #             "commission_amount": "0.0000001",
+        #             "commission_currency": "BTC",
+        #             "commission_percent": "0.1"
         #         }
         #     }
         #
@@ -418,7 +448,7 @@ class exmo(ccxt.async_support.exmo):
             rawTrade = self.safe_value(message, 'data', {})
             rawTrades = [rawTrade]
         trades = self.parse_trades(rawTrades)
-        symbols = {}
+        symbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             myTrades.append(trade)
@@ -430,12 +460,12 @@ class exmo(ccxt.async_support.exmo):
             client.resolve(myTrades, symbolSpecificMessageHash)
         client.resolve(myTrades, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the exmo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -444,7 +474,7 @@ class exmo(ccxt.async_support.exmo):
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'id': self.request_id(),
             'topics': [
@@ -495,23 +525,22 @@ class exmo(ccxt.async_support.exmo):
         symbol = self.safe_symbol(marketId)
         orderBook = self.safe_value(message, 'data', {})
         messageHash = 'orderbook:' + symbol
-        timestamp = self.safe_number(message, 'ts')
-        storedOrderBook = self.safe_value(self.orderbooks, symbol)
-        if storedOrderBook is None:
-            storedOrderBook = self.order_book({})
-            self.orderbooks[symbol] = storedOrderBook
+        timestamp = self.safe_integer(message, 'ts')
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         event = self.safe_string(message, 'event')
         if event == 'snapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bid', 'ask')
-            storedOrderBook.reset(snapshot)
+            orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderBook, 'ask', [])
-            bids = self.safe_value(orderBook, 'bid', [])
-            self.handle_deltas(storedOrderBook['asks'], asks)
-            self.handle_deltas(storedOrderBook['bids'], bids)
-            storedOrderBook['timestamp'] = timestamp
-            storedOrderBook['datetime'] = self.iso8601(timestamp)
-        client.resolve(storedOrderBook, messageHash)
+            asks = self.safe_list(orderBook, 'ask', [])
+            bids = self.safe_list(orderBook, 'bid', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -521,37 +550,240 @@ class exmo(ccxt.async_support.exmo):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+        https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+
+        watches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate(params)
+        type, query = self.handle_market_type_and_params('watchOrders', None, params)
+        url = self.urls['api']['ws'][type]
+        messageHash = None
+        if symbol is None:
+            messageHash = 'orders:' + type
+        else:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = 'orders:' + market['symbol']
+        message: dict = {
+            'method': 'subscribe',
+            'topics': [
+                type + '/orders',
+            ],
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, query)
+        orders = await self.watch(url, messageHash, request, messageHash, request)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client: Client, message):
+        #
+        #  spot
+        # {
+        #     "ts": 1574427585174,
+        #     "event": "snapshot",
+        #     "topic": "spot/orders",
+        #     "data": [
+        #       {
+        #         "order_id": "14",
+        #         "client_id":"100500",
+        #         "created": "1574427585",
+        #         "pair": "BTC_USD",
+        #         "price": "7750",
+        #         "quantity": "0.1",
+        #         "amount": "775",
+        #         "original_quantity": "0.1",
+        #         "original_amount": "775",
+        #         "type": "sell",
+        #         "status": "open"
+        #       }
+        #     ]
+        # }
+        #
+        #  margin
+        # {
+        #     "ts":1624371281773,
+        #     "event":"snapshot",
+        #     "topic":"margin/orders",
+        #     "data":[
+        #        {
+        #           "order_id":"692844278081168665",
+        #           "created":"1624371250919761600",
+        #           "type":"limit_buy",
+        #           "previous_type":"limit_buy",
+        #           "pair":"BTC_USD",
+        #           "leverage":"2",
+        #           "price":"10000",
+        #           "stop_price":"0",
+        #           "distance":"0",
+        #           "trigger_price":"10000",
+        #           "init_quantity":"0.1",
+        #           "quantity":"0.1",
+        #           "funding_currency":"USD",
+        #           "funding_quantity":"1000",
+        #           "funding_rate":"0",
+        #           "client_id":"111111",
+        #           "expire":0,
+        #           "src":1,
+        #           "comment":"comment1",
+        #           "updated":1624371250938136600,
+        #           "status":"active"
+        #        }
+        #     ]
+        # }
+        #
+        topic = self.safe_string(message, 'topic')
+        parts = topic.split('/')
+        type = self.safe_string(parts, 0)
+        messageHash = 'orders:' + type
+        event = self.safe_string(message, 'event')
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
+        rawOrders = []
+        if event == 'snapshot':
+            rawOrders = self.safe_value(message, 'data', [])
+        elif event == 'update':
+            rawOrder = self.safe_dict(message, 'data', {})
+            rawOrders.append(rawOrder)
+        symbols: dict = {}
+        for j in range(0, len(rawOrders)):
+            order = self.parse_ws_order(rawOrders[j])
+            cachedOrders.append(order)
+            symbols[order['symbol']] = True
+        symbolKeys = list(symbols.keys())
+        for i in range(0, len(symbolKeys)):
+            symbol = symbolKeys[i]
+            symbolSpecificMessageHash = 'orders:' + symbol
+            client.resolve(cachedOrders, symbolSpecificMessageHash)
+        client.resolve(cachedOrders, messageHash)
+
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
+        #
+        # {
+        #     order_id: '43226756791',
+        #     client_id: 0,
+        #     created: '1730371416',
+        #     type: 'market_buy',
+        #     pair: 'TRX_USD',
+        #     quantity: '0',
+        #     original_quantity: '30',
+        #     status: 'cancelled',
+        #     last_trade_id: '726480870',
+        #     last_trade_price: '0.17',
+        #     last_trade_quantity: '30'
+        # }
+        #
+        id = self.safe_string(order, 'order_id')
+        timestamp = self.safe_timestamp(order, 'created')
+        orderType = self.safe_string(order, 'type')
+        side = self.parseSide(orderType)
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        amount = self.safe_string(order, 'quantity')
+        if amount is None:
+            amountField = 'in_amount' if (side == 'buy') else 'out_amount'
+            amount = self.safe_string(order, amountField)
+        price = self.safe_string(order, 'price')
+        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'stop_price'))
+        type = None
+        if (orderType != 'buy') and (orderType != 'sell'):
+            type = orderType
+        trades = None
+        if 'last_trade_id' in order:
+            trade = self.parse_ws_trade(order, market)
+            trades = [trade]
+        return self.safe_order({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': None,
+            'status': self.parseStatus(self.safe_string(order, 'status')),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'cost': None,
+            'amount': self.safe_string(order, 'original_quantity'),
+            'filled': None,
+            'remaining': self.safe_string(order, 'quantity'),
+            'average': None,
+            'trades': trades,
+            'fee': None,
+            'info': order,
+        }, market)
+
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+        id = self.safe_string(trade, 'order_id')
+        orderType = self.safe_string(trade, 'type')
+        side = self.parseSide(orderType)
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        type = None
+        if (orderType != 'buy') and (orderType != 'sell'):
+            type = orderType
+        return self.safe_trade({
+            'id': self.safe_string(trade, 'last_trade_id'),
+            'symbol': symbol,
+            'order': id,
+            'type': type,
+            'side': side,
+            'price': self.safe_string(trade, 'last_trade_price'),
+            'amount': self.safe_string(trade, 'last_trade_quantity'),
+            'cost': None,
+            'fee': None,
+        }, market)
+
     def handle_message(self, client: Client, message):
         #
         # {
-        #     ts: 1654206362552,
-        #     event: 'info',
-        #     code: 1,
-        #     message: 'connection established',
-        #     session_id: '7548931b-c2a4-45dd-8d71-877881a7251a'
+        #     "ts": 1654206362552,
+        #     "event": "info",
+        #     "code": 1,
+        #     "message": "connection established",
+        #     "session_id": "7548931b-c2a4-45dd-8d71-877881a7251a"
         # }
         #
         # {
-        #     ts: 1654206491399,
-        #     event: 'subscribed',
-        #     id: 1,
-        #     topic: 'spot/ticker:BTC_USDT'
+        #     "ts": 1654206491399,
+        #     "event": "subscribed",
+        #     "id": 1,
+        #     "topic": "spot/ticker:BTC_USDT"
         # }
         event = self.safe_string(message, 'event')
-        events = {
+        events: dict = {
             'logged_in': self.handle_authentication_message,
             'info': self.handle_info,
             'subscribed': self.handle_subscribed,
         }
         eventHandler = self.safe_value(events, event)
         if eventHandler is not None:
-            return eventHandler(client, message)
+            eventHandler(client, message)
+            return
         if (event == 'update') or (event == 'snapshot'):
             topic = self.safe_string(message, 'topic')
             if topic is not None:
                 parts = topic.split(':')
                 channel = self.safe_string(parts, 0)
-                handlers = {
+                handlers: dict = {
                     'spot/ticker': self.handle_ticker,
                     'spot/wallet': self.handle_balance,
                     'margin/wallet': self.handle_balance,
@@ -559,22 +791,23 @@ class exmo(ccxt.async_support.exmo):
                     'spot/trades': self.handle_trades,
                     'margin/trades': self.handle_trades,
                     'spot/order_book_updates': self.handle_order_book,
-                    # 'spot/orders': self.handleOrders,
-                    # 'margin/orders': self.handleOrders,
+                    'spot/orders': self.handle_orders,
+                    'margin/orders': self.handle_orders,
                     'spot/user_trades': self.handle_my_trades,
                     'margin/user_trades': self.handle_my_trades,
                 }
                 handler = self.safe_value(handlers, channel)
                 if handler is not None:
-                    return handler(client, message)
+                    handler(client, message)
+                    return
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_subscribed(self, client: Client, message):
         #
         # {
-        #     method: 'subscribe',
-        #     id: 2,
-        #     topics: ['spot/orders']
+        #     "method": "subscribe",
+        #     "id": 2,
+        #     "topics": ["spot/orders"]
         # }
         #
         return message
@@ -582,11 +815,11 @@ class exmo(ccxt.async_support.exmo):
     def handle_info(self, client: Client, message):
         #
         # {
-        #     ts: 1654215731659,
-        #     event: 'info',
-        #     code: 1,
-        #     message: 'connection established',
-        #     session_id: '4c496262-e259-4c27-b805-f20b46209c17'
+        #     "ts": 1654215731659,
+        #     "event": "info",
+        #     "code": 1,
+        #     "message": "connection established",
+        #     "session_id": "4c496262-e259-4c27-b805-f20b46209c17"
         # }
         #
         return message
@@ -594,17 +827,17 @@ class exmo(ccxt.async_support.exmo):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         method: 'login',
-        #         id: 1,
-        #         api_key: 'K-************************',
-        #         sign: '******************************************************************',
-        #         nonce: 1654215729887
+        #         "method": "login",
+        #         "id": 1,
+        #         "api_key": "K-************************",
+        #         "sign": "******************************************************************",
+        #         "nonce": 1654215729887
         #     }
         #
         messageHash = 'authenticated'
         client.resolve(message, messageHash)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         messageHash = 'authenticated'
         type, query = self.handle_market_type_and_params('authenticate', None, params)
         url = self.urls['api']['ws'][type]
@@ -616,7 +849,7 @@ class exmo(ccxt.async_support.exmo):
             requestId = self.request_id()
             signData = self.apiKey + str(time)
             sign = self.hmac(self.encode(signData), self.encode(self.secret), hashlib.sha512, 'base64')
-            request = {
+            request: dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': self.apiKey,
@@ -624,6 +857,6 @@ class exmo(ccxt.async_support.exmo):
                 'nonce': time,
             }
             message = self.extend(request, query)
-            future = self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future

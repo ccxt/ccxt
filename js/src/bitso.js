@@ -13,7 +13,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitso
- * @extends Exchange
+ * @augments Exchange
  */
 export default class bitso extends Exchange {
     describe() {
@@ -34,19 +34,21 @@ export default class bitso extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -56,6 +58,8 @@ export default class bitso extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
@@ -69,8 +73,11 @@ export default class bitso extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -92,9 +99,12 @@ export default class bitso extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
+                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
                 'api': {
-                    'rest': 'https://api.bitso.com',
+                    'rest': 'https://bitso.com/api',
+                },
+                'test': {
+                    'rest': 'https://stage.bitso.com/api',
                 },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -109,6 +119,12 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -181,17 +197,17 @@ export default class bitso extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name bitso#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -199,23 +215,23 @@ export default class bitso extends Exchange {
         const response = await this.privateGetLedger(this.extend(request, params));
         //
         //     {
-        //         success: true,
-        //         payload: [{
-        //             eid: '2510b3e2bc1c87f584500a18084f35ed',
-        //             created_at: '2022-06-08T12:21:42+0000',
-        //             balance_updates: [{
-        //                 amount: '0.00080000',
-        //                 currency: 'btc'
+        //         "success": true,
+        //         "payload": [{
+        //             "eid": "2510b3e2bc1c87f584500a18084f35ed",
+        //             "created_at": "2022-06-08T12:21:42+0000",
+        //             "balance_updates": [{
+        //                 "amount": "0.00080000",
+        //                 "currency": "btc"
         //             }],
-        //             operation: 'funding',
-        //             details: {
-        //                 network: 'btc',
-        //                 method: 'btc',
-        //                 method_name: 'Bitcoin',
-        //                 asset: 'btc',
-        //                 protocol: 'btc',
-        //                 integration: 'bitgo-v2',
-        //                 fid: '6112c6369100d6ecceb7f54f17cf0511'
+        //             "operation": "funding",
+        //             "details": {
+        //                 "network": "btc",
+        //                 "method": "btc",
+        //                 "method_name": "Bitcoin",
+        //                 "asset": "btc",
+        //                 "protocol": "btc",
+        //                 "integration": "bitgo-v2",
+        //                 "fid": "6112c6369100d6ecceb7f54f17cf0511"
         //             }
         //         }]
         //     }
@@ -236,56 +252,56 @@ export default class bitso extends Exchange {
     parseLedgerEntry(item, currency = undefined) {
         //
         //     {
-        //         eid: '2510b3e2bc1c87f584500a18084f35ed',
-        //         created_at: '2022-06-08T12:21:42+0000',
-        //         balance_updates: [{
-        //             amount: '0.00080000',
-        //             currency: 'btc'
+        //         "eid": "2510b3e2bc1c87f584500a18084f35ed",
+        //         "created_at": "2022-06-08T12:21:42+0000",
+        //         "balance_updates": [{
+        //             "amount": "0.00080000",
+        //             "currency": "btc"
         //         }],
-        //         operation: 'funding',
-        //         details: {
-        //             network: 'btc',
-        //             method: 'btc',
-        //             method_name: 'Bitcoin',
-        //             asset: 'btc',
-        //             protocol: 'btc',
-        //             integration: 'bitgo-v2',
-        //             fid: '6112c6369100d6ecceb7f54f17cf0511'
+        //         "operation": "funding",
+        //         "details": {
+        //             "network": "btc",
+        //             "method": "btc",
+        //             "method_name": "Bitcoin",
+        //             "asset": "btc",
+        //             "protocol": "btc",
+        //             "integration": "bitgo-v2",
+        //             "fid": "6112c6369100d6ecceb7f54f17cf0511"
         //         }
         //     }
         //
         //  trade
         //     {
-        //         eid: '8976c6053f078f704f037d82a813678a',
-        //         created_at: '2022-06-08T17:01:48+0000',
-        //         balance_updates: [{
-        //                 amount: '59.21320500',
-        //                 currency: 'mxn'
+        //         "eid": "8976c6053f078f704f037d82a813678a",
+        //         "created_at": "2022-06-08T17:01:48+0000",
+        //         "balance_updates": [{
+        //                 "amount": "59.21320500",
+        //                 "currency": "mxn"
         //             },
         //             {
-        //                 amount: '-0.00010000',
-        //                 currency: 'btc'
+        //                 "amount": "-0.00010000",
+        //                 "currency": "btc"
         //             }
         //         ],
-        //         operation: 'trade',
-        //         details: {
-        //             tid: '72145428',
-        //             oid: 'JO5TZmMZjzjlZDyT'
+        //         "operation": "trade",
+        //         "details": {
+        //             "tid": "72145428",
+        //             "oid": "JO5TZmMZjzjlZDyT"
         //         }
         //     }
         //
         //  fee
         //     {
-        //         eid: 'cbbb3c8d4e41723d25d2850dcb7c3c74',
-        //         created_at: '2022-06-08T17:01:48+0000',
-        //         balance_updates: [{
-        //             amount: '-0.38488583',
-        //             currency: 'mxn'
+        //         "eid": "cbbb3c8d4e41723d25d2850dcb7c3c74",
+        //         "created_at": "2022-06-08T17:01:48+0000",
+        //         "balance_updates": [{
+        //             "amount": "-0.38488583",
+        //             "currency": "mxn"
         //         }],
-        //         operation: 'fee',
-        //         details: {
-        //             tid: '72145428',
-        //             oid: 'JO5TZmMZjzjlZDyT'
+        //         "operation": "fee",
+        //         "details": {
+        //             "tid": "72145428",
+        //             "oid": "JO5TZmMZjzjlZDyT"
         //         }
         //     }
         const operation = this.safeString(item, 'operation');
@@ -297,6 +313,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString(firstBalance, 'amount');
         const currencyId = this.safeString(firstBalance, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const details = this.safeValue(item, 'details', {});
         let referenceId = this.safeString2(details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -321,6 +338,7 @@ export default class bitso extends Exchange {
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
         return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'eid'),
             'direction': direction,
             'account': undefined,
@@ -335,17 +353,17 @@ export default class bitso extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-            'info': item,
         }, currency);
     }
+    /**
+     * @method
+     * @name bitso#fetchMarkets
+     * @description retrieves data on all markets for bitso
+     * @see https://docs.bitso.com/bitso-api/docs/list-available-books
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchMarkets
-         * @description retrieves data on all markets for bitso
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetAvailableBooks(params);
         //
         //     {
@@ -471,6 +489,7 @@ export default class bitso extends Exchange {
                         'max': this.safeNumber(market, 'maximum_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             }, fee));
         }
@@ -496,14 +515,15 @@ export default class bitso extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name bitso#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetBalance(params);
         //
@@ -533,16 +553,17 @@ export default class bitso extends Exchange {
         //
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name bitso#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.bitso.com/bitso-api/docs/list-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -597,15 +618,16 @@ export default class bitso extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name bitso#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.bitso.com/bitso-api/docs/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -632,18 +654,18 @@ export default class bitso extends Exchange {
         //
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name bitso#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -682,7 +704,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -761,14 +783,24 @@ export default class bitso extends Exchange {
         const timestamp = this.parse8601(this.safeString(trade, 'created_at'));
         const marketId = this.safeString(trade, 'book');
         const symbol = this.safeSymbol(marketId, market, '_');
-        const side = this.safeString2(trade, 'side', 'maker_side');
+        let side = this.safeString(trade, 'side');
         const makerSide = this.safeString(trade, 'maker_side');
         let takerOrMaker = undefined;
-        if (side === makerSide) {
-            takerOrMaker = 'maker';
+        if (side !== undefined) {
+            if (side === makerSide) {
+                takerOrMaker = 'maker';
+            }
+            else {
+                takerOrMaker = 'taker';
+            }
         }
         else {
-            takerOrMaker = 'taker';
+            if (makerSide === 'buy') {
+                side = 'sell';
+            }
+            else {
+                side = 'buy';
+            }
         }
         let amount = this.safeString2(trade, 'amount', 'major');
         if (amount !== undefined) {
@@ -807,17 +839,18 @@ export default class bitso extends Exchange {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name bitso#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.bitso.com/bitso-api/docs/list-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -826,54 +859,55 @@ export default class bitso extends Exchange {
         const response = await this.publicGetTrades(this.extend(request, params));
         return this.parseTrades(response['payload'], market, since, limit);
     }
+    /**
+     * @method
+     * @name bitso#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privateGetFees(params);
         //
         //    {
-        //        success: true,
-        //        payload: {
-        //            fees: [
+        //        "success": true,
+        //        "payload": {
+        //            "fees": [
         //                {
-        //                    book: 'btc_mxn',
-        //                    fee_percent: '0.6500',
-        //                    fee_decimal: '0.00650000',
-        //                    taker_fee_percent: '0.6500',
-        //                    taker_fee_decimal: '0.00650000',
-        //                    maker_fee_percent: '0.5000',
-        //                    maker_fee_decimal: '0.00500000',
-        //                    volume_currency: 'mxn',
-        //                    current_volume: '0.00',
-        //                    next_volume: '1500000.00',
-        //                    next_maker_fee_percent: '0.490',
-        //                    next_taker_fee_percent: '0.637',
-        //                    nextVolume: '1500000.00',
-        //                    nextFee: '0.490',
-        //                    nextTakerFee: '0.637'
+        //                    "book": "btc_mxn",
+        //                    "fee_percent": "0.6500",
+        //                    "fee_decimal": "0.00650000",
+        //                    "taker_fee_percent": "0.6500",
+        //                    "taker_fee_decimal": "0.00650000",
+        //                    "maker_fee_percent": "0.5000",
+        //                    "maker_fee_decimal": "0.00500000",
+        //                    "volume_currency": "mxn",
+        //                    "current_volume": "0.00",
+        //                    "next_volume": "1500000.00",
+        //                    "next_maker_fee_percent": "0.490",
+        //                    "next_taker_fee_percent": "0.637",
+        //                    "nextVolume": "1500000.00",
+        //                    "nextFee": "0.490",
+        //                    "nextTakerFee": "0.637"
         //                },
         //                ...
         //            ],
-        //            deposit_fees: [
+        //            "deposit_fees": [
         //                {
-        //                    currency: 'btc',
-        //                    method: 'rewards',
-        //                    fee: '0.00',
-        //                    is_fixed: false
+        //                    "currency": "btc",
+        //                    "method": "rewards",
+        //                    "fee": "0.00",
+        //                    "is_fixed": false
         //                },
         //                ...
         //            ],
-        //            withdrawal_fees: {
-        //                ada: '0.20958100',
-        //                bch: '0.00009437',
-        //                ars: '0',
-        //                btc: '0.00001209',
+        //            "withdrawal_fees": {
+        //                "ada": "0.20958100",
+        //                "bch": "0.00009437",
+        //                "ars": "0",
+        //                "btc": "0.00001209",
         //                ...
         //            }
         //        }
@@ -897,17 +931,18 @@ export default class bitso extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name bitso#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.bitso.com/bitso-api/docs/user-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = 25, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         // the don't support fetching trades starting from a date yet
@@ -934,19 +969,20 @@ export default class bitso extends Exchange {
         const response = await this.privateGetUserTrades(this.extend(request, params));
         return this.parseTrades(response['payload'], market, since, limit);
     }
+    /**
+     * @method
+     * @name bitso#createOrder
+     * @description create a trade order
+     * @see https://docs.bitso.com/bitso-api/docs/place-an-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -965,32 +1001,46 @@ export default class bitso extends Exchange {
             'id': id,
         }, market);
     }
+    /**
+     * @method
+     * @name bitso#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {string} id order id
+     * @param {string} symbol not used by bitso cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol not used by bitso cancelOrder ()
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, params));
+        const response = await this.privateDeleteOrdersOid(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        const payload = this.safeList(response, 'payload', []);
+        const orderId = this.safeString(payload, 0);
+        return this.safeOrder({
+            'info': response,
+            'id': orderId,
+        });
     }
+    /**
+     * @method
+     * @name bitso#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelOrders
-         * @description cancel multiple orders
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (!Array.isArray(ids)) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() ids argument should be an array');
         }
@@ -1017,23 +1067,24 @@ export default class bitso extends Exchange {
         }
         return orders;
     }
+    /**
+     * @method
+     * @name bitso#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
+     * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#cancelAllOrders
-         * @description cancel all open orders
-         * @param {undefined} symbol bitso does not support canceling orders for only a specific market
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol !== undefined) {
             throw new NotSupported(this.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
         }
         const response = await this.privateDeleteOrdersAll(params);
         //
         //     {
-        //         success: true,
-        //         payload: ['NWUZUYNT12ljwzDT', 'kZUkZmQ2TTjkkYTY']
+        //         "success": true,
+        //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
@@ -1089,7 +1140,6 @@ export default class bitso extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1101,17 +1151,18 @@ export default class bitso extends Exchange {
             'trades': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name bitso#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = 25, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         // the don't support fetching trades starting from a date yet
@@ -1139,15 +1190,17 @@ export default class bitso extends Exchange {
         const orders = this.parseOrders(response['payload'], market, since, limit);
         return orders;
     }
+    /**
+     * @method
+     * @name bitso#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+     * @param {string} id the order id
+     * @param {string} symbol not used by bitso fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} symbol not used by bitso fetchOrder
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetOrdersOid({
             'oid': id,
@@ -1161,18 +1214,19 @@ export default class bitso extends Exchange {
         }
         throw new OrderNotFound(this.id + ': The order ' + id + ' not found.');
     }
+    /**
+     * @method
+     * @name bitso#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.bitso.com/bitso-api/docs/list-user-trades
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1181,16 +1235,17 @@ export default class bitso extends Exchange {
         const response = await this.privateGetOrderTradesOid(this.extend(request, params));
         return this.parseTrades(response['payload'], market);
     }
+    /**
+     * @method
+     * @name bitso#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+     * @param {string} id deposit id
+     * @param {string} code bitso does not support filtering by currency code and will ignore this argument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposit(id, code = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDeposit
-         * @description fetch information on a deposit
-         * @param {string} id deposit id
-         * @param {string} code bitso does not support filtering by currency code and will ignore this argument
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
             'fid': id,
@@ -1198,42 +1253,43 @@ export default class bitso extends Exchange {
         const response = await this.privateGetFundingsFid(this.extend(request, params));
         //
         //     {
-        //         success: true,
-        //         payload: [{
-        //             fid: '6112c6369100d6ecceb7f54f17cf0511',
-        //             status: 'complete',
-        //             created_at: '2022-06-08T12:02:49+0000',
-        //             currency: 'btc',
-        //             method: 'btc',
-        //             method_name: 'Bitcoin',
-        //             amount: '0.00080000',
-        //             asset: 'btc',
-        //             network: 'btc',
-        //             protocol: 'btc',
-        //             integration: 'bitgo-v2',
-        //             details: {
-        //                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        //                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        //                 confirmations: '4'
+        //         "success": true,
+        //         "payload": [{
+        //             "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        //             "status": "complete",
+        //             "created_at": "2022-06-08T12:02:49+0000",
+        //             "currency": "btc",
+        //             "method": "btc",
+        //             "method_name": "Bitcoin",
+        //             "amount": "0.00080000",
+        //             "asset": "btc",
+        //             "network": "btc",
+        //             "protocol": "btc",
+        //             "integration": "bitgo-v2",
+        //             "details": {
+        //                 "receiving_address": "3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        //                 "tx_hash": "327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        //                 "confirmations": "4"
         //             }
         //         }]
         //     }
         //
         const transactions = this.safeValue(response, 'payload', []);
-        const first = this.safeValue(transactions, 0, {});
+        const first = this.safeDict(transactions, 0, {});
         return this.parseTransaction(first);
     }
+    /**
+     * @method
+     * @name bitso#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs/fundings
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         let currency = undefined;
         if (code !== undefined) {
@@ -1242,39 +1298,39 @@ export default class bitso extends Exchange {
         const response = await this.privateGetFundings(params);
         //
         //     {
-        //         success: true,
-        //         payload: [{
-        //             fid: '6112c6369100d6ecceb7f54f17cf0511',
-        //             status: 'complete',
-        //             created_at: '2022-06-08T12:02:49+0000',
-        //             currency: 'btc',
-        //             method: 'btc',
-        //             method_name: 'Bitcoin',
-        //             amount: '0.00080000',
-        //             asset: 'btc',
-        //             network: 'btc',
-        //             protocol: 'btc',
-        //             integration: 'bitgo-v2',
-        //             details: {
-        //                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        //                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        //                 confirmations: '4'
+        //         "success": true,
+        //         "payload": [{
+        //             "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        //             "status": "complete",
+        //             "created_at": "2022-06-08T12:02:49+0000",
+        //             "currency": "btc",
+        //             "method": "btc",
+        //             "method_name": "Bitcoin",
+        //             "amount": "0.00080000",
+        //             "asset": "btc",
+        //             "network": "btc",
+        //             "protocol": "btc",
+        //             "integration": "bitgo-v2",
+        //             "details": {
+        //                 "receiving_address": "3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        //                 "tx_hash": "327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        //                 "confirmations": "4"
         //             }
         //         }]
         //     }
         //
-        const transactions = this.safeValue(response, 'payload', []);
+        const transactions = this.safeList(response, 'payload', []);
         return this.parseTransactions(transactions, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name bitso#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -1290,64 +1346,64 @@ export default class bitso extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
+    /**
+     * @method
+     * @name bitso#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchTransactionFees
-         * @deprecated
-         * @description please use fetchDepositWithdrawFees instead
-         * @see https://bitso.com/api_info#fees
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetFees(params);
         //
         //    {
-        //        success: true,
-        //        payload: {
-        //            fees: [
+        //        "success": true,
+        //        "payload": {
+        //            "fees": [
         //                {
-        //                    book: 'btc_mxn',
-        //                    fee_percent: '0.6500',
-        //                    fee_decimal: '0.00650000',
-        //                    taker_fee_percent: '0.6500',
-        //                    taker_fee_decimal: '0.00650000',
-        //                    maker_fee_percent: '0.5000',
-        //                    maker_fee_decimal: '0.00500000',
-        //                    volume_currency: 'mxn',
-        //                    current_volume: '0.00',
-        //                    next_volume: '1500000.00',
-        //                    next_maker_fee_percent: '0.490',
-        //                    next_taker_fee_percent: '0.637',
-        //                    nextVolume: '1500000.00',
-        //                    nextFee: '0.490',
-        //                    nextTakerFee: '0.637'
+        //                    "book": "btc_mxn",
+        //                    "fee_percent": "0.6500",
+        //                    "fee_decimal": "0.00650000",
+        //                    "taker_fee_percent": "0.6500",
+        //                    "taker_fee_decimal": "0.00650000",
+        //                    "maker_fee_percent": "0.5000",
+        //                    "maker_fee_decimal": "0.00500000",
+        //                    "volume_currency": "mxn",
+        //                    "current_volume": "0.00",
+        //                    "next_volume": "1500000.00",
+        //                    "next_maker_fee_percent": "0.490",
+        //                    "next_taker_fee_percent": "0.637",
+        //                    "nextVolume": "1500000.00",
+        //                    "nextFee": "0.490",
+        //                    "nextTakerFee": "0.637"
         //                },
         //                ...
         //            ],
-        //            deposit_fees: [
+        //            "deposit_fees": [
         //                {
-        //                    currency: 'btc',
-        //                    method: 'rewards',
-        //                    fee: '0.00',
-        //                    is_fixed: false
+        //                    "currency": "btc",
+        //                    "method": "rewards",
+        //                    "fee": "0.00",
+        //                    "is_fixed": false
         //                },
         //                ...
         //            ],
-        //            withdrawal_fees: {
-        //                ada: '0.20958100',
-        //                bch: '0.00009437',
-        //                ars: '0',
-        //                btc: '0.00001209',
+        //            "withdrawal_fees": {
+        //                "ada": "0.20958100",
+        //                "bch": "0.00009437",
+        //                "ars": "0",
+        //                "btc": "0.00001209",
         //                ...
         //            }
         //        }
@@ -1391,101 +1447,101 @@ export default class bitso extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name bitso#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.bitso.com/bitso-api/docs/list-fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://bitso.com/api_info#fees
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.privateGetFees(params);
         //
         //    {
-        //        success: true,
-        //        payload: {
-        //            fees: [
+        //        "success": true,
+        //        "payload": {
+        //            "fees": [
         //                {
-        //                    book: 'btc_mxn',
-        //                    fee_percent: '0.6500',
-        //                    fee_decimal: '0.00650000',
-        //                    taker_fee_percent: '0.6500',
-        //                    taker_fee_decimal: '0.00650000',
-        //                    maker_fee_percent: '0.5000',
-        //                    maker_fee_decimal: '0.00500000',
-        //                    volume_currency: 'mxn',
-        //                    current_volume: '0.00',
-        //                    next_volume: '1500000.00',
-        //                    next_maker_fee_percent: '0.490',
-        //                    next_taker_fee_percent: '0.637',
-        //                    nextVolume: '1500000.00',
-        //                    nextFee: '0.490',
-        //                    nextTakerFee: '0.637'
+        //                    "book": "btc_mxn",
+        //                    "fee_percent": "0.6500",
+        //                    "fee_decimal": "0.00650000",
+        //                    "taker_fee_percent": "0.6500",
+        //                    "taker_fee_decimal": "0.00650000",
+        //                    "maker_fee_percent": "0.5000",
+        //                    "maker_fee_decimal": "0.00500000",
+        //                    "volume_currency": "mxn",
+        //                    "current_volume": "0.00",
+        //                    "next_volume": "1500000.00",
+        //                    "next_maker_fee_percent": "0.490",
+        //                    "next_taker_fee_percent": "0.637",
+        //                    "nextVolume": "1500000.00",
+        //                    "nextFee": "0.490",
+        //                    "nextTakerFee": "0.637"
         //                },
         //                ...
         //            ],
-        //            deposit_fees: [
+        //            "deposit_fees": [
         //                {
-        //                    currency: 'btc',
-        //                    method: 'rewards',
-        //                    fee: '0.00',
-        //                    is_fixed: false
+        //                    "currency": "btc",
+        //                    "method": "rewards",
+        //                    "fee": "0.00",
+        //                    "is_fixed": false
         //                },
         //                ...
         //            ],
-        //            withdrawal_fees: {
-        //                ada: '0.20958100',
-        //                bch: '0.00009437',
-        //                ars: '0',
-        //                btc: '0.00001209',
+        //            "withdrawal_fees": {
+        //                "ada": "0.20958100",
+        //                "bch": "0.00009437",
+        //                "ars": "0",
+        //                "btc": "0.00001209",
         //                ...
         //            }
         //        }
         //    }
         //
-        const payload = this.safeValue(response, 'payload', {});
+        const payload = this.safeList(response, 'payload', []);
         return this.parseDepositWithdrawFees(payload, codes);
     }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
-        //        fees: [
+        //        "fees": [
         //            {
-        //                book: 'btc_mxn',
-        //                fee_percent: '0.6500',
-        //                fee_decimal: '0.00650000',
-        //                taker_fee_percent: '0.6500',
-        //                taker_fee_decimal: '0.00650000',
-        //                maker_fee_percent: '0.5000',
-        //                maker_fee_decimal: '0.00500000',
-        //                volume_currency: 'mxn',
-        //                current_volume: '0.00',
-        //                next_volume: '1500000.00',
-        //                next_maker_fee_percent: '0.490',
-        //                next_taker_fee_percent: '0.637',
-        //                nextVolume: '1500000.00',
-        //                nextFee: '0.490',
-        //                nextTakerFee: '0.637'
+        //                "book": "btc_mxn",
+        //                "fee_percent": "0.6500",
+        //                "fee_decimal": "0.00650000",
+        //                "taker_fee_percent": "0.6500",
+        //                "taker_fee_decimal": "0.00650000",
+        //                "maker_fee_percent": "0.5000",
+        //                "maker_fee_decimal": "0.00500000",
+        //                "volume_currency": "mxn",
+        //                "current_volume": "0.00",
+        //                "next_volume": "1500000.00",
+        //                "next_maker_fee_percent": "0.490",
+        //                "next_taker_fee_percent": "0.637",
+        //                "nextVolume": "1500000.00",
+        //                "nextFee": "0.490",
+        //                "nextTakerFee": "0.637"
         //            },
         //            ...
         //        ],
-        //        deposit_fees: [
+        //        "deposit_fees": [
         //            {
-        //                currency: 'btc',
-        //                method: 'rewards',
-        //                fee: '0.00',
-        //                is_fixed: false
+        //                "currency": "btc",
+        //                "method": "rewards",
+        //                "fee": "0.00",
+        //                "is_fixed": false
         //            },
         //            ...
         //        ],
-        //        withdrawal_fees: {
-        //            ada: '0.20958100',
-        //            bch: '0.00009437',
-        //            ars: '0',
-        //            btc: '0.00001209',
+        //        "withdrawal_fees": {
+        //            "ada": "0.20958100",
+        //            "bch": "0.00009437",
+        //            "ars": "0",
+        //            "btc": "0.00001209",
         //            ...
         //        }
         //    }
@@ -1528,18 +1584,18 @@ export default class bitso extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name bitso#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitso#withdraw
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the bitso api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
@@ -1582,41 +1638,28 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue(response, 'payload', []);
-        const first = this.safeValue(payload, 0);
+        const first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
-    }
-    safeNetwork(networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        networkId = networkId.toUpperCase();
-        const networksById = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
     parseTransaction(transaction, currency = undefined) {
         //
         // deposit
         //     {
-        //         fid: '6112c6369100d6ecceb7f54f17cf0511',
-        //         status: 'complete',
-        //         created_at: '2022-06-08T12:02:49+0000',
-        //         currency: 'btc',
-        //         method: 'btc',
-        //         method_name: 'Bitcoin',
-        //         amount: '0.00080000',
-        //         asset: 'btc',
-        //         network: 'btc',
-        //         protocol: 'btc',
-        //         integration: 'bitgo-v2',
-        //         details: {
-        //             receiving_address: '3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        //             tx_hash: '327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        //             confirmations: '4'
+        //         "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        //         "status": "complete",
+        //         "created_at": "2022-06-08T12:02:49+0000",
+        //         "currency": "btc",
+        //         "method": "btc",
+        //         "method_name": "Bitcoin",
+        //         "amount": "0.00080000",
+        //         "asset": "btc",
+        //         "network": "btc",
+        //         "protocol": "btc",
+        //         "integration": "bitgo-v2",
+        //         "details": {
+        //             "receiving_address": "3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        //             "tx_hash": "327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        //             "confirmations": "4"
         //         }
         //     }
         //
@@ -1644,16 +1687,18 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
+        const networkCode = this.networkIdToCode(networkId);
+        const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
             'txid': this.safeString(details, 'tx_hash'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.safeNetwork(networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
-            'amount': this.safeString(transaction, 'amount'),
+            'amount': this.safeNumber(transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode(currencyId, currency),
             'status': this.parseTransactionStatus(status),
@@ -1662,6 +1707,7 @@ export default class bitso extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };
@@ -1690,6 +1736,7 @@ export default class bitso extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
+            endpoint = '/api' + endpoint;
             let request = [nonce, method, endpoint].join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length) {
@@ -1701,7 +1748,7 @@ export default class bitso extends Exchange {
             const auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
                 'Authorization': 'Bitso ' + auth,
-                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1714,7 +1761,7 @@ export default class bitso extends Exchange {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let success = this.safeValue(response, 'success', false);
+            let success = this.safeBool(response, 'success', false);
             if (typeof success === 'string') {
                 if ((success === 'true') || (success === '1')) {
                     success = true;

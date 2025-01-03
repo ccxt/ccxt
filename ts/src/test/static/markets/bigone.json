@@ -1,0 +1,527 @@
+{
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "550b34db-696e-4434-a126-196f827d9172",
+            "name": "BTC-USDT",
+            "quote_scale": "2",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+                "symbol": "BTC",
+                "name": "Bitcoin"
+            },
+            "base_scale": "6",
+            "min_quote_value": "10",
+            "max_quote_value": "1000000"
+        },
+        "taker": 0.001,
+        "maker": 0.001,
+        "uuid": "550b34db-696e-4434-a126-196f827d9172"
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "807cd971-89bb-49fd-9d89-00d22ede6d01",
+            "name": "LTC-USDT",
+            "quote_scale": "2",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "1f88c67d-bcb0-45ff-b336-6de3b740b479",
+                "symbol": "LTC",
+                "name": "Litecoin"
+            },
+            "base_scale": "5",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "taker": 0.001,
+        "maker": 0.001,
+        "uuid": "807cd971-89bb-49fd-9d89-00d22ede6d01"
+    },
+    "XRP/USDT": {
+        "id": "XRP-USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "c7d850aa-7ddf-4d30-ac38-36065f1c15ec",
+            "name": "XRP-USDT",
+            "quote_scale": "5",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "51e29e36-7710-49d0-abbb-930d7c60f878",
+                "symbol": "XRP",
+                "name": "Ripple"
+            },
+            "base_scale": "1",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "taker": 0.001,
+        "maker": 0.001,
+        "uuid": "c7d850aa-7ddf-4d30-ac38-36065f1c15ec"
+    },
+    "SOL/USDT": {
+        "id": "SOL-USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "fa5125a3-beed-4b38-9548-bf7385fae938",
+            "name": "SOL-USDT",
+            "quote_scale": "2",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "3f217ff4-2f2a-43ff-a347-c112b65609f1",
+                "symbol": "SOL",
+                "name": "Solana"
+            },
+            "base_scale": "2",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "taker": 0.001,
+        "maker": 0.001,
+        "uuid": "fa5125a3-beed-4b38-9548-bf7385fae938"
+    },
+    "TRX/USDT": {
+        "id": "TRX-USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            },
+            "leverage": {}
+        },
+        "info": {
+            "id": "0ba6a004-b13a-4a6a-83ce-abe98b9df159",
+            "name": "TRX-USDT",
+            "quote_scale": "5",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "b02cb336-ebeb-48da-a6cf-ad29572034ff",
+                "symbol": "TRX",
+                "name": "TRON"
+            },
+            "base_scale": "1",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "taker": 0.001,
+        "maker": 0.001,
+        "uuid": "0ba6a004-b13a-4a6a-83ce-abe98b9df159"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 0.001,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {
+                "min": 0.5,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 0.01
+            }
+        },
+        "info": {
+            "baseCurrency": "BTC",
+            "multiplier": "0.001",
+            "enable": true,
+            "priceStep": "0.5",
+            "maxRiskLimit": "1E+7",
+            "pricePrecision": "1",
+            "maintenanceMargin": "0.005000000",
+            "symbol": "BTCUSDT",
+            "valuePrecision": "4",
+            "minRiskLimit": "1E+6",
+            "riskLimit": "1E+6",
+            "isInverse": false,
+            "riskStep": "1E+4",
+            "settleCurrency": "USDT",
+            "baseName": "Bitcoin",
+            "feePrecision": "8",
+            "priceMin": "0.5",
+            "priceMax": "1E+6",
+            "initialMargin": "0.010000000",
+            "quoteCurrency": "USDT"
+        }
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRPUSDT",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 100,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {
+                "min": 0.0001,
+                "max": 100000000
+            },
+            "cost": {
+                "min": 0.02
+            }
+        },
+        "info": {
+            "baseCurrency": "XRP",
+            "multiplier": "1E+2",
+            "enable": true,
+            "priceStep": "0.0001",
+            "maxRiskLimit": "2.1E+6",
+            "pricePrecision": "4",
+            "maintenanceMargin": "0.010000000",
+            "symbol": "XRPUSDT",
+            "valuePrecision": "4",
+            "minRiskLimit": "3E+5",
+            "riskLimit": "3E+5",
+            "isInverse": false,
+            "riskStep": "500",
+            "settleCurrency": "USDT",
+            "baseName": "XRP",
+            "feePrecision": "8",
+            "priceMin": "0.0001",
+            "priceMax": "1E+8",
+            "initialMargin": "0.020000000",
+            "quoteCurrency": "USDT"
+        }
+    },
+    "DOT/USDT": {
+        "id": "DOT-USDT",
+        "symbol": "DOT/USDT",
+        "base": "DOT",
+        "quote": "USDT",
+        "baseId": "DOT",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 500000
+            }
+        },
+        "info": {
+            "id": "3bf03cb5-6bd0-40cd-9924-af66aa624564",
+            "name": "DOT-USDT",
+            "quote_scale": "4",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "866a364a-8ff4-43d5-8136-f4636e23f0d3",
+                "symbol": "DOT",
+                "name": "Polkadot"
+            },
+            "base_scale": "2",
+            "min_quote_value": "10",
+            "max_quote_value": "500000"
+        },
+        "uuid": "3bf03cb5-6bd0-40cd-9924-af66aa624564"
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10,
+                "max": 1000000
+            }
+        },
+        "info": {
+            "id": "2dab8bcf-cfdd-496b-8181-d670568d1daa",
+            "name": "ETH-USDT",
+            "quote_scale": "2",
+            "quote_asset": {
+                "id": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                "symbol": "USDT",
+                "name": "TetherUS"
+            },
+            "base_asset": {
+                "id": "c98f5d90-c619-4de2-b643-3d429f622239",
+                "symbol": "ETH",
+                "name": "Ethereum"
+            },
+            "base_scale": "5",
+            "min_quote_value": "10",
+            "max_quote_value": "1000000"
+        },
+        "uuid": "2dab8bcf-cfdd-496b-8181-d670568d1daa"
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 0.1,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 0.01
+            }
+        },
+        "info": {
+            "baseCurrency": "ETH",
+            "multiplier": "0.1",
+            "enable": true,
+            "priceStep": "0.01",
+            "maxRiskLimit": "5E+5",
+            "pricePrecision": "2",
+            "maintenanceMargin": "0.005000000",
+            "symbol": "ETHUSDT",
+            "valuePrecision": "4",
+            "minRiskLimit": "5E+4",
+            "riskLimit": "5E+4",
+            "isInverse": false,
+            "riskStep": "500",
+            "settleCurrency": "USDT",
+            "baseName": "Ethereum",
+            "feePrecision": "8",
+            "priceMin": "0.01",
+            "priceMax": "1E+6",
+            "initialMargin": "0.010000000",
+            "quoteCurrency": "USDT"
+        }
+    }
+}
