@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Dict, Currencies } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -370,6 +370,153 @@ export default class derive extends Exchange {
             };
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchMarkets
+     * @description retrieves data on all markets for bybit
+     * @see https://bybit-exchange.github.io/docs/v5/market/instrument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const request: Dict = {
+            'currency': 'BTC',
+            'expired': true,
+            'instrument_type': 'perp',
+        };
+        const response = await this.publicPostGetAllInstruments (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "instruments": [
+        //             {
+        //                 "instrument_type": "perp",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "scheduled_activation": 1701840228,
+        //                 "scheduled_deactivation": 9223372036854776000,
+        //                 "is_active": true,
+        //                 "tick_size": "0.1",
+        //                 "minimum_amount": "0.01",
+        //                 "maximum_amount": "10000",
+        //                 "amount_step": "0.001",
+        //                 "mark_price_fee_rate_cap": "0",
+        //                 "maker_fee_rate": "0.00005",
+        //                 "taker_fee_rate": "0.0003",
+        //                 "base_fee": "0.1",
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USD",
+        //                 "option_details": null,
+        //                 "perp_details": {
+        //                     "index": "BTC-USD",
+        //                     "max_rate_per_hour": "0.004",
+        //                     "min_rate_per_hour": "-0.004",
+        //                     "static_interest_rate": "0.0000125",
+        //                     "aggregate_funding": "10538.574363381759146829",
+        //                     "funding_rate": "0.0000125"
+        //                 },
+        //                 "erc20_details": null,
+        //                 "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //                 "base_asset_sub_id": "0",
+        //                 "pro_rata_fraction": "0",
+        //                 "fifo_min_allocation": "0",
+        //                 "pro_rata_amount_step": "0.1"
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 1,
+        //             "count": 1
+        //         }
+        //     },
+        //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'instruments', []);
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        const type = this.safeString (market, 'instrument_type');
+        let marketType: MarketType;
+        let spot = false;
+        let margin = true;
+        let swap = false;
+        let option = false;
+        let linear: Bool = undefined;
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'quote_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const marketId = this.safeString (market, 'instrument_name');
+        let symbol = base + '/' + quote;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
+        if (type === 'erc20') {
+            spot = true;
+            marketType = 'spot';
+        } else if (type === 'perp') {
+            margin = false;
+            settleId = 'USDC';
+            settle = this.safeCurrencyCode (settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            swap = true;
+            linear = true;
+            marketType = 'swap';
+        } else if (type === 'option') {
+            margin = false;
+            option = true;
+        }
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': spot,
+            'margin': margin,
+            'swap': swap,
+            'future': false,
+            'option': option,
+            'active': this.safeBool (market, 'is_active'),
+            'contract': swap,
+            'linear': linear,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'amount_step'),
+                'price': this.safeNumber (market, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minimum_amount'),
+                    'max': this.safeNumber (market, 'maximum_amount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
