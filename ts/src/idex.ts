@@ -380,24 +380,34 @@ export default class idex extends Exchange {
         const request: Dict = {
             'market': market['id'],
         };
-        // [
-        //   {
-        //     "market": "DIL-ETH",
-        //     "time": 1598367493008,
-        //     "open": "0.09695361",
-        //     "high": "0.10245881",
-        //     "low": "0.09572507",
-        //     "close": "0.09917079",
-        //     "closeQuantity": "0.71320950",
-        //     "baseVolume": "309.17380612",
-        //     "quoteVolume": "30.57633981",
-        //     "percentChange": "2.28",
-        //     "numTrades": 205,
-        //     "ask": "0.09910476",
-        //     "bid": "0.09688340",
-        //     "sequence": 3902
-        //   }
-        // ]
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "time": 1735917438000,
+        //             "open": "3484.90000000",
+        //             "high": "3539.40000000",
+        //             "low": "3423.60000000",
+        //             "close": "3539.40000000",
+        //             "closeQuantity": "0.01000000",
+        //             "baseVolume": "25.30400000",
+        //             "quoteVolume": "87590.84350000",
+        //             "percentChange": "1.56388900",
+        //             "trades": 1502,
+        //             "sequence": 214572,
+        //             "ask": "3535.60000000",
+        //             "bid": "3535.30000000",
+        //             "markPrice": "3535.60000000",
+        //             "indexPrice": "3533.90000000",
+        //             "indexPrice24h": "3484.10000000",
+        //             "indexPricePercentChange": "0.01429350",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "119.42700000"
+        //         }
+        //     ]
+        //
         const response = await this.publicGetTickers (this.extend (request, params));
         const ticker = this.safeDict (response, 0);
         return this.parseTicker (ticker, market);
@@ -414,45 +424,67 @@ export default class idex extends Exchange {
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        // [
-        //   {
-        //     "market": "DIL-ETH",
-        //     "time": 1598367493008,
-        //     "open": "0.09695361",
-        //     "high": "0.10245881",
-        //     "low": "0.09572507",
-        //     "close": "0.09917079",
-        //     "closeQuantity": "0.71320950",
-        //     "baseVolume": "309.17380612",
-        //     "quoteVolume": "30.57633981",
-        //     "percentChange": "2.28",
-        //     "numTrades": 205,
-        //     "ask": "0.09910476",
-        //     "bid": "0.09688340",
-        //     "sequence": 3902
-        //   }, ...
-        // ]
+        //
+        //     [
+        //         {
+        //             "market": "BNB-USD",
+        //             "time": 1735917617000,
+        //             "open": "708.25000000",
+        //             "high": "708.82000000",
+        //             "low": "695.91000000",
+        //             "close": "706.80000000",
+        //             "closeQuantity": "0.05000000",
+        //             "baseVolume": "4689.56000000",
+        //             "quoteVolume": "3304350.75710000",
+        //             "percentChange": "-0.20472900",
+        //             "trades": 1758,
+        //             "sequence": 141478,
+        //             "ask": "706.65000000",
+        //             "bid": "706.50000000",
+        //             "markPrice": "706.65000000",
+        //             "indexPrice": "707.34000000",
+        //             "indexPrice24h": "709.23000000",
+        //             "indexPricePercentChange": "-0.00266486",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "62.30000000"
+        //         }, ...
+        //     ]
+        //
         const response = await this.publicGetTickers (params);
         return this.parseTickers (response, symbols);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        // {
-        //   "market": "DIL-ETH",
-        //   "time": 1598367493008,
-        //   "open": "0.09695361",
-        //   "high": "0.10245881",
-        //   "low": "0.09572507",
-        //   "close": "0.09917079",
-        //   "closeQuantity": "0.71320950",
-        //   "baseVolume": "309.17380612",
-        //   "quoteVolume": "30.57633981",
-        //   "percentChange": "2.28",
-        //   "numTrades": 205,
-        //   "ask": "0.09910476",
-        //   "bid": "0.09688340",
-        //   "sequence": 3902
-        // }
+        //
+        //     [
+        //         {
+        //             "market": "ETH-USD",
+        //             "time": 1735917438000,
+        //             "open": "3484.90000000",
+        //             "high": "3539.40000000",
+        //             "low": "3423.60000000",
+        //             "close": "3539.40000000",
+        //             "closeQuantity": "0.01000000",
+        //             "baseVolume": "25.30400000",
+        //             "quoteVolume": "87590.84350000",
+        //             "percentChange": "1.56388900",
+        //             "trades": 1502,
+        //             "sequence": 214572,
+        //             "ask": "3535.60000000",
+        //             "bid": "3535.30000000",
+        //             "markPrice": "3535.60000000",
+        //             "indexPrice": "3533.90000000",
+        //             "indexPrice24h": "3484.10000000",
+        //             "indexPricePercentChange": "0.01429350",
+        //             "lastFundingRate": "0.00010000",
+        //             "currentFundingRate": "0.00010000",
+        //             "nextFundingTime": 1735920000000,
+        //             "openInterest": "119.42700000"
+        //         }
+        //     ]
+        //
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
@@ -478,6 +510,8 @@ export default class idex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
