@@ -2376,7 +2376,7 @@ export default class bitget extends Exchange {
             result['tag'] = tag;
             result['address'] = address;
             result['addressTo'] = address;
-            result['network'] = chain;
+            result['network'] = networkCode;
         }
         return result as Transaction;
     }
