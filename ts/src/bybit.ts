@@ -5333,16 +5333,14 @@ export default class bybit extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'addressDeposit');
-        const tag = this.safeString (depositAddress, 'tagDeposit');
         const code = this.safeString (currency, 'code');
-        const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': code,
-            'network': chain,
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain'), code),
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositAddress, 'tagDeposit'),
         } as DepositAddress;
     }
 
