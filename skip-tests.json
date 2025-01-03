@@ -1218,6 +1218,9 @@
         }
     },
     "lykke": {
+        "skip": "network forbidden",
+        "until": "2025-02-02",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -1365,7 +1368,7 @@
     "oxfun": {
         "skip": "cloudflare captcha block",
         "skipWs": "same",
-        "httpProxy": "http://188.34.194.190:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
         "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
