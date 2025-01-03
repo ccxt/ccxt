@@ -3,13 +3,13 @@
 
 import Exchange from './abstract/idex.js';
 import { TICK_SIZE, PAD_WITH_ZERO, ROUND, TRUNCATE } from './base/functions/number.js';
-import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
+import { ArgumentsRequired, InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ export default class idex extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -137,7 +137,7 @@ export default class idex extends Exchange {
                         'tickers': { 'cost': 1 },
                         'candles': { 'cost': 1, 'bundled': 10 },
                         'trades': { 'cost': 1, 'bundled': 10 },
-                        'liquidations': { 'cost': 1, 'bundled': 10 }, // todo
+                        'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
                         'orderbook': { 'cost': 1, 'bundled': 10 },
                         'fundingRates': { 'cost': 1, 'bundled': 10 }, // todo
                     },
@@ -801,18 +801,66 @@ export default class idex extends Exchange {
         return orderbook;
     }
 
-    parseSide (book, side) {
-        const bookSide = this.safeList (book, side, []);
-        const result = [];
-        for (let i = 0; i < bookSide.length; i++) {
-            const order = bookSide[i];
-            const price = this.safeNumber (order, 0);
-            const amount = this.safeNumber (order, 1);
-            const orderCount = this.safeInteger (order, 2);
-            result.push ([ price, amount, orderCount ]);
+    /**
+     * @method
+     * @name idex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://api-docs-v4.idex.io/#get-funding-rates
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const descending = side === 'bids';
-        return this.sortBy (result, 0, descending);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetFundingRates (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fundingRate": "0.00010005",
+        //             "indexPrice": "3846.80000000",
+        //             "time": 1734508800000
+        //         }, ...
+        //     ]
+        //
+        let data = [];
+        if (Array.isArray (response)) {
+            data = response;
+        }
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return sorted as FundingRateHistory[];
     }
 
     parseBalance (response): Balances {
