@@ -54,7 +54,7 @@ export default class idex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -761,78 +761,6 @@ export default class idex extends Exchange {
         }
         const descending = side === 'bids';
         return this.sortBy (result, 0, descending);
-    }
-
-    /**
-     * @method
-     * @name idex#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-docs-v4.idex.io/#get-assets
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetMarkets (params);
-        //
-        //    [
-        //         {
-        //             "market": "ETH-USD",
-        //             "type": "perpetual",
-        //             "status": "active",
-        //             "baseAsset": "ETH",
-        //             "quoteAsset": "USD",
-        //             "stepSize": "0.00000100",
-        //             "tickSize": "0.01000000",
-        //             "indexPrice": "2236.32000000",
-        //             "indexPrice24h": "2101.81000000",
-        //             "indexPricePercentChange": "0.06399722",
-        //             "lastFundingRate": "0.00017100",
-        //             "currentFundingRate": "0.00010000",
-        //             "nextFundingTime": 1704182400000,
-        //             "makerOrderMinimum": "0.01000000",
-        //             "takerOrderMinimum": "0.01000000",
-        //             "marketOrderExecutionPriceLimit": "0.10000000",
-        //             "limitOrderExecutionPriceLimit": "0.40000000",
-        //             "minimumPositionSize": "0.01000000",
-        //             "maximumPositionSize": "500.00000000",
-        //             "initialMarginFraction": "0.05000000",
-        //             "maintenanceMarginFraction": "0.03000000",
-        //             "basePositionSize": "25.00000000",
-        //             "incrementalPositionSize": "5.00000000",
-        //             "incrementalInitialMarginFraction": "0.01000000",
-        //             "makerFeeRate": "-0.00010000",
-        //             "takerFeeRate": "0.00040000",
-        //             "volume24h": "294856820.05",
-        //             "trades24h": 221307,
-        //             "openInterest": "57178.63200000",
-        //         },
-        //    ]
-        //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const name = this.safeString (entry, 'baseAsset');
-            const currencyId = this.safeString (entry, 'baseAsset');
-            const code = this.safeCurrencyCode (currencyId);
-            const precision = this.parsePrecision (this.safeString (this.options, 'precision'));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'type': undefined,
-                'name': name,
-                'active': this.safeString (entry, 'status'),
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': { 'min': precision, 'max': undefined },
-                    'withdraw': { 'min': precision, 'max': undefined },
-                },
-                'info': entry,
-            };
-        }
-        return result;
     }
 
     parseBalance (response): Balances {
