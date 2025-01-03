@@ -2853,6 +2853,8 @@ class Transpiler {
     defineMethodParsersMap () {
         // test if developer has implemented all parse required parse methods
         this.parserMethodsMap = {
+            // basic
+            'fetchCurrencies': ['parseCurrency'],
             // parseOrder
             'cancelOrder': ['parseOrder'],
             'createOrder': ['parseOrder'],
