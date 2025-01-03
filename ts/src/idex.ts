@@ -781,36 +781,24 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // {
-        //   "sequence": 36416753,
-        //   "bids": [
-        //     [ '0.09672815', "8.22284267", 1 ],
-        //     [ '0.09672814', "1.83685554", 1 ],
-        //     [ '0.09672143', "4.10962617", 1 ],
-        //     [ '0.09658884', "4.03863759", 1 ],
-        //     [ '0.09653781', "3.35730684", 1 ],
-        //     [ '0.09624660', "2.54163586", 1 ],
-        //     [ '0.09617490', "1.93065030", 1 ]
-        //   ],
-        //   "asks": [
-        //     [ '0.09910476', "3.22840154", 1 ],
-        //     [ '0.09940587', "3.39796593", 1 ],
-        //     [ '0.09948189', "4.25088898", 1 ],
-        //     [ '0.09958362', "2.42195784", 1 ],
-        //     [ '0.09974393', "4.25234367", 1 ],
-        //     [ '0.09995250', "3.40192141", 1 ]
-        //   ]
-        // }
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        const nonce = this.safeInteger (response, 'sequence');
-        return {
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': nonce,
-            'bids': this.parseSide (response, 'bids'),
-            'asks': this.parseSide (response, 'asks'),
-        } as OrderBook;
+        //
+        //     {
+        //         "sequence": 228525431,
+        //         "bids": [
+        //             ["3581.60000000", "11.19600000", 2]
+        //         ],
+        //         "asks": [
+        //             ["3582.50000000", "11.17000000", 1]
+        //         ],
+        //         "lastPrice": "3581.80000000",
+        //         "markPrice": "3581.80000000",
+        //         "indexPrice": "3579.30000000"
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
+        return orderbook;
     }
 
     parseSide (book, side) {
