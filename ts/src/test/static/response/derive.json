@@ -1,0 +1,62 @@
+{
+    "exchange": "derive",
+    "skipKeys": [],
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "result": 1735887937060,
+                    "id": "56c058a2-8e27-4b78-80fc-45d0101d0d4d"
+                },
+                "parsedResponse": 1735887937060
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "currency": "USDC",
+                            "spot_price": "1.000092571200000128",
+                            "spot_price_24h": "1.000409753400000000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDC": {
+                        "id": "USDC",
+                        "name": null,
+                        "code": "USDC",
+                        "precision": null,
+                        "active": null,
+                        "fee": null,
+                        "networks": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "info": {
+                            "currency": "USDC",
+                            "spot_price": "1.000092571200000128",
+                            "spot_price_24h": "1.000409753400000000"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

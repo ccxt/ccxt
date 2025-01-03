@@ -1,0 +1,24 @@
+{
+    "exchange": "derive",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.lyra.finance/public/get_time",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.lyra.finance/public/get_all_currencies",
+                "input": []
+            }
+        ]
+    }
+}
