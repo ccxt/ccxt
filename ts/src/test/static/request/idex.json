@@ -14,15 +14,6 @@
                 "output": null
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchMarkets",
-                "url": "https://api.idex.io/v4/exchange",
-                "input": [],
-                "output": null
-            }
-        ],
     "fetchTime": [
             {
                 "description": "Fetch time",
