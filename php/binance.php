@@ -13,7 +13,7 @@ class binance extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
-            'name' => 'Binance',
+            'name' => 'Binance', 
             'countries' => array( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 50,
             'certified' => true,
