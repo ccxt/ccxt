@@ -4308,7 +4308,7 @@ export default class binance extends binanceRest {
         }
         // reset connection if 5xx error
         const codeString = this.safeString (error, 'code');
-        if (codeString[0] === '5') {
+        if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset (message);
         }
     }
