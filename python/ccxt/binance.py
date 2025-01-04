@@ -2495,7 +2495,7 @@ class binance(Exchange, ImplicitAPI):
                         #
                         '-2010': InvalidOrder,  # NEW_ORDER_REJECTED
                         '-2011': OperationRejected,  # CANCEL_REJECTED
-                        '-2013': BadRequest,  # Order does not exist.
+                        '-2013': OrderNotFound,  # Order does not exist.
                         '-2014': OperationRejected,  # API-key format invalid.
                         '-2015': OperationRejected,  # Invalid API-key, IP, or permissions for action.
                         '-2016': OperationFailed,  # No trading window could be found for the symbol. Try ticker/24hrs instead.

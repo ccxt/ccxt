@@ -2405,7 +2405,7 @@ public partial class binance : Exchange
                         { "-1151", typeof(BadRequest) },
                         { "-2010", typeof(InvalidOrder) },
                         { "-2011", typeof(OperationRejected) },
-                        { "-2013", typeof(BadRequest) },
+                        { "-2013", typeof(OrderNotFound) },
                         { "-2014", typeof(OperationRejected) },
                         { "-2015", typeof(OperationRejected) },
                         { "-2016", typeof(OperationFailed) },

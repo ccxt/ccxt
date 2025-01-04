@@ -2472,7 +2472,7 @@ class binance extends binance$1 {
                         //
                         '-2010': errors.InvalidOrder,
                         '-2011': errors.OperationRejected,
-                        '-2013': errors.BadRequest,
+                        '-2013': errors.OrderNotFound,
                         '-2014': errors.OperationRejected,
                         '-2015': errors.OperationRejected,
                         '-2016': errors.OperationFailed,
