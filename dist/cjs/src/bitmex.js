@@ -332,7 +332,7 @@ class bitmex extends bitmex$1 {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBackClosed': undefined,
+                            'daysBack': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,

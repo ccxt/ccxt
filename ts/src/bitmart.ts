@@ -739,7 +739,7 @@ export default class bitmart extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -768,7 +768,7 @@ export default class bitmart extends Exchange {
                                 'mark': true,
                                 'index': false,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -806,7 +806,7 @@ export default class bitmart extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

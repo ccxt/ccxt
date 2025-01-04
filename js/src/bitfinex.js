@@ -454,7 +454,7 @@ export default class bitfinex extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,

@@ -1036,7 +1036,7 @@ class kucoin extends kucoin$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': true,

@@ -32,4 +32,12 @@ class myokx(okx, ImplicitAPI):
                     'rest': 'https://{hostname}',
                 },
             },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+            },
         })

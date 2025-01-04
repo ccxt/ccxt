@@ -431,7 +431,7 @@ export default class coinbase extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
                         'trigger': false,

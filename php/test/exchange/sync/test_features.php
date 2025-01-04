@@ -61,7 +61,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                     'mark' => false,
                     'index' => false,
                 ),
-                'limitPrice' => false,
+                'price' => false,
             ),
             'timeInForce' => array(
                 'IOC' => false,
@@ -103,7 +103,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
         'fetchClosedOrders' => array(
             'marginMode' => false,
             'limit' => 0,
-            'daysBackClosed' => 0,
+            'daysBack' => 0,
             'daysBackCanceled' => 0,
             'untilDays' => 0,
             'trigger' => false,

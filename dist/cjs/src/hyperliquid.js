@@ -272,7 +272,7 @@ class hyperliquid extends hyperliquid$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 2000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

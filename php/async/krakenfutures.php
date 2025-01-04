@@ -313,7 +313,7 @@ class krakenfutures extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,

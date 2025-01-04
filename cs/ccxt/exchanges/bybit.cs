@@ -1034,7 +1034,7 @@ public partial class bybit : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1074,7 +1074,7 @@ public partial class bybit : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 50 },
-                        { "daysBackClosed", multiply(365, 2) },
+                        { "daysBack", multiply(365, 2) },
                         { "daysBackCanceled", 1 },
                         { "untilDays", 7 },
                         { "trigger", true },
@@ -1091,7 +1091,7 @@ public partial class bybit : Exchange
                         { "triggerDirection", false },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "marketBuyRequiresPrice", true },
                     } },

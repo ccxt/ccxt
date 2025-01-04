@@ -1098,7 +1098,7 @@ class bybit extends bybit$1 {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1138,7 +1138,7 @@ class bybit extends bybit$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBackClosed': 365 * 2,
+                        'daysBack': 365 * 2,
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,
@@ -1155,7 +1155,7 @@ class bybit extends bybit$1 {
                         'triggerDirection': false,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'marketBuyRequiresPrice': true,
                     },

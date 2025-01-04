@@ -1033,7 +1033,7 @@ class kucoin extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
                         'trigger' => true,

@@ -842,9 +842,22 @@ class whitebit extends Exchange {
         //         "last" => "55913.88",
         //         "period" => 86400
         //     }
-        $market = $this->safe_market(null, $market);
+        // v2
+        //   {
+        //       lastUpdateTimestamp => '2025-01-02T09:16:36.000Z',
+        //       tradingPairs => 'ARB_USDC',
+        //       lastPrice => '0.7727',
+        //       lowestAsk => '0.7735',
+        //       highestBid => '0.7732',
+        //       baseVolume24h => '1555793.74',
+        //       quoteVolume24h => '1157602.622406',
+        //       tradesEnabled => true
+        //   }
+        //
+        $marketId = $this->safe_string($ticker, 'tradingPairs');
+        $market = $this->safe_market($marketId, $market);
         // $last price is provided as "last" or "last_price"
-        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
         // if "close" is provided, use it, otherwise use <$last>
         $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
@@ -853,9 +866,9 @@ class whitebit extends Exchange {
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'bid'),
+            'bid' => $this->safe_string_2($ticker, 'bid', 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'ask'),
+            'ask' => $this->safe_string_2($ticker, 'ask', 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
@@ -865,8 +878,8 @@ class whitebit extends Exchange {
             'change' => null,
             'percentage' => $this->safe_string($ticker, 'change'),
             'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
-            'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
+            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h' )),
+            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h' )),
             'info' => $ticker,
         ), $market);
     }
@@ -878,13 +891,21 @@ class whitebit extends Exchange {
              *
              * @see https://docs.whitebit.com/public/http-v4/#$market-activity
              *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->v4PublicGetTicker ($params));
+            $method = 'v4PublicGetTicker';
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+            $response = null;
+            if ($method === 'v4PublicGetTicker') {
+                $response = Async\await($this->v4PublicGetTicker ($params));
+            } else {
+                $response = Async\await($this->v2PublicGetTicker ($params));
+            }
             //
             //      "BCH_RUB" => array(
             //          "base_id":1831,
@@ -896,6 +917,10 @@ class whitebit extends Exchange {
             //          "change":"2.12"
             //      ),
             //
+            $resultList = $this->safe_list($response, 'result');
+            if ($resultList !== null) {
+                return $this->parse_tickers($resultList, $symbols);
+            }
             $marketIds = is_array($response) ? array_keys($response) : array();
             $result = array();
             for ($i = 0; $i < count($marketIds); $i++) {

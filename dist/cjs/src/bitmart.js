@@ -737,7 +737,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -766,7 +766,7 @@ class bitmart extends bitmart$1 {
                                 'mark': true,
                                 'index': false,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -804,7 +804,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

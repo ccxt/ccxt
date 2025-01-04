@@ -231,7 +231,6 @@ export default class hyperliquid extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': false,
                             'PO': true,
@@ -276,7 +275,7 @@ export default class hyperliquid extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 2000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

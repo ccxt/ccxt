@@ -566,7 +566,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -613,7 +613,7 @@ class bingx(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
                         'trigger': False,
@@ -637,7 +637,7 @@ class bingx(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
                         'trigger': False,

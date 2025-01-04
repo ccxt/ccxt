@@ -17,6 +17,11 @@ class myokx extends okx {
                     'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
                 },
             },
+            'has': {
+                'swap': false,
+                'future': false,
+                'option': false,
+            },
         });
     }
 }

@@ -755,7 +755,7 @@ class gate extends Exchange {
                         'trailing' => false,
                         'limit' => 100,
                         'untilDays' => 30,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                     ),
                     'fetchOHLCV' => array(

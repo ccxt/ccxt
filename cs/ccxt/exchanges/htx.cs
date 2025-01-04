@@ -1195,7 +1195,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 500 },
-                        { "daysBackClosed", 180 },
+                        { "daysBack", 180 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
@@ -1235,7 +1235,7 @@ public partial class htx : Exchange
                         { "trailing", false },
                         { "untilDays", 2 },
                         { "limit", 50 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {

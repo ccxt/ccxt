@@ -1418,7 +1418,7 @@ public partial class bitget : Exchange
                                 { "mark", false },
                                 { "index", false },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1455,7 +1455,7 @@ public partial class bitget : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 100 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 90 },
                         { "trigger", true },
@@ -1483,7 +1483,7 @@ public partial class bitget : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },

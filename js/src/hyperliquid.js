@@ -275,7 +275,7 @@ export default class hyperliquid extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 2000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

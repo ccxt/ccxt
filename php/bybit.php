@@ -1094,7 +1094,7 @@ class bybit extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1134,7 +1134,7 @@ class bybit extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 50,
-                        'daysBackClosed' => 365 * 2, // 2 years
+                        'daysBack' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
                         'trigger' => true,
@@ -1151,7 +1151,7 @@ class bybit extends Exchange {
                         'triggerDirection' => false,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => null,
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'marketBuyRequiresPrice' => true,
                     ),

@@ -1199,7 +1199,7 @@ class okx extends okx$1 {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1239,7 +1239,7 @@ class okx extends okx$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                         'untilDays': undefined,
                         'trigger': true,

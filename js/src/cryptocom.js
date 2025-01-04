@@ -412,7 +412,7 @@ export default class cryptocom extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 1,
                         'trigger': false,

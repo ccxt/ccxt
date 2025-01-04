@@ -370,7 +370,7 @@ export default class woo extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,

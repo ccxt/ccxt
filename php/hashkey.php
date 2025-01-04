@@ -1458,9 +1458,15 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker', 'ibm' ));
+        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        }
+        $isBuyerMaker = $this->safe_bool($trade, 'ibm');
+        // if public $trade
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $feeCost = $this->safe_string($trade, 'commission');
         $feeCurrncyId = $this->safe_string($trade, 'commissionAsset');

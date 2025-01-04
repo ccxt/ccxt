@@ -1295,7 +1295,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 500,
-                        'daysBackClosed': 180,
+                        'daysBack': 180,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {
@@ -1336,7 +1336,7 @@ export default class htx extends Exchange {
                         'trailing': false,
                         'untilDays': 2,
                         'limit': 50,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                     },
                     'fetchOHLCV': {

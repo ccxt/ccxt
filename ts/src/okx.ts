@@ -1201,7 +1201,7 @@ export default class okx extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1241,7 +1241,7 @@ export default class okx extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90, // 3 months
+                        'daysBack': 90, // 3 months
                         'daysBackCanceled': 1 / 12, // 2 hour
                         'untilDays': undefined,
                         'trigger': true,

@@ -335,7 +335,7 @@ export default class bitmex extends Exchange {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBackClosed': undefined,
+                            'daysBack': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,

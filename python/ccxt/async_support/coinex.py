@@ -563,7 +563,7 @@ class coinex(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,

@@ -33,6 +33,14 @@ class myokx extends okx {
                     'rest' => 'https://{hostname}',
                 ),
             ),
+            'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+            ),
         ));
     }
 }
