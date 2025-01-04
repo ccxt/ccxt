@@ -1553,6 +1553,10 @@ class Transpiler {
             // method name
             let method = matches[2]
 
+            if (process.argv.includes ('--check-parsers')) {
+                this.checkIfMethodLacksParser (className, method, part)
+            }
+
             methodNames.push (method)
 
             method = unCamelCase (method)
@@ -1736,6 +1740,11 @@ class Transpiler {
                 phpAsync.push (phpAsyncBody);
                 phpAsync.push ('    ' + '}')
             }
+        }
+
+        if (process.argv.includes ('--check-parsers') && this.missingParsers.length) {
+            log.magenta (this.missingParsers.join ('\n'));
+            process.exit (1);
         }
 
         return {
@@ -2841,6 +2850,128 @@ class Transpiler {
 
     // ============================================================================
 
+    defineMethodParsersMap () {
+        // test if developer has implemented all parse required parse methods
+        this.parserMethodsMap = {
+            // basic
+            'fetchCurrencies': ['parseCurrency'],
+            // parseOrder
+            'cancelOrder': ['parseOrder'],
+            'createOrder': ['parseOrder'],
+            'editOrder': ['parseOrder'],
+            'fetchClosedOrder': ['parseOrder'],
+            'fetchOpenOrder': ['parseOrder'],
+            'fetchOrder': ['parseOrder'],
+            // parseOrders  (we also allow parser methods like 'fetchOrders', 'fetchOrdersByState/Status', etc..)
+            'cancelAllOrders': ['parseOrders', 'fetchOrders'],
+            'cancelOrders': ['parseOrders', 'fetchOrders'],
+            'fetchCanceledOrders': ['parseOrders', 'fetchOrders'],
+            'fetchClosedOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOpenOrders': ['parseOrders', 'fetchOrders'],
+            'fetchOrders': ['parseOrders', 'fetchOrdersBy'],
+            // parseDepositAddress/es
+            'createDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddress': ['parseDepositAddress'],
+            'fetchDepositAddresses': ['parseDepositAddresses'],
+            'fetchDepositAddressesByNetwork': ['parseDepositAddresses'],
+            // ticker/s
+            'fetchTicker': ['parseTicker', 'fetchTickers'],
+            //     'fetchBidsAsks': ['parseTickers'], // temporarily disabled
+            'fetchTickers': ['parseTicker'], // singular also allowed, because some exchanges have iteratation inside implementation
+            // transaction/s  (also allow i.e. 'fetchTransactionsByType')
+            'fetchDeposit': ['parseTransaction'],
+            'fetchWithdrawal': ['parseTransaction'],
+            'fetchDeposits': ['parseTransactions', 'fetchTransactions'],
+            'fetchWithdrawals': ['parseTransactions', 'fetchTransactions'],
+            'withdraw': ['parseTransaction'],
+            'fetchTransactions': ['parseTransactions'],
+            // rate/s
+            'fetchBorrowInterest': ['parseBorrowInterest'],
+            'fetchBorrowInterests': ['parseBorrowInterests'],
+            'fetchBorrowRate': ['parseBorrowRate'],
+            'fetchBorrowRates': ['parseBorrowRates'],
+            'fetchBorrowRatesPerSymbol': ['parseBorrowRates'],
+            'fetchFundingRate': ['parseFundingRate'],
+            'fetchFundingRates': ['parseFundingRates'],
+            // borrow & funding historyies
+            'fetchBorrowRateHistory': ['parseBorrowRateHistory'],
+            'fetchBorrowRateHistories': ['parseBorrowRateHistories'],
+            'fetchFundingHistory': ['parseFundingHistory'],
+            'fetchFundingRateHistory': ['parseFundingRateHistory'],
+            'fetchFundingRateHistories': ['parseFundingRateHistories'],
+            // OHLCV
+            'fetchOHLCV': ['parseOHLCV'],
+            'fetchIndexOHLCV': ['parseOHLCV'],
+            'fetchMarkOHLCV': ['parseOHLCV'],
+            'fetchPremiumIndexOHLCV': ['parseOHLCV'],
+            // orderBook
+            'fetchOrderBook': ['parseOrderBook'],
+            'fetchOrderBooks': ['parseOrderBook'],
+            //    'fetchL1OrderBooks': ['parseOrderBook'], // temporarily disabled
+            'fetchL2OrderBook': ['parseOrderBook'],
+            // fee/s
+            'fetchTransactionFee': ['parseTransactionFee'],
+            'fetchTransactionFees': ['parseTransactionFees'],
+            'fetchTradingFees': ['parseTradingFee'],
+            'fetchTradingFee': ['parseTradingFee'],
+            // position/s
+            'fetchPositionsRisk': ['parsePositionRisk'],
+            'fetchPositions': ['parsePositions'],
+            'fetchPosition': ['parsePosition', 'fetchPositions'],
+            // trade/s
+            'fetchTrades': ['parseTrades'],
+            'fetchMyTrades': ['parseTrades'],
+            'fetchOrderTrades': ['parseTrades'],
+            // transfer/s
+            'fetchTransfers': ['parseTransfers'],
+            'transfer': ['parseTransfer'],
+            // ledger/s
+            'fetchLedger': ['parseLedgerEntries'],
+            'fetchLedgerEntry': ['parseLedgerEntry'],
+            // margin
+            'addMargin': ['parseMarginModification'],
+            'reduceMargin': ['parseMarginModification'],
+            'setMargin': ['parseMarginModification'],
+            // misc
+            'fetchAccounts': ['parseAccount'],
+            'fetchBalance': ['parseBalance'],
+            'fetchLeverageTiers': ['parseLeverageTiers'],
+            'fetchMarketLeverageTiers': ['parseMarketLeverageTiers'],
+            'setMarginMode': ['parseMarginMode'],
+            'setPositionMode': ['parsePositionMode'],
+            'setLeverage': ['parseLeverageEntry'],
+            'fetchTradingLimits': ['parseTradingLimits'],
+            // skipped: fetchMarkets, fetchPermissions, fetchStatus, fetchTime, signIn, fetchCurrencies
+        };
+        this.missingParsers = [];
+    }
+
+    checkIfMethodLacksParser (className: string, methodName: string, methodContent: string) {
+        if (className === 'Exchange') {
+            return;
+        }
+        // before base class, the check is not needed
+        if (!this.parserMethodsMap) {
+            this.defineMethodParsersMap ();
+        }
+        // only check those method names, that are in the list
+        if (methodName in this.parserMethodsMap) {
+            // get the list of which parsers might be used for current method
+            const assignedParserMethods = this.parserMethodsMap[methodName];
+            // iterate and ...
+            for (const parserMethod of assignedParserMethods) {
+                // check if the parser method is found in the body ...
+                if (methodContent.includes ('this.' + parserMethod)) {
+                    // ... if found, then current method's implementation is ok, and jumpt to next method check
+                    return;
+                }
+            }
+            // if code reached here, then it means parser method was not used, so, throw error
+            this.missingParsers.push (' * Missing parser method: ' + className.toUpperCase () + ' > ' + methodName + ' (): ' + assignedParserMethods.join ('/'));
+        }
+    }
+
+    // ============================================================================
 
     async transpileEverything (force = false, child = false) {
 
