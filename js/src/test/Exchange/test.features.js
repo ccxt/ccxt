@@ -59,6 +59,7 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
                 'price': false,
             },
             'timeInForce': {
+                'GTC': false,
                 'IOC': false,
                 'FOK': false,
                 'PO': false,

@@ -1469,12 +1469,13 @@ export default class delta extends Exchange {
      * @method
      * @name delta#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.delta.exchange/#get-ohlc-candles
+     * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1485,15 +1486,20 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe(timeframe);
         limit = limit ? limit : 2000; // max 2000
+        let until = this.safeIntegerProduct(params, 'until', 0.001);
+        const untilIsDefined = (until !== undefined);
+        if (untilIsDefined) {
+            until = this.parseToInt(until);
+        }
         if (since === undefined) {
-            const end = this.seconds();
+            const end = untilIsDefined ? until : this.seconds();
             request['end'] = end;
             request['start'] = end - limit * duration;
         }
         else {
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
-            request['end'] = this.sum(start, limit * duration);
+            request['end'] = untilIsDefined ? until : this.sum(start, limit * duration);
         }
         const price = this.safeString(params, 'price');
         if (price === 'mark') {
@@ -1505,7 +1511,7 @@ export default class delta extends Exchange {
         else {
             request['symbol'] = market['id'];
         }
-        params = this.omit(params, 'price');
+        params = this.omit(params, ['price', 'until']);
         const response = await this.publicGetHistoryCandles(this.extend(request, params));
         //
         //     {

@@ -1051,8 +1051,78 @@ class bybit extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
+                    'SOL' => 'SOL',
+                    'ACA' => 'ACA',
+                    'ADA' => 'ADA',
+                    'ALGO' => 'ALGO',
+                    'APT' => 'APTOS',
+                    'AR' => 'AR',
+                    'ARBONE' => 'ARBI',
+                    'AVAXC' => 'CAVAX',
+                    'AVAXX' => 'XAVAX',
+                    'ATOM' => 'ATOM',
+                    'BCH' => 'BCH',
+                    'BEP2' => 'BNB',
+                    'CHZ' => 'CHZ',
+                    'DCR' => 'DCR',
+                    'DGB' => 'DGB',
+                    'DOGE' => 'DOGE',
+                    'DOT' => 'DOT',
+                    'EGLD' => 'EGLD',
+                    'EOS' => 'EOS',
+                    'ETC' => 'ETC',
+                    'ETHF' => 'ETHF',
+                    'ETHW' => 'ETHW',
+                    'FIL' => 'FIL',
+                    'STEP' => 'FITFI',
+                    'FLOW' => 'FLOW',
+                    'FTM' => 'FTM',
+                    'GLMR' => 'GLMR',
+                    'HBAR' => 'HBAR',
+                    'HNT' => 'HNT',
+                    'ICP' => 'ICP',
+                    'ICX' => 'ICX',
+                    'KDA' => 'KDA',
+                    'KLAY' => 'KLAY',
+                    'KMA' => 'KMA',
+                    'KSM' => 'KSM',
+                    'LTC' => 'LTC',
+                    // 'TERRA' => 'LUNANEW',
+                    // 'TERRACLASSIC' => 'LUNA',
+                    'MATIC' => 'MATIC',
+                    'MINA' => 'MINA',
+                    'MOVR' => 'MOVR',
+                    'NEAR' => 'NEAR',
+                    'NEM' => 'NEM',
+                    'OASYS' => 'OAS',
+                    'OASIS' => 'ROSE',
                     'OMNI' => 'OMNI',
-                    'SPL' => 'SOL',
+                    'ONE' => 'ONE',
+                    'OPTIMISM' => 'OP',
+                    'POKT' => 'POKT',
+                    'QTUM' => 'QTUM',
+                    'RVN' => 'RVN',
+                    'SC' => 'SC',
+                    'SCRT' => 'SCRT',
+                    'STX' => 'STX',
+                    'THETA' => 'THETA',
+                    'TON' => 'TON',
+                    'WAVES' => 'WAVES',
+                    'WAX' => 'WAXP',
+                    'XDC' => 'XDC',
+                    'XEC' => 'XEC',
+                    'XLM' => 'XLM',
+                    'XRP' => 'XRP',
+                    'XTZ' => 'XTZ',
+                    'XYM' => 'XYM',
+                    'ZEN' => 'ZEN',
+                    'ZIL' => 'ZIL',
+                    'ZKSYNC' => 'ZKSYNC',
+                    // todo => uncomment after consensus
+                    // 'CADUCEUS' => 'CMP',
+                    // 'KON' => 'KON', // konpay, "konchain"
+                    // 'AURORA' => 'AURORA',
+                    // 'BITCOINGOLD' => 'BTG',
                 ),
                 'networksById' => array(
                     'ETH' => 'ERC20',
@@ -5325,12 +5395,11 @@ class bybit extends Exchange {
         $address = $this->safe_string($depositAddress, 'addressDeposit');
         $tag = $this->safe_string($depositAddress, 'tagDeposit');
         $code = $this->safe_string($currency, 'code');
-        $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $chain,
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -5351,6 +5420,11 @@ class bybit extends Exchange {
         $request = array(
             'coin' => $currency['id'],
         );
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode !== null) {
+            $request['chainType'] = $this->network_code_to_id($networkCode, $code);
+        }
         $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $params));
         //
         //     {
@@ -5392,41 +5466,11 @@ class bybit extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
         $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
-        if ($networkId !== null) {
-            $request['chainType'] = $networkId;
-        }
-        $response = $this->privateGetV5AssetDepositQueryAddress ($this->extend($request, $query));
-        //
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "success",
-        //         "result" => {
-        //             "coin" => "USDT",
-        //             "chains" => array(
-        //                 array(
-        //                     "chainType" => "ERC20",
-        //                     "addressDeposit" => "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        //                     "tagDeposit" => "",
-        //                     "chain" => "ETH"
-        //                 }
-        //             )
-        //         ),
-        //         "retExtInfo" => array(),
-        //         "time" => 1672192792860
-        //     }
-        //
-        $result = $this->safe_dict($response, 'result', array());
-        $chains = $this->safe_list($result, 'chains', array());
-        $chainsIndexedById = $this->index_by($chains, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
-        $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
-        return $this->parse_deposit_address($addressObject, $currency);
+        list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+        $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
+        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        return $indexedAddresses[$selectedNetworkCode];
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

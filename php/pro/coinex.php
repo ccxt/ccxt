@@ -1326,7 +1326,7 @@ class coinex extends \ccxt\async\coinex {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
-        $timestamp = $this->safe_timestamp($ticker, 'updated_at');
+        $timestamp = $this->safe_integer($ticker, 'updated_at');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, $defaultType),
             'timestamp' => $timestamp,

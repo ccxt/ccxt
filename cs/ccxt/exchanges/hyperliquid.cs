@@ -218,7 +218,6 @@ public partial class hyperliquid : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", false },
                             { "PO", true },

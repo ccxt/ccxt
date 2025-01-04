@@ -68,6 +68,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                 'price' => false,
             ),
             'timeInForce' => array(
+                'GTC' => false,
                 'IOC' => false,
                 'FOK' => false,
                 'PO' => false,

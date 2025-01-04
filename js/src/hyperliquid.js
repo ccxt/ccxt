@@ -230,7 +230,6 @@ export default class hyperliquid extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': false,
                             'PO': true,

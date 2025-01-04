@@ -62,6 +62,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                 'price': False,
             },
             'timeInForce': {
+                'GTC': False,
                 'IOC': False,
                 'FOK': False,
                 'PO': False,

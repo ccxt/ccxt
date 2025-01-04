@@ -725,7 +725,6 @@ class gate extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
