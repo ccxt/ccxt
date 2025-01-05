@@ -2051,7 +2051,7 @@ if (exchange.has['fetchTrades']) {
         const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
             // not thread-safu and exchange-specific !
-            last_response = exchange.parseJson (exchange.last_http_response)
+            last_json_response = exchange.parseJson (exchange.last_http_response)
             page = last_json_response['cursor']
             allTrades.push (trades)
         } else {
