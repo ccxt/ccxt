@@ -207,7 +207,7 @@
                         "timestamp": 1718099116378,
                         "datetime": "2024-06-11T09:45:16.378Z",
                         "lastTradeTimestamp": null,
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1718099116378,
                         "symbol": "SOL/USDC:USDC",
                         "type": "limit",
                         "timeInForce": "IOC",
@@ -368,7 +368,90 @@
                 ]
             }
         ],
-        "fetchOrder": [
+    "fetchOrder": [
+            {
+                "description": "fetchOrder with both ts",
+                "method": "fetchOrder",
+                "input": [
+                    "60816227852",
+                    "PURR/USDC"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1736094629472"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1736094629472"
+                    },
+                    "id": "60816227852",
+                    "clientOrderId": null,
+                    "timestamp": 1736094308023,
+                    "datetime": "2025-01-05T16:25:08.023Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1736094629472,
+                    "symbol": "PURR/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 0.5,
+                    "triggerPrice": null,
+                    "amount": 50,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 50,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
             {
                 "description": "fetch order",
                 "method": "fetchOrder",
@@ -425,10 +508,10 @@
                     },
                     "id": "6463065738",
                     "clientOrderId": null,
-                    "timestamp": 1709141541609,
-                    "datetime": "2024-02-28T17:32:21.609Z",
+                    "timestamp": 1709141516884,
+                    "datetime": "2024-02-28T17:31:56.884Z",
                     "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1709141541609,
                     "symbol": "ETH/USDC:USDC",
                     "type": "limit",
                     "timeInForce": "GTC",
@@ -511,7 +594,7 @@
                     "timestamp": 1711797850059,
                     "datetime": "2024-03-30T11:24:10.059Z",
                     "lastTradeTimestamp": null,
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1711797850059,
                     "symbol": "PURR/USDC",
                     "type": "limit",
                     "timeInForce": "IOC",
