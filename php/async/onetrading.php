@@ -281,6 +281,7 @@ class onetrading extends Exchange {
                     'INTERNAL_SERVER_ERROR' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
+                    'Order not found.' => '\\ccxt\\OrderNotFound',
                 ),
             ),
             'commonCurrencies' => array(
@@ -1045,6 +1046,7 @@ class onetrading extends Exchange {
             'CLOSED' => 'canceled',
             'FAILED' => 'failed',
             'STOP_TRIGGERED' => 'triggered',
+            'DONE' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1140,7 +1142,7 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -1155,6 +1157,13 @@ class onetrading extends Exchange {
             // 'fee' => null,
             'trades' => $rawTrades,
         ), $market);
+    }
+
+    public function parse_order_type(?string $type) {
+        $types = array(
+            'booked' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1221,6 +1230,9 @@ class onetrading extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
+            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+            $params = $this->omit($params, 'timeInForce');
+            $request['time_in_force'] = $timeInForce;
             $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             //
             //     {
@@ -1264,11 +1276,16 @@ class onetrading extends Exchange {
             } else {
                 $request['order_id'] = $id;
             }
-            $response = Async\await($this->$method ($this->extend($request, $params)));
+            $response = null;
+            if ($method === 'privateDeleteAccountOrdersOrderId') {
+                $response = Async\await($this->privateDeleteAccountOrdersOrderId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteAccountOrdersClientClientId ($this->extend($request, $params)));
+            }
             //
             // responds with an empty body
             //
-            return $response;
+            return $this->parse_order($response);
         }) ();
     }
 
