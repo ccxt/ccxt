@@ -6,7 +6,6 @@ import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../ba
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
