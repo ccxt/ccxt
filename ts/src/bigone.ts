@@ -1204,6 +1204,7 @@ export default class bigone extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1212,20 +1213,30 @@ export default class bigone extends Exchange {
         if (market['contract']) {
             throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
+        const until = this.safeInteger (params, 'until');
+        const untilIsDefined = (until !== undefined);
+        const sinceIsDefined = (since !== undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 500
+            limit = (sinceIsDefined && untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         const request: Dict = {
             'asset_pair_name': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
-        if (since !== undefined) {
+        if (sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
-            const end = this.sum (since, limit * duration * 1000);
-            request['time'] = this.iso8601 (end);
+            const endByLimit = this.sum (since, limit * duration * 1000);
+            if (untilIsDefined) {
+                request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
+            } else {
+                request['time'] = this.iso8601 (endByLimit);
+            }
+        } else if (untilIsDefined) {
+            request['time'] = this.iso8601 (until + 1);
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
         //
         //     {
