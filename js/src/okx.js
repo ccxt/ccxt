@@ -997,7 +997,7 @@ export default class okx extends Exchange {
                     'BHP': 'BHP',
                     'APT': 'Aptos',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1806,8 +1806,8 @@ export default class okx extends Exchange {
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
-                    const parts = networkId.split('-');
-                    const chainPart = this.safeString(parts, 1, networkId);
+                    const parts = networkId.split('-').slice(1);
+                    const chainPart = parts.join('-');
                     const networkCode = this.networkIdToCode(chainPart, currency['code']);
                     const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {

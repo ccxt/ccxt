@@ -946,7 +946,7 @@ public partial class okx : Exchange
                     { "BHP", "BHP" },
                     { "APT", "Aptos" },
                     { "ARBONE", "Arbitrum One" },
-                    { "AVAXC", "Avalanche C" },
+                    { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "ARK", "ARK" },
                     { "AR", "Arweave" },
@@ -1773,8 +1773,8 @@ public partial class okx : Exchange
                 object networkId = this.safeString(chain, "chain");
                 if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
                 {
-                    object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object chainPart = this.safeString(parts, 1, networkId);
+                    object parts = slice(((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 1, null);
+                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
                     object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))

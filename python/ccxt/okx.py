@@ -1020,7 +1020,7 @@ class okx(Exchange, ImplicitAPI):
                     'BHP': 'BHP',
                     'APT': 'Aptos',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1808,8 +1808,8 @@ class okx(Exchange, ImplicitAPI):
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if (networkId is not None) and (networkId.find('-') >= 0):
-                    parts = networkId.split('-')
-                    chainPart = self.safe_string(parts, 1, networkId)
+                    parts = networkId.split('-')[1:]
+                    chainPart = '-'.join(parts)
                     networkCode = self.network_id_to_code(chainPart, currency['code'])
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
