@@ -1174,24 +1174,34 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         if market['contract']:
             raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = (until is not None)
+        sinceIsDefined = (since is not None)
         if limit is None:
-            limit = 100  # default 100, max 500
+            limit = 500 if (sinceIsDefined and untilIsDefined) else 100  # default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         request: dict = {
             'asset_pair_name': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
-        if since is not None:
+        if sinceIsDefined:
             # start = self.parse_to_int(since / 1000)
             duration = self.parse_timeframe(timeframe)
-            end = self.sum(since, limit * duration * 1000)
-            request['time'] = self.iso8601(end)
+            endByLimit = self.sum(since, limit * duration * 1000)
+            if untilIsDefined:
+                request['time'] = self.iso8601(min(endByLimit, until + 1))
+            else:
+                request['time'] = self.iso8601(endByLimit)
+        elif untilIsDefined:
+            request['time'] = self.iso8601(until + 1)
+        params = self.omit(params, 'until')
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
         #     {

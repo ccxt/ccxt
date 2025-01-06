@@ -1197,6 +1197,7 @@ class bigone extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1204,20 +1205,30 @@ class bigone extends Exchange {
         if ($market['contract']) {
             throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
+        $until = $this->safe_integer($params, 'until');
+        $untilIsDefined = ($until !== null);
+        $sinceIsDefined = ($since !== null);
         if ($limit === null) {
-            $limit = 100; // default 100, max 500
+            $limit = ($sinceIsDefined && $untilIsDefined) ? 500 : 100; // default 100, max 500, if $since and $limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         $request = array(
             'asset_pair_name' => $market['id'],
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
-        if ($since !== null) {
+        if ($sinceIsDefined) {
             // $start = $this->parse_to_int($since / 1000);
             $duration = $this->parse_timeframe($timeframe);
-            $end = $this->sum($since, $limit * $duration * 1000);
-            $request['time'] = $this->iso8601($end);
+            $endByLimit = $this->sum($since, $limit * $duration * 1000);
+            if ($untilIsDefined) {
+                $request['time'] = $this->iso8601(min ($endByLimit, $until + 1));
+            } else {
+                $request['time'] = $this->iso8601($endByLimit);
+            }
+        } elseif ($untilIsDefined) {
+            $request['time'] = $this->iso8601($until + 1);
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params));
         //
         //     {
