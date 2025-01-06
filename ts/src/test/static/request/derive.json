@@ -1,7 +1,7 @@
 {
     "exchange": "derive",
     "skipKeys": [],
-    "outputType": "urlencoded",
+    "outputType": "json",
     "methods": {
         "fetchTime": [
             {
@@ -18,6 +18,17 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.lyra.finance/public/get_all_currencies",
                 "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.lyra.finance/public/get_ticker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\"}"
             }
         ]
     }

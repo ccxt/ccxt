@@ -1,9 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
+import { Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -374,9 +375,9 @@ export default class derive extends Exchange {
 
     /**
      * @method
-     * @name bybit#fetchMarkets
+     * @name derive#fetchMarkets
      * @description retrieves data on all markets for bybit
-     * @see https://bybit-exchange.github.io/docs/v5/market/instrument
+     * @see https://docs.derive.xyz/reference/post_public-get-all-instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -517,6 +518,173 @@ export default class derive extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    /**
+     * @method
+     * @name derive#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.derive.xyz/reference/post_public-get-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicPostGetTicker (this.extend (request, params));
+        //
+        // spot
+        //
+        // {
+        //     "result": {
+        //         "instrument_type": "perp",
+        //         "instrument_name": "BTC-PERP",
+        //         "scheduled_activation": 1701840228,
+        //         "scheduled_deactivation": 9223372036854776000,
+        //         "is_active": true,
+        //         "tick_size": "0.1",
+        //         "minimum_amount": "0.01",
+        //         "maximum_amount": "10000",
+        //         "amount_step": "0.001",
+        //         "mark_price_fee_rate_cap": "0",
+        //         "maker_fee_rate": "0.00005",
+        //         "taker_fee_rate": "0.0003",
+        //         "base_fee": "0.1",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USD",
+        //         "option_details": null,
+        //         "perp_details": {
+        //             "index": "BTC-USD",
+        //             "max_rate_per_hour": "0.004",
+        //             "min_rate_per_hour": "-0.004",
+        //             "static_interest_rate": "0.0000125",
+        //             "aggregate_funding": "10512.580833189805742522",
+        //             "funding_rate": "-0.000022223906766867"
+        //         },
+        //         "erc20_details": null,
+        //         "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //         "base_asset_sub_id": "0",
+        //         "pro_rata_fraction": "0",
+        //         "fifo_min_allocation": "0",
+        //         "pro_rata_amount_step": "0.1",
+        //         "best_ask_amount": "0.012",
+        //         "best_ask_price": "99567.9",
+        //         "best_bid_amount": "0.129",
+        //         "best_bid_price": "99554.5",
+        //         "five_percent_bid_depth": "11.208",
+        //         "five_percent_ask_depth": "11.42",
+        //         "option_pricing": null,
+        //         "index_price": "99577.2",
+        //         "mark_price": "99543.642926357933902181684970855712890625",
+        //         "stats": {
+        //             "contract_volume": "464.712",
+        //             "num_trades": "10681",
+        //             "open_interest": "72.804739389481989861",
+        //             "high": "99519.1",
+        //             "low": "97254.1",
+        //             "percent_change": "0.0128",
+        //             "usd_change": "1258.1"
+        //         },
+        //         "timestamp": 1736140984000,
+        //         "min_price": "97591.2",
+        //         "max_price": "101535.1"
+        //     },
+        //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
+        // }
+        //
+        const data = this.safeDict (response, 'result', {});
+        return this.parseTicker (data, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        // {
+        //     "instrument_type": "perp",
+        //     "instrument_name": "BTC-PERP",
+        //     "scheduled_activation": 1701840228,
+        //     "scheduled_deactivation": 9223372036854776000,
+        //     "is_active": true,
+        //     "tick_size": "0.1",
+        //     "minimum_amount": "0.01",
+        //     "maximum_amount": "10000",
+        //     "amount_step": "0.001",
+        //     "mark_price_fee_rate_cap": "0",
+        //     "maker_fee_rate": "0.00005",
+        //     "taker_fee_rate": "0.0003",
+        //     "base_fee": "0.1",
+        //     "base_currency": "BTC",
+        //     "quote_currency": "USD",
+        //     "option_details": null,
+        //     "perp_details": {
+        //         "index": "BTC-USD",
+        //         "max_rate_per_hour": "0.004",
+        //         "min_rate_per_hour": "-0.004",
+        //         "static_interest_rate": "0.0000125",
+        //         "aggregate_funding": "10512.580833189805742522",
+        //         "funding_rate": "-0.000022223906766867"
+        //     },
+        //     "erc20_details": null,
+        //     "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //     "base_asset_sub_id": "0",
+        //     "pro_rata_fraction": "0",
+        //     "fifo_min_allocation": "0",
+        //     "pro_rata_amount_step": "0.1",
+        //     "best_ask_amount": "0.012",
+        //     "best_ask_price": "99567.9",
+        //     "best_bid_amount": "0.129",
+        //     "best_bid_price": "99554.5",
+        //     "five_percent_bid_depth": "11.208",
+        //     "five_percent_ask_depth": "11.42",
+        //     "option_pricing": null,
+        //     "index_price": "99577.2",
+        //     "mark_price": "99543.642926357933902181684970855712890625",
+        //     "stats": {
+        //         "contract_volume": "464.712",
+        //         "num_trades": "10681",
+        //         "open_interest": "72.804739389481989861",
+        //         "high": "99519.1",
+        //         "low": "97254.1",
+        //         "percent_change": "0.0128",
+        //         "usd_change": "1258.1"
+        //     },
+        //     "timestamp": 1736140984000,
+        //     "min_price": "97591.2",
+        //     "max_price": "101535.1"
+        // }
+        //
+        const marketId = this.safeString (ticker, 'instrument_name');
+        const timestamp = this.safeIntegerOmitZero (ticker, 'timestamp'); // exchange bitget provided 0
+        const symbol = this.symbol (marketId);
+        const stats = this.safeDict (ticker, 'stats');
+        const change = this.safeString (stats, 'percent_change');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (stats, 'high'),
+            'low': this.safeString (stats, 'low'),
+            'bid': this.safeString (ticker, 'best_bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_amount'),
+            'ask': this.safeString (ticker, 'best_ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_amount'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': Precise.stringMul (change, '100'),
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'indexPrice': this.safeString (ticker, 'index_price'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
