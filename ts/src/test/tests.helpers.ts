@@ -63,6 +63,8 @@ const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
 const PROXY_TEST_FILE_NAME = "proxies";
+const RATE_LIMIT_TEST_FILE_NAME = 'rateLimit';
+
 
 function dump (...args) {
     console.log (...args);
@@ -166,7 +168,7 @@ async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
+    const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, RATE_LIMIT_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;

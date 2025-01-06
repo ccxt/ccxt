@@ -370,11 +370,14 @@ class Exchange(BaseExchange):
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
+            ws_connections_config = self.get_ws_rate_limit_config(url, 'connections')
+            ws_messages_config = self.get_ws_rate_limit_config(url, 'messages')
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
+                'connections_throttler': Throttler(ws_connections_config, self.asyncio_loop),
+                'messages_throttler': Throttler(ws_messages_config, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
@@ -400,10 +403,9 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
+    def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None, message_cost=None):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
-        backoff_delay = 0
         client = self.client(url)
 
         future = Future.race([client.future(message_hash) for message_hash in message_hashes])
@@ -415,34 +417,39 @@ class Exchange(BaseExchange):
                     missing_subscriptions.append(subscribe_hash)
                     client.subscriptions[subscribe_hash] = subscription or True
 
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableWsRateLimit:
+                    await client.connections_throttler()
+                await client.connect(self.session)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
-            options = self.safe_value(self.options, 'ws')
-            cost = self.safe_value(options, 'cost', 1)
             if message:
-                async def send_message():
-                    if self.enableRateLimit:
-                        await client.throttle(cost)
+                async def send_message(message_cost):
+                    if self.enableWsRateLimit:
+                        if message_cost is None:
+                            message_cost = self.get_ws_rate_limit_cost(url, 'messages')
+                        await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
                         client.on_error(e)
                     except Exception as e:
                         client.on_error(e)
-                asyncio.ensure_future(send_message())
+                asyncio.ensure_future(send_message(message_cost))
 
         if missing_subscriptions:
             connected.add_done_callback(after)
 
         return future
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None, message_cost=None):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
-        backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
             return client.futures[message_hash]
@@ -453,24 +460,31 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+        if client.connected.done():
+            connected = client.connected
+        else:
+            async def connect():
+                if self.enableWsRateLimit:
+                    cost = self.get_ws_rate_limit_cost(url, 'connections')
+                    await client.connections_throttler(cost)
+                await client.connect(self.session)
+            connected = asyncio.ensure_future(connect())
 
         def after(fut):
             # todo: decouple signing from subscriptions
-            options = self.safe_value(self.options, 'ws')
-            cost = self.safe_value(options, 'cost', 1)
             if message:
-                async def send_message():
-                    if self.enableRateLimit:
-                        await client.throttle(cost)
+                async def send_message(message_cost):
+                    if self.enableWsRateLimit:
+                        if message_cost is None:
+                            message_cost = self.get_ws_rate_limit_cost(url, 'messages')
+                        await client.messages_throttler(message_cost)
                     try:
                         await client.send(message)
                     except ConnectionError as e:
                         client.on_error(e)
                     except Exception as e:
                         client.on_error(e)
-                asyncio.ensure_future(send_message())
+                asyncio.ensure_future(send_message(message_cost))
 
         if not subscribed:
             connected.add_done_callback(after)

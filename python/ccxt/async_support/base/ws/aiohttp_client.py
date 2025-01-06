@@ -122,6 +122,8 @@ class AiohttpClient(Client):
                     future.cancel()  # this is an "internal" future so we want to cancel it silently
                 else:
                     future.reject(ExchangeClosedByUser('Connection closed by the user'))
+        self.connections_throttler.clear()
+        self.messages_throttler.clear()
 
 
     async def ping_loop(self):
