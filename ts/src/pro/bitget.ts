@@ -1043,10 +1043,6 @@ export default class bitget extends bitgetRest {
         }
         const cache = this.positions[instType];
         const rawPositions = this.safeValue (message, 'data', []);
-        const dataLength = rawPositions.length;
-        if (dataLength === 0) {
-            return;
-        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
