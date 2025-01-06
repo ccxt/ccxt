@@ -139,7 +139,7 @@ export default class idex extends Exchange {
                         'trades': { 'cost': 1, 'bundled': 10 },
                         'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
                         'orderbook': { 'cost': 1, 'bundled': 10 },
-                        'fundingRates': { 'cost': 1, 'bundled': 10 }, // todo
+                        'fundingRates': { 'cost': 1, 'bundled': 10 },
                     },
                 },
                 'private': {
@@ -288,8 +288,8 @@ export default class idex extends Exchange {
         //        "blockConfirmationDelay": "64"
         //    }
         //
-        const maker = this.safeNumber (response2, 'makerFeeRate');
-        const taker = this.safeNumber (response2, 'takerFeeRate');
+        const maker = this.safeNumber (response, 'makerFeeRate');
+        const taker = this.safeNumber (response, 'takerFeeRate');
         const makerMin = this.safeString (response2, 'makerTradeMinimum');
         const takerMin = this.safeString (response2, 'takerTradeMinimum');
         const minCostETH = this.parseNumber (Precise.stringMin (makerMin, takerMin));
@@ -828,10 +828,10 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, "fetchFundingRateHistory", 'until');
         if (until !== undefined) {
             request['end'] = until;
-            params = this.omit (params, 'until');
         }
         const response = await this.publicGetFundingRates (this.extend (request, params));
         //
