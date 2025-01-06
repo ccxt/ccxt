@@ -1011,12 +1011,14 @@ class paradex(Exchange, ImplicitAPI):
     def authenticate_rest(self, params={}):
         cachedToken = self.safe_string(self.options, 'authToken')
         now = self.nonce()
+        REFRESH_TIME = 180  # 3 minutes in seconds
+        TOKEN_EXPIRY = 300  # 5 minutes in seconds
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
-            if now < cachedExpires:
+            if now < (cachedExpires - REFRESH_TIME):
                 return cachedToken
         account = self.retrieve_account()
-        expires = now + 86400 * 7
+        expires = now + TOKEN_EXPIRY
         req = {
             'method': 'POST',
             'path': '/v1/auth',
