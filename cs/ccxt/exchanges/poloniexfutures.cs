@@ -914,13 +914,13 @@ public partial class poloniexfutures : Exchange
             { "size", preciseAmount },
             { "leverage", 1 },
         };
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(stopPrice))
+        object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             object stopPriceType = this.safeString(parameters, "stopPriceType", "TP");
             ((IDictionary<string,object>)request)["stopPriceType"] = stopPriceType;
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(type, "limit")))
@@ -983,7 +983,7 @@ public partial class poloniexfutures : Exchange
             { "trades", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "stopPrice", null },
+            { "triggerPrice", null },
             { "info", response },
         }, market);
     }
@@ -1337,7 +1337,7 @@ public partial class poloniexfutures : Exchange
                 { "trades", null },
                 { "timeInForce", null },
                 { "postOnly", null },
-                { "stopPrice", null },
+                { "triggerPrice", null },
                 { "info", response },
             }));
         }
@@ -1701,7 +1701,7 @@ public partial class poloniexfutures : Exchange
             { "side", this.safeString(order, "side") },
             { "amount", this.safeString(order, "size") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stopPrice") },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "cost", this.safeString(order, "dealValue") },
             { "filled", filled },
             { "remaining", null },

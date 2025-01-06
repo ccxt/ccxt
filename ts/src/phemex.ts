@@ -2272,7 +2272,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
+        const triggerPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -2287,8 +2287,7 @@ export default class phemex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2438,7 +2437,7 @@ export default class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
+        const triggerPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
         let reduceOnly = this.safeValue (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
@@ -2475,8 +2474,7 @@ export default class phemex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfit,
             'stopLossPrice': stopLoss,
             'amount': amount,
@@ -2862,12 +2860,12 @@ export default class phemex extends Exchange {
                 request['baseQtyEV'] = this.toEv (amount, market);
             }
         }
-        const stopPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
-        if (stopPrice !== undefined) {
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        if (triggerPrice !== undefined) {
             if (isUSDTSettled) {
-                request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPxRp'] = this.priceToPrecision (symbol, triggerPrice);
             } else {
-                request['stopPxEp'] = this.toEp (stopPrice, market);
+                request['stopPxEp'] = this.toEp (triggerPrice, market);
             }
         }
         params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
@@ -3657,6 +3655,7 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USD is the default
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
@@ -3664,7 +3663,8 @@ export default class phemex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let subType = undefined;
-        let code = this.safeString (params, 'currency');
+        let code = this.safeString2 (params, 'currency', 'code', 'USD');
+        params = this.omit (params, [ 'currency', 'code' ]);
         let settle = undefined;
         let market = undefined;
         const firstSymbol = this.safeString (symbols, 0);
@@ -3673,16 +3673,16 @@ export default class phemex extends Exchange {
             settle = market['settle'];
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', code);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         const isUSDTSettled = settle === 'USDT';
         if (isUSDTSettled) {
             code = 'USDT';
+        } else if (settle === 'BTC') {
+            code = 'BTC';
         } else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
-        } else {
-            params = this.omit (params, 'code');
         }
         const currency = this.currency (code);
         const request: Dict = {

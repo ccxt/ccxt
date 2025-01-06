@@ -846,32 +846,40 @@ class exmo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
         request: dict = {
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         maxLimit = 3000
         duration = self.parse_timeframe(timeframe)
-        now = self.milliseconds()
+        now = self.parse_to_int(self.milliseconds() / 1000)
         if since is None:
+            to = min(until, now) if untilIsDefined else now
             if limit is None:
                 limit = 1000  # cap default at generous amount
             else:
                 limit = min(limit, maxLimit)
-            request['from'] = self.parse_to_int(now / 1000) - limit * duration - 1
-            request['to'] = self.parse_to_int(now / 1000)
+            request['from'] = to - (limit * duration) - 1
+            request['to'] = to
         else:
             request['from'] = self.parse_to_int(since / 1000) - 1
-            if limit is None:
-                limit = maxLimit
+            if untilIsDefined:
+                request['to'] = min(until, now)
             else:
-                limit = min(limit, maxLimit)
-            to = self.sum(since, limit * duration * 1000)
-            request['to'] = self.parse_to_int(to / 1000)
+                if limit is None:
+                    limit = maxLimit
+                else:
+                    limit = min(limit, maxLimit)
+                to = self.sum(since, limit * duration)
+                request['to'] = min(to, now)
+        params = self.omit(params, 'until')
         response = self.publicGetCandlesHistory(self.extend(request, params))
         #
         #     {
@@ -1415,7 +1423,7 @@ class exmo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
         :param boolean [params.postOnly]: *spot only* True for post only orders
         :param float [params.cost]: *spot only* *market orders only* the cost of the order in the quote currency for market orders
@@ -1904,7 +1912,6 @@ class exmo(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,

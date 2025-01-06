@@ -390,6 +390,8 @@ interface binance {
     sapiPostPortfolioBnbTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioMint(params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanAdd(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus(params?: {}): Promise<implicitReturnType>;
@@ -650,6 +652,7 @@ interface binance {
     eapiPrivateGetBlockOrderOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockOrderExecute(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockUserTrades(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockTrades(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey(params?: {}): Promise<implicitReturnType>;
@@ -810,6 +813,7 @@ interface binance {
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;
     papiDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    papiV2GetUmAccount(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class binance extends _binance {
 }

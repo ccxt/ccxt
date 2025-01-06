@@ -310,11 +310,9 @@ class bitmex(Exchange, ImplicitAPI):
                             'trailing': True,
                             'marketBuyRequiresPrice': False,
                             'marketBuyByCost': False,
-                            # exchange-supported features
-                            # 'selfTradePrevention': True,
-                            # 'twap': False,
-                            # 'iceberg': False,
-                            # 'oco': False,
+                            'leverage': False,
+                            'selfTradePrevention': False,
+                            'iceberg': True,  # todo
                         },
                         'createOrders': None,
                         'fetchMyTrades': {
@@ -345,7 +343,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'fetchClosedOrders': {
                             'marginMode': False,
                             'limit': 500,
-                            'daysBackClosed': None,
+                            'daysBack': None,
                             'daysBackCanceled': None,
                             'untilDays': 1000000,
                             'trigger': False,

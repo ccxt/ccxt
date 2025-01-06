@@ -268,7 +268,6 @@ public partial class coincheck : Exchange
             { "status", status },
             { "symbol", symbol },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "fee", null },

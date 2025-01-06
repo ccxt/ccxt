@@ -695,7 +695,7 @@ public partial class gate : Exchange
                 } },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -706,7 +706,6 @@ public partial class gate : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -716,6 +715,9 @@ public partial class gate : Exchange
                         { "trailing", false },
                         { "iceberg", true },
                         { "selfTradePrevention", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 40 },
@@ -744,12 +746,15 @@ public partial class gate : Exchange
                         { "trailing", false },
                         { "limit", 100 },
                         { "untilDays", 30 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
                     } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
                 } },
                 { "forDerivatives", new Dictionary<string, object>() {
                     { "extends", "spot" },
@@ -2481,7 +2486,8 @@ public partial class gate : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)chainKey] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
                         { "percentage", false },
@@ -4317,7 +4323,7 @@ public partial class gate : Exchange
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -5241,7 +5247,6 @@ public partial class gate : Exchange
             { "reduceOnly", this.safeValue(order, "is_reduce_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "average", average },
             { "amount", Precise.stringAbs(amount) },

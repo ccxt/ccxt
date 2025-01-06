@@ -167,7 +167,7 @@ class blofin(Exchange, ImplicitAPI):
                     'rest': 'https://openapi.blofin.com',
                 },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -204,6 +204,18 @@ class blofin(Exchange, ImplicitAPI):
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
+                        'copytrading/instruments': 1,
+                        'copytrading/account/balance': 1,
+                        'copytrading/account/positions-by-order': 1,
+                        'copytrading/account/positions-details-by-order': 1,
+                        'copytrading/account/positions-by-contract': 1,
+                        'copytrading/account/position-mode': 1,
+                        'copytrading/account/leverage-info': 1,
+                        'copytrading/trade/orders-pending': 1,
+                        'copytrading/trade/pending-tpsl-by-contract': 1,
+                        'copytrading/trade/position-history-by-order': 1,
+                        'copytrading/trade/orders-history': 1,
+                        'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -215,6 +227,16 @@ class blofin(Exchange, ImplicitAPI):
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
                         'asset/transfer': 1,
+                        'copytrading/account/set-position-mode': 1,
+                        'copytrading/account/set-leverage': 1,
+                        'copytrading/trade/place-order': 1,
+                        'copytrading/trade/cancel-order': 1,
+                        'copytrading/trade/place-tpsl-by-contract': 1,
+                        'copytrading/trade/cancel-tpsl-by-contract': 1,
+                        'copytrading/trade/place-tpsl-by-order': 1,
+                        'copytrading/trade/cancel-tpsl-by-order': 1,
+                        'copytrading/trade/close-position-by-order': 1,
+                        'copytrading/trade/close-position-by-contract': 1,
                     },
                 },
             },
@@ -287,10 +309,18 @@ class blofin(Exchange, ImplicitAPI):
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'sandboxMode': False,
                 'defaultNetwork': 'ERC20',
@@ -873,8 +903,9 @@ class blofin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_balance_by_type(self, type, response):
-        if type:
+    def parse_balance_by_type(self, response):
+        data = self.safe_list(response, 'data')
+        if (data is not None) and isinstance(data, list):
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
@@ -986,19 +1017,19 @@ class blofin(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        accountType = self.safe_string_2(params, 'accountType', 'type')
-        params = self.omit(params, ['accountType', 'type'])
+        accountType = None
+        accountType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'accountType', 'type')
         request: dict = {
         }
         response = None
-        if accountType is not None:
+        if accountType is not None and accountType != 'swap':
             options = self.safe_dict(self.options, 'accountsByType', {})
             parsedAccountType = self.safe_string(options, accountType, accountType)
             request['accountType'] = parsedAccountType
             response = await self.privateGetAssetBalances(self.extend(request, params))
         else:
             response = await self.privateGetAccountBalance(self.extend(request, params))
-        return self.parse_balance_by_type(accountType, response)
+        return self.parse_balance_by_type(response)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)

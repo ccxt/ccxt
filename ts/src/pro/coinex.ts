@@ -1303,7 +1303,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString (this.options, 'defaultType');
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const timestamp = this.safeTimestamp (ticker, 'updated_at');
+        const timestamp = this.safeInteger (ticker, 'updated_at');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
             'timestamp': timestamp,

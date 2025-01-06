@@ -1351,7 +1351,6 @@ class huobijp extends huobijp$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
             'cost': cost,

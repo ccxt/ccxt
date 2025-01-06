@@ -1855,7 +1855,6 @@ class deribit extends Exchange {
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
         return $this->safe_order(array(
             'info' => $order,
@@ -1870,8 +1869,7 @@ class deribit extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $priceString,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_value($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $averageString,

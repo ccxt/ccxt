@@ -158,7 +158,7 @@ class blofin extends blofin$1 {
                     'rest': 'https://openapi.blofin.com',
                 },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -195,6 +195,18 @@ class blofin extends blofin$1 {
                         'trade/orders-tpsl-history': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
+                        'copytrading/instruments': 1,
+                        'copytrading/account/balance': 1,
+                        'copytrading/account/positions-by-order': 1,
+                        'copytrading/account/positions-details-by-order': 1,
+                        'copytrading/account/positions-by-contract': 1,
+                        'copytrading/account/position-mode': 1,
+                        'copytrading/account/leverage-info': 1,
+                        'copytrading/trade/orders-pending': 1,
+                        'copytrading/trade/pending-tpsl-by-contract': 1,
+                        'copytrading/trade/position-history-by-order': 1,
+                        'copytrading/trade/orders-history': 1,
+                        'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -206,6 +218,16 @@ class blofin extends blofin$1 {
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
                         'asset/transfer': 1,
+                        'copytrading/account/set-position-mode': 1,
+                        'copytrading/account/set-leverage': 1,
+                        'copytrading/trade/place-order': 1,
+                        'copytrading/trade/cancel-order': 1,
+                        'copytrading/trade/place-tpsl-by-contract': 1,
+                        'copytrading/trade/cancel-tpsl-by-contract': 1,
+                        'copytrading/trade/place-tpsl-by-order': 1,
+                        'copytrading/trade/cancel-tpsl-by-order': 1,
+                        'copytrading/trade/close-position-by-order': 1,
+                        'copytrading/trade/close-position-by-contract': 1,
                     },
                 },
             },
@@ -278,10 +300,18 @@ class blofin extends blofin$1 {
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'sandboxMode': false,
                 'defaultNetwork': 'ERC20',
@@ -879,8 +909,9 @@ class blofin extends blofin$1 {
         const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
     }
-    parseBalanceByType(type, response) {
-        if (type) {
+    parseBalanceByType(response) {
+        const data = this.safeList(response, 'data');
+        if ((data !== undefined) && Array.isArray(data)) {
             return this.parseFundingBalance(response);
         }
         else {
@@ -998,11 +1029,11 @@ class blofin extends blofin$1 {
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
-        const accountType = this.safeString2(params, 'accountType', 'type');
-        params = this.omit(params, ['accountType', 'type']);
+        let accountType = undefined;
+        [accountType, params] = this.handleOptionAndParams2(params, 'fetchBalance', 'accountType', 'type');
         const request = {};
         let response = undefined;
-        if (accountType !== undefined) {
+        if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString(options, accountType, accountType);
             request['accountType'] = parsedAccountType;
@@ -1011,7 +1042,7 @@ class blofin extends blofin$1 {
         else {
             response = await this.privateGetAccountBalance(this.extend(request, params));
         }
-        return this.parseBalanceByType(accountType, response);
+        return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);

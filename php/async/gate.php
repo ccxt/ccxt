@@ -714,7 +714,7 @@ class gate extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -725,7 +725,6 @@ class gate extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -733,9 +732,11 @@ class gate extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
-                        'iceberg' => true,
-                        'selfTradePrevention' => true,
+                        'iceberg' => true, // todo implement
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 40, // NOTE! max 10 per symbol
@@ -764,12 +765,15 @@ class gate extends Exchange {
                         'trailing' => false,
                         'limit' => 100,
                         'untilDays' => 30,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
                     ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
                 ),
                 'forDerivatives' => array(
                     'extends' => 'spot',
@@ -2477,7 +2481,8 @@ class gate extends Exchange {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
                 $chainKey = $chainKeys[$i];
-                $result['networks'][$chainKey] = array(
+                $networkCode = $this->network_id_to_code($chainKey, $this->safe_string($fee, 'currency'));
+                $result['networks'][$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                         'percentage' => false,
@@ -4148,7 +4153,7 @@ class gate extends Exchange {
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
+             * @param {float} [$params->triggerPrice] The $price at which a $trigger order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
              * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
@@ -4978,7 +4983,6 @@ class gate extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'average' => $average,
             'amount' => Precise::string_abs($amount),

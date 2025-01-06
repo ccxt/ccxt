@@ -862,8 +862,8 @@ public partial class coincatch : Exchange
             settleId = this.safeString(supportMarginCoins, 0);
             settle = this.safeCurrencyCode(settleId);
             suffix = add(":", settle);
-            isLinear = isEqual(baseId, settleId); // todo check
-            isInverse = isEqual(quoteId, settleId); // todo check
+            isLinear = isEqual(quoteId, settleId); // todo check
+            isInverse = isEqual(baseId, settleId); // todo check
             if (isTrue(isLinear))
             {
                 subType = "linear";
@@ -4406,7 +4406,6 @@ public partial class coincatch : Exchange
             { "amount", amount },
             { "filled", this.safeString2(order, "fillQuantity", "filledQty") },
             { "remaining", null },
-            { "stopPrice", null },
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },

@@ -355,7 +355,7 @@ class ndax(Exchange, ImplicitAPI):
             #
             #     {
             #         "Authenticated": True,
-            #         "UserId":57765,
+            #         "UserId":57764,
             #         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             #     }
             #
@@ -1327,7 +1327,7 @@ class ndax(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower(order, 'Side'),
             'price': self.safe_string(order, 'Price'),
-            'stopPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
+            'triggerPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
             'cost': self.safe_string(order, 'GrossValueExecuted'),
             'amount': self.safe_string(order, 'OrigQuantity'),
             'filled': self.safe_string(order, 'QuantityExecuted'),

@@ -371,7 +371,7 @@ class coinbase extends Exchange {
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -389,6 +389,11 @@ class coinbase extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -419,7 +424,7 @@ class coinbase extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
                         'trigger' => false,
@@ -429,21 +434,20 @@ class coinbase extends Exchange {
                         'limit' => 350,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -2455,7 +2459,7 @@ class coinbase extends Exchange {
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         // for $pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg => instance.last_json_response.pagination.next_starting_after
+        // eg => instance.last_http_response -> $pagination->next_starting_after
         $response = $this->v2PrivateGetAccountsAccountIdTransactions ($this->extend($request, $params));
         $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
         $length = count($ledger);
@@ -2890,7 +2894,7 @@ class coinbase extends Exchange {
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {bool} [$params->postOnly] true or false
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
-         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
@@ -2909,10 +2913,10 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-        $isStop = $stopPrice !== null;
+        $isStop = $triggerPrice !== null;
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2932,7 +2936,7 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                             'end_time' => $endTime,
                         ),
@@ -2942,29 +2946,29 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                         ),
                     );
                 }
             } elseif ($isStopLoss || $isTakeProfit) {
-                $triggerPrice = null;
+                $tpslPrice = null;
                 if ($isStopLoss) {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
                 $request['order_configuration'] = array(
                     'stop_limit_stop_limit_gtc' => array(
                         'base_size' => $this->amount_to_precision($symbol, $amount),
                         'limit_price' => $this->price_to_precision($symbol, $price),
-                        'stop_price' => $triggerPrice,
+                        'stop_price' => $tpslPrice,
                         'stop_direction' => $stopDirection,
                     ),
                 );
@@ -3233,7 +3237,6 @@ class coinbase extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $this->safe_string($order, 'filled_size'),

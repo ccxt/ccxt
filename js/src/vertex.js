@@ -89,6 +89,7 @@ export default class vertex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -1352,15 +1353,79 @@ export default class vertex extends Exchange {
         //     }
         // }
         //
-        const value = this.safeNumber(interest, 'open_interest_usd');
+        const marketId = this.safeString(interest, 'ticker_id');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
-            'openInterestAmount': undefined,
-            'openInterestValue': value,
+            'symbol': this.safeSymbol(marketId, market),
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': this.safeNumber(interest, 'open_interest_usd'),
             'timestamp': undefined,
             'datetime': undefined,
             'info': interest,
         }, market);
+    }
+    /**
+     * @method
+     * @name vertex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v2ArchiveGetContracts(params);
+        //
+        //     {
+        //         "ADA-PERP_USDC": {
+        //             "ticker_id": "ADA-PERP_USDC",
+        //             "base_currency": "ADA-PERP",
+        //             "quote_currency": "USDC",
+        //             "last_price": 0.85506,
+        //             "base_volume": 1241320.0,
+        //             "quote_volume": 1122670.9080057142,
+        //             "product_type": "perpetual",
+        //             "contract_price": 0.8558601432685385,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 104040.0,
+        //             "open_interest_usd": 89043.68930565874,
+        //             "index_price": 0.8561952606869176,
+        //             "mark_price": 0.856293781088936,
+        //             "funding_rate": 0.000116153806226841,
+        //             "next_funding_rate_timestamp": 1734685200,
+        //             "price_change_percent_24h": -12.274325340321374
+        //         },
+        //     }
+        //
+        const parsedSymbols = [];
+        const results = [];
+        const markets = Object.keys(response);
+        if (symbols === undefined) {
+            symbols = [];
+            for (let y = 0; y < markets.length; y++) {
+                const tickerId = markets[y];
+                const parsedTickerId = tickerId.split('-');
+                const currentSymbol = parsedTickerId[0] + '/USDC:USDC';
+                if (!this.inArray(currentSymbol, symbols)) {
+                    symbols.push(currentSymbol);
+                }
+            }
+        }
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = markets[i];
+            const marketInner = this.safeMarket(marketId);
+            const openInterest = this.safeDict(response, marketId, {});
+            for (let j = 0; j < symbols.length; j++) {
+                const market = this.market(symbols[j]);
+                const tickerId = market['base'] + '_USDC';
+                if (marketInner['marketId'] === tickerId) {
+                    parsedSymbols.push(market['symbol']);
+                    results.push(this.parseOpenInterest(openInterest, market));
+                }
+            }
+        }
+        return this.filterByArray(results, 'symbol', parsedSymbols);
     }
     /**
      * @method

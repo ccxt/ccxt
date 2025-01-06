@@ -308,6 +308,7 @@ public partial class bybit : Exchange
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
+                        { "v5/account/withdrawal", 5 },
                         { "v5/asset/exchange/query-coin-list", 0.5 },
                         { "v5/asset/exchange/convert-result-query", 0.5 },
                         { "v5/asset/exchange/query-convert-history", 0.5 },
@@ -991,8 +992,71 @@ public partial class bybit : Exchange
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                     { "BEP20", "BSC" },
+                    { "SOL", "SOL" },
+                    { "ACA", "ACA" },
+                    { "ADA", "ADA" },
+                    { "ALGO", "ALGO" },
+                    { "APT", "APTOS" },
+                    { "AR", "AR" },
+                    { "ARBONE", "ARBI" },
+                    { "AVAXC", "CAVAX" },
+                    { "AVAXX", "XAVAX" },
+                    { "ATOM", "ATOM" },
+                    { "BCH", "BCH" },
+                    { "BEP2", "BNB" },
+                    { "CHZ", "CHZ" },
+                    { "DCR", "DCR" },
+                    { "DGB", "DGB" },
+                    { "DOGE", "DOGE" },
+                    { "DOT", "DOT" },
+                    { "EGLD", "EGLD" },
+                    { "EOS", "EOS" },
+                    { "ETC", "ETC" },
+                    { "ETHF", "ETHF" },
+                    { "ETHW", "ETHW" },
+                    { "FIL", "FIL" },
+                    { "STEP", "FITFI" },
+                    { "FLOW", "FLOW" },
+                    { "FTM", "FTM" },
+                    { "GLMR", "GLMR" },
+                    { "HBAR", "HBAR" },
+                    { "HNT", "HNT" },
+                    { "ICP", "ICP" },
+                    { "ICX", "ICX" },
+                    { "KDA", "KDA" },
+                    { "KLAY", "KLAY" },
+                    { "KMA", "KMA" },
+                    { "KSM", "KSM" },
+                    { "LTC", "LTC" },
+                    { "MATIC", "MATIC" },
+                    { "MINA", "MINA" },
+                    { "MOVR", "MOVR" },
+                    { "NEAR", "NEAR" },
+                    { "NEM", "NEM" },
+                    { "OASYS", "OAS" },
+                    { "OASIS", "ROSE" },
                     { "OMNI", "OMNI" },
-                    { "SPL", "SOL" },
+                    { "ONE", "ONE" },
+                    { "OPTIMISM", "OP" },
+                    { "POKT", "POKT" },
+                    { "QTUM", "QTUM" },
+                    { "RVN", "RVN" },
+                    { "SC", "SC" },
+                    { "SCRT", "SCRT" },
+                    { "STX", "STX" },
+                    { "THETA", "THETA" },
+                    { "TON", "TON" },
+                    { "WAVES", "WAVES" },
+                    { "WAX", "WAXP" },
+                    { "XDC", "XDC" },
+                    { "XEC", "XEC" },
+                    { "XLM", "XLM" },
+                    { "XRP", "XRP" },
+                    { "XTZ", "XTZ" },
+                    { "XYM", "XYM" },
+                    { "ZEN", "ZEN" },
+                    { "ZIL", "ZIL" },
+                    { "ZKSYNC", "ZKSYNC" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "ETH", "ERC20" },
@@ -1034,7 +1098,7 @@ public partial class bybit : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1045,9 +1109,10 @@ public partial class bybit : Exchange
                         { "hedged", true },
                         { "selfTradePrevention", true },
                         { "trailing", true },
-                        { "twap", false },
                         { "iceberg", false },
-                        { "oco", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -1073,7 +1138,7 @@ public partial class bybit : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 50 },
-                        { "daysBackClosed", multiply(365, 2) },
+                        { "daysBack", multiply(365, 2) },
                         { "daysBackCanceled", 1 },
                         { "untilDays", 7 },
                         { "trigger", true },
@@ -1086,28 +1151,13 @@ public partial class bybit : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
-                        { "marginMode", false },
-                        { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
-                        { "stopLossPrice", true },
-                        { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", null },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
-                        { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", true },
-                            { "FOK", true },
-                            { "PO", true },
-                            { "GTD", false },
-                        } },
-                        { "hedged", true },
-                        { "selfTradePrevention", true },
-                        { "trailing", true },
-                        { "twap", false },
-                        { "iceberg", false },
-                        { "oco", false },
+                        { "marketBuyRequiresPrice", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -1203,7 +1253,7 @@ public partial class bybit : Exchange
      */
     public async virtual Task<object> isUnifiedEnabled(object parameters = null)
     {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         parameters ??= new Dictionary<string, object>();
@@ -2129,6 +2179,7 @@ public partial class bybit : Exchange
                     { "quoteId", quoteId },
                     { "settleId", settleId },
                     { "type", "option" },
+                    { "subType", "linear" },
                     { "spot", false },
                     { "margin", false },
                     { "swap", false },
@@ -2136,8 +2187,8 @@ public partial class bybit : Exchange
                     { "option", true },
                     { "active", isActive },
                     { "contract", true },
-                    { "linear", null },
-                    { "inverse", null },
+                    { "linear", true },
+                    { "inverse", false },
                     { "taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")) },
                     { "maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")) },
                     { "contractSize", this.parseNumber("1") },
@@ -5719,12 +5770,11 @@ public partial class bybit : Exchange
         object address = this.safeString(depositAddress, "addressDeposit");
         object tag = this.safeString(depositAddress, "tagDeposit");
         object code = this.safeString(currency, "code");
-        object chain = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
-            { "network", chain },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain"), code) },
             { "address", address },
             { "tag", tag },
         };
@@ -5747,6 +5797,14 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, code);
+        }
         object response = await this.privateGetV5AssetDepositQueryAddress(this.extend(request, parameters));
         //
         //     {
@@ -5790,44 +5848,13 @@ public partial class bybit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-        var networkCode = ((IList<object>) networkCodequeryVariable)[0];
-        var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "coin", getValue(currency, "id") },
-        };
-        if (isTrue(!isEqual(networkId, null)))
-        {
-            ((IDictionary<string,object>)request)["chainType"] = networkId;
-        }
-        object response = await this.privateGetV5AssetDepositQueryAddress(this.extend(request, query));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "success",
-        //         "result": {
-        //             "coin": "USDT",
-        //             "chains": [
-        //                 {
-        //                     "chainType": "ERC20",
-        //                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        //                     "tagDeposit": "",
-        //                     "chain": "ETH"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672192792860
-        //     }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object chains = this.safeList(result, "chains", new List<object>() {});
-        object chainsIndexedById = this.indexBy(chains, "chain");
-        object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
-        object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
-        return this.parseDepositAddress(addressObject, currency);
+        var networkCodeparamsOmitedVariable = this.handleNetworkCodeAndParams(parameters);
+        var networkCode = ((IList<object>) networkCodeparamsOmitedVariable)[0];
+        var paramsOmited = ((IList<object>) networkCodeparamsOmitedVariable)[1];
+        object indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
+        object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(getValue(currency, "code"), networkCode, indexedAddresses);
+        return getValue(indexedAddresses, selectedNetworkCode);
     }
 
     /**

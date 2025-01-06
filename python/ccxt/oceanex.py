@@ -497,7 +497,7 @@ class oceanex(Exchange, ImplicitAPI):
         #                  "funds":"6.0732952",
         #                  "market":"ethusdt",
         #                  "created_at":"2022-04-19T19:03:15Z",
-        #                  "created_on":1650394995,
+        #                  "created_on":1650394994,
         #                  "side":"bid"
         #              },
         #          ]
@@ -835,7 +835,6 @@ class oceanex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_value(order, 'side'),
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'average': average,
             'amount': amount,

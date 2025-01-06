@@ -767,7 +767,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#get-trades"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

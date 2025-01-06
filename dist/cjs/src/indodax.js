@@ -716,7 +716,6 @@ class indodax extends indodax$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': cost,
             'average': undefined,

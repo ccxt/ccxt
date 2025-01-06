@@ -1006,11 +1006,11 @@ class kucoin extends kucoin$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'iceberg': true,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -1036,7 +1036,7 @@ class kucoin extends kucoin$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': true,
@@ -2315,8 +2315,10 @@ class kucoin extends kucoin$1 {
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
         await this.loadMarkets();
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -3156,7 +3158,6 @@ class kucoin extends kucoin$1 {
         if (responseStatus === 'fail') {
             status = 'rejected';
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
@@ -3168,8 +3169,7 @@ class kucoin extends kucoin$1 {
             'side': this.safeString(order, 'side'),
             'amount': this.safeString(order, 'size'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'cost': this.safeString(order, 'dealFunds'),
             'filled': this.safeString(order, 'dealSize'),
             'remaining': undefined,

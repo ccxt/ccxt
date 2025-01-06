@@ -734,7 +734,7 @@ class delta(Exchange, ImplicitAPI):
             else:
                 # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
-            linear = (settle == base)
+            linear = (settle == quote)
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
@@ -1446,13 +1446,14 @@ class delta(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.delta.exchange/#get-ohlc-candles
+        https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1462,14 +1463,18 @@ class delta(Exchange, ImplicitAPI):
         }
         duration = self.parse_timeframe(timeframe)
         limit = limit if limit else 2000  # max 2000
+        until = self.safe_integer_product(params, 'until', 0.001)
+        untilIsDefined = (until is not None)
+        if untilIsDefined:
+            until = self.parse_to_int(until)
         if since is None:
-            end = self.seconds()
+            end = until if untilIsDefined else self.seconds()
             request['end'] = end
             request['start'] = end - limit * duration
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = self.sum(start, limit * duration)
+            request['end'] = until if untilIsDefined else self.sum(start, limit * duration)
         price = self.safe_string(params, 'price')
         if price == 'mark':
             request['symbol'] = 'MARK:' + market['id']
@@ -1477,7 +1482,7 @@ class delta(Exchange, ImplicitAPI):
             request['symbol'] = market['info']['spot_index']['symbol']
         else:
             request['symbol'] = market['id']
-        params = self.omit(params, 'price')
+        params = self.omit(params, ['price', 'until'])
         response = self.publicGetHistoryCandles(self.extend(request, params))
         #
         #     {

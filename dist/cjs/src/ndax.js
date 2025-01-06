@@ -352,7 +352,7 @@ class ndax extends ndax$1 {
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
@@ -1354,7 +1354,7 @@ class ndax extends ndax$1 {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'Side'),
             'price': this.safeString(order, 'Price'),
-            'stopPrice': this.parseNumber(this.omitZero(this.safeString(order, 'StopPrice'))),
+            'triggerPrice': this.parseNumber(this.omitZero(this.safeString(order, 'StopPrice'))),
             'cost': this.safeString(order, 'GrossValueExecuted'),
             'amount': this.safeString(order, 'OrigQuantity'),
             'filled': this.safeString(order, 'QuantityExecuted'),

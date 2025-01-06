@@ -4271,7 +4271,8 @@ class binance extends binance$1 {
             client.reject(message, id);
         }
         // reset connection if 5xx error
-        if (this.safeString(code, 0) === '5') {
+        const codeString = this.safeString(error, 'code');
+        if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset(message);
         }
     }

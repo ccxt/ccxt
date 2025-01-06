@@ -1202,10 +1202,10 @@ class coinmetro(Exchange, ImplicitAPI):
         if timeInForce is not None:
             params = self.omit(params, 'timeInForce')
             request['timeInForce'] = self.encode_order_time_in_force(timeInForce)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice is not None:
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice is not None:
             params = self.omit(params, ['triggerPrice'])
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         userData = self.safe_value(params, 'userData', {})
         comment = self.safe_string_2(params, 'clientOrderId', 'comment')
         if comment is not None:
@@ -1706,7 +1706,6 @@ class coinmetro(Exchange, ImplicitAPI):
             }
         trades = self.safe_value(order, 'fills', [])
         userData = self.safe_value(order, 'userData', {})
-        triggerPrice = self.safe_string(order, 'stopPrice')
         clientOrderId = self.safe_string(userData, 'comment')
         takeProfitPrice = self.safe_string(userData, 'takeProfit')
         stopLossPrice = self.safe_string(userData, 'stopLoss')
@@ -1722,7 +1721,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_integer(order, 'timeInForce')),
             'side': side,
             'price': price,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': None,

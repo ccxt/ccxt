@@ -1067,7 +1067,7 @@ class cex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_number(order, 'price'),
-            'stopPrice': self.safe_number(order, 'stopPrice'),
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': self.safe_number(order, 'averagePrice'),

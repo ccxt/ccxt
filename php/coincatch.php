@@ -840,8 +840,8 @@ class coincatch extends Exchange {
             $settleId = $this->safe_string($supportMarginCoins, 0);
             $settle = $this->safe_currency_code($settleId);
             $suffix = ':' . $settle;
-            $isLinear = $baseId === $settleId; // todo check
-            $isInverse = $quoteId === $settleId; // todo check
+            $isLinear = $quoteId === $settleId; // todo check
+            $isInverse = $baseId === $settleId; // todo check
             if ($isLinear) {
                 $subType = 'linear';
             } elseif ($isInverse) {
@@ -4116,7 +4116,6 @@ class coincatch extends Exchange {
             'amount' => $amount,
             'filled' => $this->safe_string_2($order, 'fillQuantity', 'filledQty'),
             'remaining' => null,
-            'stopPrice' => null,
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,

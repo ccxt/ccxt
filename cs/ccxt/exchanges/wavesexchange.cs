@@ -1233,7 +1233,7 @@ public partial class wavesexchange : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] The price at which a stop order is triggered at
+     * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1247,8 +1247,8 @@ public partial class wavesexchange : Exchange
         object amountAsset = this.getAssetId(getValue(market, "baseId"));
         object priceAsset = this.getAssetId(getValue(market, "quoteId"));
         object isMarketOrder = (isEqual(type, "market"));
-        object stopPrice = this.safeFloat2(parameters, "triggerPrice", "stopPrice");
-        object isStopOrder = (!isEqual(stopPrice, null));
+        object triggerPrice = this.safeFloat2(parameters, "triggerPrice", "stopPrice");
+        object isStopOrder = (!isEqual(triggerPrice, null));
         if (isTrue(isTrue((isMarketOrder)) && isTrue((isEqual(price, null)))))
         {
             throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders to determine the max price for buy and the min price for sell")) ;
@@ -1367,7 +1367,7 @@ public partial class wavesexchange : Exchange
                 { "c", new Dictionary<string, object>() {
                     { "t", "sp" },
                     { "v", new Dictionary<string, object>() {
-                        { "p", this.toRealSymbolPrice(symbol, stopPrice) },
+                        { "p", this.toRealSymbolPrice(symbol, triggerPrice) },
                     } },
                 } },
             };
@@ -1794,7 +1794,6 @@ public partial class wavesexchange : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },

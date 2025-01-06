@@ -389,10 +389,12 @@ class cryptocom(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': False,
                         'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -425,7 +427,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 1,
                         'trigger': False,
@@ -507,6 +509,9 @@ class cryptocom(Exchange, ImplicitAPI):
                     '40801': RequestTimeout,
                     '42901': RateLimitExceeded,
                     '43005': InvalidOrder,  # Rejected POST_ONLY create-order request(normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003': InvalidOrder,  # FOK order has not been filled and cancelled
+                    '43004': InvalidOrder,  # IOC order has not been filled and cancelled
+                    '43012': BadRequest,  # Canceled due to Self Trade Prevention
                     '50001': ExchangeError,
                     '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },

@@ -1130,7 +1130,6 @@ class idex extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
@@ -1197,12 +1196,13 @@ class idex extends Exchange {
             'takeProfit' => 5,
             'takeProfitLimit' => 6,
         );
-        $stopPriceString = null;
-        if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
-            if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
-                throw new BadRequest($this->id . ' createOrder() stopPrice is a required parameter for ' . $type . 'orders');
+        $triggerPrice = $this->safe_string($params, 'triggerPrice', 'stopPrice');
+        $triggerPriceString = null;
+        if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit')) {
+            if ($triggerPrice === null) {
+                throw new BadRequest($this->id . ' createOrder() $triggerPrice is a required parameter for ' . $type . 'orders');
             }
-            $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
+            $triggerPriceString = $this->price_to_precision($symbol, $triggerPrice);
         }
         $limitTypeEnums = array(
             'limit' => 1,
@@ -1287,7 +1287,7 @@ class idex extends Exchange {
             $byteArray[] = $encodedPrice;
         }
         if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
-            $encodedPrice = $this->encode($stopPriceString || $priceString);
+            $encodedPrice = $this->encode($triggerPriceString || $priceString);
             $byteArray[] = $encodedPrice;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -1321,7 +1321,7 @@ class idex extends Exchange {
             $request['parameters']['price'] = $priceString;
         }
         if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
-            $request['parameters']['stopPrice'] = $stopPriceString || $priceString;
+            $request['parameters']['stopPrice'] = $triggerPriceString || $priceString;
         }
         if ($amountEnum === 0) {
             $request['parameters']['quantity'] = $amountString;

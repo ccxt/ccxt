@@ -1139,7 +1139,6 @@ class kuna extends Exchange {
         //
         $marketId = $this->safe_string($order, 'pair');
         $datetime = $this->safe_string($order, 'createdAt');
-        $triggerPrice = $this->safe_string($order, 'stopPrice');
         $side = $this->safe_string($order, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -1161,8 +1160,7 @@ class kuna extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'amount' => $this->safe_string($order, 'quantity'),
             'filled' => $this->safe_string($order, 'executedQuantity'),
             'remaining' => null,

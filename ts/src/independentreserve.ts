@@ -460,7 +460,6 @@ export default class independentreserve extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'Price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': this.safeString (order, 'Value'),
             'average': this.safeString (order, 'AvgPrice'),

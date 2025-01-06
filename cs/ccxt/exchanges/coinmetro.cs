@@ -1319,11 +1319,11 @@ public partial class coinmetro : Exchange
             parameters = this.omit(parameters, "timeInForce");
             ((IDictionary<string,object>)request)["timeInForce"] = this.encodeOrderTimeInForce(timeInForce);
         }
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"triggerPrice"});
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object userData = this.safeValue(parameters, "userData", new Dictionary<string, object>() {});
         object comment = this.safeString2(parameters, "clientOrderId", "comment");
@@ -1893,7 +1893,6 @@ public partial class coinmetro : Exchange
         }
         object trades = this.safeValue(order, "fills", new List<object>() {});
         object userData = this.safeValue(order, "userData", new Dictionary<string, object>() {});
-        object triggerPrice = this.safeString(order, "stopPrice");
         object clientOrderId = this.safeString(userData, "comment");
         object takeProfitPrice = this.safeString(userData, "takeProfit");
         object stopLossPrice = this.safeString(userData, "stopLoss");
@@ -1909,7 +1908,7 @@ public partial class coinmetro : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeInteger(order, "timeInForce")) },
             { "side", side },
             { "price", price },
-            { "triggerPrice", triggerPrice },
+            { "triggerPrice", this.safeString(order, "stopPrice") },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "average", null },

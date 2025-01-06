@@ -328,7 +328,7 @@ public partial class coinbase : Exchange
                 { "user_native_currency", "USD" },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -346,6 +346,11 @@ public partial class coinbase : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -376,7 +381,7 @@ public partial class coinbase : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 10000 },
                         { "trigger", false },
@@ -386,21 +391,20 @@ public partial class coinbase : Exchange
                         { "limit", 350 },
                     } },
                 } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
-                        { "extends", "spot" },
+                        { "extends", "default" },
                     } },
-                    { "inverse", new Dictionary<string, object>() {
-                        { "extends", "spot" },
-                    } },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -2567,7 +2571,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
         object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
         object length = getArrayLength(ledger);
@@ -3050,10 +3054,10 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
         };
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        object isStop = !isEqual(stopPrice, null);
+        object isStop = !isEqual(triggerPrice, null);
         object isStopLoss = !isEqual(stopLossPrice, null);
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object timeInForce = this.safeString(parameters, "timeInForce");
@@ -3078,7 +3082,7 @@ public partial class coinbase : Exchange
                         { "stop_limit_stop_limit_gtd", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
-                            { "stop_price", this.priceToPrecision(symbol, stopPrice) },
+                            { "stop_price", this.priceToPrecision(symbol, triggerPrice) },
                             { "stop_direction", stopDirection },
                             { "end_time", endTime },
                         } },
@@ -3089,34 +3093,34 @@ public partial class coinbase : Exchange
                         { "stop_limit_stop_limit_gtc", new Dictionary<string, object>() {
                             { "base_size", this.amountToPrecision(symbol, amount) },
                             { "limit_price", this.priceToPrecision(symbol, price) },
-                            { "stop_price", this.priceToPrecision(symbol, stopPrice) },
+                            { "stop_price", this.priceToPrecision(symbol, triggerPrice) },
                             { "stop_direction", stopDirection },
                         } },
                     };
                 }
             } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
             {
-                object triggerPrice = null;
+                object tpslPrice = null;
                 if (isTrue(isStopLoss))
                 {
                     if (isTrue(isEqual(stopDirection, null)))
                     {
                         stopDirection = ((bool) isTrue((isEqual(side, "buy")))) ? "STOP_DIRECTION_STOP_UP" : "STOP_DIRECTION_STOP_DOWN";
                     }
-                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    tpslPrice = this.priceToPrecision(symbol, stopLossPrice);
                 } else
                 {
                     if (isTrue(isEqual(stopDirection, null)))
                     {
                         stopDirection = ((bool) isTrue((isEqual(side, "buy")))) ? "STOP_DIRECTION_STOP_DOWN" : "STOP_DIRECTION_STOP_UP";
                     }
-                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                    tpslPrice = this.priceToPrecision(symbol, takeProfitPrice);
                 }
                 ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
                     { "stop_limit_stop_limit_gtc", new Dictionary<string, object>() {
                         { "base_size", this.amountToPrecision(symbol, amount) },
                         { "limit_price", this.priceToPrecision(symbol, price) },
-                        { "stop_price", triggerPrice },
+                        { "stop_price", tpslPrice },
                         { "stop_direction", stopDirection },
                     } },
                 };
@@ -3418,7 +3422,6 @@ public partial class coinbase : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "filled", this.safeString(order, "filled_size") },

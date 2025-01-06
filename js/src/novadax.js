@@ -759,8 +759,8 @@ export default class novadax extends Exchange {
             // "stopPrice": this.priceToPrecision (symbol, stopPrice),
             // "accountId": "...", // subaccount id, optional
         };
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
             if ((uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'STOP_MARKET')) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter for ' + uppercaseType + ' orders');
             }
@@ -774,7 +774,7 @@ export default class novadax extends Exchange {
             }
             const defaultOperator = (uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             request['operator'] = this.safeString(params, 'operator', defaultOperator);
-            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
         }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
@@ -1107,7 +1107,6 @@ export default class novadax extends Exchange {
         }
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_');
-        const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({
             'id': id,
             'clientOrderId': undefined,
@@ -1121,8 +1120,7 @@ export default class novadax extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': amount,
             'cost': cost,
             'average': average,

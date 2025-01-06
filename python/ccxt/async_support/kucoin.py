@@ -1026,11 +1026,11 @@ class kucoin(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'iceberg': True,
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'oco': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -1056,7 +1056,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 500,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
                         'trigger': True,
@@ -2286,8 +2286,10 @@ class kucoin(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -3043,7 +3045,6 @@ class kucoin(Exchange, ImplicitAPI):
             status = 'canceled'
         if responseStatus == 'fail':
             status = 'rejected'
-        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['id', 'orderId', 'newOrderId', 'cancelledOrderId']),
@@ -3055,8 +3056,7 @@ class kucoin(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'side'),
             'amount': self.safe_string(order, 'size'),
             'price': self.safe_string(order, 'price'),  # price is zero for market order, omitZero is called in safeOrder2
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'cost': self.safe_string(order, 'dealFunds'),
             'filled': self.safe_string(order, 'dealSize'),
             'remaining': None,

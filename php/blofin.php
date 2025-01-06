@@ -155,7 +155,7 @@ class blofin extends Exchange {
                     'rest' => 'https://openapi.blofin.com',
                 ),
                 'referral' => array(
-                    'url' => 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url' => 'https://blofin.com/register?referral_code=f79EsS',
                     'discount' => 0.05,
                 ),
                 'www' => 'https://www.blofin.com',
@@ -192,6 +192,18 @@ class blofin extends Exchange {
                         'trade/orders-tpsl-history' => 1,
                         'user/query-apikey' => 1,
                         'affiliate/basic' => 1,
+                        'copytrading/instruments' => 1,
+                        'copytrading/account/balance' => 1,
+                        'copytrading/account/positions-by-order' => 1,
+                        'copytrading/account/positions-details-by-order' => 1,
+                        'copytrading/account/positions-by-contract' => 1,
+                        'copytrading/account/position-mode' => 1,
+                        'copytrading/account/leverage-info' => 1,
+                        'copytrading/trade/orders-pending' => 1,
+                        'copytrading/trade/pending-tpsl-by-contract' => 1,
+                        'copytrading/trade/position-history-by-order' => 1,
+                        'copytrading/trade/orders-history' => 1,
+                        'copytrading/trade/pending-tpsl-by-order' => 1,
                     ),
                     'post' => array(
                         'trade/order' => 1,
@@ -203,6 +215,16 @@ class blofin extends Exchange {
                         'trade/cancel-tpsl' => 1,
                         'trade/close-position' => 1,
                         'asset/transfer' => 1,
+                        'copytrading/account/set-position-mode' => 1,
+                        'copytrading/account/set-leverage' => 1,
+                        'copytrading/trade/place-order' => 1,
+                        'copytrading/trade/cancel-order' => 1,
+                        'copytrading/trade/place-tpsl-by-contract' => 1,
+                        'copytrading/trade/cancel-tpsl-by-contract' => 1,
+                        'copytrading/trade/place-tpsl-by-order' => 1,
+                        'copytrading/trade/cancel-tpsl-by-order' => 1,
+                        'copytrading/trade/close-position-by-order' => 1,
+                        'copytrading/trade/close-position-by-contract' => 1,
                     ),
                 ),
             ),
@@ -275,10 +297,18 @@ class blofin extends Exchange {
                 'brokerId' => 'ec6dd3a7dd982d0b',
                 'accountsByType' => array(
                     'swap' => 'futures',
+                    'funding' => 'funding',
                     'future' => 'futures',
+                    'copy_trading' => 'copy_trading',
+                    'earn' => 'earn',
+                    'spot' => 'spot',
                 ),
                 'accountsById' => array(
+                    'funding' => 'funding',
                     'futures' => 'swap',
+                    'copy_trading' => 'copy_trading',
+                    'earn' => 'earn',
+                    'spot' => 'spot',
                 ),
                 'sandboxMode' => false,
                 'defaultNetwork' => 'ERC20',
@@ -891,8 +921,9 @@ class blofin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_balance_by_type($type, $response) {
-        if ($type) {
+    public function parse_balance_by_type($response) {
+        $data = $this->safe_list($response, 'data');
+        if (($data !== null) && gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);
@@ -1012,12 +1043,12 @@ class blofin extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
-        $accountType = $this->safe_string_2($params, 'accountType', 'type');
-        $params = $this->omit($params, array( 'accountType', 'type' ));
+        $accountType = null;
+        list($accountType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'accountType', 'type');
         $request = array(
         );
         $response = null;
-        if ($accountType !== null) {
+        if ($accountType !== null && $accountType !== 'swap') {
             $options = $this->safe_dict($this->options, 'accountsByType', array());
             $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
@@ -1025,7 +1056,7 @@ class blofin extends Exchange {
         } else {
             $response = $this->privateGetAccountBalance ($this->extend($request, $params));
         }
-        return $this->parse_balance_by_type($accountType, $response);
+        return $this->parse_balance_by_type($response);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

@@ -938,7 +938,6 @@ class coinmate(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -951,8 +950,7 @@ class coinmate(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
             'amount': amountString,
             'cost': None,
             'average': averageString,

@@ -937,7 +937,6 @@ class coinone extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'averageExecutedPrice'),
