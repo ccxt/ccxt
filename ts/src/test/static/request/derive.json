@@ -30,6 +30,22 @@
                 ],
                 "output": "{\"instrument_name\":\"BTC-PERP\"}"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.lyra.finance/public/get_trade_history",
+                "input": [
+                    "BTC/USD:USDC",
+                    1736155500128,
+                    1,
+                    {
+                        "until": 1736155703134
+                    }
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"page_size\":1,\"from_timestamp\":1736155500128,\"to_timestamp\":1736155703134}"
+            }
         ]
     }
 }

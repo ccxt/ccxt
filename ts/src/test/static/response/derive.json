@@ -57,6 +57,235 @@
                     }
                 }
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "instrument_type": "perp",
+                        "instrument_name": "BTC-PERP",
+                        "scheduled_activation": 1701840228,
+                        "scheduled_deactivation": 9223372036854775807,
+                        "is_active": true,
+                        "tick_size": "0.1",
+                        "minimum_amount": "0.01",
+                        "maximum_amount": "10000",
+                        "amount_step": "0.001",
+                        "mark_price_fee_rate_cap": "0",
+                        "maker_fee_rate": "0.00005",
+                        "taker_fee_rate": "0.0003",
+                        "base_fee": "0.1",
+                        "base_currency": "BTC",
+                        "quote_currency": "USD",
+                        "option_details": null,
+                        "perp_details": {
+                            "index": "BTC-USD",
+                            "max_rate_per_hour": "0.004",
+                            "min_rate_per_hour": "-0.004",
+                            "static_interest_rate": "0.0000125",
+                            "aggregate_funding": "10494.229862480089806876",
+                            "funding_rate": "-0.000016101766457197"
+                        },
+                        "erc20_details": null,
+                        "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+                        "base_asset_sub_id": "0",
+                        "pro_rata_fraction": "0",
+                        "fifo_min_allocation": "0",
+                        "pro_rata_amount_step": "0.1",
+                        "best_ask_amount": "0.06",
+                        "best_ask_price": "99042.8",
+                        "best_bid_amount": "0.037",
+                        "best_bid_price": "99029.1",
+                        "five_percent_bid_depth": "10.802",
+                        "five_percent_ask_depth": "11.082",
+                        "option_pricing": null,
+                        "index_price": "99059.7",
+                        "mark_price": "99031.927500030360533855855464935302734375",
+                        "stats": {
+                            "contract_volume": "484.053",
+                            "num_trades": "11172",
+                            "open_interest": "76.222135170666813448",
+                            "high": "99822",
+                            "low": "97254.1",
+                            "percent_change": "0.012669",
+                            "usd_change": "1239"
+                        },
+                        "timestamp": 1736155885000,
+                        "min_price": "97089.6",
+                        "max_price": "101013.1"
+                    },
+                    "id": "6b29c493-f36c-4935-8016-0a6f776b3ad2"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1736155885000,
+                    "datetime": "2025-01-06T09:31:25.000Z",
+                    "high": 99822,
+                    "low": 97254.1,
+                    "bid": 99029.1,
+                    "bidVolume": 0.037,
+                    "ask": 99042.8,
+                    "askVolume": 0.06,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": 0.012669,
+                    "percentage": 1.2669,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "indexPrice": 99059.7,
+                    "markPrice": 99031.92750003036,
+                    "info": {
+                        "instrument_type": "perp",
+                        "instrument_name": "BTC-PERP",
+                        "scheduled_activation": 1701840228,
+                        "scheduled_deactivation": 9223372036854776000,
+                        "is_active": true,
+                        "tick_size": "0.1",
+                        "minimum_amount": "0.01",
+                        "maximum_amount": "10000",
+                        "amount_step": "0.001",
+                        "mark_price_fee_rate_cap": "0",
+                        "maker_fee_rate": "0.00005",
+                        "taker_fee_rate": "0.0003",
+                        "base_fee": "0.1",
+                        "base_currency": "BTC",
+                        "quote_currency": "USD",
+                        "option_details": null,
+                        "perp_details": {
+                            "index": "BTC-USD",
+                            "max_rate_per_hour": "0.004",
+                            "min_rate_per_hour": "-0.004",
+                            "static_interest_rate": "0.0000125",
+                            "aggregate_funding": "10494.229862480089806876",
+                            "funding_rate": "-0.000016101766457197"
+                        },
+                        "erc20_details": null,
+                        "base_asset_address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+                        "base_asset_sub_id": "0",
+                        "pro_rata_fraction": "0",
+                        "fifo_min_allocation": "0",
+                        "pro_rata_amount_step": "0.1",
+                        "best_ask_amount": "0.06",
+                        "best_ask_price": "99042.8",
+                        "best_bid_amount": "0.037",
+                        "best_bid_price": "99029.1",
+                        "five_percent_bid_depth": "10.802",
+                        "five_percent_ask_depth": "11.082",
+                        "option_pricing": null,
+                        "index_price": "99059.7",
+                        "mark_price": "99031.927500030360533855855464935302734375",
+                        "stats": {
+                            "contract_volume": "484.053",
+                            "num_trades": "11172",
+                            "open_interest": "76.222135170666813448",
+                            "high": "99822",
+                            "low": "97254.1",
+                            "percent_change": "0.012669",
+                            "usd_change": "1239"
+                        },
+                        "timestamp": 1736155885000,
+                        "min_price": "97089.6",
+                        "max_price": "101013.1"
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:USDC",
+                    1736155500128,
+                    1,
+                    {
+                        "until": 1736155703134
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "trades": [
+                            {
+                                "trade_id": "1efefdba-f6a7-450a-acd9-c70ad91da24d",
+                                "instrument_name": "BTC-PERP",
+                                "timestamp": 1736155703134,
+                                "trade_price": "99086.1",
+                                "trade_amount": "0.01",
+                                "mark_price": "99066.994463021037518047",
+                                "index_price": "99095.401595150012514304",
+                                "direction": "buy",
+                                "quote_id": null,
+                                "wallet": "0x78b009861eEBF10bC56140D4Bfa5362CA7051B54",
+                                "subaccount_id": 23818,
+                                "tx_status": "settled",
+                                "tx_hash": "0xe9bc4f43292f46ae5ab8bf0851cb6567833176b2f7f185c1ec34ee92ef446048",
+                                "trade_fee": "0.397286204785450038",
+                                "liquidity_role": "taker",
+                                "realized_pnl": "-0.654117035494150046",
+                                "realized_pnl_excl_fees": "0.0711"
+                            }
+                        ],
+                        "pagination": {
+                            "num_pages": 598652,
+                            "count": 598652
+                        }
+                    },
+                    "id": "bf1fc34b-e626-46e3-a0ac-7e1b267a0590"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "trade_id": "1efefdba-f6a7-450a-acd9-c70ad91da24d",
+                            "instrument_name": "BTC-PERP",
+                            "timestamp": 1736155703134,
+                            "trade_price": "99086.1",
+                            "trade_amount": "0.01",
+                            "mark_price": "99066.994463021037518047",
+                            "index_price": "99095.401595150012514304",
+                            "direction": "buy",
+                            "quote_id": null,
+                            "wallet": "0x78b009861eEBF10bC56140D4Bfa5362CA7051B54",
+                            "subaccount_id": 23818,
+                            "tx_status": "settled",
+                            "tx_hash": "0xe9bc4f43292f46ae5ab8bf0851cb6567833176b2f7f185c1ec34ee92ef446048",
+                            "trade_fee": "0.397286204785450038",
+                            "liquidity_role": "taker",
+                            "realized_pnl": "-0.654117035494150046",
+                            "realized_pnl_excl_fees": "0.0711"
+                        },
+                        "id": "1efefdba-f6a7-450a-acd9-c70ad91da24d",
+                        "order": null,
+                        "symbol": "BTC/USD:USDC",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "price": 99086.1,
+                        "amount": 0.01,
+                        "cost": 990.861,
+                        "timestamp": 1736155703134,
+                        "datetime": "2025-01-06T09:28:23.134Z",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.39728620478545
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.39728620478545
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }

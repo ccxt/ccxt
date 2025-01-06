@@ -4,7 +4,7 @@
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -658,7 +658,7 @@ export default class derive extends Exchange {
         //
         const marketId = this.safeString (ticker, 'instrument_name');
         const timestamp = this.safeIntegerOmitZero (ticker, 'timestamp'); // exchange bitget provided 0
-        const symbol = this.symbol (marketId);
+        const symbol = this.safeSymbol (marketId, market);
         const stats = this.safeDict (ticker, 'stats');
         const change = this.safeString (stats, 'percent_change');
         return this.safeTicker ({
@@ -684,6 +684,103 @@ export default class derive extends Exchange {
             'indexPrice': this.safeString (ticker, 'index_price'),
             'markPrice': this.safeString (ticker, 'mark_price'),
             'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.derive.xyz/reference/post_public-get-trade-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_name'] = market['id'];
+        }
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000;
+            }
+            request['page_size'] = limit; // default 100, max 1000
+        }
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['to_timestamp'] = until;
+        }
+        const response = await this.publicPostGetTradeHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "trades": [
+        //             {
+        //                 "trade_id": "9dbc88b0-f0c4-4439-9cc1-4e6409d4eafb",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "timestamp": 1736153910930,
+        //                 "trade_price": "98995.3",
+        //                 "trade_amount": "0.033",
+        //                 "mark_price": "98990.875914388161618263",
+        //                 "index_price": "99038.050611100001501184",
+        //                 "direction": "sell",
+        //                 "quote_id": null,
+        //                 "wallet": "0x88B6BB87fbFac92a34F8155aaA35c87B5b166fA9",
+        //                 "subaccount_id": 8250,
+        //                 "tx_status": "settled",
+        //                 "tx_hash": "0x020bd735b312f867f17f8cc254946d87cfe9f2c8ff3605035d8129082eb73723",
+        //                 "trade_fee": "0.980476701049890015",
+        //                 "liquidity_role": "taker",
+        //                 "realized_pnl": "-2.92952402688793509",
+        //                 "realized_pnl_excl_fees": "-1.949047325838045075"
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "num_pages": 598196,
+        //             "count": 598196
+        //         }
+        //     },
+        //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'trades', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 'instrument_name');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const fee = {
+            'currency': 'USDC',
+            'cost': this.safeString (trade, 'trade_fee'),
+        };
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'trade_id'),
+            'order': undefined,
+            'symbol': symbol,
+            'side': this.safeStringLower (trade, 'direction'),
+            'type': undefined,
+            'takerOrMaker': this.safeString (trade, 'liquidity_role'),
+            'price': this.safeString (trade, 'trade_price'),
+            'amount': this.safeString (trade, 'trade_amount'),
+            'cost': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
         }, market);
     }
 
