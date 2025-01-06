@@ -299,7 +299,7 @@ class Exchange {
     public $restRequestQueue = null;
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
-    public $enableLastJsonResponse = true;
+    public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
     public $last_http_response = null;
