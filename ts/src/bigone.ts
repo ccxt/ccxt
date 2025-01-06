@@ -323,7 +323,7 @@ export default class bigone extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': true, // todo: implement
+                    'createOrders': undefined, // todo: implement
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 200,
