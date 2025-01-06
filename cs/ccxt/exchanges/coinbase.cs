@@ -2571,7 +2571,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
         object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
         object length = getArrayLength(ledger);

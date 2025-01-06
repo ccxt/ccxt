@@ -2447,7 +2447,7 @@ class coinbase extends coinbase$1 {
         [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
         const ledger = this.parseLedger(response['data'], currency, since, limit);
         const length = ledger.length;
