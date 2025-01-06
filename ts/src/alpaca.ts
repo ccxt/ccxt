@@ -299,7 +299,7 @@ export default class alpaca extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100, 
+                        'limit': 100,
                         'daysBack': 100000,
                         'untilDays': 100000,
                     },
