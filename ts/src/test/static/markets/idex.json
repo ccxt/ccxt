@@ -1,11 +1,13 @@
 {
-    "ETH/USDC": {
-        "id": "ETH-USDC",
-        "symbol": "ETH/USDC",
+    "ETH/USD": {
+        "id": "ETH-USD",
+        "symbol": "ETH/USD",
         "base": "ETH",
-        "quote": "USDC",
+        "quote": "USD",
+        "settle": "null",
         "baseId": "ETH",
-        "quoteId": "USDC",
+        "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -14,127 +16,59 @@
         "option": false,
         "active": true,
         "contract": false,
-        "taker": 0.0013,
-        "maker": 0.0013,
+        "linear": null,
+        "inverse": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.01
+            "amount": null,
+            "price": 0.1,
+            "base": null,
+            "quote": null
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 1e-8
-            },
-            "price": {
-                "min": 1e-8
-            },
-            "cost": {}
+            "leverage": { "min": null, "max": null },
+            "amount": { "min": null, "max": null },
+            "price": { "min": null, "max": null },
+            "cost": { "min": null, "max": null }
         },
+        "created": null,
         "info": {
-            "market": "ETH-USDC",
-            "type": "hybrid",
-            "status": "activeHybrid",
+            "market": "ETH-USD",
+            "type": "perpetual",
+            "status": "active",
             "baseAsset": "ETH",
-            "baseAssetPrecision": "8",
-            "quoteAsset": "USDC",
-            "quoteAssetPrecision": "8",
-            "makerFeeRate": "0.1250",
-            "takerFeeRate": "0.1250",
-            "takerIdexFeeRate": "0.0250",
-            "takerLiquidityProviderFeeRate": "0.1000",
-            "tickSize": "0.01000000"
-        }
-    },
-    "WBTC/USDC": {
-        "id": "WBTC-USDC",
-        "symbol": "WBTC/USDC",
-        "base": "WBTC",
-        "quote": "USDC",
-        "baseId": "WBTC",
-        "quoteId": "USDC",
-        "type": "spot",
-        "spot": true,
-        "margin": false,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "active": true,
-        "contract": false,
-        "taker": 0.0013,
-        "maker": 0.0013,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.01
-        },
-        "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 1e-8
-            },
-            "price": {
-                "min": 1e-8
-            },
-            "cost": {}
-        },
-        "info": {
-            "market": "WBTC-USDC",
-            "type": "hybrid",
-            "status": "activeHybrid",
-            "baseAsset": "WBTC",
-            "baseAssetPrecision": "8",
-            "quoteAsset": "USDC",
-            "quoteAssetPrecision": "8",
-            "makerFeeRate": "0.1250",
-            "takerFeeRate": "0.1250",
-            "takerIdexFeeRate": "0.0250",
-            "takerLiquidityProviderFeeRate": "0.1000",
-            "tickSize": "0.01000000"
-        }
-    },
-    "MATIC/USDC": {
-        "id": "MATIC-USDC",
-        "symbol": "MATIC/USDC",
-        "base": "MATIC",
-        "quote": "USDC",
-        "baseId": "MATIC",
-        "quoteId": "USDC",
-        "type": "spot",
-        "spot": true,
-        "margin": false,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "active": true,
-        "contract": false,
-        "taker": 0.0013,
-        "maker": 0.0013,
-        "precision": {
-            "amount": 1e-8,
-            "price": 0.0001
-        },
-        "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 1e-8
-            },
-            "price": {
-                "min": 1e-8
-            },
-            "cost": {}
-        },
-        "info": {
-            "market": "MATIC-USDC",
-            "type": "hybrid",
-            "status": "activeHybrid",
-            "baseAsset": "MATIC",
-            "baseAssetPrecision": "8",
-            "quoteAsset": "USDC",
-            "quoteAssetPrecision": "8",
-            "makerFeeRate": "0.1250",
-            "takerFeeRate": "0.1250",
-            "takerIdexFeeRate": "0.0250",
-            "takerLiquidityProviderFeeRate": "0.1000",
-            "tickSize": "0.00010000"
+            "quoteAsset": "USD",
+            "stepSize": "0.00100000",
+            "tickSize": "0.10000000",
+            "indexPrice": "3640.90000000",
+            "indexPrice24h": "3610.10000000",
+            "indexPricePercentChange": "0.00853161",
+            "lastFundingRate": "0.00010041",
+            "currentFundingRate": "0.00010000",
+            "nextFundingTime": "1736179200000",
+            "makerOrderMinimum": "0.01000000",
+            "takerOrderMinimum": "0.01000000",
+            "marketOrderExecutionPriceLimit": "0.05000000",
+            "limitOrderExecutionPriceLimit": "0.40000000",
+            "minimumPositionSize": "0.01000000",
+            "maximumPositionSize": "1500.00000000",
+            "initialMarginFraction": "0.05000000",
+            "maintenanceMarginFraction": "0.03000000",
+            "basePositionSize": "75.00000000",
+            "incrementalPositionSize": "15.00000000",
+            "incrementalInitialMarginFraction": "0.01000000",
+            "makerFeeRate": "-0.00005000",
+            "takerFeeRate": "0.00030000",
+            "volume24h": "111458.70120000",
+            "trades24h": "1610",
+            "openInterest": "146.95100000",
+            "default": true
         }
     }
 }
