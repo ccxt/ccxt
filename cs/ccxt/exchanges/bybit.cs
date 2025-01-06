@@ -308,6 +308,7 @@ public partial class bybit : Exchange
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
+                        { "v5/account/withdrawal", 5 },
                         { "v5/asset/exchange/query-coin-list", 0.5 },
                         { "v5/asset/exchange/convert-result-query", 0.5 },
                         { "v5/asset/exchange/query-convert-history", 0.5 },
