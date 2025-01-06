@@ -1238,7 +1238,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = self.safe_string(self.options, 'defaultType')
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
-        timestamp = self.safe_timestamp(ticker, 'updated_at')
+        timestamp = self.safe_integer(ticker, 'updated_at')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, defaultType),
             'timestamp': timestamp,

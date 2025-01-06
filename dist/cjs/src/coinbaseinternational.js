@@ -256,7 +256,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': false,
@@ -275,6 +275,11 @@ class coinbaseinternational extends coinbaseinternational$1 {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -300,21 +305,20 @@ class coinbaseinternational extends coinbaseinternational$1 {
                         'limit': 300,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                 },
                 'future': {
-                    'linear': {
-                        'extends': 'spot',
-                    },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });

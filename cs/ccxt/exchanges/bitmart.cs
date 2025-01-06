@@ -607,8 +607,11 @@ public partial class bitmart : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
-                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyRequiresPrice", false },
                         { "marketBuyByCost", true },
+                        { "leverage", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -634,7 +637,7 @@ public partial class bitmart : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 200 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", false },
@@ -663,7 +666,7 @@ public partial class bitmart : Exchange
                                 { "mark", true },
                                 { "index", false },
                             } },
-                            { "limitPrice", false },
+                            { "price", false },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -696,7 +699,7 @@ public partial class bitmart : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 200 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", false },

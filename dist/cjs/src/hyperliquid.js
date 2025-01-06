@@ -227,7 +227,6 @@ class hyperliquid extends hyperliquid$1 {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': false,
                             'PO': true,
@@ -235,6 +234,11 @@ class hyperliquid extends hyperliquid$1 {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 1000,
@@ -267,7 +271,7 @@ class hyperliquid extends hyperliquid$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 2000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -2250,7 +2254,7 @@ class hyperliquid extends hyperliquid$1 {
             market = this.safeMarket(marketId, market);
         }
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2(order, 'timestamp', 'statusTimestamp');
+        const timestamp = this.safeInteger(entry, 'timestamp');
         const status = this.safeString2(order, 'status', 'ccxtStatus');
         order = this.omit(order, ['ccxtStatus']);
         let side = this.safeString(entry, 'side');
@@ -2266,7 +2270,7 @@ class hyperliquid extends hyperliquid$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType(this.safeStringLower(entry, 'orderType')),
             'timeInForce': this.safeStringUpper(entry, 'tif'),

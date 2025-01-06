@@ -848,8 +848,8 @@ class coincatch(Exchange, ImplicitAPI):
             settleId = self.safe_string(supportMarginCoins, 0)
             settle = self.safe_currency_code(settleId)
             suffix = ':' + settle
-            isLinear = baseId == settleId  # todo check
-            isInverse = quoteId == settleId  # todo check
+            isLinear = quoteId == settleId  # todo check
+            isInverse = baseId == settleId  # todo check
             if isLinear:
                 subType = 'linear'
             elif isInverse:

@@ -219,6 +219,7 @@ class binance extends Exchange {
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
                     'papi' => 'https://papi.binance.com/papi/v1',
+                    'papiV2' => 'https://papi.binance.com/papi/v2',
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
@@ -1161,6 +1162,11 @@ class binance extends Exchange {
                         'listenKey' => 0.2,
                     ),
                 ),
+                'papiV2' => array(
+                    'get' => array(
+                        'um/account' => 1,
+                    ),
+                ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -1553,7 +1559,6 @@ class binance extends Exchange {
                 ),
             ),
             'features' => array(
-                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'spot' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -1571,12 +1576,13 @@ class binance extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                         // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo
                         'trailing' => true,
-                        'twap' => false,
-                        'iceberg' => true,
-                        'oco' => false,
+                        'iceberg' => true, // todo implementation
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -1607,7 +1613,7 @@ class binance extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
                         'trigger' => false,
@@ -1639,11 +1645,12 @@ class binance extends Exchange {
                         ),
                         'hedged' => true,
                         // exchange-supported features
-                        'selfTradePrevention' => true,
+                        'selfTradePrevention' => true, // todo
                         'trailing' => true,
-                        'twap' => false,
                         'iceberg' => false,
-                        'oco' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
                     ),
                     'createOrders' => array(
                         'max' => 5,
@@ -1676,7 +1683,7 @@ class binance extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 1000,
-                        'daysBackClosed' => 90,
+                        'daysBack' => 90,
                         'daysBackCanceled' => 3,
                         'untilDays' => 7,
                         'trigger' => false,
@@ -2399,92 +2406,189 @@ class binance extends Exchange {
                 'portfolioMargin' => array(
                     'exact' => array(
                         //
-                        //        1xxx
+                        //        10xx General Server or Network Issues
                         //
-                        '-1005' => '\\ccxt\\PermissionDenied', // array("code":-1005,"msg":"No such IP has been white listed")
-                        '-1011' => '\\ccxt\\PermissionDenied', // array("code":-1011,"msg":"This IP cannot access this route.")
-                        '-1023' => '\\ccxt\\BadRequest', // START_TIME_GREATER_THAN_END_TIME
-                        '-1109' => '\\ccxt\\BadRequest', // BAD_ACCOUNT
-                        '-1110' => '\\ccxt\\BadSymbol', // BAD_INSTRUMENT_TYPE
-                        '-1113' => '\\ccxt\\BadRequest', // array("code":-1113,"msg":"Withdrawal amount must be negative.")
-                        '-1128' => '\\ccxt\\BadRequest', // array("code":-1128,"msg":"Combination of optional parameters invalid.")
-                        '-1136' => '\\ccxt\\BadRequest', // INVALID_NEW_ORDER_RESP_TYPE
+                        '-1000' => '\\ccxt\\OperationFailed', // An unknown error occured while processing the request.
+                        '-1001' => '\\ccxt\\ExchangeError', // Internal error; unable to process your request. Please try again.
+                        '-1002' => '\\ccxt\\PermissionDenied', // You are not authorized to execute this request.
+                        '-1003' => '\\ccxt\\RateLimitExceeded', // Too many requests use the websocket for live updates to avoid polling the API.
+                        '-1004' => '\\ccxt\\BadRequest', // This IP is already on the white list.
+                        '-1005' => '\\ccxt\\PermissionDenied', // No such IP has been white listed.
+                        '-1006' => '\\ccxt\\BadResponse', // An unexpected response was received from the message bus. Execution status unknown.
+                        '-1007' => '\\ccxt\\BadResponse', // Timeout waiting for response from backend server. Send status unknown, execution status unknown.
+                        '-1008' => '\\ccxt\\OperationFailed', // WS Spot server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1010' => '\\ccxt\\ExchangeError', // ERROR_MSG_RECEIVED
+                        '-1011' => '\\ccxt\\PermissionDenied', // This IP cannot access this route.
+                        '-1013' => '\\ccxt\\ExchangeError', // INVALID_MESSAGE.
+                        '-1014' => '\\ccxt\\InvalidOrder', // Unsupported order combination.
+                        '-1015' => '\\ccxt\\InvalidOrder', // Too many new orders.
+                        '-1016' => '\\ccxt\\NotSupported', // This service is no longer available.
+                        '-1020' => '\\ccxt\\NotSupported', // This operation is not supported.
+                        '-1021' => '\\ccxt\\BadRequest', // Timestamp for this request is outside of the recvWindow 1000ms ahead of the servers time.
+                        '-1022' => '\\ccxt\\BadRequest', // Signature for this request is not valid.
+                        '-1023' => '\\ccxt\\BadRequest', // Start time is greater than end time
+                        '-1099' => '\\ccxt\\OperationFailed', // WS not found authenticated or authorized
                         //
-                        //        2xxx
+                        //        11xx Request Issues
                         //
-                        '-2016' => '\\ccxt\\OperationRejected', // array("code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead.")
-                        '-2018' => '\\ccxt\\InsufficientFunds', // array("code":-2018,"msg":"Balance is insufficient")
-                        '-2019' => '\\ccxt\\InsufficientFunds', // Margin is insufficient
-                        '-2020' => '\\ccxt\\OrderNotFillable', // UNABLE_TO_FILL
+                        '-1100' => '\\ccxt\\BadRequest', // Illegal characters found in a parameter.
+                        '-1101' => '\\ccxt\\BadRequest', // Too many parameters sent for this endpoint.
+                        '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed.
+                        '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
+                        '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read.
+                        '-1105' => '\\ccxt\\BadRequest', // A parameter was empty.
+                        '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required.
+                        '-1108' => '\\ccxt\\BadRequest', // Invalid asset.
+                        '-1109' => '\\ccxt\\BadRequest', // Invalid account.
+                        '-1110' => '\\ccxt\\BadSymbol', // Invalid symbolType.
+                        '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
+                        '-1112' => '\\ccxt\\BadRequest', // No orders on book for symbol.
+                        '-1113' => '\\ccxt\\BadRequest', // Withdrawal amount must be negative.
+                        '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
+                        '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
+                        '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
+                        '-1117' => '\\ccxt\\BadRequest', // Invalid side.
+                        '-1118' => '\\ccxt\\BadRequest', // New client order ID was empty.
+                        '-1119' => '\\ccxt\\BadRequest', // Original client order ID was empty.
+                        '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
+                        '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
+                        '-1125' => '\\ccxt\\BadRequest', // This listenKey does not exist.
+                        '-1127' => '\\ccxt\\BadRequest', // Lookup interval is too big.
+                        '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid.
+                        '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter.
+                        '-1131' => '\\ccxt\\BadRequest', // WS recvWindow must be less than 60000
+                        '-1134' => '\\ccxt\\BadRequest', // WS strategyType was less than 1000000.
+                        '-1136' => '\\ccxt\\BadRequest', // Invalid newOrderRespType.
+                        '-1145' => '\\ccxt\\BadRequest', // WS cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
+                        '-1151' => '\\ccxt\\BadRequest', // WS Symbol is present multiple times in the list.
+                        //
+                        //        20xx Processing Issues
+                        //
+                        '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
+                        '-2011' => '\\ccxt\\OperationRejected', // CANCEL_REJECTED
+                        '-2013' => '\\ccxt\\OrderNotFound', // Order does not exist.
+                        '-2014' => '\\ccxt\\OperationRejected', // API-key format invalid.
+                        '-2015' => '\\ccxt\\OperationRejected', // Invalid API-key, IP, or permissions for action.
+                        '-2016' => '\\ccxt\\OperationFailed', // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                        '-2018' => '\\ccxt\\OperationFailed', // Balance is insufficient.
+                        '-2019' => '\\ccxt\\OperationFailed', // Margin is insufficient.
+                        '-2020' => '\\ccxt\\OrderNotFillable', // Unable to fill.
                         '-2021' => '\\ccxt\\OrderImmediatelyFillable', // Order would immediately trigger.
-                        '-2022' => '\\ccxt\\InvalidOrder', // ReduceOnly Order is rejected
-                        '-2023' => '\\ccxt\\OperationFailed', // User in liquidation mode now
-                        '-2024' => '\\ccxt\\OperationRejected', // Position is not sufficient
+                        '-2022' => '\\ccxt\\InvalidOrder', // ReduceOnly Order is rejected.
+                        '-2023' => '\\ccxt\\OperationFailed', // User in liquidation mode now.
+                        '-2024' => '\\ccxt\\OperationRejected', // Position is not sufficient.
                         '-2025' => '\\ccxt\\OperationRejected', // Reach max open order limit.
                         '-2026' => '\\ccxt\\InvalidOrder', // This OrderType is not supported when reduceOnly.
                         '-2027' => '\\ccxt\\OperationRejected', // Exceeded the maximum allowable position at current leverage.
                         '-2028' => '\\ccxt\\OperationRejected', // Leverage is smaller than permitted => insufficient margin balance.
                         //
-                        //        4xxx
+                        //        4xxx Filters and other issues
                         //
-                        '-4063' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_REQUEST_TYPE
-                        '-4064' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_TIME_FRAME
-                        '-4065' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_AMOUNT
-                        '-4066' => '\\ccxt\\BadRequest', // INVALID_OPTIONS_EVENT_TYPE
-                        '-4069' => '\\ccxt\\BadRequest', // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4000' => '\\ccxt\\BadRequest', // Invalid order status.
+                        '-4001' => '\\ccxt\\BadRequest', // Price less than 0.
+                        '-4002' => '\\ccxt\\BadRequest', // Price greater than max price.
+                        '-4003' => '\\ccxt\\BadRequest', // Quantity less than zero.
+                        '-4004' => '\\ccxt\\BadRequest', // Quantity less than min quantity.
+                        '-4005' => '\\ccxt\\BadRequest', // Quantity greater than max quantity.
+                        '-4006' => '\\ccxt\\BadRequest', // Stop price less than zero.
+                        '-4007' => '\\ccxt\\BadRequest', // Stop price greater than max price.
+                        '-4008' => '\\ccxt\\BadRequest', // Tick size less than zero.
+                        '-4009' => '\\ccxt\\BadRequest', // Max price less than min price.
+                        '-4010' => '\\ccxt\\BadRequest', // Max qty less than min qty.
+                        '-4011' => '\\ccxt\\BadRequest', // Step size less than zero.
+                        '-4012' => '\\ccxt\\BadRequest', // Max mum orders less than zero.
+                        '-4013' => '\\ccxt\\BadRequest', // Price less than min price.
+                        '-4014' => '\\ccxt\\BadRequest', // Price not increased by tick size.
+                        '-4015' => '\\ccxt\\BadRequest', // Client order id is not valid.
+                        '-4016' => '\\ccxt\\BadRequest', // Price is higher than mark price multiplier cap.
+                        '-4017' => '\\ccxt\\BadRequest', // Multiplier up less than zero.
+                        '-4018' => '\\ccxt\\BadRequest', // Multiplier down less than zero.
+                        '-4019' => '\\ccxt\\BadRequest', // Composite scale too large.
+                        '-4020' => '\\ccxt\\BadRequest', // Target strategy invalid for orderType '%s',reduceOnly '%b'.
+                        '-4021' => '\\ccxt\\BadRequest', // Invalid depth limit.
+                        '-4022' => '\\ccxt\\BadRequest', // market status sent is not valid.
+                        '-4023' => '\\ccxt\\BadRequest', // Qty not increased by step size.
+                        '-4024' => '\\ccxt\\BadRequest', // Price is lower than mark price multiplier floor.
+                        '-4025' => '\\ccxt\\BadRequest', // Multiplier decimal less than zero.
+                        '-4026' => '\\ccxt\\BadRequest', // Commission invalid.
+                        '-4027' => '\\ccxt\\BadRequest', // Invalid account type.
+                        '-4028' => '\\ccxt\\BadRequest', // Invalid leverage
+                        '-4029' => '\\ccxt\\BadRequest', // Tick size precision is invalid.
+                        '-4030' => '\\ccxt\\BadRequest', // Step size precision is invalid.
+                        '-4031' => '\\ccxt\\BadRequest', // Invalid parameter working type
+                        '-4032' => '\\ccxt\\BadRequest', // Exceed maximum cancel order size.
+                        '-4033' => '\\ccxt\\BadRequest', // Insurance account not found.
+                        '-4044' => '\\ccxt\\BadRequest', // Balance Type is invalid.
+                        '-4045' => '\\ccxt\\BadRequest', // Reach max stop order limit.
+                        '-4046' => '\\ccxt\\BadRequest', // No need to change margin type.
+                        '-4047' => '\\ccxt\\BadRequest', // Margin type cannot be changed if there exists open orders.
+                        '-4048' => '\\ccxt\\BadRequest', // Margin type cannot be changed if there exists position.
+                        '-4049' => '\\ccxt\\BadRequest', // Add margin only support for isolated position.
+                        '-4050' => '\\ccxt\\BadRequest', // Cross balance insufficient.
+                        '-4051' => '\\ccxt\\BadRequest', // Isolated balance insufficient.
+                        '-4052' => '\\ccxt\\BadRequest', // No need to change auto add margin.
+                        '-4053' => '\\ccxt\\BadRequest', // Auto add margin only support for isolated position.
+                        '-4054' => '\\ccxt\\BadRequest', // Cannot add position margin => position is 0.
+                        '-4055' => '\\ccxt\\BadRequest', // Amount must be positive.
+                        '-4056' => '\\ccxt\\PermissionDenied', // Invalid api key type.
+                        '-4057' => '\\ccxt\\PermissionDenied', // Invalid api public key
+                        '-4058' => '\\ccxt\\BadRequest', // maxPrice and priceDecimal too large,please check.
+                        '-4059' => '\\ccxt\\BadRequest', // No need to change position side.
+                        '-4060' => '\\ccxt\\BadRequest', // Invalid position side.
+                        '-4061' => '\\ccxt\\InvalidOrder', // Order's position side does not match user's setting.
+                        '-4062' => '\\ccxt\\BadRequest', // Invalid or improper reduceOnly value.
+                        '-4063' => '\\ccxt\\BadRequest', // Invalid options request type
+                        '-4064' => '\\ccxt\\BadRequest', // Invalid options time frame
+                        '-4065' => '\\ccxt\\BadRequest', // Invalid options amount
+                        '-4066' => '\\ccxt\\BadRequest', // Invalid options event type
+                        '-4067' => '\\ccxt\\BadRequest', // Position side cannot be changed if there exists open orders.
+                        '-4068' => '\\ccxt\\BadRequest', // Position side cannot be changed if there exists position.
+                        '-4069' => '\\ccxt\\BadRequest', // Invalid options premium fee
                         '-4070' => '\\ccxt\\BadRequest', // Client options id is not valid.
                         '-4071' => '\\ccxt\\BadRequest', // Invalid options direction
                         '-4072' => '\\ccxt\\OperationRejected', // premium fee is not updated, reject order
-                        '-4073' => '\\ccxt\\BadRequest', // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4073' => '\\ccxt\\BadRequest', // input premium fee is less than 0, reject order
                         '-4074' => '\\ccxt\\BadRequest', // Order amount is bigger than upper boundary or less than 0, reject order
                         '-4075' => '\\ccxt\\BadRequest', // output premium fee is less than 0, reject order
                         '-4076' => '\\ccxt\\OperationRejected', // original fee is too much higher than last fee
                         '-4077' => '\\ccxt\\OperationRejected', // place order amount has reached to limit, reject order
                         '-4078' => '\\ccxt\\OperationFailed', // options internal error
                         '-4079' => '\\ccxt\\BadRequest', // invalid options id
-                        '-4080' => '\\ccxt\\PermissionDenied', // user not found with id => %s
-                        '-4081' => '\\ccxt\\BadRequest', // OPTIONS_NOT_FOUND
+                        '-4080' => '\\ccxt\\PermissionDenied', // user not found
+                        '-4081' => '\\ccxt\\BadRequest', // options not found
+                        '-4082' => '\\ccxt\\BadRequest', // Invalid number of batch place orders.
+                        '-4083' => '\\ccxt\\BadRequest', // Fail to place batch orders.
+                        '-4084' => '\\ccxt\\NotSupported', // Method is not allowed currently. Upcoming soon.
                         '-4085' => '\\ccxt\\BadRequest', // Invalid notional limit coefficient
                         '-4086' => '\\ccxt\\BadRequest', // Invalid price spread threshold
                         '-4087' => '\\ccxt\\PermissionDenied', // User can only place reduce only order
                         '-4088' => '\\ccxt\\PermissionDenied', // User can not place order currently
-                        '-4114' => '\\ccxt\\BadRequest', // INVALID_CLIENT_TRAN_ID_LEN
-                        '-4115' => '\\ccxt\\BadRequest', // DUPLICATED_CLIENT_TRAN_ID
-                        '-4118' => '\\ccxt\\OperationRejected', // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4104' => '\\ccxt\\BadRequest', // Invalid contract type
+                        '-4114' => '\\ccxt\\BadRequest', // clientTranId is not valid
+                        '-4115' => '\\ccxt\\BadRequest', // clientTranId is duplicated
+                        '-4118' => '\\ccxt\\OperationRejected', // ReduceOnly Order Failed. Please check your existing position and open orders
                         '-4131' => '\\ccxt\\OperationRejected', // The counterparty's best price does not meet the PERCENT_PRICE filter limit
-                        '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
+                        '-4135' => '\\ccxt\\BadRequest', // Invalid activation price
+                        '-4137' => '\\ccxt\\BadRequest', // Quantity must be zero with closePosition equals true
+                        '-4138' => '\\ccxt\\BadRequest', // Reduce only must be true with closePosition equals true
+                        '-4139' => '\\ccxt\\BadRequest', // Order type can not be market if it's unable to cancel
+                        '-4140' => '\\ccxt\\OrderImmediatelyFillable', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\BadRequest', // Symbol is closed
+                        '-4142' => '\\ccxt\\OrderImmediatelyFillable', // REJECT => take profit or stop order will be triggered immediately
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
                         '-4161' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
-                        '-4164' => '\\ccxt\\OperationRejected', // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4164' => '\\ccxt\\InvalidOrder', // Order's notional must be no smaller than 5.0 (unless you choose reduce only)
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
-                        '-4183' => '\\ccxt\\BadRequest', // Price is higher than stop price multiplier cap.
-                        '-4184' => '\\ccxt\\BadRequest', // Price is lower than stop price multiplier floor.
+                        '-4183' => '\\ccxt\\InvalidOrder', // Price is higher than stop price multiplier cap.
+                        '-4184' => '\\ccxt\\InvalidOrder', // Price is lower than stop price multiplier floor.
+                        '-4408' => '\\ccxt\\InvalidOrder', // This symbol is in reduce only mode due to regulation requirements. Please upgrade to Binance Credits Trading Mode.
                         //
-                        //        5xxx
+                        //        5xxx Order Execution Issues
                         //
                         '-5021' => '\\ccxt\\OrderNotFillable', // Due to the order could not be filled immediately, the FOK order has been rejected.
                         '-5022' => '\\ccxt\\OrderNotFillable', // Due to the order could not be executed, the Post Only order will be rejected.
-                        //
-                        //        2xxxx
-                        //
-                        '-20121' => '\\ccxt\\ExchangeError', // override commons
-                        '-20124' => '\\ccxt\\ExchangeError', // override commons
-                        '-20130' => '\\ccxt\\ExchangeError', // override commons
-                        '-20132' => '\\ccxt\\ExchangeError', // override commons
-                        '-20194' => '\\ccxt\\ExchangeError', // override commons
-                        '-20195' => '\\ccxt\\ExchangeError', // override commons
-                        '-20196' => '\\ccxt\\ExchangeError', // override commons
-                        '-20198' => '\\ccxt\\ExchangeError', // override commons
-                        '-20204' => '\\ccxt\\ExchangeError', // override commons
-                        //   21xxx - PORTFOLIO MARGIN (is_array(spot docs) && array_key_exists(documented, spot docs))
-                        '-21001' => '\\ccxt\\BadRequest', // Request ID is not a Portfolio Margin Account.
-                        '-21002' => '\\ccxt\\BadRequest', // Portfolio Margin Account doesn't support transfer from margin to futures.
-                        '-21003' => '\\ccxt\\BadResponse', // Fail to retrieve margin assets.
-                        '-21004' => '\\ccxt\\OperationRejected', // User doesn’t have portfolio margin bankruptcy loan
-                        '-21005' => '\\ccxt\\InsufficientFunds', // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
-                        '-21006' => '\\ccxt\\OperationFailed', // User had portfolio margin bankruptcy loan repayment in process
-                        '-21007' => '\\ccxt\\OperationFailed', // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-5028' => '\\ccxt\\OperationFailed', // The requested timestamp is outside the recvWindow of the matching engine
+                        '-5041' => '\\ccxt\\RateLimitExceeded', // Time out for too many requests from this account queueing at the same time.
                     ),
                 ),
                 'exact' => array(
@@ -2820,7 +2924,7 @@ class binance extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#check-server-time                            // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
          *
@@ -3068,7 +3172,7 @@ class binance extends Exchange {
         /**
          * retrieves data on all $markets for binance
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#exchange-information                             // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
@@ -3574,7 +3678,11 @@ class binance extends Exchange {
                     $account['used'] = $this->safe_string($entry, 'crossMarginLocked');
                     $account['total'] = $this->safe_string($entry, 'crossMarginAsset');
                 } else {
-                    $account['total'] = $this->safe_string($entry, 'totalWalletBalance');
+                    $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
+                    $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
+                    $totalUsed = Precise::string_add($usedLinear, $usedInverse);
+                    $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
+                    $account['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
                 }
                 $result[$code] = $account;
             }
@@ -3660,7 +3768,7 @@ class binance extends Exchange {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-information-user_data                    // spot
          * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
          * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
          * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
@@ -3925,7 +4033,7 @@ class binance extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#order-book                           // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
@@ -4190,8 +4298,8 @@ class binance extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$rolling-window-price-change-statistics                        // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#24hr-ticker-price-change-statistics                           // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$rolling-window-price-change-statistics                        // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
@@ -4233,7 +4341,7 @@ class binance extends Exchange {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#symbol-order-book-ticker                         // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
          *
@@ -4270,7 +4378,7 @@ class binance extends Exchange {
         /**
          * fetches the last price for multiple markets
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#symbol-price-ticker                          // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
          *
@@ -4374,7 +4482,7 @@ class binance extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#24hr-ticker-price-change-statistics                          // spot
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
@@ -4544,7 +4652,7 @@ class binance extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#klinecandlestick-data
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
@@ -4944,17 +5052,17 @@ class binance extends Exchange {
          * get the list of most recent trades for a particular $symbol
          * Default fetchTradesMethod
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
          *
          * Other fetchTradesMethod
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#recent-trades-list                                       // publicGetTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
@@ -5088,7 +5196,7 @@ class binance extends Exchange {
          * @ignore
          * edit a trade order
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
          *
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -5283,10 +5391,10 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
+            'orderId' => $id,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_n($params, array( 'newClientOrderId', 'clientOrderId', 'origClientOrderId' ));
-        $request['orderId'] = $id;
-        $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -5303,6 +5411,8 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
+         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
          *
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -5311,16 +5421,32 @@ class binance extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $isPortfolioMargin = null;
+        list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
+        if ($market['linear'] || $isPortfolioMargin) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
+            }
+        }
         $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($market['linear']) {
-            $response = $this->fapiPrivatePutOrder ($this->extend($request, $params));
+            if ($isPortfolioMargin) {
+                $response = $this->papiPutUmOrder ($this->extend($request, $params));
+            } else {
+                $response = $this->fapiPrivatePutOrder ($this->extend($request, $params));
+            }
         } elseif ($market['inverse']) {
-            $response = $this->dapiPrivatePutOrder ($this->extend($request, $params));
+            if ($isPortfolioMargin) {
+                $response = $this->papiPutCmOrder ($this->extend($request, $params));
+            } else {
+                $response = $this->dapiPrivatePutOrder ($this->extend($request, $params));
+            }
         }
         //
         // swap and future
@@ -5356,7 +5482,7 @@ class binance extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
          *
@@ -5367,6 +5493,7 @@ class binance extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -6047,13 +6174,13 @@ class binance extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$test-new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$test-new-order-trade
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
          * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$sor
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#$test-new-order-using-$sor-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$sor
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#$test-new-order-using-$sor-trade
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
@@ -6079,6 +6206,7 @@ class binance extends Exchange {
          * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
          * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -6445,7 +6573,7 @@ class binance extends Exchange {
         /**
          * create a $market order by providing the $symbol, $side and $cost
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $side 'buy' or 'sell'
@@ -6458,15 +6586,17 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -6478,15 +6608,17 @@ class binance extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params));
     }
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market sell order by providing the $symbol and $cost
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -6506,7 +6638,7 @@ class binance extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#query-order-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
@@ -6580,7 +6712,7 @@ class binance extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-orders-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
@@ -6851,7 +6983,7 @@ class binance extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#current-open-orders-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
@@ -7157,7 +7289,7 @@ class binance extends Exchange {
         /**
          * fetches information on multiple closed $orders made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-$orders-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
@@ -7188,7 +7320,7 @@ class binance extends Exchange {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-$orders-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
@@ -7219,7 +7351,7 @@ class binance extends Exchange {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-$orders-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-$orders-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
@@ -7253,7 +7385,7 @@ class binance extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-order-trade
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
          * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
@@ -7347,7 +7479,7 @@ class binance extends Exchange {
         /**
          * cancel all open orders in a $market
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-$symbol-trade
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-all-open-orders-on-a-$symbol-trade
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
          * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-$symbol
          * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
@@ -7586,7 +7718,7 @@ class binance extends Exchange {
         /**
          * fetch all the trades made from a single order
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-trade-list-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
          * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
@@ -7618,7 +7750,7 @@ class binance extends Exchange {
         /**
          * fetch all trades made by the user
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-trade-list-user_data
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
          * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
@@ -11638,7 +11770,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping') || ($api === 'papiV2')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -11732,7 +11864,7 @@ class binance extends Exchange {
         } elseif (str_starts_with($url, 'https://eapi.' . $hostname . '/')) {
             $marketType = 'option';
         } elseif (str_starts_with($url, 'https://papi.' . $hostname . '/')) {
-            $marketType = 'portfoliomargin';
+            $marketType = 'portfolioMargin';
         }
         if ($marketType !== null) {
             $exceptionsForMarketType = $this->safe_dict($this->exceptions, $marketType, array());

@@ -289,6 +289,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'INTERNAL_SERVER_ERROR': ExchangeError,
                 },
                 'broad': {
+                    'Order not found.': OrderNotFound,
                 },
             },
             'commonCurrencies': {
@@ -865,7 +866,8 @@ class onetrading(Exchange, ImplicitAPI):
         #         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcv = self.safe_list(response, 'candlesticks')
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -999,6 +1001,7 @@ class onetrading(Exchange, ImplicitAPI):
             'CLOSED': 'canceled',
             'FAILED': 'failed',
             'STOP_TRIGGERED': 'triggered',
+            'DONE': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1093,7 +1096,7 @@ class onetrading(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': type,
+            'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1108,6 +1111,12 @@ class onetrading(Exchange, ImplicitAPI):
             # 'fee': None,
             'trades': rawTrades,
         }, market)
+
+    def parse_order_type(self, type: Str):
+        types: dict = {
+            'booked': 'limit',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
@@ -1166,6 +1175,9 @@ class onetrading(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_id'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED')
+        params = self.omit(params, 'timeInForce')
+        request['time_in_force'] = timeInForce
         response = self.privatePostAccountOrders(self.extend(request, params))
         #
         #     {
@@ -1205,11 +1217,15 @@ class onetrading(Exchange, ImplicitAPI):
             request['client_id'] = clientOrderId
         else:
             request['order_id'] = id
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateDeleteAccountOrdersOrderId':
+            response = self.privateDeleteAccountOrdersOrderId(self.extend(request, params))
+        else:
+            response = self.privateDeleteAccountOrdersClientClientId(self.extend(request, params))
         #
         # responds with an empty body
         #
-        return response
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """

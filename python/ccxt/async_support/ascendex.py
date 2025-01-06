@@ -1093,6 +1093,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1106,15 +1107,28 @@ class ascendex(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         defaultLimit = self.safe_integer(options, 'limit', 500)
+        until = self.safe_integer(params, 'until')
         if since is not None:
             request['from'] = since
             if limit is None:
                 limit = defaultLimit
             else:
                 limit = min(limit, defaultLimit)
-            request['to'] = self.sum(since, limit * duration * 1000, 1)
+            toWithLimit = self.sum(since, limit * duration * 1000, 1)
+            if until is not None:
+                request['to'] = min(toWithLimit, until + 1)
+            else:
+                request['to'] = toWithLimit
+        elif until is not None:
+            request['to'] = until + 1
+            if limit is None:
+                limit = defaultLimit
+            else:
+                limit = min(limit, defaultLimit)
+            request['from'] = until - (limit * duration * 1000)
         elif limit is not None:
             request['n'] = limit  # max 500
+        params = self.omit(params, 'until')
         response = await self.v1PublicGetBarhist(self.extend(request, params))
         #
         #     {

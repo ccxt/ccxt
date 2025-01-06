@@ -443,6 +443,7 @@ class mexc extends mexc$1 {
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {
@@ -695,10 +696,12 @@ class mexc extends mexc$1 {
                             'PO': true,
                             'GTD': false,
                         },
-                        'hedged': false,
-                        // exchange-supported features
-                        'selfTradePrevention': false,
+                        'hedged': true,
                         'trailing': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -732,7 +735,7 @@ class mexc extends mexc$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': 7,
+                        'daysBack': 7,
                         'daysBackCanceled': 7,
                         'untilDays': 7,
                         'trigger': false,
@@ -758,10 +761,10 @@ class mexc extends mexc$1 {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'hedged': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
                     },
-                    'createOrders': {
-                        'max': 50,
-                    },
+                    'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
@@ -788,7 +791,7 @@ class mexc extends mexc$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': undefined,
                         'untilDays': 90,
                         'trigger': true,
@@ -2248,8 +2251,10 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2267,8 +2272,10 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, this.extend(req, params));
     }
     /**
      * @method

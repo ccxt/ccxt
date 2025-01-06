@@ -1206,7 +1206,6 @@ class okx(Exchange, ImplicitAPI):
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                # https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': True,
                     'createOrder': {
@@ -1226,7 +1225,7 @@ class okx(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -1235,12 +1234,12 @@ class okx(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': True,
-                        # even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': True,
                         'trailing': True,
-                        'twap': True,
-                        'iceberg': True,
-                        'oco': True,
+                        'iceberg': True,  # todo implement
+                        'leverage': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
                     },
                     'createOrders': {
                         'max': 20,
@@ -1266,7 +1265,7 @@ class okx(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': 90,  # 3 months
+                        'daysBack': 90,  # 3 months
                         'daysBackCanceled': 1 / 12,  # 2 hour
                         'untilDays': None,
                         'trigger': True,
@@ -1636,7 +1635,7 @@ class okx(Exchange, ImplicitAPI):
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': self.parse_number(strikePrice),
             'optionType': optionType,
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
@@ -1835,7 +1834,7 @@ class okx(Exchange, ImplicitAPI):
                     }
             firstChain = self.safe_dict(chains, 0, {})
             result[code] = {
-                'info': None,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': self.safe_string(firstChain, 'name'),

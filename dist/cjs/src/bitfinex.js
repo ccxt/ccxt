@@ -420,8 +420,12 @@ class bitfinex extends bitfinex$1 {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true, // todo: unify
-                        // todo: leverage unify
+                        'trailing': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 75,
@@ -447,7 +451,7 @@ class bitfinex extends bitfinex$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': false,

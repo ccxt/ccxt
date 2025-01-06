@@ -305,11 +305,9 @@ class bitmex extends Exchange {
                             'trailing' => true,
                             'marketBuyRequiresPrice' => false,
                             'marketBuyByCost' => false,
-                            // exchange-supported features
-                            // 'selfTradePrevention' => true,
-                            // 'twap' => false,
-                            // 'iceberg' => false,
-                            // 'oco' => false,
+                            'leverage' => false,
+                            'selfTradePrevention' => false,
+                            'iceberg' => true, // todo
                         ),
                         'createOrders' => null,
                         'fetchMyTrades' => array(
@@ -340,7 +338,7 @@ class bitmex extends Exchange {
                         'fetchClosedOrders' => array(
                             'marginMode' => false,
                             'limit' => 500,
-                            'daysBackClosed' => null,
+                            'daysBack' => null,
                             'daysBackCanceled' => null,
                             'untilDays' => 1000000,
                             'trigger' => false,

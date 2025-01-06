@@ -321,8 +321,11 @@ class woofipro extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
-                        // exchange specific
-                        // 'iceberg' => true,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -348,7 +351,7 @@ class woofipro extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => true,
@@ -369,7 +372,7 @@ class woofipro extends Exchange {
                         'attachedStopLossTakeProfit' => array(
                             // todo => implementation needs unification
                             'triggerPriceType' => null,
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                     ),
                 ),

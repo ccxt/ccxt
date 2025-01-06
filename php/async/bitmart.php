@@ -713,14 +713,11 @@ class bitmart extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        'marketBuyRequiresPrice' => true,
+                        'marketBuyRequiresPrice' => false, // todo => https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
                         'marketBuyByCost' => true,
-                        // exchange-supported features
-                        // 'leverage' => true,
-                        // 'selfTradePrevention' => false,
-                        // 'twap' => false,
-                        // 'iceberg' => false,
-                        // 'oco' => false,
+                        'leverage' => true, // todo => implement
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -746,7 +743,7 @@ class bitmart extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 200,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,
@@ -775,7 +772,7 @@ class bitmart extends Exchange {
                                 'mark' => true,
                                 'index' => false,
                             ),
-                            'limitPrice' => false,
+                            'price' => false,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -813,7 +810,7 @@ class bitmart extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 200,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => null,
                         'trigger' => false,

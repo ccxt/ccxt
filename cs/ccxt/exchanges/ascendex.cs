@@ -1155,6 +1155,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1172,6 +1173,7 @@ public partial class ascendex : Exchange
         object duration = this.parseTimeframe(timeframe);
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object defaultLimit = this.safeInteger(options, "limit", 500);
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = since;
@@ -1182,11 +1184,30 @@ public partial class ascendex : Exchange
             {
                 limit = mathMin(limit, defaultLimit);
             }
-            ((IDictionary<string,object>)request)["to"] = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            object toWithLimit = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["to"] = mathMin(toWithLimit, add(until, 1));
+            } else
+            {
+                ((IDictionary<string,object>)request)["to"] = toWithLimit;
+            }
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = add(until, 1);
+            if (isTrue(isEqual(limit, null)))
+            {
+                limit = defaultLimit;
+            } else
+            {
+                limit = mathMin(limit, defaultLimit);
+            }
+            ((IDictionary<string,object>)request)["from"] = subtract(until, (multiply(multiply(limit, duration), 1000)));
         } else if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["n"] = limit; // max 500
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.v1PublicGetBarhist(this.extend(request, parameters));
         //
         //     {

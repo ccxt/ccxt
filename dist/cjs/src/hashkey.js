@@ -355,13 +355,11 @@ class hashkey extends hashkey$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': false,
-                        // 'marketBuyByCost': false,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 20,
@@ -1457,9 +1455,15 @@ class hashkey extends hashkey$1 {
             side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeBoolN(trade, ['isMaker', 'isMarker', 'ibm']);
+        const isMaker = this.safeBoolN(trade, ['isMaker', 'isMarker']);
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        const isBuyerMaker = this.safeBool(trade, 'ibm');
+        // if public trade
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = isBuyerMaker ? 'sell' : 'buy';
         }
         let feeCost = this.safeString(trade, 'commission');
         let feeCurrncyId = this.safeString(trade, 'commissionAsset');
@@ -2437,8 +2441,10 @@ class hashkey extends hashkey$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        params['cost'] = cost;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method

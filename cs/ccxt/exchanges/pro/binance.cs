@@ -4854,7 +4854,8 @@ public partial class binance : ccxt.binance
             ((WebSocketClient)client).reject(message, id);
         }
         // reset connection if 5xx error
-        if (isTrue(isEqual(this.safeString(code, 0), "5")))
+        object codeString = this.safeString(error, "code");
+        if (isTrue(isTrue((!isEqual(codeString, null))) && isTrue((isEqual(getValue(codeString, 0), "5")))))
         {
             ((WebSocketClient)client).reset(message);
         }

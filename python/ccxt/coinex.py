@@ -532,11 +532,11 @@ class coinex(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'marketBuyRequiresPrice': True,
-                        # 'marketBuyByCost': True,
-                        # 'selfTradePrevention': True,
-                        # 'iceberg': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo: implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -562,7 +562,7 @@ class coinex(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,

@@ -761,6 +761,7 @@ interface binance {
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;
     papiDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    papiV2GetUmAccount(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class binance extends _binance {
 }

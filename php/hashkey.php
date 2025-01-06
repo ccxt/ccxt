@@ -352,13 +352,11 @@ class hashkey extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice' => false,
-                        // 'marketBuyByCost' => false,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'iceberg' => false,
-                        // 'oco' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true, // todo fix
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -1460,9 +1458,15 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker', 'ibm' ));
+        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        }
+        $isBuyerMaker = $this->safe_bool($trade, 'ibm');
+        // if public $trade
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $feeCost = $this->safe_string($trade, 'commission');
         $feeCurrncyId = $this->safe_string($trade, 'commissionAsset');
@@ -2461,8 +2465,10 @@ class hashkey extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params));
     }
 
     public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {

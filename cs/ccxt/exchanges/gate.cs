@@ -695,7 +695,7 @@ public partial class gate : Exchange
                 } },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
@@ -706,7 +706,6 @@ public partial class gate : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -716,6 +715,9 @@ public partial class gate : Exchange
                         { "trailing", false },
                         { "iceberg", true },
                         { "selfTradePrevention", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 40 },
@@ -744,12 +746,15 @@ public partial class gate : Exchange
                         { "trailing", false },
                         { "limit", 100 },
                         { "untilDays", 30 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1000 },
                     } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
                 } },
                 { "forDerivatives", new Dictionary<string, object>() {
                     { "extends", "spot" },
