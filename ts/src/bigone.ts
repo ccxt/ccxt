@@ -388,7 +388,9 @@ export default class bigone extends Exchange {
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': undefined,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': undefined,
