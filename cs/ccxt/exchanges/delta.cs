@@ -1446,12 +1446,13 @@ public partial class delta : Exchange
      * @method
      * @name delta#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.delta.exchange/#get-ohlc-candles
+     * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1465,16 +1466,22 @@ public partial class delta : Exchange
         };
         object duration = this.parseTimeframe(timeframe);
         limit = ((bool) isTrue(limit)) ? limit : 2000; // max 2000
+        object until = this.safeIntegerProduct(parameters, "until", 0.001);
+        object untilIsDefined = (!isEqual(until, null));
+        if (isTrue(untilIsDefined))
+        {
+            until = this.parseToInt(until);
+        }
         if (isTrue(isEqual(since, null)))
         {
-            object end = this.seconds();
+            object end = ((bool) isTrue(untilIsDefined)) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
             ((IDictionary<string,object>)request)["start"] = subtract(end, multiply(limit, duration));
         } else
         {
             object start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start"] = start;
-            ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(limit, duration));
+            ((IDictionary<string,object>)request)["end"] = ((bool) isTrue(untilIsDefined)) ? until : this.sum(start, multiply(limit, duration));
         }
         object price = this.safeString(parameters, "price");
         if (isTrue(isEqual(price, "mark")))
@@ -1487,7 +1494,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        parameters = this.omit(parameters, "price");
+        parameters = this.omit(parameters, new List<object>() {"price", "until"});
         object response = await this.publicGetHistoryCandles(this.extend(request, parameters));
         //
         //     {

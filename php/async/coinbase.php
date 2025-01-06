@@ -2517,7 +2517,7 @@ class coinbase extends Exchange {
             list($request, $params) = Async\await($this->prepare_account_request_with_currency_code($code, $limit, $params));
             // for $pagination use parameter 'starting_after'
             // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-            // eg => instance.last_json_response.pagination.next_starting_after
+            // eg => instance.last_http_response -> $pagination->next_starting_after
             $response = Async\await($this->v2PrivateGetAccountsAccountIdTransactions ($this->extend($request, $params)));
             $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
             $length = count($ledger);

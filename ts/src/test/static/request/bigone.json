@@ -310,7 +310,95 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=100&time=2025-01-07T04%3A00%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=100&time=2025-01-04T00%3A00%3A00.001Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=4&time=2025-01-03T03%3A59%3A59.999Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=500&time=2025-01-04T00%3A00%3A00.001Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=4&time=2025-01-04T00%3A00%3A00.001Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://big.one/api/v3/asset_pairs/BTC-USDT/candles?period=hour1&limit=4&time=2025-01-03T04%3A00%3A00.000Z",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            }              
         ],
         "cancelOrder": [
             {

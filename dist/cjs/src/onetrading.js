@@ -275,7 +275,9 @@ class onetrading extends onetrading$1 {
                     'CF_RATELIMIT': errors.DDoSProtection,
                     'INTERNAL_SERVER_ERROR': errors.ExchangeError,
                 },
-                'broad': {},
+                'broad': {
+                    'Order not found.': errors.OrderNotFound,
+                },
             },
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
@@ -1002,6 +1004,7 @@ class onetrading extends onetrading$1 {
             'CLOSED': 'canceled',
             'FAILED': 'failed',
             'STOP_TRIGGERED': 'triggered',
+            'DONE': 'closed',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1096,7 +1099,7 @@ class onetrading extends onetrading$1 {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1111,6 +1114,12 @@ class onetrading extends onetrading$1 {
             // 'fee': undefined,
             'trades': rawTrades,
         }, market);
+    }
+    parseOrderType(type) {
+        const types = {
+            'booked': 'limit',
+        };
+        return this.safeString(types, type, type);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1175,6 +1184,9 @@ class onetrading extends onetrading$1 {
             request['client_id'] = clientOrderId;
             params = this.omit(params, ['clientOrderId', 'client_id']);
         }
+        const timeInForce = this.safeString2(params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+        params = this.omit(params, 'timeInForce');
+        request['time_in_force'] = timeInForce;
         const response = await this.privatePostAccountOrders(this.extend(request, params));
         //
         //     {
@@ -1216,11 +1228,17 @@ class onetrading extends onetrading$1 {
         else {
             request['order_id'] = id;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateDeleteAccountOrdersOrderId') {
+            response = await this.privateDeleteAccountOrdersOrderId(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteAccountOrdersClientClientId(this.extend(request, params));
+        }
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder(response);
     }
     /**
      * @method

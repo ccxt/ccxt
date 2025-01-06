@@ -2469,7 +2469,7 @@ export default class binance extends Exchange {
                         //
                         '-2010': InvalidOrder,
                         '-2011': OperationRejected,
-                        '-2013': BadRequest,
+                        '-2013': OrderNotFound,
                         '-2014': OperationRejected,
                         '-2015': OperationRejected,
                         '-2016': OperationFailed,

@@ -2460,7 +2460,7 @@ class binance extends Exchange {
                         //
                         '-2010' => '\\ccxt\\InvalidOrder', // NEW_ORDER_REJECTED
                         '-2011' => '\\ccxt\\OperationRejected', // CANCEL_REJECTED
-                        '-2013' => '\\ccxt\\BadRequest', // Order does not exist.
+                        '-2013' => '\\ccxt\\OrderNotFound', // Order does not exist.
                         '-2014' => '\\ccxt\\OperationRejected', // API-key format invalid.
                         '-2015' => '\\ccxt\\OperationRejected', // Invalid API-key, IP, or permissions for action.
                         '-2016' => '\\ccxt\\OperationFailed', // No trading window could be found for the symbol. Try ticker/24hrs instead.

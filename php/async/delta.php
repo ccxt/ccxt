@@ -1496,13 +1496,14 @@ class delta extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
              *
-             * @see https://docs.delta.exchange/#get-ohlc-candles
+             * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1512,14 +1513,19 @@ class delta extends Exchange {
             );
             $duration = $this->parse_timeframe($timeframe);
             $limit = $limit ? $limit : 2000; // max 2000
+            $until = $this->safe_integer_product($params, 'until', 0.001);
+            $untilIsDefined = ($until !== null);
+            if ($untilIsDefined) {
+                $until = $this->parse_to_int($until);
+            }
             if ($since === null) {
-                $end = $this->seconds();
+                $end = $untilIsDefined ? $until : $this->seconds();
                 $request['end'] = $end;
                 $request['start'] = $end - $limit * $duration;
             } else {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $limit * $duration);
+                $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limit * $duration);
             }
             $price = $this->safe_string($params, 'price');
             if ($price === 'mark') {
@@ -1529,7 +1535,7 @@ class delta extends Exchange {
             } else {
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, 'price');
+            $params = $this->omit($params, array( 'price', 'until' ));
             $response = Async\await($this->publicGetHistoryCandles ($this->extend($request, $params)));
             //
             //     {

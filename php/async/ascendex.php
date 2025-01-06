@@ -1134,6 +1134,7 @@ class ascendex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1147,6 +1148,7 @@ class ascendex extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $defaultLimit = $this->safe_integer($options, 'limit', 500);
+            $until = $this->safe_integer($params, 'until');
             if ($since !== null) {
                 $request['from'] = $since;
                 if ($limit === null) {
@@ -1154,10 +1156,24 @@ class ascendex extends Exchange {
                 } else {
                     $limit = min ($limit, $defaultLimit);
                 }
-                $request['to'] = $this->sum($since, $limit * $duration * 1000, 1);
+                $toWithLimit = $this->sum($since, $limit * $duration * 1000, 1);
+                if ($until !== null) {
+                    $request['to'] = min ($toWithLimit, $until + 1);
+                } else {
+                    $request['to'] = $toWithLimit;
+                }
+            } elseif ($until !== null) {
+                $request['to'] = $until + 1;
+                if ($limit === null) {
+                    $limit = $defaultLimit;
+                } else {
+                    $limit = min ($limit, $defaultLimit);
+                }
+                $request['from'] = $until - ($limit * $duration * 1000);
             } elseif ($limit !== null) {
                 $request['n'] = $limit; // max 500
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->v1PublicGetBarhist ($this->extend($request, $params)));
             //
             //     {

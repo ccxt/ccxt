@@ -355,6 +355,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
+                        'v5/account/withdrawal': 5,
                         # asset
                         'v5/asset/exchange/query-coin-list': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/convert-result-query': 0.5,  # 100/s => cost = 50 / 100 = 0.5
@@ -1072,8 +1073,78 @@ class bybit(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
+                    'SOL': 'SOL',
+                    'ACA': 'ACA',
+                    'ADA': 'ADA',
+                    'ALGO': 'ALGO',
+                    'APT': 'APTOS',
+                    'AR': 'AR',
+                    'ARBONE': 'ARBI',
+                    'AVAXC': 'CAVAX',
+                    'AVAXX': 'XAVAX',
+                    'ATOM': 'ATOM',
+                    'BCH': 'BCH',
+                    'BEP2': 'BNB',
+                    'CHZ': 'CHZ',
+                    'DCR': 'DCR',
+                    'DGB': 'DGB',
+                    'DOGE': 'DOGE',
+                    'DOT': 'DOT',
+                    'EGLD': 'EGLD',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'ETHF': 'ETHF',
+                    'ETHW': 'ETHW',
+                    'FIL': 'FIL',
+                    'STEP': 'FITFI',
+                    'FLOW': 'FLOW',
+                    'FTM': 'FTM',
+                    'GLMR': 'GLMR',
+                    'HBAR': 'HBAR',
+                    'HNT': 'HNT',
+                    'ICP': 'ICP',
+                    'ICX': 'ICX',
+                    'KDA': 'KDA',
+                    'KLAY': 'KLAY',
+                    'KMA': 'KMA',
+                    'KSM': 'KSM',
+                    'LTC': 'LTC',
+                    # 'TERRA': 'LUNANEW',
+                    # 'TERRACLASSIC': 'LUNA',
+                    'MATIC': 'MATIC',
+                    'MINA': 'MINA',
+                    'MOVR': 'MOVR',
+                    'NEAR': 'NEAR',
+                    'NEM': 'NEM',
+                    'OASYS': 'OAS',
+                    'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'ONE': 'ONE',
+                    'OPTIMISM': 'OP',
+                    'POKT': 'POKT',
+                    'QTUM': 'QTUM',
+                    'RVN': 'RVN',
+                    'SC': 'SC',
+                    'SCRT': 'SCRT',
+                    'STX': 'STX',
+                    'THETA': 'THETA',
+                    'TON': 'TON',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAXP',
+                    'XDC': 'XDC',
+                    'XEC': 'XEC',
+                    'XLM': 'XLM',
+                    'XRP': 'XRP',
+                    'XTZ': 'XTZ',
+                    'XYM': 'XYM',
+                    'ZEN': 'ZEN',
+                    'ZIL': 'ZIL',
+                    'ZKSYNC': 'ZKSYNC',
+                    # todo: uncomment after consensus
+                    # 'CADUCEUS': 'CMP',
+                    # 'KON': 'KON',  # konpay, "konchain"
+                    # 'AURORA': 'AURORA',
+                    # 'BITCOINGOLD': 'BTG',
                 },
                 'networksById': {
                     'ETH': 'ERC20',
@@ -5058,12 +5129,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         address = self.safe_string(depositAddress, 'addressDeposit')
         tag = self.safe_string(depositAddress, 'tagDeposit')
         code = self.safe_string(currency, 'code')
-        chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
         return {
             'info': depositAddress,
             'currency': code,
-            'network': chain,
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain'), code),
             'address': address,
             'tag': tag,
         }
@@ -5083,6 +5153,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         request: dict = {
             'coin': currency['id'],
         }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chainType'] = self.network_code_to_id(networkCode, code)
         response = self.privateGetV5AssetDepositQueryAddress(self.extend(request, params))
         #
         #     {
@@ -5123,40 +5197,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
-        networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
         currency = self.currency(code)
-        request: dict = {
-            'coin': currency['id'],
-        }
-        if networkId is not None:
-            request['chainType'] = networkId
-        response = self.privateGetV5AssetDepositQueryAddress(self.extend(request, query))
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "success",
-        #         "result": {
-        #             "coin": "USDT",
-        #             "chains": [
-        #                 {
-        #                     "chainType": "ERC20",
-        #                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
-        #                     "tagDeposit": "",
-        #                     "chain": "ETH"
-        #                 }
-        #             ]
-        #         },
-        #         "retExtInfo": {},
-        #         "time": 1672192792860
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        chains = self.safe_list(result, 'chains', [])
-        chainsIndexedById = self.index_by(chains, 'chain')
-        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
-        addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
-        return self.parse_deposit_address(addressObject, currency)
+        networkCode, paramsOmited = self.handle_network_code_and_params(params)
+        indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
+        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        return indexedAddresses[selectedNetworkCode]
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

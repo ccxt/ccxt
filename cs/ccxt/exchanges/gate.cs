@@ -706,7 +706,6 @@ public partial class gate : Exchange
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", true },
                             { "PO", true },
@@ -2487,7 +2486,8 @@ public partial class gate : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)chainKey] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(chainKey, this.safeString(fee, "currency"));
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
                         { "percentage", false },

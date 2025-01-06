@@ -443,6 +443,7 @@ class mexc extends mexc$1 {
                         '1h': '60m',
                         '4h': '4h',
                         '1d': '1d',
+                        '1w': '1W',
                         '1M': '1M',
                     },
                     'swap': {

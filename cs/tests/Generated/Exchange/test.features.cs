@@ -69,6 +69,7 @@ public partial class testMainClass : BaseTest
                     { "price", false },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
+                    { "GTC", false },
                     { "IOC", false },
                     { "FOK", false },
                     { "PO", false },

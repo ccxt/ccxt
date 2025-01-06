@@ -992,7 +992,7 @@ class okx extends Exchange {
                     'BHP' => 'BHP',
                     'APT' => 'Aptos',
                     'ARBONE' => 'Arbitrum One',
-                    'AVAXC' => 'Avalanche C',
+                    'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
                     'ARK' => 'ARK',
                     'AR' => 'Arweave',
@@ -1807,8 +1807,8 @@ class okx extends Exchange {
                 $currencyActive = ($active) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                    $parts = explode('-', $networkId);
-                    $chainPart = $this->safe_string($parts, 1, $networkId);
+                    $parts = explode(mb_substr('-', $networkId), 1);
+                    $chainPart = implode('-', $parts);
                     $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
