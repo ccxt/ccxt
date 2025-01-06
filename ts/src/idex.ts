@@ -829,7 +829,7 @@ export default class idex extends Exchange {
             request['limit'] = limit;
         }
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, "fetchFundingRateHistory", 'until');
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['end'] = until;
         }
