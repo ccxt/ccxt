@@ -322,6 +322,54 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "funding_rate_history": [
+                            {
+                                "timestamp": 1736157600000,
+                                "funding_rate": "-0.000008872"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "info": {
+                            "timestamp": 1736157600000,
+                            "funding_rate": "-0.000008872"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "fundingRate": -0.000008872,
+                        "timestamp": 1736157600000,
+                        "datetime": "2025-01-06T10:00:00.000Z"
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": -0.000008872,
+                    "fundingTimestamp": 1736157600000,
+                    "fundingDatetime": "2025-01-06T10:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
         ]
     }
 }

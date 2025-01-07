@@ -60,7 +60,18 @@
                         "until": 1736165703134
                     }
                 ],
-                "output": "{\"instrument_name\":\"BTC-PERP\",\"from_timestamp\":1736155500128,\"to_timestamp\":1736165703134}"
+                "output": "{\"instrument_name\":\"BTC-PERP\",\"start_timestamp\":1736155500128,\"to_timestamp\":1736165703134}"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.lyra.finance/public/get_funding_rate_history",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": "{\"instrument_name\":\"BTC-PERP\"}"
             }
         ]
     }

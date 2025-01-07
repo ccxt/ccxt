@@ -4,7 +4,7 @@
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -66,8 +66,8 @@ export default class derive extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -78,7 +78,7 @@ export default class derive extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': undefined,
                 'fetchMarketLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': false,
@@ -96,10 +96,10 @@ export default class derive extends Exchange {
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': 'emulated',
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -802,7 +802,7 @@ export default class derive extends Exchange {
             'instrument_name': market['id'],
         };
         if (since !== undefined) {
-            request['from_timestamp'] = since;
+            request['start_timestamp'] = since;
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
@@ -839,6 +839,60 @@ export default class derive extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+    }
+
+    /**
+     * @method
+     * @name derive#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        const response = await this.fetchFundingRateHistory (symbol, undefined, 1, params);
+        //
+        // [
+        //     {
+        //         "info": {
+        //             "timestamp": 1736157600000,
+        //             "funding_rate": "-0.000008872"
+        //         },
+        //         "symbol": "BTC/USD:USDC",
+        //         "fundingRate": -0.000008872,
+        //         "timestamp": 1736157600000,
+        //         "datetime": "2025-01-06T10:00:00.000Z"
+        //     }
+        // ]
+        //
+        const data = this.safeDict (response, 0);
+        return this.parseFundingRate (data);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        const symbol = this.safeString (contract, 'symbol');
+        const fundingTimestamp = this.safeInteger (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
