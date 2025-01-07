@@ -3330,7 +3330,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const swapMarkets = await this.fetchSwapMarkets ();
-        return this.parseOpenInterests (swapMarkets, symbols, 'name') as OpenInterests;
+        return this.parseOpenInterests (swapMarkets, symbols) as OpenInterests;
     }
 
     /**

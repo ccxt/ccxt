@@ -8557,7 +8557,7 @@ export default class htx extends Exchange {
             //
         }
         const data = this.safeList (response, 'data', []);
-        return this.parseOpenInterests (data, symbols, 'contract_code') as OpenInterests;
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
     /**

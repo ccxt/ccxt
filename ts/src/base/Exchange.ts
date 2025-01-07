@@ -6469,13 +6469,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, symbols: Strings = undefined, marketIdKey: Str = undefined): OpenInterests {
+    parseOpenInterests (response, symbols: Strings = undefined): OpenInterests {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const marketId = this.safeString (entry, 'symbol', marketIdKey);
-            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            const parsed = this.parseOpenInterest (entry, market);
+            const parsed = this.parseOpenInterest (entry);
             result[parsed['symbol']] = parsed;
         }
         return this.filterByArray (result, 'symbol', symbols);
