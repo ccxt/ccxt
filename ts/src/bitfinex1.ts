@@ -1397,7 +1397,7 @@ export default class bitfinex1 extends Exchange {
 
     /**
      * @method
-     * @name bitfinex#fetchOHLCV
+     * @name bitfinex1#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1405,6 +1405,7 @@ export default class bitfinex1 extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1422,9 +1423,17 @@ export default class bitfinex1 extends Exchange {
             'sort': 1,
             'limit': limit,
         };
+        const until = this.safeInteger (params, 'until');
         if (since !== undefined) {
             request['start'] = since;
+        } else if (until !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            request['start'] = until - ((limit - 1) * duration * 1000);
         }
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        params = this.omit (params, 'until');
         const response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         //
         //     [

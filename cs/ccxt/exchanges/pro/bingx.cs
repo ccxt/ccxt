@@ -1670,13 +1670,10 @@ public partial class bingx : ccxt.bingx
             object balance = getValue(data, i);
             object currencyId = this.safeString(balance, "a");
             object code = this.safeCurrencyCode(currencyId);
-            object account = ((bool) isTrue((inOp(getValue(this.balance, type), code)))) ? getValue(getValue(this.balance, type), code) : this.account();
+            object account = this.account();
+            ((IDictionary<string,object>)account)["info"] = balance;
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "lk");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "wb");
-            object balanceChange = this.safeString(balance, "bc");
-            if (isTrue(!isEqual(getValue(account, "used"), null)))
-            {
-                ((IDictionary<string,object>)account)["used"] = Precise.stringSub(this.safeString(account, "used"), balanceChange);
-            }
             ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         }
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));

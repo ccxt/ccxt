@@ -1423,7 +1423,7 @@ public partial class bitfinex1 : Exchange
 
     /**
      * @method
-     * @name bitfinex#fetchOHLCV
+     * @name bitfinex1#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1431,6 +1431,7 @@ public partial class bitfinex1 : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1453,10 +1454,20 @@ public partial class bitfinex1 : Exchange
             { "sort", 1 },
             { "limit", limit },
         };
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start"] = since;
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            object duration = this.parseTimeframe(timeframe);
+            ((IDictionary<string,object>)request)["start"] = subtract(until, (multiply(multiply((subtract(limit, 1)), duration), 1000)));
         }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = until;
+        }
+        parameters = this.omit(parameters, "until");
         object response = await this.v2GetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters));
         //
         //     [

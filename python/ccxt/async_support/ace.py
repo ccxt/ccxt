@@ -154,6 +154,56 @@ class ace(Exchange, ImplicitAPI):
             'options': {
                 'brokerId': 'ccxt',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,  # not supported
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {

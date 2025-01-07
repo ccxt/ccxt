@@ -205,6 +205,16 @@ class binanceus extends binance {
                     },
                 },
             },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 }
