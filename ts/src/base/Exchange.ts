@@ -6353,15 +6353,6 @@ export default class Exchange {
         return result;
     }
 
-    parseOpenInterests (response, market: Market = undefined): OpenInterests {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseOpenInterest (response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
-    }
-
     parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -6476,6 +6467,18 @@ export default class Exchange {
 
     parseOpenInterest (interest, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
+    }
+
+    parseOpenInterests (response, symbols: Strings = undefined, marketIdKey: Str = undefined): OpenInterests {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'symbol', marketIdKey);
+            const market = this.safeMarket (marketId);
+            const parsed = this.parseOpenInterest (entry, market);
+            result[parsed['symbol']] = parsed;
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseOpenInterestsHistory (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
