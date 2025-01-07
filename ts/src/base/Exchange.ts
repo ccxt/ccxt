@@ -6474,7 +6474,7 @@ export default class Exchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const marketId = this.safeString (entry, 'symbol', marketIdKey);
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const parsed = this.parseOpenInterest (entry, market);
             result[parsed['symbol']] = parsed;
         }
