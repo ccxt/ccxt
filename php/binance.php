@@ -1119,6 +1119,7 @@ class binance extends Exchange {
                         'um/symbolConfig' => 1,
                         'cm/accountConfig' => 1,
                         'cm/symbolConfig' => 1,
+                        'rateLimit/order' => 1,
                     ),
                     'post' => array(
                         'um/order' => 1,

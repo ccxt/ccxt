@@ -2338,6 +2338,9 @@ abstract class binanceus extends \ccxt\binance {
     public function papi_get_cm_symbolconfig($params = array()) {
         return $this->request('cm/symbolConfig', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function papi_get_ratelimit_order($params = array()) {
+        return $this->request('rateLimit/order', 'papi', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function papi_post_um_order($params = array()) {
         return $this->request('um/order', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4776,6 +4779,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function papiGetCmSymbolConfig($params = array()) {
         return $this->request('cm/symbolConfig', 'papi', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function papiGetRateLimitOrder($params = array()) {
+        return $this->request('rateLimit/order', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiPostUmOrder($params = array()) {
         return $this->request('um/order', 'papi', 'POST', $params, null, null, array("cost" => 1));
