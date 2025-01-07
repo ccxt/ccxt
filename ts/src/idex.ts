@@ -140,6 +140,7 @@ export default class idex extends Exchange {
                         'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
                         'orderbook': { 'cost': 1, 'bundled': 10 },
                         'fundingRates': { 'cost': 1, 'bundled': 10 },
+                        'gasFees': { 'cost': 1 }, // todo
                     },
                 },
                 'private': {
@@ -155,7 +156,6 @@ export default class idex extends Exchange {
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
                         'withdrawals': { 'cost': 1, 'bundled': 10 },
-                        'gasFees': { 'cost': 1 }, // todo
                         'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
                         'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
@@ -287,6 +287,26 @@ export default class idex extends Exchange {
         //        "liquidityRemovalMinimum": "0.40000000",
         //        "blockConfirmationDelay": "64"
         //    }
+        //     {
+        //         timeZone: 'UTC',
+        //         serverTime: '1736243247285',
+        //         exchangeContractAddress: '0x08ea6C351d08fAc8E177267898612A5fc6D92349',
+        //         chainId: '94524',
+        //         quoteTokenAddress: '0xFbDa5F676cB37624f28265A144A48B0d6e87d3b6',
+        //         stargateBridgeAdapterContractAddress: '0x435f51084936E7BFC7ad0635d7032c7A2B374982',
+        //         totalOpenInterest: '940061.84122000',
+        //         volume24h: '7694542.17358000',
+        //         totalVolume: '566918696.44752000',
+        //         totalTrades: '1467408',
+        //         idexTokenAddressArbitrum: '0xdcfa0fab3ae2cac30633b7f4852fe4a50924e421',
+        //         idexTokenAddressEthereum: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+        //         idexTokenAddressPolygon: '0x9cb74c8032b007466865f060ad2c46145d45553d',
+        //         idexTokenPrice: '0.06718000',
+        //         idexMarketCap: '61419737.00000000',
+        //         defaultMakerFeeRate: '-0.00005000',
+        //         defaultTakerFeeRate: '0.00030000',
+        //         withdrawalMinimum: '1.00000000'
+        //     }
         //
         const maker = this.safeNumber (response, 'makerFeeRate');
         const taker = this.safeNumber (response, 'takerFeeRate');
@@ -1871,45 +1891,55 @@ export default class idex extends Exchange {
         request['nonce'] = this.uuidv1 ();
         const response = await this.privateGetWallets (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
-        //            totalPortfolioValueUsd: "0.00",
-        //            time: "1678342148086"
-        //        },
-        //        {
-        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
-        //            totalPortfolioValueUsd: "15.90",
-        //            time: "1691697811659"
-        //        }
-        //    ]
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
         //
         return this.parseDepositAddress (response);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
-        //    [
-        //        {
-        //            address: "0x37A1827CA64C94A26028bDCb43FBDCB0bf6DAf5B",
-        //            totalPortfolioValueUsd: "0.00",
-        //            time: "1678342148086"
-        //        },
-        //        {
-        //            address: "0x0Ef3456E616552238B0c562d409507Ed6051A7b3",
-        //            totalPortfolioValueUsd: "15.90",
-        //            time: "1691697811659"
-        //        }
-        //    ]
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
         //
         const length = depositAddress.length;
         const entry = this.safeDict (depositAddress, length - 1);
-        const address = this.safeString (entry, 'address');
+        const address = this.safeString (entry, 'wallet');
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': undefined,
-            'network': 'MATIC',
+            'network': undefined,
             'address': address,
             'tag': undefined,
         } as DepositAddress;
