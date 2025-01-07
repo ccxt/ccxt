@@ -9,7 +9,8 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -148,10 +149,10 @@ export default class idex extends Exchange {
                         // 'user': { 'cost': 1 }, not available in v4 API
                         'wallets': { 'cost': 1 },
                         'positions': { 'cost': 1 }, // todo
-                        'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo
+                        'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
                         // 'balances': { 'cost': 1 }, not available in v4 API
-                        'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo
-                        'initialMarginFractionOverride': { 'cost': 1 }, // todo
+                        'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1, 'bundled': 10 },
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
@@ -163,8 +164,8 @@ export default class idex extends Exchange {
                     },
                     'post': {
                         'wallets': { 'cost': 1 },
-                        'initialMarginFractionOverride': { 'cost': 1 }, // todo
-                        'orders': { 'cost': 1, 'bundled': 10 },
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
+                        'orders': { 'cost': 1 },
                         'orders/test': { 'cost': 1 }, // todo not documented in new API
                         'withdrawals': { 'cost': 1 },
                         'payouts': { 'cost': 1 }, // todo
@@ -180,6 +181,9 @@ export default class idex extends Exchange {
                 'network': 'MATIC',
                 'precision': '8',
                 'defaultSettle': 'USDC',
+                'createOrder': {
+                    'triggerType': 'last',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1221,29 +1225,36 @@ export default class idex extends Exchange {
      * @description create a trade order, https://docs.idex.io/#create-order
      * @see https://api-docs-v4.idex.io/#create-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', or 'takeProfitLimit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+     * @param {string} [params.wallet] the wallet address to create the order for
+     * @param {string} [params.triggerPrice] the price at which the stop loss or take profit order is to be triggered, in units of the quote currency
+     * @param {string} [params.stopLossPrice] the price at which the stop loss order is to be triggered, in units of the quote currency
+     * @param {string} [params.takeProfitPrice] the price at which the take profit order is to be triggered, in units of the quote currency
+     * @param {string} [params.triggerType] 'last' or 'index', default is 'last'
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not provided
+     * @param {bool} [params.reduceOnly] if true, the order will only reduce your position, not increase it
+     * @param {string} [params.timeInForce] 'gtc', 'gtx', 'ioc', or 'fok', default is 'gtc'
+     * @param {string} [params.postOnly] if true, the order will only be placed if it would not execute immediately
+     * @param {string} [params.selfTradePrevention] 'dc', 'co', 'cn', or 'cb', default is 'dc', must be cn if fok timeInForce is specified
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const testOrder = this.safeBool (params, 'test', false);
-        params = this.omit (params, 'test');
         const market = this.market (symbol);
         const nonce = this.uuidv1 ();
         let typeEnum = undefined;
         const stopLossTypeEnums: Dict = {
-            'stopLoss': 3,
-            'stopLossLimit': 4,
-            'takeProfit': 5,
-            'takeProfitLimit': 6,
+            'stopLoss': 2,
+            'stopLossLimit': 3,
+            'takeProfit': 4,
+            'takeProfitLimit': 5,
         };
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice' );
         let triggerPriceString = undefined;
         if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
             if (triggerPrice === undefined) {
