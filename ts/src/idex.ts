@@ -179,6 +179,7 @@ export default class idex extends Exchange {
                 'defaultSelfTradePrevention': 'cn',
                 'network': 'MATIC',
                 'precision': '8',
+                'defaultSettle': 'USDC',
             },
             'exceptions': {
                 'exact': {
@@ -883,67 +884,64 @@ export default class idex extends Exchange {
         return sorted as FundingRateHistory[];
     }
 
-    parseBalance (response): Balances {
-        const result: Dict = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (entry, 'quantity');
-            account['free'] = this.safeString (entry, 'availableForTrade');
-            account['used'] = this.safeString (entry, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
-    }
-
     /**
      * @method
      * @name idex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs-v4.idex.io/#get-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.wallet] the wallet address to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const nonce1 = this.uuidv1 ();
+        const nonce = this.uuidv1 ();
         const request: Dict = {
-            'nonce': nonce1,
-            'wallet': this.walletAddress,
+            'nonce': nonce,
         };
-        // [
-        //   {
-        //     "asset": "DIL",
-        //     "quantity": "0.00000000",
-        //     "availableForTrade": "0.00000000",
-        //     "locked": "0.00000000",
-        //     "usdValue": null
-        //   }, ...
-        // ]
-        const extendedRequest = this.extend (request, params);
-        if (extendedRequest['wallet'] === undefined) {
-            throw new BadRequest (this.id + ' fetchBalance() wallet is undefined, set this.walletAddress or "address" in params');
+        const wallet = this.safeString (params, 'wallet');
+        if (wallet !== undefined) {
+            request['wallet'] = wallet;
         }
-        let response = undefined;
-        try {
-            response = await this.privateGetBalances (extendedRequest);
-        } catch (e) {
-            if (e instanceof InvalidAddress) {
-                const walletAddress = extendedRequest['wallet'];
-                await this.associateWallet (walletAddress);
-                response = await this.privateGetBalances (extendedRequest);
-            } else {
-                throw e;
-            }
-        }
+        //
+        //     [
+        //         {
+        //             "wallet": "0x63c678E26a1EaF97f85D96e042fC14f04B186B38",
+        //             "equity": "63.07000000",
+        //             "freeCollateral": "63.07000000",
+        //             "heldCollateral": "0.00000000",
+        //             "availableCollateral": "63.07000000",
+        //             "buyingPower": "1261.40000000",
+        //             "leverage": "0.00000000",
+        //             "marginRatio": "0.00000000",
+        //             "quoteBalance": "63.07000000",
+        //             "unrealizedPnL": "0.00000000",
+        //             "makerFeeRate": "-0.00005000",
+        //             "takerFeeRate": "0.00030000",
+        //             "positions": []
+        //         }
+        //     ]
+        //
+        const response = await this.privateGetWallets (this.extend (request, params));
         return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const responseLength = response.length;
+        const entry = response[responseLength - 1];
+        const code = this.safeString (this.options, 'defaultSettle');
+        const account = this.account ();
+        account['total'] = this.safeString (entry, 'availableCollateral');
+        account['free'] = this.safeString (entry, 'freeCollateral');
+        account['used'] = this.safeString (entry, 'heldCollateral');
+        result[code] = account;
+        return this.safeBalance (result);
     }
 
     /**
@@ -1938,7 +1936,7 @@ export default class idex extends Exchange {
         this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': undefined,
+            'currency': this.options['defaultSettle'], // todo check if it's correct
             'network': undefined,
             'address': address,
             'tag': undefined,
