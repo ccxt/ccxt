@@ -735,7 +735,7 @@ class NewTranspiler {
             const structName = capName + 'OptionsStruct';
             return [
                 '',
-                `${one}With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
+                `${one}func With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
                 `${two}return func(opts *${structName}) {`,
                 `${three}opts.${name} = &${this.safeGoName(param.name)}`,
                 `${two}}`,
