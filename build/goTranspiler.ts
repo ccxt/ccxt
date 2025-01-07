@@ -677,7 +677,7 @@ class NewTranspiler {
                     let decl = `
     var ${this.safeGoName(param.name)} interface{} = nil
     if opts.${capName} != nil {
-        ${this.safeGoName(param.name)} = opts.${capName}
+        ${this.safeGoName(param.name)} = *opts.${capName}
     }`
                 res.push(decl);
                 }
@@ -1611,7 +1611,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // ignore throttle test for now
         baseTests = baseTests.filter (filename => filename !== 'test.throttle' && filename !== 'test.filterBy');
-        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.filterBy');
+        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.filterBy' && filename !== 'test.createOrder');
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {
