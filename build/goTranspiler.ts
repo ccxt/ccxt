@@ -499,21 +499,21 @@ class NewTranspiler {
     }
 
     convertParamsToGo(methodName: string, params: any[]): string {
-        // const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
-        // if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
-        //     // handle params = {}
-        //     return 'params ...interface{}';
-        // }
+        const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
+        if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
+            // handle params = {}
+            return 'params ...interface{}';
+        }
         const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param)).join(', ');
-        // if (!needsVariadicOptions) {
-        //     return paramsParsed;
-        // }
-        return paramsParsed;
-        // const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
-        // const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
-        // // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
-        // const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
-        // return allParams.join(', ');
+        if (!needsVariadicOptions) {
+            return paramsParsed;
+        }
+        // return paramsParsed;
+        const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
+        const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
+        // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
+        const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
+        return allParams.join(', ');
     }
 
     convertJavascriptParamToGoParam(param): string | undefined {
@@ -735,7 +735,7 @@ class NewTranspiler {
             const structName = capName + 'OptionsStruct';
             return [
                 '',
-                `${one}func (this *${structName}) With${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
+                `${one}With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
                 `${two}return func(opts *${structName}) {`,
                 `${three}opts.${name} = &${this.safeGoName(param.name)}`,
                 `${two}}`,
@@ -756,7 +756,7 @@ class NewTranspiler {
         const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
-        // this.createOptionsStruct(methodName, methodWrapper.parameters);
+        this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
@@ -782,7 +782,7 @@ class NewTranspiler {
             // `${two}go func() {`,
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
-            // this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
+            this.getDefaultParamsWrappers(methodName, methodWrapper.parameters),
             `${two}res := <- this.Core.${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
             `${three}return ${emtpyObject}, CreateReturnError(res)`,
