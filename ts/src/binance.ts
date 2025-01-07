@@ -9766,7 +9766,7 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        return this.parseFundingRates (response, symbols, 'symbol');
+        return this.parseFundingRates (response, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -14002,7 +14002,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseFundingRates (response, symbols, 'symbol');
+        return this.parseFundingRates (response, symbols);
     }
 
     /**

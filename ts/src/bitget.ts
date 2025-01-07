@@ -7005,7 +7005,7 @@ export default class bitget extends Exchange {
         // }
         symbols = this.marketSymbols (symbols);
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols, 'symbol');
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

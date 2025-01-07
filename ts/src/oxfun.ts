@@ -1042,7 +1042,7 @@ export default class oxfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols, 'marketCode');
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {

@@ -2006,7 +2006,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        return this.parseFundingRates (response, symbols, 'name');
+        return this.parseFundingRates (response, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

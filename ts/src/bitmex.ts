@@ -2629,7 +2629,7 @@ export default class bitmex extends Exchange {
             }
         }
         symbols = this.marketSymbols (symbols);
-        return this.parseFundingRates (filteredResponse, symbols, 'symbol');
+        return this.parseFundingRates (filteredResponse, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

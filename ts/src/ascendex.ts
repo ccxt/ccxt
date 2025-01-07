@@ -2865,7 +2865,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const contracts = this.safeList (data, 'contracts', []);
-        return this.parseFundingRates (contracts, symbols, 'symbol');
+        return this.parseFundingRates (contracts, symbols);
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {

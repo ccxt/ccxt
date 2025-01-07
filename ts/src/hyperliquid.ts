@@ -985,7 +985,7 @@ export default class hyperliquid extends Exchange {
             );
             result.push (data);
         }
-        return this.parseFundingRates (result, symbols, 'name');
+        return this.parseFundingRates (result, symbols);
     }
 
     parseFundingRate (info, market: Market = undefined): FundingRate {

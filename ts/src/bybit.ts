@@ -2776,7 +2776,7 @@ export default class bybit extends Exchange {
         for (let i = 0; i < tickerList.length; i++) {
             tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
         }
-        return this.parseFundingRates (tickerList, symbols, 'symbol');
+        return this.parseFundingRates (tickerList, symbols);
     }
 
     /**

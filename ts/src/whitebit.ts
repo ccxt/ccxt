@@ -2491,7 +2491,7 @@ export default class whitebit extends Exchange {
         //    ]
         //
         const data = this.safeList (response, 'result', []);
-        return this.parseFundingRates (data, symbols, 'name');
+        return this.parseFundingRates (data, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

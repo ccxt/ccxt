@@ -7156,7 +7156,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseFundingRates (data, symbols, 'contract_code');
+        return this.parseFundingRates (data, symbols);
     }
 
     /**

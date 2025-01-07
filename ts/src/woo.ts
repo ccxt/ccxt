@@ -2982,7 +2982,7 @@ export default class woo extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'rows', []);
-        return this.parseFundingRates (rows, symbols, 'symbol');
+        return this.parseFundingRates (rows, symbols);
     }
 
     /**

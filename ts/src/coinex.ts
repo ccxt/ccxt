@@ -4770,7 +4770,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols, 'market');
+        return this.parseFundingRates (data, symbols);
     }
 
     /**

@@ -3789,7 +3789,7 @@ export default class hashkey extends Exchange {
         //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         //     ]
         //
-        return this.parseFundingRates (response, symbols, 'symbol');
+        return this.parseFundingRates (response, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

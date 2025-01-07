@@ -1285,7 +1285,7 @@ export default class lbank extends Exchange {
         //     "success": True,
         // }
         const data = this.safeList (response, 'data', []);
-        return this.parseFundingRates (data, symbols, 'symbol');
+        return this.parseFundingRates (data, symbols);
     }
 
     /**
