@@ -303,6 +303,7 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 }
 
 func PanicOnError(msg interface{}) {
+	// Print("Inside panic onError: " + ToString(msg))
 	ccxt.PanicOnError(msg)
 }
 
@@ -320,4 +321,8 @@ func Print(v ...interface{}) {
 
 func ReturnPanicError(ch chan interface{}) {
 	ccxt.ReturnPanicError(ch)
+}
+
+func callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+	panic("not implemented")
 }
