@@ -554,7 +554,7 @@ func main() {
 		"clientOrderId": "myOrderId68768678",
 	}
 
-	order, error := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, WithPrice(6000), WithParams(orderParams))
+	order, error := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
 	if error != nil {
 		fmt.Println(error)
 	} else {
