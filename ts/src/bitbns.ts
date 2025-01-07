@@ -196,6 +196,7 @@ export default class bitbns extends Exchange {
                         'limit': 100,
                     },
                 },
+                // todo: implement swap methods
                 'swap': {
                     'linear': undefined,
                     'inverse': undefined,
