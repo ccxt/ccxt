@@ -208,6 +208,104 @@ public partial class bigone : Exchange
                     { "ZEC", "Zcash" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 200 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "mark", true },
+                            { "index", true },
+                            { "last", true },
+                        } },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {

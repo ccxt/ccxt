@@ -292,6 +292,105 @@ class bigone extends Exchange {
                     // undetermined => XinFin, YAS, Ycash
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true, // todo implement
+                        'stopLossPrice' => false, // todo by trigger
+                        'takeProfitPrice' => false, // todo by trigger
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implement
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'index' => true,
+                            'last' => true,
+                        ),
+                    ),
+                    'fetchOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(

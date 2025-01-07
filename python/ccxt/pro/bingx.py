@@ -12,7 +12,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
-from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
@@ -1386,11 +1385,10 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account = self.account()
+            account['info'] = balance
+            account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
-            balanceChange = self.safe_string(balance, 'bc')
-            if account['used'] is not None:
-                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

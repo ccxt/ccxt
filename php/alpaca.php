@@ -262,6 +262,78 @@ class alpaca extends Exchange {
                 'defaultTimeInForce' => 'gtc', // fok, gtc, ioc
                 'clientOrderId' => 'ccxt_{id}',
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'price' => true,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo => implementation
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'forbidden.' => '\\ccxt\\PermissionDenied', // array("message" => "forbidden.")

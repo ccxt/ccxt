@@ -305,6 +305,105 @@ class bigone(Exchange, ImplicitAPI):
                     # undetermined: XinFin, YAS, Ycash
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo implement
+                        'stopLossPrice': False,  # todo by trigger
+                        'takeProfitPrice': False,  # todo by trigger
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo: implement
+                        'triggerPriceType': {
+                            'mark': True,
+                            'index': True,
+                            'last': True,
+                        },
+                    },
+                    'fetchOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchClosedOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {

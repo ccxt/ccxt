@@ -297,6 +297,7 @@ class whitebit extends whitebit$1 {
                 'broad': {
                     'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
+                    'Min amount step': errors.InvalidOrder,
                     'Total is less than': errors.InvalidOrder,
                     'fee must be no less than': errors.InvalidOrder,
                     'Enable your key in API settings': errors.PermissionDenied,
