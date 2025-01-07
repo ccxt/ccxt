@@ -442,7 +442,7 @@ export default class bitrue extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
@@ -461,8 +461,8 @@ export default class bitrue extends Exchange {
                         'hedged': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true, // todo revise
+                        'marketBuyByCost': true,
                         'selfTradePrevention': false,
                         'iceberg': true, // todo implement
                     },
@@ -471,7 +471,7 @@ export default class bitrue extends Exchange {
                         'marginMode': false,
                         'limit': 1000,
                         'daysBack': 100000,
-                        'untilDays': 90,
+                        'untilDays': 100000,
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -498,9 +498,29 @@ export default class bitrue extends Exchange {
                         'limit': 1440,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                        'leverage': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                    'fetchClosedOrders': undefined,
+                },
                 'swap': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': undefined,
@@ -1376,6 +1396,7 @@ export default class bitrue extends Exchange {
      * @name bitrue#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1942,7 +1963,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#createOrder
      * @description create a trade order
-     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#trading-endpoints
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2076,6 +2098,7 @@ export default class bitrue extends Exchange {
      * @name bitrue#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2227,6 +2250,7 @@ export default class bitrue extends Exchange {
      * @name bitrue#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -2422,6 +2446,7 @@ export default class bitrue extends Exchange {
      * @name bitrue#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
