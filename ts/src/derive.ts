@@ -4,7 +4,7 @@
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -782,6 +782,63 @@ export default class derive extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name derive#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.derive.xyz/reference/post_public-get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instrument_name': market['id'],
+        };
+        if (since !== undefined) {
+            request['from_timestamp'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['to_timestamp'] = until;
+        }
+        const response = await this.publicPostGetFundingRateHistory (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //         "funding_rate_history": [
+        //             {
+        //                 "timestamp": 1736215200000,
+        //                 "funding_rate": "-0.000020014"
+        //             }
+        //         ]
+        //     },
+        //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
+        // }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const data = this.safeList (result, 'funding_rate_history', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'timestamp');
+            rates.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

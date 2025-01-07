@@ -286,6 +286,42 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USD:USDC",
+                    1736155500128,
+                    1,
+                    {
+                        "until": 1736165703134
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "funding_rate_history": [
+                            {
+                                "timestamp": 1736157600000,
+                                "funding_rate": "-0.000008872"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": 1736157600000,
+                            "funding_rate": "-0.000008872"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "fundingRate": -0.000008872,
+                        "timestamp": 1736157600000,
+                        "datetime": "2025-01-06T10:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

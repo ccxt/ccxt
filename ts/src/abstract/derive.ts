@@ -15,6 +15,7 @@ interface Exchange {
     publicPostDeregisterSessionKey (params?: {}): Promise<implicitReturnType>;
     publicPostLogin (params?: {}): Promise<implicitReturnType>;
     publicPostStatistics (params?: {}): Promise<implicitReturnType>;
+    publicPostGetAllCurrencies (params?: {}): Promise<implicitReturnType>;
     publicPostGetCurrency (params?: {}): Promise<implicitReturnType>;
     publicPostGetInstrument (params?: {}): Promise<implicitReturnType>;
     publicPostGetAllInstruments (params?: {}): Promise<implicitReturnType>;
