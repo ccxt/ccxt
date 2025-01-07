@@ -93,7 +93,7 @@ export default class idex extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -145,11 +145,11 @@ export default class idex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'user': { 'cost': 1 }, // todo not documented in new API
+                        // 'user': { 'cost': 1 }, not available in v4 API
                         'wallets': { 'cost': 1 },
                         'positions': { 'cost': 1 }, // todo
                         'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo
-                        'balances': { 'cost': 1 }, // todo not documented in new API
+                        // 'balances': { 'cost': 1 }, not available in v4 API
                         'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo
                         'orders': { 'cost': 1, 'bundled': 10 },
@@ -733,53 +733,6 @@ export default class idex extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
-    }
-
-    /**
-     * @method
-     * @name idex#fetchTradingFees
-     * @description fetch the trading fees for multiple markets
-     * @see https://api-docs-v4.idex.io/#get-api-account
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-     */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        const nonce = this.uuidv1 ();
-        const request: Dict = {
-            'nonce': nonce,
-        };
-        let response = undefined;
-        response = await this.privateGetUser (this.extend (request, params));
-        //
-        //     {
-        //         "depositEnabled": true,
-        //         "orderEnabled": true,
-        //         "cancelEnabled": true,
-        //         "withdrawEnabled": true,
-        //         "totalPortfolioValueUsd": "0.00",
-        //         "makerFeeRate": "0.0000",
-        //         "takerFeeRate": "0.0025",
-        //         "takerIdexFeeRate": "0.0005",
-        //         "takerLiquidityProviderFeeRate": "0.0020"
-        //     }
-        //
-        const maker = this.safeNumber (response, 'makerFeeRate');
-        const taker = this.safeNumber (response, 'takerFeeRate');
-        const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
-                'percentage': true,
-                'tierBased': false,
-            };
-        }
-        return result;
     }
 
     /**
