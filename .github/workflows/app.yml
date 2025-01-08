@@ -44,7 +44,7 @@ jobs:
       run: npm run id-tests-js
     - name: Request tests
       if: env.important_modified == 'true'
-      run: nnpm run request-js
+      run: npm run request-js
     - name: Request tests (specific)
       if: env.important_modified == 'false'
       run: |
