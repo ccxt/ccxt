@@ -1,6 +1,6 @@
 
 
-diff=$(git diff origin/master --name-only)
+diff=$(git diff --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")

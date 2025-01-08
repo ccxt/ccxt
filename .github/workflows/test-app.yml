@@ -23,7 +23,5 @@ jobs:
         python-version: '3.9'
     - name: Check git diffs
       run: git diff --name-only HEAD^1 HEAD
-    - name: Check git origin diffs
-      run: git diff master --name-only
     - name: Run check files script
       run: ./utils/check_modified_files.sh
