@@ -26,12 +26,13 @@ jobs:
        REST_FILES=$(echo "$OUTPUT" | jq -r '.rest_exchanges')
        echo "3"
        WS_FILES=$(echo "$OUTPUT" | jq -r '.ws_exchanges')
-        echo "4"
+       echo "4"
        echo "important_modified=$IMPORTANT_MODIFIED" >> $GITHUB_ENV
        echo "5"
        echo "rest_files=$REST_FILES" >> $GITHUB_ENV
         echo "6"
        echo "ws_files=$WS_FILES" >> $GITHUB_ENV
+        echo "7"
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
