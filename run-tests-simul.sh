@@ -89,5 +89,5 @@ else
     echo "beofre calling run_specific_tests"
     echo "rest_exchanges: $rest_exchanges"
     echo "ws_exchanges: $ws_exchanges"
-    run_specific_tests "$lang" "$rest_exchanges" "$ws_exchanges""
+    run_specific_tests "$lang" "$rest_exchanges" "$ws_exchanges"
 fi
