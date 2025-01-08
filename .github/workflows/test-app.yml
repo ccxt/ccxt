@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: '3.9'
     - name: Check git diffs
-      run: git diff --name-only
+      run: git diff origin/master --name-only
     - name: Check git origin diffs
       run: git diff master --name-only
     - name: Run check files script
