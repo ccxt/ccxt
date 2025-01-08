@@ -67,7 +67,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: shared_env
-        path: shared_env.txt
+        path: ./shared_env.txt
 
     - name: Upload Js Files
       uses: actions/upload-artifact@v4
