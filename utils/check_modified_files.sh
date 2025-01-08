@@ -28,23 +28,52 @@ REST_EXCHANGES=()
 WS_EXCHANGES=()
 
 
+# for file in "${y[@]}"; do
+#   if [[ "$file" =~ $rest_pattern ]]; then
+#     modified_exchange="${BASH_REMATCH[1]}"
+#     REST_EXCHANGES+=($modified_exchange)
+#   elif [[ "$file" =~ $pattern_static_request ]]; then
+#     modified_exchange="${BASH_REMATCH[1]}"
+#     REST_EXCHANGES+=($modified_exchange)
+#   elif [[ "$file" =~ $pattern_static_response ]]; then
+#     modified_exchange="${BASH_REMATCH[1]}"
+#     REST_EXCHANGES+=($modified_exchange)
+#   elif [[ "$file" =~ $ws_pattern ]]; then
+#     modified_exchange="${BASH_REMATCH[1]}"
+#     WS_EXCHANGES+=($modified_exchange)
+#   fi
+# done
+
 for file in "${y[@]}"; do
   if [[ "$file" =~ $rest_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
-    REST_EXCHANGES+=($modified_exchange)
+    if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      REST_EXCHANGES+=("$modified_exchange")
+    fi
   elif [[ "$file" =~ $pattern_static_request ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
-    REST_EXCHANGES+=($modified_exchange)
+    if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      REST_EXCHANGES+=("$modified_exchange")
+    fi
   elif [[ "$file" =~ $pattern_static_response ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
-    REST_EXCHANGES+=($modified_exchange)
+    if [[ ! " ${REST_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      REST_EXCHANGES+=("$modified_exchange")
+    fi
   elif [[ "$file" =~ $ws_pattern ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
-    WS_EXCHANGES+=($modified_exchange)
+    if [[ ! " ${WS_EXCHANGES[@]} " =~ " ${modified_exchange} " ]]; then
+      WS_EXCHANGES+=("$modified_exchange")
+    fi
   fi
 done
 
 # echo "REST_EXCHANGES: ${REST_EXCHANGES[*]}"
 # echo "WS_EXCHANGES: ${WS_EXCHANGES[*]}"
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": \"${REST_EXCHANGES[*]}\", \"ws_exchanges\": \"${WS_EXCHANGES[*]}\"}"
+# echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": \"${REST_EXCHANGES[*]}\", \"ws_exchanges\": \"${WS_EXCHANGES[*]}\"}"
+
+rest_exchanges_json=$(printf '%s\n' "${REST_EXCHANGES[@]}" | jq -R . | jq -s .)
+ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
+
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
