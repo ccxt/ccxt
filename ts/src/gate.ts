@@ -6710,7 +6710,8 @@ export default class gate extends Exchange {
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), sha512);
-            const timestamp = this.nonce ();
+            const nonce = this.nonce ();
+            const timestamp = this.parseToInt (nonce / 1000);
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
