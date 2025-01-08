@@ -17,11 +17,5 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
-    - name: Check git diffs
-      run: git diff --name-only HEAD^1 HEAD
     - name: Run check files script
       run: ./utils/check_modified_files.sh
