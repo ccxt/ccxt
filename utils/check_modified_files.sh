@@ -47,4 +47,4 @@ done
 # echo "REST_EXCHANGES: ${REST_EXCHANGES[*]}"
 # echo "WS_EXCHANGES: ${WS_EXCHANGES[*]}"
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": \"$REST_EXCHANGES\", \"ws_exchanges\": \"$WS_EXCHANGES\"}"
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": \"$REST_EXCHANGES[*]\", \"ws_exchanges\": \"$WS_EXCHANGES[*]\"}"
