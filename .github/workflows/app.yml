@@ -63,6 +63,12 @@ jobs:
           npm run response-js -- $exchange
         done
 
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+        name: shared_env
+        path: shared_env.txt
+
     - name: Upload Js Files
       uses: actions/upload-artifact@v4
       with:
@@ -74,11 +80,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+          path: shared_env.txt
       - name: Download JS Files
         uses: actions/download-artifact@v4
         with:
           name: js-files
           path: js/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - name: Debug output
+        run: |
+          echo "Important files modified: ${{ env.important_modified }}"
+          echo "REST files: ${{ env.rest_files }}"
+          echo "WS files: ${{ env.ws_files }}"
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges

@@ -9,7 +9,6 @@ WS_FILES=$(echo "$OUTPUT" | jq -r '.ws_exchanges | join(" ")')
 echo "important_modified=$IMPORTANT_MODIFIED" >> $GITHUB_ENV
 # echo "5"
 echo "rest_files=$REST_FILES" >> $GITHUB_ENV
-echo
 # echo "6"
 echo "ws_files=$WS_FILES" >> $GITHUB_ENV
 # echo "7"
