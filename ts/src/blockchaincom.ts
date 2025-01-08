@@ -266,7 +266,7 @@ export default class blockchaincom extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOHLCV': undefined, //todo webapi
+                    'fetchOHLCV': undefined, // todo webapi
                 },
                 'swap': {
                     'linear': undefined,
