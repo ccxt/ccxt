@@ -66,8 +66,8 @@ jobs:
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
-        name: shared_env
-        path: ./shared_env.txt
+          name: shared_env
+          path: shared_env.txt
 
     - name: Upload Js Files
       uses: actions/upload-artifact@v4
@@ -84,7 +84,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-          path: ./shared_env.txt
+          path: ./artifact
       - name: check files
         run: cat shared_env.txt
       - name: Download JS Files
