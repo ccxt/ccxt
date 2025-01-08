@@ -389,10 +389,12 @@ class cryptocom(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        # exchange-supported features
-                        'selfTradePrevention': True,
+                        'selfTradePrevention': True,  # todo: implement
                         'trailing': False,
                         'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
                     },
                     'createOrders': {
                         'max': 10,
@@ -425,7 +427,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 1,
                         'trigger': False,

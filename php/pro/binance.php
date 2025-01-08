@@ -4396,7 +4396,8 @@ class binance extends \ccxt\async\binance {
             $client->reject ($message, $id);
         }
         // reset connection if 5xx $error
-        if ($this->safe_string($code, 0) === '5') {
+        $codeString = $this->safe_string($error, 'code');
+        if (($codeString !== null) && ($codeString[0] === '5')) {
             $client->reset ($message);
         }
     }

@@ -9,7 +9,7 @@ var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class woofipro
@@ -320,8 +320,11 @@ class woofipro extends woofipro$1 {
                         },
                         'hedged': false,
                         'trailing': true,
-                        // exchange specific
-                        // 'iceberg': true,
+                        'leverage': true,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 10,
@@ -347,7 +350,7 @@ class woofipro extends woofipro$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 100000,
                         'trigger': true,
@@ -368,7 +371,7 @@ class woofipro extends woofipro$1 {
                         'attachedStopLossTakeProfit': {
                             // todo: implementation needs unification
                             'triggerPriceType': undefined,
-                            'limitPrice': false,
+                            'price': false,
                         },
                     },
                 },
@@ -961,8 +964,7 @@ class woofipro extends woofipro$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'rows', []);
-        const result = this.parseFundingRates(rows);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method

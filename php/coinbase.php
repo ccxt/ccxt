@@ -371,7 +371,7 @@ class coinbase extends Exchange {
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -389,6 +389,11 @@ class coinbase extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -419,7 +424,7 @@ class coinbase extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
                         'trigger' => false,
@@ -429,21 +434,20 @@ class coinbase extends Exchange {
                         'limit' => 350,
                     ),
                 ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
                 'swap' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
                 'future' => array(
                     'linear' => array(
-                        'extends' => 'spot',
+                        'extends' => 'default',
                     ),
-                    'inverse' => array(
-                        'extends' => 'spot',
-                    ),
+                    'inverse' => null,
                 ),
             ),
         ));
@@ -2455,7 +2459,7 @@ class coinbase extends Exchange {
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         // for $pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg => instance.last_json_response.pagination.next_starting_after
+        // eg => instance.last_http_response -> $pagination->next_starting_after
         $response = $this->v2PrivateGetAccountsAccountIdTransactions ($this->extend($request, $params));
         $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
         $length = count($ledger);

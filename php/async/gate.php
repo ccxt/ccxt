@@ -714,7 +714,7 @@ class gate extends Exchange {
                 ),
             ),
             'features' => array(
-                'spot' => array(
+                'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
@@ -725,7 +725,6 @@ class gate extends Exchange {
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'GTC' => true,
                             'IOC' => true,
                             'FOK' => true,
                             'PO' => true,
@@ -733,9 +732,11 @@ class gate extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-specific features
-                        'iceberg' => true,
-                        'selfTradePrevention' => true,
+                        'iceberg' => true, // todo implement
+                        'selfTradePrevention' => true, // todo implement
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
                     ),
                     'createOrders' => array(
                         'max' => 40, // NOTE! max 10 per symbol
@@ -764,12 +765,15 @@ class gate extends Exchange {
                         'trailing' => false,
                         'limit' => 100,
                         'untilDays' => 30,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1000,
                     ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
                 ),
                 'forDerivatives' => array(
                     'extends' => 'spot',
@@ -2024,8 +2028,7 @@ class gate extends Exchange {
             //        }
             //    )
             //
-            $result = $this->parse_funding_rates($response);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 
@@ -2477,7 +2480,8 @@ class gate extends Exchange {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
                 $chainKey = $chainKeys[$i];
-                $result['networks'][$chainKey] = array(
+                $networkCode = $this->network_id_to_code($chainKey, $this->safe_string($fee, 'currency'));
+                $result['networks'][$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                         'percentage' => false,

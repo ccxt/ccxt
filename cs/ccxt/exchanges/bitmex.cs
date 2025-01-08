@@ -282,6 +282,9 @@ public partial class bitmex : Exchange
                             { "trailing", true },
                             { "marketBuyRequiresPrice", false },
                             { "marketBuyByCost", false },
+                            { "leverage", false },
+                            { "selfTradePrevention", false },
+                            { "iceberg", true },
                         } },
                         { "createOrders", null },
                         { "fetchMyTrades", new Dictionary<string, object>() {
@@ -312,7 +315,7 @@ public partial class bitmex : Exchange
                         { "fetchClosedOrders", new Dictionary<string, object>() {
                             { "marginMode", false },
                             { "limit", 500 },
-                            { "daysBackClosed", null },
+                            { "daysBack", null },
                             { "daysBackCanceled", null },
                             { "untilDays", 1000000 },
                             { "trigger", false },
@@ -2791,8 +2794,7 @@ public partial class bitmex : Exchange
             }
         }
         symbols = this.marketSymbols(symbols);
-        object result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

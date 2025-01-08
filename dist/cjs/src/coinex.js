@@ -7,7 +7,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinex
@@ -519,11 +519,11 @@ class coinex extends coinex$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': true,
-                        // 'marketBuyByCost': true,
-                        // 'selfTradePrevention': true,
-                        // 'iceberg': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -549,7 +549,7 @@ class coinex extends coinex$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
@@ -4782,8 +4782,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method

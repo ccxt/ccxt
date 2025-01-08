@@ -224,7 +224,9 @@ public partial class onetrading : Exchange
                     { "CF_RATELIMIT", typeof(DDoSProtection) },
                     { "INTERNAL_SERVER_ERROR", typeof(ExchangeError) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Order not found.", typeof(OrderNotFound) },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
@@ -854,7 +856,8 @@ public partial class onetrading : Exchange
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcv = this.safeList(response, "candlesticks");
+        return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1005,6 +1008,7 @@ public partial class onetrading : Exchange
             { "CLOSED", "canceled" },
             { "FAILED", "failed" },
             { "STOP_TRIGGERED", "triggered" },
+            { "DONE", "closed" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1101,7 +1105,7 @@ public partial class onetrading : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
-            { "type", type },
+            { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", side },
@@ -1115,6 +1119,14 @@ public partial class onetrading : Exchange
             { "status", status },
             { "trades", rawTrades },
         }, market);
+    }
+
+    public virtual object parseOrderType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "booked", "limit" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -1183,6 +1195,9 @@ public partial class onetrading : Exchange
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         }
+        object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
+        parameters = this.omit(parameters, "timeInForce");
+        ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
         object response = await this.privatePostAccountOrders(this.extend(request, parameters));
         //
         //     {
@@ -1228,11 +1243,18 @@ public partial class onetrading : Exchange
         {
             ((IDictionary<string,object>)request)["order_id"] = id;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateDeleteAccountOrdersOrderId")))
+        {
+            response = await this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateDeleteAccountOrdersClientClientId(this.extend(request, parameters));
+        }
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder(response);
     }
 
     /**

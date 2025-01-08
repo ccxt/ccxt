@@ -231,7 +231,6 @@ export default class hyperliquid extends Exchange {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': false,
                             'PO': true,
@@ -239,6 +238,11 @@ export default class hyperliquid extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 1000,
@@ -271,7 +275,7 @@ export default class hyperliquid extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 2000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -981,8 +985,7 @@ export default class hyperliquid extends Exchange {
             );
             result.push (data);
         }
-        const funding_rates = this.parseFundingRates (result);
-        return this.filterByArray (funding_rates, 'symbol', symbols);
+        return this.parseFundingRates (result, symbols);
     }
 
     parseFundingRate (info, market: Market = undefined): FundingRate {
@@ -2289,7 +2292,7 @@ export default class hyperliquid extends Exchange {
             market = this.safeMarket (marketId, market);
         }
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
+        const timestamp = this.safeInteger (entry, 'timestamp');
         const status = this.safeString2 (order, 'status', 'ccxtStatus');
         order = this.omit (order, [ 'ccxtStatus' ]);
         let side = this.safeString (entry, 'side');
@@ -2305,7 +2308,7 @@ export default class hyperliquid extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'statusTimestamp'),
             'symbol': symbol,
             'type': this.parseOrderType (this.safeStringLower (entry, 'orderType')),
             'timeInForce': this.safeStringUpper (entry, 'tif'),
@@ -3326,8 +3329,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const swapMarkets = await this.fetchSwapMarkets ();
-        const result = this.parseOpenInterests (swapMarkets);
-        return this.filterByArray (result, 'symbol', symbols) as OpenInterests;
+        return this.parseOpenInterests (swapMarkets, symbols) as OpenInterests;
     }
 
     /**

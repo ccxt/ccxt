@@ -996,7 +996,7 @@ export default class okx extends Exchange {
                     'BHP': 'BHP',
                     'APT': 'Aptos',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1184,7 +1184,6 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': true,
                     'createOrder': {
@@ -1204,7 +1203,7 @@ export default class okx extends Exchange {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1213,12 +1212,12 @@ export default class okx extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': true,
-                        'iceberg': true,
-                        'oco': true,
+                        'iceberg': true, // todo implement
+                        'leverage': false,
+                        'selfTradePrevention': true, // todo implement
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                     },
                     'createOrders': {
                         'max': 20,
@@ -1244,7 +1243,7 @@ export default class okx extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90, // 3 months
+                        'daysBack': 90, // 3 months
                         'daysBackCanceled': 1 / 12, // 2 hour
                         'untilDays': undefined,
                         'trigger': true,
@@ -1642,7 +1641,7 @@ export default class okx extends Exchange {
             'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber (strikePrice),
             'optionType': optionType,
             'created': this.safeInteger (market, 'listTime'),
             'precision': {
@@ -1821,8 +1820,8 @@ export default class okx extends Exchange {
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
+                    const parts = networkId.split ('-').slice (1);
+                    const chainPart = parts.join ('-');
                     const networkCode = this.networkIdToCode (chainPart, currency['code']);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
@@ -1850,7 +1849,7 @@ export default class okx extends Exchange {
             }
             const firstChain = this.safeDict (chains, 0, {});
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString (firstChain, 'name'),

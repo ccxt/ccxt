@@ -133,6 +133,7 @@ interface Exchange {
     privateGetV5AccountContractTransactionLog(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountSmpGroup(params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState(params?: {}): Promise<implicitReturnType>;
+    privateGetV5AccountWithdrawal(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeQueryCoinList(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeConvertResultQuery(params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeQueryConvertHistory(params?: {}): Promise<implicitReturnType>;

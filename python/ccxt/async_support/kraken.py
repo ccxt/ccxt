@@ -464,6 +464,11 @@ class kraken(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -487,7 +492,7 @@ class kraken(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': None,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 100000,
                         'trigger': False,
@@ -1483,8 +1488,10 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         # only buy orders are supported by the endpoint
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', side, 1, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """

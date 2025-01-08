@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class coincatch
@@ -840,8 +840,8 @@ class coincatch extends coincatch$1 {
             settleId = this.safeString(supportMarginCoins, 0);
             settle = this.safeCurrencyCode(settleId);
             suffix = ':' + settle;
-            isLinear = baseId === settleId; // todo check
-            isInverse = quoteId === settleId; // todo check
+            isLinear = quoteId === settleId; // todo check
+            isInverse = baseId === settleId; // todo check
             if (isLinear) {
                 subType = 'linear';
             }

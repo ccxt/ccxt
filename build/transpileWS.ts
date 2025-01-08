@@ -308,10 +308,13 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
-    if (process.argv.includes ('--php')) {
+
+    const pythonOnly = process.argv.includes ('--python');
+    const phpOnly = process.argv.includes ('--php');
+    if (phpOnly) {
         transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
     }
-    if (process.argv.includes ('--python')) {
+    if (pythonOnly) {
         transpiler.buildPHP = false
     }
     if (!child && !multiprocess) {
@@ -321,7 +324,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         transpiler.transpileWsTests ()
     }
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws, undefined, force, transpiler.buildPython, transpiler.buildPHP)
+        parallelizeTranspiling (exchanges.ws, undefined, force, pythonOnly, phpOnly)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

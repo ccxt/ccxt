@@ -6,7 +6,7 @@ var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitget
@@ -1010,15 +1010,12 @@ class bitget extends bitget$1 {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (!(instType in this.positions)) {
+        const action = this.safeString(message, 'action');
+        if (!(instType in this.positions) || (action === 'snapshot')) {
             this.positions[instType] = new Cache.ArrayCacheBySymbolBySide();
         }
         const cache = this.positions[instType];
         const rawPositions = this.safeValue(message, 'data', []);
-        const dataLength = rawPositions.length;
-        if (dataLength === 0) {
-            return;
-        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

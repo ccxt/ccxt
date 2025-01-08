@@ -10,7 +10,7 @@ var secp256k1 = require('../../static_dependencies/noble-curves/secp256k1.js');
 var p256 = require('../../static_dependencies/noble-curves/p256.js');
 var utils = require('../../static_dependencies/noble-curves/abstract/utils.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 const encoders = {
     binary: x => x,

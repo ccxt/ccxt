@@ -210,6 +210,16 @@ class binanceus extends binance {
                     ),
                 ),
             ),
+            'features' => array(
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 }

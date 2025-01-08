@@ -946,7 +946,7 @@ public partial class okx : Exchange
                     { "BHP", "BHP" },
                     { "APT", "Aptos" },
                     { "ARBONE", "Arbitrum One" },
-                    { "AVAXC", "Avalanche C" },
+                    { "AVAXC", "Avalanche C-Chain" },
                     { "AVAXX", "Avalanche X-Chain" },
                     { "ARK", "ARK" },
                     { "AR", "Arweave" },
@@ -1122,7 +1122,7 @@ public partial class okx : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -1131,11 +1131,12 @@ public partial class okx : Exchange
                             { "GTD", false },
                         } },
                         { "hedged", true },
-                        { "selfTradePrevention", true },
                         { "trailing", true },
-                        { "twap", true },
                         { "iceberg", true },
-                        { "oco", true },
+                        { "leverage", false },
+                        { "selfTradePrevention", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 20 },
@@ -1161,7 +1162,7 @@ public partial class okx : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBackClosed", 90 },
+                        { "daysBack", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                         { "untilDays", null },
                         { "trigger", true },
@@ -1582,7 +1583,7 @@ public partial class okx : Exchange
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
-            { "strike", strikePrice },
+            { "strike", this.parseNumber(strikePrice) },
             { "optionType", optionType },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
@@ -1772,8 +1773,8 @@ public partial class okx : Exchange
                 object networkId = this.safeString(chain, "chain");
                 if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(networkId, "-"), 0)))))
                 {
-                    object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object chainPart = this.safeString(parts, 1, networkId);
+                    object parts = slice(((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 1, null);
+                    object chainPart = String.Join("-", ((IList<object>)parts).ToArray());
                     object networkCode = this.networkIdToCode(chainPart, getValue(currency, "code"));
                     object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                     if (isTrue(isEqual(maxPrecision, null)))
@@ -1803,7 +1804,7 @@ public partial class okx : Exchange
             }
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", null },
+                { "info", chains },
                 { "code", code },
                 { "id", currencyId },
                 { "name", this.safeString(firstChain, "name") },
