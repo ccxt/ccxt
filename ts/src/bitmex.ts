@@ -263,8 +263,6 @@ export default class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
-                'timeDifference': 0, // the difference between system clock and exchange clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchOHLCVOpenTimestamp': true,
                 'oldPrecision': false,
                 'networks': {
@@ -303,9 +301,11 @@ export default class bitmex extends Exchange {
                             'trailing': true,
                             'marketBuyRequiresPrice': false,
                             'marketBuyByCost': false,
-                            'leverage': false,
-                            'selfTradePrevention': false,
-                            'iceberg': true, // todo
+                            // exchange-supported features
+                            // 'selfTradePrevention': true,
+                            // 'twap': false,
+                            // 'iceberg': false,
+                            // 'oco': false,
                         },
                         'createOrders': undefined,
                         'fetchMyTrades': {
@@ -336,7 +336,7 @@ export default class bitmex extends Exchange {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': undefined,
+                            'daysBackClosed': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,
@@ -581,9 +581,6 @@ export default class bitmex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference ();
-        }
         const response = await this.publicGetInstrumentActive (params);
         //
         //  [
@@ -2634,7 +2631,8 @@ export default class bitmex extends Exchange {
             }
         }
         symbols = this.marketSymbols (symbols);
-        return this.parseFundingRates (filteredResponse, symbols);
+        const result = this.parseFundingRates (filteredResponse);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -3059,7 +3057,7 @@ export default class bitmex extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -3085,7 +3083,7 @@ export default class bitmex extends Exchange {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            expires = this.sum (this.nonce (), expires);
+            expires = this.sum (this.seconds (), expires);
             const stringExpires = expires.toString ();
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
