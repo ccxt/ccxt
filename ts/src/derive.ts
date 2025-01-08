@@ -4,7 +4,10 @@
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory, FundingRate } from './base/types.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory, FundingRate, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,7 +53,7 @@ export default class derive extends Exchange {
                 'createTriggerOrder': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -137,10 +140,10 @@ export default class derive extends Exchange {
                 'logo': undefined,
                 'api': {
                     'public': 'https://api.lyra.finance/public',
-                    'private': 'https://api.lyra.finance/public',
+                    'private': 'https://api.lyra.finance/private',
                 },
                 'test': {
-                    'public': 'https://api-demo.lyra.finance/private',
+                    'public': 'https://api-demo.lyra.finance/public',
                     'private': 'https://api-demo.lyra.finance/private',
                 },
                 'www': 'https://www.derive.xyz/',
@@ -895,12 +898,60 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
+    hashMessage (message) {
+        // takes a hex encoded message
+        const binaryMessage = this.encode (message);
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (27, signature['v']));
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    /**
+     * @method
+     * @name derive#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.derive.xyz/reference/post_private-get-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const request = {
+            'wallet': this.walletAddress,
+        };
+        const response = await this.privatePostGetAccount (this.extend (request, params));
+        //
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseBalance (data);
+    }
+
+    parseBalance (response): Balances {
+        return this.safeBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'][api] + '/' + path;
         if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
             };
+            if (api === 'private') {
+                this.checkRequiredCredentials ();
+                const now = this.now ();
+                const signature = this.signMessage (now.toString (), this.privateKey);
+                headers['X-LyraWallet'] = this.walletAddress;
+                headers['X-LyraTimestamp'] = now;
+                headers['X-LyraSignature'] = signature;
+            }
             body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
