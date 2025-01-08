@@ -212,7 +212,7 @@ export default class hollaex extends hollaexRest {
         //        {
         //           "size":1,
         //           "side":"buy",
-        //           "price":0.24,
+        //           "price":0.25,
         //           "symbol":"xht-usdt",
         //           "timestamp":"2022-05-13T09:30:15.014Z",
         //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
