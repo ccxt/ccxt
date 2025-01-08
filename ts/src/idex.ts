@@ -1,4 +1,6 @@
+
 // ---------------------------------------------------------------------------
+
 import Exchange from './abstract/idex.js';
 import { TICK_SIZE, PAD_WITH_ZERO } from './base/functions/number.js';
 import { ArgumentsRequired, InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
@@ -7,17 +9,20 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
+import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+
 // ---------------------------------------------------------------------------
+
 /**
  * @class idex
  * @augments Exchange
  */
 export default class idex extends Exchange {
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'idex',
             'name': 'IDEX',
-            'countries': ['US'],
+            'countries': [ 'US' ],
             'rateLimit': 100,
             'version': 'v4',
             'pro': true,
@@ -142,7 +147,7 @@ export default class idex extends Exchange {
                         'tickers': { 'cost': 1 },
                         'candles': { 'cost': 1, 'bundled': 10 },
                         'trades': { 'cost': 1, 'bundled': 10 },
-                        'liquidations': { 'cost': 1, 'bundled': 10 },
+                        'liquidations': { 'cost': 1, 'bundled': 10 }, // not unified
                         'orderbook': { 'cost': 1, 'bundled': 10 },
                         'fundingRates': { 'cost': 1, 'bundled': 10 },
                         'gasFees': { 'cost': 1 }, // todo
@@ -152,26 +157,26 @@ export default class idex extends Exchange {
                     'get': {
                         // 'user': { 'cost': 1 }, not available in v4 API
                         'wallets': { 'cost': 1 },
-                        'positions': { 'cost': 1 },
-                        'fundingPayments': { 'cost': 1, 'bundled': 10 },
-                        'historicalPnL': { 'cost': 1, 'bundled': 10 },
-                        'initialMarginFractionOverride': { 'cost': 1 },
+                        'positions': { 'cost': 1 }, // todo
+                        'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
+                        'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1, 'bundled': 10 },
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
                         'withdrawals': { 'cost': 1, 'bundled': 10 },
                         'gasFees': { 'cost': 1 },
-                        'marketMakerRewardsV1/epochs': { 'cost': 1 },
-                        'marketMakerRewardsV1/epoch': { 'cost': 1 },
-                        'payouts': { 'cost': 1 },
+                        'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
+                        'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
+                        'payouts': { 'cost': 1 }, // todo
                         'wsToken': { 'cost': 1 },
                     },
                     'post': {
                         'wallets': { 'cost': 1 },
-                        'initialMarginFractionOverride': { 'cost': 1 },
+                        'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1 },
                         // 'orders/test': { 'cost': 1 }, not available in v4 API
-                        'withdrawals': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
                     },
                     'delete': {
@@ -232,7 +237,8 @@ export default class idex extends Exchange {
             'commonCurrencies': {},
         });
     }
-    priceToPrecision(symbol, price) {
+
+    priceToPrecision (symbol: string, price: any): string {
         //
         // we override priceToPrecision to fix the following issue
         // https://github.com/ccxt/ccxt/issues/13367
@@ -241,23 +247,26 @@ export default class idex extends Exchange {
         // const market = this.market (symbol);
         // price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
         // return this.decimalToPrecision (price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
-        const priceString = super.priceToPrecision(symbol, price);
-        return this.padWithZeroes(priceString, 8);
+        const priceString = super.priceToPrecision (symbol, price);
+        return this.padWithZeroes (priceString, 8);
     }
-    amountToPrecision(symbol, amount) {
-        const amountString = super.amountToPrecision(symbol, amount);
-        return this.padWithZeroes(amountString, 8);
+
+    amountToPrecision (symbol: string, amount: any): string {
+        const amountString = super.amountToPrecision (symbol, amount);
+        return this.padWithZeroes (amountString, 8);
     }
-    padWithZeroes(num, decimalSize) {
-        const parts = num.split('.');
-        const integerPart = this.safeString(parts, 0);
-        let decimalPart = this.safeString(parts, 1, '');
+
+    padWithZeroes (num: string, decimalSize: number): string {
+        const parts = num.split ('.');
+        const integerPart = this.safeString (parts, 0);
+        let decimalPart = this.safeString (parts, 1, '');
         const decimalLength = decimalPart.length;
         for (let i = decimalLength; i < decimalSize; i++) {
             decimalPart += '0';
         }
         return integerPart + '.' + decimalPart;
     }
+
     /**
      * @method
      * @name idex#fetchMarkets
@@ -266,8 +275,8 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets(params = {}) {
-        const response = await this.publicGetMarkets(params);
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        const response = await this.publicGetMarkets (params);
         //
         //    [
         //         {
@@ -303,7 +312,7 @@ export default class idex extends Exchange {
         //         },
         //    ]
         //
-        const response2 = await this.publicGetExchange();
+        const response2 = await this.publicGetExchange ();
         //
         //    {
         //        "timeZone": "UTC",
@@ -352,27 +361,27 @@ export default class idex extends Exchange {
         //         withdrawalMinimum: '1.00000000'
         //     }
         //
-        const maker = this.safeNumber(response, 'makerFeeRate');
-        const taker = this.safeNumber(response, 'takerFeeRate');
-        const makerMin = this.safeString(response2, 'makerTradeMinimum');
-        const takerMin = this.safeString(response2, 'takerTradeMinimum');
-        const minCostETH = this.parseNumber(Precise.stringMin(makerMin, takerMin));
+        const maker = this.safeNumber (response, 'makerFeeRate');
+        const taker = this.safeNumber (response, 'takerFeeRate');
+        const makerMin = this.safeString (response2, 'makerTradeMinimum');
+        const takerMin = this.safeString (response2, 'takerTradeMinimum');
+        const minCostETH = this.parseNumber (Precise.stringMin (makerMin, takerMin));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
-            const marketId = this.safeString(entry, 'market');
-            const baseId = this.safeString(entry, 'baseAsset');
-            const quoteId = this.safeString(entry, 'quoteAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const basePrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, 'baseAssetPrecision')));
-            const quotePrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, 'quoteAssetPrecision')));
-            const status = this.safeString(entry, 'status');
+            const marketId = this.safeString (entry, 'market');
+            const baseId = this.safeString (entry, 'baseAsset');
+            const quoteId = this.safeString (entry, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
+            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
+            const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
                 minCost = minCostETH;
             }
-            result.push({
+            result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -399,9 +408,9 @@ export default class idex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': 0.001,
-                    'price': 0.001,
-                    'base': 0.001,
+                    'amount': 0.001, // todo fix it properly
+                    'price': 0.001, // todo fix it properly
+                    'base': 0.001, // todo fix it properly
                     'quote': 0.001, // todo fix it properly
                 },
                 'limits': {
@@ -428,6 +437,7 @@ export default class idex extends Exchange {
         }
         return result;
     }
+
     /**
      * @method
      * @name idex#fetchTicker
@@ -437,10 +447,10 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'market': market['id'],
         };
         //
@@ -471,10 +481,11 @@ export default class idex extends Exchange {
         //         }
         //     ]
         //
-        const response = await this.publicGetTickers(this.extend(request, params));
-        const ticker = this.safeDict(response, 0);
-        return this.parseTicker(ticker, market);
+        const response = await this.publicGetTickers (this.extend (request, params));
+        const ticker = this.safeDict (response, 0);
+        return this.parseTicker (ticker, market);
     }
+
     /**
      * @method
      * @name idex#fetchTickers
@@ -484,8 +495,8 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
         //
         //     [
         //         {
@@ -514,10 +525,11 @@ export default class idex extends Exchange {
         //         }, ...
         //     ]
         //
-        const response = await this.publicGetTickers(params);
-        return this.parseTickers(response, symbols);
+        const response = await this.publicGetTickers (params);
+        return this.parseTickers (response, symbols);
     }
-    parseTicker(ticker, market = undefined) {
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     [
         //         {
@@ -546,36 +558,37 @@ export default class idex extends Exchange {
         //         }
         //     ]
         //
-        const marketId = this.safeString(ticker, 'market');
-        market = this.safeMarket(marketId, market, '-');
+        const marketId = this.safeString (ticker, 'market');
+        market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger(ticker, 'time');
-        const close = this.safeString(ticker, 'close');
-        return this.safeTicker({
+        const timestamp = this.safeInteger (ticker, 'time');
+        const close = this.safeString (ticker, 'close');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high'),
-            'low': this.safeString(ticker, 'low'),
-            'bid': this.safeString(ticker, 'bid'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'percentage': this.safeString (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'baseVolume'),
-            'quoteVolume': this.safeString(ticker, 'quoteVolume'),
-            'indexPrice': this.safeString(ticker, 'indexPrice'),
-            'markPrice': this.safeString(ticker, 'markPrice'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
+
     /**
      * @method
      * @name idex#fetchOHLCV
@@ -589,10 +602,10 @@ export default class idex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'market': market['id'],
             'interval': timeframe,
         };
@@ -602,12 +615,12 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['end'] = until;
-            params = this.omit(params, 'until');
+            params = this.omit (params, 'until');
         }
-        const response = await this.publicGetCandles(this.extend(request, params));
+        const response = await this.publicGetCandles (this.extend (request, params));
         //
         //     [
         //         {
@@ -623,9 +636,10 @@ export default class idex extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined) {
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "start": 1735913340000,
@@ -639,14 +653,15 @@ export default class idex extends Exchange {
         //         "sequence": 214495
         //     }
         //
-        const timestamp = this.safeInteger(ohlcv, 'start');
-        const open = this.safeNumber(ohlcv, 'open');
-        const high = this.safeNumber(ohlcv, 'high');
-        const low = this.safeNumber(ohlcv, 'low');
-        const close = this.safeNumber(ohlcv, 'close');
-        const volume = this.safeNumber(ohlcv, 'baseVolume');
-        return [timestamp, open, high, low, close, volume];
+        const timestamp = this.safeInteger (ohlcv, 'start');
+        const open = this.safeNumber (ohlcv, 'open');
+        const high = this.safeNumber (ohlcv, 'high');
+        const low = this.safeNumber (ohlcv, 'low');
+        const close = this.safeNumber (ohlcv, 'close');
+        const volume = this.safeNumber (ohlcv, 'baseVolume');
+        return [ timestamp, open, high, low, close, volume ];
     }
+
     /**
      * @method
      * @name idex#fetchTrades
@@ -660,24 +675,24 @@ export default class idex extends Exchange {
      * @param {string} [params.fromId] trade id of the earliest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 1000);
+            request['limit'] = Math.min (limit, 1000);
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['end'] = until;
-            params = this.omit(params, 'until');
+            params = this.omit (params, 'until');
         }
-        const response = await this.publicGetTrades(this.extend(request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -691,9 +706,10 @@ export default class idex extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
-    parseTrade(trade, market = undefined) {
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public trades
         //  {
@@ -732,36 +748,36 @@ export default class idex extends Exchange {
         //      "txStatus":"mined"
         //  }
         //
-        const id = this.safeString(trade, 'fillId');
-        const priceString = this.safeString(trade, 'price');
-        const amountString = this.safeString(trade, 'quantity');
-        const costString = this.safeString(trade, 'quoteQuantity');
-        const timestamp = this.safeInteger(trade, 'time');
-        const marketId = this.safeString(trade, 'market');
-        const symbol = this.safeSymbol(marketId, market, '-');
+        const id = this.safeString (trade, 'fillId');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const costString = this.safeString (trade, 'quoteQuantity');
+        const timestamp = this.safeInteger (trade, 'time');
+        const marketId = this.safeString (trade, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
         // this code handles the duality of public vs private trades
-        const makerSide = this.safeString(trade, 'makerSide');
+        const makerSide = this.safeString (trade, 'makerSide');
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
-        const side = this.safeString(trade, 'side', oppositeSide);
-        const takerOrMaker = this.safeString(trade, 'liquidity', 'taker');
-        const feeCostString = this.safeString(trade, 'fee');
+        const side = this.safeString (trade, 'side', oppositeSide);
+        const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString(trade, 'feeAsset');
+            const feeCurrencyId = this.safeString (trade, 'feeAsset');
             fee = {
                 'cost': feeCostString,
-                'currency': this.safeCurrencyCode(feeCurrencyId),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const orderId = this.safeString(trade, 'orderId');
-        return this.safeTrade({
+        const orderId = this.safeString (trade, 'orderId');
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': 'limit',
+            'type': 'limit', // todo must be checked
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -770,6 +786,7 @@ export default class idex extends Exchange {
             'fee': fee,
         }, market);
     }
+
     /**
      * @method
      * @name idex#fetchOrderBook
@@ -780,17 +797,17 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'market': market['id'],
             'level': 2,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderbook(this.extend(request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         //
         //     {
         //         "sequence": 228525431,
@@ -805,10 +822,11 @@ export default class idex extends Exchange {
         //         "indexPrice": "3579.30000000"
         //     }
         //
-        const orderbook = this.parseOrderBook(response, symbol);
-        orderbook['nonce'] = this.safeInteger(response, 'sequence');
+        const orderbook = this.parseOrderBook (response, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
         return orderbook;
     }
+
     /**
      * @method
      * @name idex#fetchFundingRateHistory
@@ -821,13 +839,13 @@ export default class idex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'market': market['id'],
         };
         if (since !== undefined) {
@@ -836,12 +854,12 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['end'] = until;
         }
-        const response = await this.publicGetFundingRates(this.extend(request, params));
+        const response = await this.publicGetFundingRates (this.extend (request, params));
         //
         //     [
         //         {
@@ -852,24 +870,25 @@ export default class idex extends Exchange {
         //     ]
         //
         let data = [];
-        if (Array.isArray(response)) {
+        if (Array.isArray (response)) {
             data = response;
         }
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const timestamp = this.safeInteger(entry, 'time');
-            rates.push({
+            const timestamp = this.safeInteger (entry, 'time');
+            rates.push ({
                 'info': entry,
                 'symbol': symbol,
-                'fundingRate': this.safeNumber(entry, 'fundingRate'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
+                'datetime': this.iso8601 (timestamp),
             });
         }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return sorted;
+        const sorted = this.sortBy (rates, 'timestamp');
+        return sorted as FundingRateHistory[];
     }
+
     /**
      * @method
      * @name idex#fetchBalance
@@ -879,14 +898,14 @@ export default class idex extends Exchange {
      * @param {string} [params.wallet] the wallet address to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    async fetchBalance(params = {}) {
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
-        const nonce = this.uuidv1();
-        const request = {
+    async fetchBalance (params = {}): Promise<Balances> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
             'nonce': nonce,
         };
-        const wallet = this.safeString(params, 'wallet');
+        const wallet = this.safeString (params, 'wallet');
         if (wallet !== undefined) {
             request['wallet'] = wallet;
         }
@@ -909,25 +928,27 @@ export default class idex extends Exchange {
         //         }
         //     ]
         //
-        const response = await this.privateGetWallets(this.extend(request, params));
-        return this.parseBalance(response);
+        const response = await this.privateGetWallets (this.extend (request, params));
+        return this.parseBalance (response);
     }
-    parseBalance(response) {
-        const result = {
+
+    parseBalance (response): Balances {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         const responseLength = response.length;
         const entry = response[responseLength - 1];
-        const code = this.safeString(this.options, 'defaultSettle');
-        const account = this.account();
-        account['total'] = this.safeString(entry, 'availableCollateral');
-        account['free'] = this.safeString(entry, 'freeCollateral');
-        account['used'] = this.safeString(entry, 'heldCollateral');
+        const code = this.safeString (this.options, 'defaultSettle');
+        const account = this.account ();
+        account['total'] = this.safeString (entry, 'availableCollateral');
+        account['free'] = this.safeString (entry, 'freeCollateral');
+        account['used'] = this.safeString (entry, 'heldCollateral');
         result[code] = account;
-        return this.safeBalance(result);
+        return this.safeBalance (result);
     }
+
     /**
      * @method
      * @name idex#fetchMyTrades
@@ -939,16 +960,16 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         let market = undefined;
-        const request = {
-            'nonce': this.uuidv1(),
+        const request: Dict = {
+            'nonce': this.uuidv1 (),
             'wallet': this.walletAddress,
         };
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         if (since !== undefined) {
@@ -977,26 +998,25 @@ export default class idex extends Exchange {
         //     "txStatus": "mined"
         //   }
         // ]
-        const extendedRequest = this.extend(request, params);
+        const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
-            throw new BadRequest(this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
+            throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
         }
         let response = undefined;
         try {
-            response = await this.privateGetFills(extendedRequest);
-        }
-        catch (e) {
+            response = await this.privateGetFills (extendedRequest);
+        } catch (e) {
             if (e instanceof InvalidAddress) {
                 const walletAddress = extendedRequest['wallet'];
-                await this.associateWallet(walletAddress);
-                response = await this.privateGetFills(extendedRequest);
-            }
-            else {
+                await this.associateWallet (walletAddress);
+                response = await this.privateGetFills (extendedRequest);
+            } else {
                 throw e;
             }
         }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
+
     /**
      * @method
      * @name idex#fetchOrder
@@ -1007,12 +1027,13 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder(id, symbol = undefined, params = {}) {
-        const request = {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        const request: Dict = {
             'orderId': id,
         };
-        return await this.fetchOrdersHelper(symbol, undefined, undefined, this.extend(request, params));
+        return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params)) as Order;
     }
+
     /**
      * @method
      * @name idex#fetchOpenOrders
@@ -1024,12 +1045,13 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const request: Dict = {
             'closed': false,
         };
-        return await this.fetchOrdersHelper(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
+
     /**
      * @method
      * @name idex#fetchClosedOrders
@@ -1041,21 +1063,22 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const request: Dict = {
             'closed': true,
         };
-        return await this.fetchOrdersHelper(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
-    async fetchOrdersHelper(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {
-            'nonce': this.uuidv1(),
+
+    async fetchOrdersHelper (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'nonce': this.uuidv1 (),
             'wallet': this.walletAddress,
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         if (since !== undefined) {
@@ -1064,7 +1087,7 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrders(this.extend(request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         // fetchClosedOrders / fetchOpenOrders
         // [
         //   {
@@ -1126,24 +1149,25 @@ export default class idex extends Exchange {
         //        "liquidity": "taker",
         //        "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
         //        "txStatus": "mined" } ] }
-        if (Array.isArray(response)) {
-            return this.parseOrders(response, market, since, limit);
-        }
-        else {
-            return this.parseOrder(response, market);
+        if (Array.isArray (response)) {
+            return this.parseOrders (response, market, since, limit) as any;
+        } else {
+            return this.parseOrder (response, market);
         }
     }
-    parseOrderStatus(status) {
+
+    parseOrderStatus (status: Str) {
         // https://docs.idex.io/#order-states-amp-lifecycle
-        const statuses = {
+        const statuses: Dict = {
             'active': 'open',
             'partiallyFilled': 'open',
             'rejected': 'canceled',
             'filled': 'closed',
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
-    parseOrder(order, market = undefined) {
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "market": "DIL-ETH",
@@ -1177,27 +1201,27 @@ export default class idex extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.safeInteger(order, 'time');
-        const fills = this.safeList(order, 'fills', []);
-        const id = this.safeString(order, 'orderId');
-        const clientOrderId = this.safeString(order, 'clientOrderId');
-        const marketId = this.safeString(order, 'market');
-        const side = this.safeString(order, 'side');
-        const symbol = this.safeSymbol(marketId, market, '-');
-        const type = this.safeString(order, 'type');
-        const amount = this.safeString(order, 'originalQuantity');
-        const filled = this.safeString(order, 'executedQuantity');
-        const average = this.safeString(order, 'avgExecutionPrice');
-        const price = this.safeString(order, 'price');
-        const rawStatus = this.safeString(order, 'status');
-        const timeInForce = this.safeStringUpper(order, 'timeInForce');
-        const status = this.parseOrderStatus(rawStatus);
-        return this.safeOrder({
+        const timestamp = this.safeInteger (order, 'time');
+        const fills = this.safeList (order, 'fills', []);
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const marketId = this.safeString (order, 'market');
+        const side = this.safeString (order, 'side');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const type = this.safeString (order, 'type');
+        const amount = this.safeString (order, 'originalQuantity');
+        const filled = this.safeString (order, 'executedQuantity');
+        const average = this.safeString (order, 'avgExecutionPrice');
+        const price = this.safeString (order, 'price');
+        const rawStatus = this.safeString (order, 'status');
+        const timeInForce = this.safeStringUpper (order, 'timeInForce');
+        const status = this.parseOrderStatus (rawStatus);
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -1216,31 +1240,33 @@ export default class idex extends Exchange {
             'trades': fills,
         }, market);
     }
-    async associateWallet(walletAddress, params = {}) {
-        const nonce = this.uuidv1();
-        const noPrefix = this.remove0xPrefix(walletAddress);
+
+    async associateWallet (walletAddress, params = {}) {
+        const nonce = this.uuidv1 ();
+        const noPrefix = this.remove0xPrefix (walletAddress);
         const byteArray = [
-            this.base16ToBinary(nonce),
-            this.base16ToBinary(noPrefix),
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (noPrefix),
         ];
-        const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, keccak, 'hex');
-        const signature = this.signMessageString(hash, this.privateKey);
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
         // {
         //   "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
         //   "totalPortfolioValueUsd": "0.00",
         //   "time": 1598468353626
         // }
-        const request = {
+        const request: Dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': walletAddress,
             },
             'signature': signature,
         };
-        const result = await this.privatePostWallets(request);
+        const result = await this.privatePostWallets (request);
         return result;
     }
+
     /**
      * @method
      * @name idex#createOrder
@@ -1265,104 +1291,100 @@ export default class idex extends Exchange {
      * @param {string} [params.selfTradePrevention] 'dc', 'co', 'cn', or 'cb', default is 'dc', must be cn if fok timeInForce is specified
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
-        const market = this.market(symbol);
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         let wallet = this.walletAddress;
-        [wallet, params] = this.handleOptionAndParams(params, 'createOrder', 'wallet', wallet);
-        const order = {
-            'nonce': this.uuidv1(),
+        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        const order: Dict = {
+            'nonce': this.uuidv1 (),
             'wallet': wallet,
             'market': market['id'],
-            'side': side.toLowerCase(),
-            'quantity': this.amountToPrecision(symbol, amount),
-            'reduceOnly': this.safeBool(params, 'reduceOnly', false),
+            'side': side.toLowerCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'reduceOnly': this.safeBool (params, 'reduceOnly', false),
         };
         let delegatedKey = undefined;
-        [delegatedKey, params] = this.handleOptionAndParams(params, 'createOrder', 'delegatedKey');
+        [ delegatedKey, params ] = this.handleOptionAndParams (params, 'createOrder', 'delegatedKey');
         if (delegatedKey !== undefined) {
             order['delegatedKey'] = delegatedKey;
         }
-        let triggerPrice = this.safeString(params, 'triggerPrice');
-        const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        let triggerPrice = this.safeString (params, 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if ((type === 'market') || (type === 'limit')) {
             if (triggerPrice !== undefined) {
-                throw new BadRequest(this.id + ' createOrder() triggerPrice is supported with stopLossMarket, stopLossLimit, takeProfitMarket, or takeProfitLimit types only');
-            }
-            else if (stopLossPrice !== undefined) {
-                type = 'stopLoss' + this.capitalize(type);
+                throw new BadRequest (this.id + ' createOrder() triggerPrice is supported with stopLossMarket, stopLossLimit, takeProfitMarket, or takeProfitLimit types only');
+            } else if (stopLossPrice !== undefined) {
+                type = 'stopLoss' + this.capitalize (type);
                 triggerPrice = stopLossPrice;
-            }
-            else if (takeProfitPrice !== undefined) {
-                type = 'takeProfit' + this.capitalize(type);
+            } else if (takeProfitPrice !== undefined) {
+                type = 'takeProfit' + this.capitalize (type);
                 triggerPrice = takeProfitPrice;
             }
         }
         order['type'] = type;
         if (triggerPrice !== undefined) {
-            order['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            order['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             let triggerType = 'last';
-            [triggerType, params] = this.handleOptionAndParams(params, 'createOrder', 'triggerType', triggerType);
+            [ triggerType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerType', triggerType);
             order['triggerType'] = triggerType;
         }
         const isLimitOrder = (type === 'limit') || (type === 'stopLossLimit') || (type === 'takeProfitLimit');
         const isMarketOrder = (type === 'market') || (type === 'stopLossMarket') || (type === 'takeProfitMarket');
         if (price !== undefined) {
             if (isMarketOrder) {
-                throw new BadRequest(this.id + ' createOrder() price is supported with limit, stopLossLimit, or takeProfitLimit types only');
+                throw new BadRequest (this.id + ' createOrder() price is supported with limit, stopLossLimit, or takeProfitLimit types only');
             }
-            order['price'] = this.priceToPrecision(symbol, price);
+            order['price'] = this.priceToPrecision (symbol, price);
+        } else if (isLimitOrder) {
+            throw new BadRequest (this.id + ' createOrder() price is required with limit, stopLossLimit, or takeProfitLimit types');
         }
-        else if (isLimitOrder) {
-            throw new BadRequest(this.id + ' createOrder() price is required with limit, stopLossLimit, or takeProfitLimit types');
-        }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             order['clientOrderId'] = clientOrderId;
         }
-        let timeInForce = this.safeStringLower(params, 'timeInForce');
+        let timeInForce = this.safeStringLower (params, 'timeInForce');
         let postOnly = false;
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'gtx', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'gtx', params);
         if (postOnly) {
             timeInForce = 'gtx';
         }
         if (timeInForce !== undefined) {
             order['timeInForce'] = timeInForce;
         }
-        const selfTradePrevention = this.safeStringLower(params, 'selfTradePrevention');
+        const selfTradePrevention = this.safeStringLower (params, 'selfTradePrevention');
         const isFillOrKill = timeInForce === 'fok';
         if (selfTradePrevention !== undefined) {
             if (isFillOrKill && (selfTradePrevention !== 'cn')) {
-                throw new BadRequest(this.id + ' createOrder() selfTradePrevention must be "cn" if timeInForce is "FOK"');
-            }
-            else {
+                throw new BadRequest (this.id + ' createOrder() selfTradePrevention must be "cn" if timeInForce is "FOK"');
+            } else {
                 order['selfTradePrevention'] = selfTradePrevention;
             }
-        }
-        else if (isFillOrKill) {
+        } else if (isFillOrKill) {
             order['selfTradePrevention'] = 'cn';
         }
-        const signature = this.generateSignatureForCreateOrder(order);
-        const request = {
+        const signature = this.generateSignatureForCreateOrder (order);
+        const request: Dict = {
             'parameters': order,
             'signature': signature,
         };
         //
         // we don't use extend here because it is a signed endpoint
-        const response = await this.privatePostOrders(request);
-        return this.parseOrder(response, market);
+        const response = await this.privatePostOrders (request);
+        return this.parseOrder (response, market);
     }
-    generateSignatureForCreateOrder(order) {
+
+    generateSignatureForCreateOrder (order) {
         // https://api-docs-v4.idex.io/#authentication
         const nonce = order['nonce'];
-        const wallet = this.safeString(order, 'wallet');
-        const walletBytes = this.remove0xPrefix(wallet);
-        const market = this.safeString(order, 'market');
-        const type = this.safeString(order, 'type');
+        const wallet = this.safeString (order, 'wallet');
+        const walletBytes = this.remove0xPrefix (wallet);
+        const market = this.safeString (order, 'market');
+        const type = this.safeString (order, 'type');
         // https://api-docs-v4.idex.io/#wallet-signature-hash-enums
-        const typeEnums = {
+        const typeEnums: Dict = {
             'market': 0,
             'limit': 1,
             'stopLossMarket': 2,
@@ -1371,86 +1393,86 @@ export default class idex extends Exchange {
             'takeProfitLimit': 5,
         };
         if (!(type in typeEnums)) {
-            throw new BadRequest(this.id + ' createOrder() invalid order type: ' + type + ' (limit, market, stopLossMarket, stopLossLimit, takeProfitMarket, takeProfitLimit types are supported only)');
+            throw new BadRequest (this.id + ' createOrder() invalid order type: ' + type + ' (limit, market, stopLossMarket, stopLossLimit, takeProfitMarket, takeProfitLimit types are supported only)');
         }
         const typeEnum = typeEnums[type];
-        const side = this.safeString(order, 'side');
-        const sideEnums = {
+        const side = this.safeString (order, 'side');
+        const sideEnums: Dict = {
             'buy': 0,
             'sell': 1,
         };
         if (!(side in sideEnums)) {
-            throw new BadRequest(this.id + ' createOrder() invalid order side: ' + side + ' (buy or sell sides are supported only)');
+            throw new BadRequest (this.id + ' createOrder() invalid order side: ' + side + ' (buy or sell sides are supported only)');
         }
         const sideEnum = sideEnums[side];
-        const quantity = this.safeString(order, 'quantity');
-        const price = this.safeString(order, 'price', '0.00000000');
-        const triggerPrice = this.safeString(order, 'triggerPrice', '0.00000000');
-        const triggerTypeEnums = {
+        const quantity = this.safeString (order, 'quantity');
+        const price = this.safeString (order, 'price', '0.00000000');
+        const triggerPrice = this.safeString (order, 'triggerPrice', '0.00000000');
+        const triggerTypeEnums: Dict = {
             'none': 0,
             'last': 1,
             'index': 2,
         };
-        const triggerType = this.safeString(order, 'triggerType', 'none');
+        const triggerType = this.safeString (order, 'triggerType', 'none');
         if (!(triggerType in triggerTypeEnums)) {
-            throw new BadRequest(this.id + ' createOrder() invalid triggerType: ' + triggerType + ' (last or index are supported only)');
+            throw new BadRequest (this.id + ' createOrder() invalid triggerType: ' + triggerType + ' (last or index are supported only)');
         }
         const triggerTypeEnum = triggerTypeEnums[triggerType];
         const callbackRate = '0.00000000'; // unused
         const conditionalOrderId = 0; // unused
-        const reduceOnly = this.safeBool(order, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (order, 'reduceOnly', false);
         const reduceOnlyEnum = reduceOnly ? 1 : 0;
-        const timeInForceEnums = {
+        const timeInForceEnums: Dict = {
             'gtc': 0,
             'gtx': 1,
             'ioc': 2,
             'fok': 3,
         };
-        const timeInForce = this.safeString(order, 'timeInForce', 'gtc');
+        const timeInForce = this.safeString (order, 'timeInForce', 'gtc');
         if (!(timeInForce in timeInForceEnums)) {
-            throw new BadRequest(this.id + ' createOrder() invalid timeInForce: ' + timeInForce + ' (GTC, GTX, IOC, FOK are supported only)');
+            throw new BadRequest (this.id + ' createOrder() invalid timeInForce: ' + timeInForce + ' (GTC, GTX, IOC, FOK are supported only)');
         }
         const timeInForceEnum = timeInForceEnums[timeInForce];
-        const selfTradePreventionEnums = {
+        const selfTradePreventionEnums: Dict = {
             'dc': 0,
             'co': 1,
             'cn': 2,
             'cb': 3,
         };
-        const selfTradePrevention = this.safeString(order, 'selfTradePrevention', 'dc');
+        const selfTradePrevention = this.safeString (order, 'selfTradePrevention', 'dc');
         if (!(selfTradePrevention in selfTradePreventionEnums)) {
-            throw new BadRequest(this.id + ' createOrder() invalid selfTradePrevention: ' + selfTradePrevention + ' (dc, co, cn, cb are supported only)');
+            throw new BadRequest (this.id + ' createOrder() invalid selfTradePrevention: ' + selfTradePrevention + ' (dc, co, cn, cb are supported only)');
         }
         const selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention];
         const isLiquidationAcquisitionOnlyInt = 0; // false - unused
         // const delegatedPublicKey = this.safeString (order, 'delegatedKey', '0x0');
         // const delegatedPublicKeyBytes = this.remove0xPrefix (delegatedPublicKey);
-        const clientOrderId = this.safeString(order, 'clientOrderId', '');
+        const clientOrderId = this.safeString (order, 'clientOrderId', '');
         const byteArray = [
-            this.base16ToBinary(nonce),
-            this.base16ToBinary(walletBytes),
-            this.encode(market),
-            this.numberToBE(typeEnum, 1),
-            this.numberToBE(sideEnum, 1),
-            this.encode(quantity),
-            this.encode(price),
-            this.encode(triggerPrice),
-            this.numberToBE(triggerTypeEnum, 1),
-            this.encode(callbackRate),
-            this.numberToBE(conditionalOrderId, 8),
-            this.numberToBE(reduceOnlyEnum, 1),
-            this.numberToBE(timeInForceEnum, 1),
-            this.numberToBE(selfTradePreventionEnum, 1),
-            this.numberToBE(isLiquidationAcquisitionOnlyInt, 1),
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
+            this.encode (market),
+            this.numberToBE (typeEnum, 1),
+            this.numberToBE (sideEnum, 1),
+            this.encode (quantity),
+            this.encode (price),
+            this.encode (triggerPrice),
+            this.numberToBE (triggerTypeEnum, 1),
+            this.encode (callbackRate),
+            this.numberToBE (conditionalOrderId, 8),
+            this.numberToBE (reduceOnlyEnum, 1),
+            this.numberToBE (timeInForceEnum, 1),
+            this.numberToBE (selfTradePreventionEnum, 1),
+            this.numberToBE (isLiquidationAcquisitionOnlyInt, 1),
             // this.base16ToBinary (delegatedPublicKeyBytes), todo handle with delegatedKey
-            this.encode(clientOrderId),
+            this.encode (clientOrderId),
         ];
-        const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, keccak, 'hex');
-        const signature = this.signMessageString(hash, this.privateKey);
-        // return signature;
-        return '12341341324123418241624612764812614863816348168234'
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        return signature;
     }
+
     /**
      * @method
      * @name idex#withdraw
@@ -1463,25 +1485,25 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
-        const nonce = this.uuidv1();
-        const amountString = this.currencyToPrecision(code, amount);
-        const currency = this.currency(code);
-        const walletBytes = this.remove0xPrefix(this.walletAddress);
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const amountString = this.currencyToPrecision (code, amount);
+        const currency = this.currency (code);
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
-            this.base16ToBinary(nonce),
-            this.base16ToBinary(walletBytes),
-            this.encode(currency['id']),
-            this.encode(amountString),
-            this.numberToBE(1, 1), // bool set to true
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
+            this.encode (currency['id']),
+            this.encode (amountString),
+            this.numberToBE (1, 1), // bool set to true
         ];
-        const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, keccak, 'hex');
-        const signature = this.signMessageString(hash, this.privateKey);
-        const request = {
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        const request: Dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': address,
@@ -1490,7 +1512,7 @@ export default class idex extends Exchange {
             },
             'signature': signature,
         };
-        const response = await this.privatePostWithdrawals(request);
+        const response = await this.privatePostWithdrawals (request);
         //
         //     {
         //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
@@ -1503,8 +1525,9 @@ export default class idex extends Exchange {
         //         "txId": null
         //     }
         //
-        return this.parseTransaction(response, currency);
+        return this.parseTransaction (response, currency);
     }
+
     /**
      * @method
      * @name idex#cancelAllOrders
@@ -1514,37 +1537,38 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders(symbol = undefined, params = {}) {
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
         }
-        const nonce = this.uuidv1();
-        const request = {
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': this.walletAddress,
             },
         };
-        const walletBytes = this.remove0xPrefix(this.walletAddress);
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
-            this.base16ToBinary(nonce),
-            this.base16ToBinary(walletBytes),
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
         ];
         if (market !== undefined) {
-            byteArray.push(this.encode(market['id']));
+            byteArray.push (this.encode (market['id']));
             request['parameters']['market'] = market['id'];
         }
-        const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, keccak, 'hex');
-        const signature = this.signMessageString(hash, this.privateKey);
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
         request['signature'] = signature;
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
-        const response = await this.privateDeleteOrders(this.extend(request, params));
-        return this.parseOrders(response, market);
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
     }
+
     /**
      * @method
      * @name idex#cancelOrder
@@ -1555,24 +1579,24 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrder(id, symbol = undefined, params = {}) {
-        this.checkRequiredCredentials();
-        await this.loadMarkets();
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
         }
-        const nonce = this.uuidv1();
-        const walletBytes = this.remove0xPrefix(this.walletAddress);
+        const nonce = this.uuidv1 ();
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
-            this.base16ToBinary(nonce),
-            this.base16ToBinary(walletBytes),
-            this.encode(id),
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
+            this.encode (id),
         ];
-        const binary = this.binaryConcatArray(byteArray);
-        const hash = this.hash(binary, keccak, 'hex');
-        const signature = this.signMessageString(hash, this.privateKey);
-        const request = {
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        const request: Dict = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': this.walletAddress,
@@ -1581,19 +1605,21 @@ export default class idex extends Exchange {
             'signature': signature,
         };
         // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
-        const response = await this.privateDeleteOrders(this.extend(request, params));
-        const canceledOrder = this.safeDict(response, 0);
-        return this.parseOrder(canceledOrder, market);
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const canceledOrder = this.safeDict (response, 0);
+        return this.parseOrder (canceledOrder, market);
     }
-    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        const errorCode = this.safeString(response, 'code');
-        const message = this.safeString(response, 'message');
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
         if (errorCode !== undefined) {
-            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, message);
-            throw new ExchangeError(this.id + ' ' + message);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
+            throw new ExchangeError (this.id + ' ' + message);
         }
         return undefined;
     }
+
     /**
      * @method
      * @name idex#fetchDeposit
@@ -1604,15 +1630,15 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDeposit(id, code = undefined, params = {}) {
-        await this.loadMarkets();
-        const nonce = this.uuidv1();
-        const request = {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
             'nonce': nonce,
             'wallet': this.walletAddress,
             'depositId': id,
         };
-        const response = await this.privateGetDeposits(this.extend(request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         //
         //     {
         //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
@@ -1624,8 +1650,9 @@ export default class idex extends Exchange {
         //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
         //     }
         //
-        return this.parseTransaction(response);
+        return this.parseTransaction (response);
     }
+
     /**
      * @method
      * @name idex#fetchDeposits
@@ -1638,8 +1665,8 @@ export default class idex extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        params = this.extend({
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        params = this.extend ({
             'method': 'privateGetDeposits',
         }, params);
         //
@@ -1664,8 +1691,9 @@ export default class idex extends Exchange {
         //         }
         //     ]
         //
-        return await this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
+
     /**
      * @method
      * @name idex#fetchStatus
@@ -1674,16 +1702,17 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
-    async fetchStatus(params = {}) {
-        const response = await this.publicGetPing(params);
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetPing (params);
         return {
-            'status': 'ok',
+            'status': 'ok', // if there's no Errors, status = 'ok'
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
         };
     }
+
     /**
      * @method
      * @name idex#fetchTime
@@ -1692,13 +1721,14 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime(params = {}) {
-        const response = await this.publicGetTime(params);
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
         //
         //    { serverTime: "1655258263236" }
         //
-        return this.safeInteger(response, 'serverTime');
+        return this.safeInteger (response, 'serverTime');
     }
+
     /**
      * @method
      * @name idex#fetchWithdrawal
@@ -1709,17 +1739,18 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawal(id, code = undefined, params = {}) {
-        await this.loadMarkets();
-        const nonce = this.uuidv1();
-        const request = {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
             'nonce': nonce,
             'wallet': this.walletAddress,
             'withdrawalId': id,
         };
-        const response = await this.privateGetWithdrawals(this.extend(request, params));
-        return this.parseTransaction(response);
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        return this.parseTransaction (response);
     }
+
     /**
      * @method
      * @name idex#fetchWithdrawals
@@ -1732,22 +1763,23 @@ export default class idex extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        params = this.extend({
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        params = this.extend ({
             'method': 'privateGetWithdrawals',
         }, params);
-        return await this.fetchTransactionsHelper(code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
-    async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const nonce = this.uuidv1();
-        const request = {
+
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request: Dict = {
             'nonce': nonce,
             'wallet': this.walletAddress,
         };
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.currency (code);
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1756,26 +1788,25 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['end'] = until;
-            params = this.omit(params, 'until');
+            params = this.omit (params, 'until');
         }
         const method = params['method'];
-        params = this.omit(params, 'method');
+        params = this.omit (params, 'method');
         let response = undefined;
         if (method === 'privateGetDeposits') {
-            response = await this.privateGetDeposits(this.extend(request, params));
+            response = await this.privateGetDeposits (this.extend (request, params));
+        } else if (method === 'privateGetWithdrawals') {
+            response = await this.privateGetWithdrawals (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTransactionsHelper() not support this method');
         }
-        else if (method === 'privateGetWithdrawals') {
-            response = await this.privateGetWithdrawals(this.extend(request, params));
-        }
-        else {
-            throw new NotSupported(this.id + ' fetchTransactionsHelper() not support this method');
-        }
-        return this.parseTransactions(response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
-    parseTransaction(transaction, currency = undefined) {
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1818,32 +1849,31 @@ export default class idex extends Exchange {
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
-        }
-        else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
+        } else if (('withdrawId' in transaction) || ('withdrawalId' in transaction)) {
             type = 'withdrawal';
         }
-        let id = this.safeString2(transaction, 'depositId', 'withdrawId');
-        id = this.safeString(transaction, 'withdrawalId', id);
-        const code = this.safeCurrencyCode(this.safeString(transaction, 'asset'), currency);
-        const amount = this.safeNumber(transaction, 'quantity');
-        const txid = this.safeString2(transaction, 'txId', 'xchainTxId');
-        const timestamp = this.safeInteger2(transaction, 'txTime', 'time');
+        let id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        id = this.safeString (transaction, 'withdrawalId', id);
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
+        const amount = this.safeNumber (transaction, 'quantity');
+        const txid = this.safeString2 (transaction, 'txId', 'xchainTxId');
+        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
         let fee = undefined;
         if ('fee' in transaction) {
             fee = {
-                'cost': this.safeNumber(transaction, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': 'ETH',
             };
         }
-        const rawStatus = this.safeString(transaction, 'txStatus');
-        const status = this.parseTransactionStatus(rawStatus);
-        const updated = this.safeInteger(transaction, 'confirmationTime');
+        const rawStatus = this.safeString (transaction, 'txStatus');
+        const status = this.parseTransactionStatus (rawStatus);
+        const updated = this.safeInteger (transaction, 'confirmationTime');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -1859,14 +1889,16 @@ export default class idex extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
-    parseTransactionStatus(status) {
-        const statuses = {
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'mined': 'ok',
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
+
     /**
      * @method
      * @name idex#fetchDepositWithdrawFees
@@ -1876,9 +1908,9 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
-        const response = await this.publicGetGasFees(params);
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetGasFees (params);
         //
         //     {
         //         "withdrawal": {
@@ -1894,10 +1926,11 @@ export default class idex extends Exchange {
         //         }
         //     }
         //
-        const withdrawal = this.safeDict(response, 'withdrawal', {});
-        return this.parseDepositWithdrawFees(withdrawal, codes, 'coin');
+        const withdrawal = this.safeDict (response, 'withdrawal', {});
+        return this.parseDepositWithdrawFees (withdrawal, codes, 'coin');
     }
-    parseDepositWithdrawFee(fee, currency = undefined) {
+
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //     {
         //         "xchain.xchain": "0.05000000",
@@ -1914,7 +1947,7 @@ export default class idex extends Exchange {
         // todo should make the name of the network as ccxt unified network name
         return {
             'withdraw': {
-                'fee': this.parseNumber(fee),
+                'fee': this.parseNumber (fee),
                 'percentage': undefined,
             },
             'deposit': {
@@ -1925,21 +1958,22 @@ export default class idex extends Exchange {
             'info': fee,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}) {
-        let cost = this.safeNumber(config, 'cost', 1);
-        const bundled = this.safeNumber(config, 'bundled');
-        const limit = this.safeNumber(params, 'limit');
+
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
+        let cost = this.safeNumber (config, 'cost', 1);
+        const bundled = this.safeNumber (config, 'bundled');
+        const limit = this.safeNumber (params, 'limit');
         if ((bundled !== undefined) && (limit !== undefined) && (limit > 100)) {
             cost = bundled;
-        }
-        else if (api === 'public') {
-            const signed = this.checkRequiredCredentials(false);
+        } else if (api === 'public') {
+            const signed = this.checkRequiredCredentials (false);
             if (!signed) {
                 cost = cost * 2;
             }
         }
         return cost;
     }
+
     /**
      * @method
      * @name idex#fetchDepositAddress
@@ -1949,10 +1983,10 @@ export default class idex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async fetchDepositAddress(code = undefined, params = {}) {
-        const request = {};
-        request['nonce'] = this.uuidv1();
-        const response = await this.privateGetWallets(this.extend(request, params));
+    async fetchDepositAddress (code: Str = undefined, params = {}): Promise<DepositAddress> {
+        const request: Dict = {};
+        request['nonce'] = this.uuidv1 ();
+        const response = await this.privateGetWallets (this.extend (request, params));
         //
         //     [
         //         {
@@ -1972,9 +2006,10 @@ export default class idex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseDepositAddress(response);
+        return this.parseDepositAddress (response);
     }
-    parseDepositAddress(depositAddress, currency = undefined) {
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     [
         //         {
@@ -1995,30 +2030,30 @@ export default class idex extends Exchange {
         //     ]
         //
         const length = depositAddress.length;
-        const entry = this.safeDict(depositAddress, length - 1);
-        const address = this.safeString(entry, 'wallet');
-        this.checkAddress(address);
+        const entry = this.safeDict (depositAddress, length - 1);
+        const address = this.safeString (entry, 'wallet');
+        this.checkAddress (address);
         return {
             'info': depositAddress,
-            'currency': this.options['defaultSettle'],
+            'currency': this.options['defaultSettle'], // todo check if it's correct
             'network': undefined,
             'address': address,
             'tag': undefined,
-        };
+        } as DepositAddress;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = this.safeString(this.options, 'version', 'v4');
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const version = this.safeString (this.options, 'version', 'v4');
         let url = this.urls['api']['api'] + '/' + version + '/' + path;
-        const keys = Object.keys(params);
+        const keys = Object.keys (params);
         const length = keys.length;
         let query = undefined;
         if (length > 0) {
             if (method === 'GET') {
-                query = this.urlencode(params);
+                query = this.urlencode (params);
                 url = url + '?' + query;
-            }
-            else {
-                body = this.json(params);
+            } else {
+                body = this.json (params);
             }
         }
         headers = {
@@ -2031,43 +2066,46 @@ export default class idex extends Exchange {
             let payload = undefined;
             if (method === 'GET') {
                 payload = query;
-            }
-            else {
+            } else {
                 payload = body;
             }
-            headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
+            headers['IDEX-HMAC-Signature'] = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-    remove0xPrefix(hexData) {
-        if (hexData.slice(0, 2) === '0x') {
-            return hexData.slice(2);
-        }
-        else {
+
+    remove0xPrefix (hexData) {
+        if (hexData.slice (0, 2) === '0x') {
+            return hexData.slice (2);
+        } else {
             return hexData;
         }
     }
-    hashMessage(message) {
+
+    hashMessage (message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
-        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, 'hex');
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message));
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
-    signHash(hash, privateKey) {
-        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
             'v': 27 + signature['v'],
         };
     }
-    signMessage(message, privateKey) {
-        return this.signHash(this.hashMessage(message), privateKey.slice(-64));
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
-    signMessageString(message, privateKey) {
+
+    signMessageString (message, privateKey) {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
-        const signature = this.signMessage(message, privateKey);
-        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
+        const signature = this.signMessage (message, privateKey);
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1));
     }
 }
