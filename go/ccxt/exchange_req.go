@@ -182,11 +182,20 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
+		// Unmarshal the response body
+		var result interface{}
+		err = json.Unmarshal(respBody, &result)
+		if err != nil {
+			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
+			result = string(respBody)
+		}
+
 		statusText := http.StatusText(resp.StatusCode)
-		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, respBody, respBody, headers, body)
+		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {
-			this.HandleHttpStatusCode(resp.StatusCode, statusText, urlStr, methodStr, respBody)
+			this.HandleHttpStatusCode(resp.StatusCode, statusText, urlStr, methodStr, result)
 		}
 
 		// Check for HTTP errors
@@ -205,13 +214,6 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			fmt.Printf("Response: %s\n", respBody)
 		}
 
-		// Unmarshal the response body
-		var result interface{}
-		err = json.Unmarshal(respBody, &result)
-		if err != nil {
-			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
-			result = string(respBody)
-		}
 		ch <- result
 	}()
 	return ch

@@ -1072,8 +1072,6 @@ func GetLength(v interface{}) int {
 	}
 }
 
-
-
 func IsNil(x interface{}) bool {
 	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
 	if x == nil {
@@ -1084,7 +1082,7 @@ func IsNil(x interface{}) bool {
 	kind := value.Kind()
 
 	switch kind {
-	case reflect. Chan, reflect. Func, reflect.Map, reflect. Ptr, reflect.UnsafePointer, reflect. Interface, reflect.Slice:
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
 		return value.IsNil()
 	default:
 		return false
@@ -1657,6 +1655,9 @@ func convertNumbers(data interface{}) {
 }
 
 func throwDynamicException(exceptionType interface{}, message interface{}) {
+	functionError := exceptionType.(func(...interface{}) error)
+	errorMsg := functionError(message)
+	panic(errorMsg)
 	// to do implement
 	// // exceptionTypeStr, ok := exceptionType.(string)
 	// if !ok {
@@ -2182,7 +2183,7 @@ func PanicOnError(msg interface{}) {
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
+			panic(fmt.Sprintf("->%v:%v", caller, msg))
 			// panic(v)
 		}
 	case []interface{}:
