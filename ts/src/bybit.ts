@@ -3349,10 +3349,6 @@ export default class bybit extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseTestnetBalanceList (response): Balances {
-
-    }
-
     /**
      * @method
      * @name bybit#fetchBalance
