@@ -70,7 +70,7 @@ class xt(ccxt.async_support.xt):
         if not isContract:
             url = url + '/private'
         client = self.client(url)
-        token = self.safe_dict(client.subscriptions, 'token')
+        token = self.safe_string(client.subscriptions, 'token')
         if token is None:
             if isContract:
                 response = await self.privateLinearGetFutureUserV1UserListenKey()
