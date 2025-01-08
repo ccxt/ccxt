@@ -1476,7 +1476,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchOrders
-     * @see 
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
      * @description fetches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
