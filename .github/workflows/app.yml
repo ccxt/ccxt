@@ -19,6 +19,7 @@ jobs:
         fetch-depth: 2
     - name: Determine modified files
       run: |
+       ./utils/check_modified_files.sh
        OUTPUT=$(./utils/check_modified_files.sh | tr -d '\n')
        IMPORTANT_MODIFIED=$(echo "$OUTPUT" | jq -r '.important_modified')
        REST_FILES=$(echo "$OUTPUT" | jq -r '.rest_exchanges')
