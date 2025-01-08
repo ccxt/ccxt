@@ -762,12 +762,15 @@ export default class bitopro extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const until = this.safeInteger (params, 'until');
+        const untilIsDefined = until !== undefined;
         const request: Dict = {
             'pair': market['id'],
             'resolution': resolution,
@@ -781,14 +784,23 @@ export default class bitopro extends Exchange {
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince = undefined;
         if (since === undefined) {
-            request['to'] = this.seconds ();
+            if (untilIsDefined) {
+                request['to'] = Math.floor (until / 1000);
+            } else {
+                request['to'] = this.seconds ();
+            }
             request['from'] = request['to'] - (limit * timeframeInSeconds);
         } else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
             request['from'] = Math.floor (since / 1000);
-            request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
+            if (untilIsDefined) {
+                request['to'] = Math.floor (until / 1000);
+            } else {
+                request['to'] = this.sum (request['from'], limit * timeframeInSeconds);
+            }
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         //
