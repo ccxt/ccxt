@@ -85,6 +85,8 @@ jobs:
         with:
           name: shared_env
           path: ./shared_env.txt
+      - name: check files
+        run: cat shared_env.txt
       - name: Download JS Files
         uses: actions/download-artifact@v4
         with:
