@@ -1175,6 +1175,7 @@ export default class bitstamp extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1185,24 +1186,40 @@ export default class bitstamp extends Exchange {
             'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger (params, 'until');
+        const untilIsDefined = (until !== undefined);
         if (limit === undefined) {
+            limit = 1000;
             if (since === undefined) {
-                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limit;
+                if (untilIsDefined) {
+                    const start = until - (duration * limit) - 1;
+                    request['start'] = this.parseToInt (start / 1000);
+                    request['end'] = this.parseToInt (until / 1000);
+                }
             } else {
-                limit = 1000;
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum (start, duration * (limit - 1));
+                if (untilIsDefined) {
+                    request['end'] = this.parseToInt (until / 1000);
+                } else {
+                    request['end'] = this.sum (start, duration * limit - 1);
+                }
                 request['limit'] = limit;
             }
         } else {
             if (since !== undefined) {
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum (start, duration * (limit - 1));
+                request['end'] = this.sum (start, duration * limit - 1);
+            } else if (untilIsDefined) {
+                const end = this.parseToInt (until / 1000);
+                request['end'] = end;
+                request['start'] = end - (duration * limit) - 1;
             }
             request['limit'] = Math.min (limit, 1000); // min 1, max 1000
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetOhlcPair (this.extend (request, params));
         //
         //     {
