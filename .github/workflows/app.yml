@@ -11,11 +11,23 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
-    - name: Run check files script
-      run: ./utils/check_modified_files.sh
+    - name: Determine modified files
+      run: |
+       OUTPUT=$(bash ./utils/check_modified_files.sh)
+       IMPORTANT_MODIFIED=$(echo "$OUTPUT" | jq -r '.important_modified')
+       REST_FILES=$(echo "$OUTPUT" | jq -r '.rest_exchanges')
+       WS_FILES=$(echo "$OUTPUT" | jq -r '.ws_exchanges')
+       echo "important_modified=$IMPORTANT_MODIFIED" >> $GITHUB_ENV
+       echo "rest_files=$REST_FILES" >> $GITHUB_ENV
+       echo "ws_files=$WS_FILES" >> $GITHUB_ENV
+    - name: Debug output
+      run: |
+        echo "Important files modified: ${{ env.important_modified }}"
+        echo "REST files: ${{ env.rest_files }}"
+        echo "WS files: ${{ env.ws_files }}"
