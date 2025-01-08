@@ -2183,7 +2183,7 @@ func PanicOnError(msg interface{}) {
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(fmt.Sprintf("->%v:%v", caller, msg))
+			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
 			// panic(v)
 		}
 	case []interface{}:
