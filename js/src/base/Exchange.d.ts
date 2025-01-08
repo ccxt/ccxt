@@ -1125,7 +1125,7 @@ export default class Exchange {
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): FundingRate;
-    parseFundingRates(response: any, market?: Market): FundingRates;
+    parseFundingRates(response: any, symbols?: Strings): FundingRates;
     parseOpenInterests(response: any, market?: Market): OpenInterests;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: any, since?: Int, limit?: Int): LongShortRatio[];

@@ -1961,8 +1961,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

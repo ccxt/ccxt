@@ -2482,8 +2482,7 @@ class whitebit extends Exchange {
         //    )
         //
         $data = $this->safe_list($response, 'result', array());
-        $result = $this->parse_funding_rates($data);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

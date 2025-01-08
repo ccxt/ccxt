@@ -2502,8 +2502,7 @@ class bitmex(Exchange, ImplicitAPI):
             if swap:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)
-        result = self.parse_funding_rates(filteredResponse)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(filteredResponse, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # see response sample under "fetchMarkets" because same endpoint is being used here

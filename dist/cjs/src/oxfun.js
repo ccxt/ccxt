@@ -1030,8 +1030,7 @@ class oxfun extends oxfun$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     parseFundingRate(fundingRate, market = undefined) {
         //

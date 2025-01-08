@@ -10215,8 +10215,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
         }
-        object result = this.parseFundingRates(response);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -14755,8 +14754,7 @@ public partial class binance : Exchange
         //         },
         //     ]
         //
-        object result = this.parseFundingRates(response, market);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     /**

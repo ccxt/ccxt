@@ -3375,7 +3375,7 @@ public partial class bitfinex : Exchange
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response);
+        return this.parseFundingRates(response, symbols);
     }
 
     /**

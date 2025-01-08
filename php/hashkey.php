@@ -3778,8 +3778,7 @@ class hashkey extends Exchange {
         //         array( "symbol" => "ETHUSDT-PERPETUAL", "rate" => "0.0001", "nextSettleTime" => "1722297600000" )
         //     )
         //
-        $fundingRates = $this->parse_funding_rates($response);
-        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

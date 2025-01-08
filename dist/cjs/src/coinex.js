@@ -4782,8 +4782,7 @@ class coinex extends coinex$1 {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data, market);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method

@@ -2536,8 +2536,7 @@ class delta extends Exchange {
         //     }
         //
         $rates = $this->safe_list($response, 'result', array());
-        $result = $this->parse_funding_rates($rates);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($rates, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

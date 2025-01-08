@@ -2844,8 +2844,7 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)getValue(tickerList, i))["timestamp"] = timestamp; // will be removed inside the parser
         }
-        object result = this.parseFundingRates(tickerList);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(tickerList, symbols);
     }
 
     /**

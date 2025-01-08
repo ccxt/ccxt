@@ -2825,8 +2825,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'rows', [])
-        result = self.parse_funding_rates(rows)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rows, symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

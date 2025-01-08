@@ -6930,13 +6930,14 @@ class Exchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates($response, ?array $market = null) {
-        $result = array();
+    public function parse_funding_rates($response, ?array $symbols = null) {
+        $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_funding_rate($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
+            $entry = $response[$i];
+            $parsed = $this->parse_funding_rate($entry);
+            $fundingRates[$parsed['symbol']] = $parsed;
         }
-        return $result;
+        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
     }
 
     public function parse_open_interests($response, ?array $market = null) {

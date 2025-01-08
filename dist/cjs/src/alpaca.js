@@ -334,6 +334,14 @@ class alpaca extends alpaca$1 {
                         'limit': 1000,
                     },
                 },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'exceptions': {
                 'exact': {

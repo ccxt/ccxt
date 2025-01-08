@@ -337,6 +337,14 @@ export default class alpaca extends Exchange {
                         'limit': 1000,
                     },
                 },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'exceptions': {
                 'exact': {

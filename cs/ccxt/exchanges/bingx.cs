@@ -1625,8 +1625,7 @@ public partial class bingx : Exchange
         symbols = this.marketSymbols(symbols, "swap", true);
         object response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

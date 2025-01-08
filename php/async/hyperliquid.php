@@ -999,8 +999,7 @@ class hyperliquid extends Exchange {
                 );
                 $result[] = $data;
             }
-            $funding_rates = $this->parse_funding_rates($result);
-            return $this->filter_by_array($funding_rates, 'symbol', $symbols);
+            return $this->parse_funding_rates($result, $symbols);
         }) ();
     }
 

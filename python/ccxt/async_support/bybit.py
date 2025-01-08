@@ -2701,8 +2701,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         for i in range(0, len(tickerList)):
             tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
-        result = self.parse_funding_rates(tickerList)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(tickerList, symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

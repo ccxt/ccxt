@@ -95,9 +95,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-     * @see https://www.bitrue.com/api-docs#kline-candlestick-data
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -162,9 +161,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#createOrder
      * @description create a trade order
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -188,9 +186,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-     * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -201,7 +198,7 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -213,9 +210,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-     * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -252,9 +248,8 @@ export default class bitrue extends Exchange {
      * @method
      * @name bitrue#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-     * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve

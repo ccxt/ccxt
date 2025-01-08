@@ -3059,8 +3059,7 @@ class woo extends Exchange {
             //     }
             //
             $rows = $this->safe_list($response, 'rows', array());
-            $result = $this->parse_funding_rates($rows);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($rows, $symbols);
         }) ();
     }
 

@@ -7620,8 +7620,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**

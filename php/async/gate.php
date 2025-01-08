@@ -2028,8 +2028,7 @@ class gate extends Exchange {
             //        }
             //    )
             //
-            $result = $this->parse_funding_rates($response);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 

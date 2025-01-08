@@ -3223,7 +3223,7 @@ class bitfinex extends Exchange {
             //       )
             //   )
             //
-            return $this->parse_funding_rates($response);
+            return $this->parse_funding_rates($response, $symbols);
         }) ();
     }
 

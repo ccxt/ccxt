@@ -3136,7 +3136,7 @@ class bitfinex extends bitfinex$1 {
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response);
+        return this.parseFundingRates(response, symbols);
     }
     /**
      * @method
