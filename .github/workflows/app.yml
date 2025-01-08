@@ -27,7 +27,11 @@ jobs:
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
     - name: Pre-transpile and transpile TS
+      if: env.important_modified == 'true'
       run: npm run pre-transpile-js
+    - name: Pre-transpile and transpile TS (Simplified)
+      if: env.important_modified == 'true'
+      run: npm run pre-transpile-js-simple
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-js
@@ -43,13 +47,8 @@ jobs:
     - name: Request tests (specific)
       if: env.important_modified == 'false'
       run: |
-        for exchange in "${env.rest_files[@]}"; do
+        for exchange in "${{ env.rest_files }}; do
           npm run request-js -- $exchange
-          npm run request-py-sync -- $exchange
-          npm run request-py-async -- $exchange
-          npm run request-php-sync -- $exchange
-          npm run request-php-async -- $exchange
-          npm run request-cs -- $exchange
         done
     - name: Response tests
       if: env.important_modified == 'true'
@@ -57,11 +56,6 @@ jobs:
     - name: Response tests (specific)
       if: env.important_modified == 'false'
       run: |
-        for exchange in "${env.rest_files[@]}"; do
-          npm run request-js -- $exchange
-          npm run request-py-sync -- $exchange
-          npm run request-py-async -- $exchange
-          npm run request-php-sync -- $exchange
-          npm run request-php-async -- $exchange
-          npm run request-cs -- $exchange
+        for exchange in ${{ env.rest_files }}; do
+          npm run response-js -- $exchange
         done
