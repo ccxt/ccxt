@@ -17,6 +17,8 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+    - name: Install npm dependencies
+      run: npm ci --include=dev
     - name: Determine modified files
       run: ./utils/init_actions.sh
     - name: Debug output
@@ -24,3 +26,6 @@ jobs:
         echo "Important files modified: ${{ env.important_modified }}"
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
+    - name: Run only if "Important files modified" is true
+      if: env.important_modified == 'true'
+      run: echo "This step runs only for PRs targeting the main branch"
