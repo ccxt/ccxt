@@ -84,8 +84,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - name: check files
-        run: cat shared_env.txt
       - name: Download JS Files
         uses: actions/download-artifact@v4
         with:
@@ -93,15 +91,11 @@ jobs:
           path: js/
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
-      - name: Debug output
-        run: |
-          echo "Important files modified: ${{ env.important_modified }}"
-          echo "REST files: ${{ env.rest_files }}"
-          echo "WS files: ${{ env.ws_files }}"
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests
+        if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --js
 
