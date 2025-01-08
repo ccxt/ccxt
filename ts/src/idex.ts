@@ -43,11 +43,20 @@ export default class idex extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': true,
-                'createStopMarketOrder': true,
-                'createStopOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': false,
+                'createStopLossOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'createTakeProfitOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -166,7 +175,7 @@ export default class idex extends Exchange {
                         'wallets': { 'cost': 1 },
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1 },
-                        'orders/test': { 'cost': 1 }, // todo not documented in new API
+                        // 'orders/test': { 'cost': 1 }, not available in v4 API
                         'withdrawals': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
                     },
@@ -381,10 +390,10 @@ export default class idex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': basePrecision,
-                    'price': this.safeNumber (entry, 'tickSize'),
-                    'base': basePrecision,
-                    'quote': quotePrecision,
+                    'amount': 0.001, // todo fix it properly
+                    'price': 0.001, // todo fix it properly
+                    'base': 0.001, // todo fix it properly
+                    'quote': 0.001, // todo fix it properly
                 },
                 'limits': {
                     'leverage': {
@@ -1270,7 +1279,7 @@ export default class idex extends Exchange {
         const market = this.market (symbol);
         let wallet = this.walletAddress;
         [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
-        const parameters: Dict = {
+        const order: Dict = {
             'nonce': this.uuidv1 (),
             'wallet': wallet,
             'market': market['id'],
@@ -1281,7 +1290,7 @@ export default class idex extends Exchange {
         let delegatedKey = undefined;
         [ delegatedKey, params ] = this.handleOptionAndParams (params, 'createOrder', 'delegatedKey');
         if (delegatedKey !== undefined) {
-            parameters['delegatedKey'] = delegatedKey;
+            order['delegatedKey'] = delegatedKey;
         }
         let triggerPrice = this.safeString (params, 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -1297,12 +1306,12 @@ export default class idex extends Exchange {
                 triggerPrice = takeProfitPrice;
             }
         }
-        parameters['type'] = type;
+        order['type'] = type;
         if (triggerPrice !== undefined) {
-            parameters['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            order['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             let triggerType = 'last';
             [ triggerType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerType', triggerType);
-            parameters['triggerType'] = triggerType;
+            order['triggerType'] = triggerType;
         }
         const isLimitOrder = (type === 'limit') || (type === 'stopLossLimit') || (type === 'takeProfitLimit');
         const isMarketOrder = (type === 'market') || (type === 'stopLossMarket') || (type === 'takeProfitMarket');
@@ -1310,13 +1319,13 @@ export default class idex extends Exchange {
             if (isMarketOrder) {
                 throw new BadRequest (this.id + ' createOrder() price is supported with limit, stopLossLimit, or takeProfitLimit types only');
             }
-            parameters['price'] = this.priceToPrecision (symbol, price);
+            order['price'] = this.priceToPrecision (symbol, price);
         } else if (isLimitOrder) {
             throw new BadRequest (this.id + ' createOrder() price is required with limit, stopLossLimit, or takeProfitLimit types');
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            parameters['clientOrderId'] = clientOrderId;
+            order['clientOrderId'] = clientOrderId;
         }
         let timeInForce = this.safeStringLower (params, 'timeInForce');
         let postOnly = false;
@@ -1325,7 +1334,7 @@ export default class idex extends Exchange {
             timeInForce = 'gtx';
         }
         if (timeInForce !== undefined) {
-            parameters['timeInForce'] = timeInForce;
+            order['timeInForce'] = timeInForce;
         }
         const selfTradePrevention = this.safeStringLower (params, 'selfTradePrevention');
         const isFillOrKill = timeInForce === 'fok';
@@ -1333,58 +1342,29 @@ export default class idex extends Exchange {
             if (isFillOrKill && (selfTradePrevention !== 'cn')) {
                 throw new BadRequest (this.id + ' createOrder() selfTradePrevention must be "cn" if timeInForce is "FOK"');
             } else {
-                parameters['selfTradePrevention'] = selfTradePrevention;
+                order['selfTradePrevention'] = selfTradePrevention;
             }
         } else if (isFillOrKill) {
-            parameters['selfTradePrevention'] = 'cn';
+            order['selfTradePrevention'] = 'cn';
         }
-        const signature = this.generateSignatureForCreateOrder (parameters);
+        const signature = this.generateSignatureForCreateOrder (order);
         const request: Dict = {
-            'parameters': parameters,
+            'parameters': order,
             'signature': signature,
         };
-        // {
-        //   "market": "DIL-ETH",
-        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //   "time": 1598873478650,
-        //   "status": "filled",
-        //   "type": "limit",
-        //   "side": "buy",
-        //   "originalQuantity": "0.40000000",
-        //   "executedQuantity": "0.40000000",
-        //   "cumulativeQuoteQuantity": "0.03962396",
-        //   "price": "1.00000000",
-        //   "fills": [
-        //     {
-        //       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //       "price": "0.09905990",
-        //       "quantity": "0.40000000",
-        //       "quoteQuantity": "0.03962396",
-        //       "time": 1598873478650,
-        //       "makerSide": "sell",
-        //       "sequence": 5053,
-        //       "fee": "0.00080000",
-        //       "feeAsset": "DIL",
-        //       "gas": "0.00857497",
-        //       "liquidity": "taker",
-        //       "txStatus": "pending"
-        //     }
-        //   ],
-        //   "avgExecutionPrice": "0.09905990"
-        // }
+        //
         // we don't use extend here because it is a signed endpoint
         const response = await this.privatePostOrders (request);
         return this.parseOrder (response, market);
     }
 
-    generateSignatureForCreateOrder (parameters) {
+    generateSignatureForCreateOrder (order) {
         // https://api-docs-v4.idex.io/#authentication
-        const nonce = parameters['nonce'];
-        const wallet = this.safeString (parameters, 'wallet');
+        const nonce = order['nonce'];
+        const wallet = this.safeString (order, 'wallet');
         const walletBytes = this.remove0xPrefix (wallet);
-        const market = this.safeString (parameters, 'market');
-        const type = this.safeString (parameters, 'type');
+        const market = this.safeString (order, 'market');
+        const type = this.safeString (order, 'type');
         // https://api-docs-v4.idex.io/#wallet-signature-hash-enums
         const typeEnums: Dict = {
             'market': 0,
@@ -1398,7 +1378,7 @@ export default class idex extends Exchange {
             throw new BadRequest (this.id + ' createOrder() invalid order type: ' + type + ' (limit, market, stopLossMarket, stopLossLimit, takeProfitMarket, takeProfitLimit types are supported only)');
         }
         const typeEnum = typeEnums[type];
-        const side = this.safeString (parameters, 'side');
+        const side = this.safeString (order, 'side');
         const sideEnums: Dict = {
             'buy': 0,
             'sell': 1,
@@ -1407,22 +1387,22 @@ export default class idex extends Exchange {
             throw new BadRequest (this.id + ' createOrder() invalid order side: ' + side + ' (buy or sell sides are supported only)');
         }
         const sideEnum = sideEnums[side];
-        const quantity = this.safeString (parameters, 'quantity');
-        const price = this.safeString (parameters, 'price', '0.00000000');
-        const triggerPrice = this.safeString (parameters, 'triggerPrice', '0.00000000');
+        const quantity = this.safeString (order, 'quantity');
+        const price = this.safeString (order, 'price', '0.00000000');
+        const triggerPrice = this.safeString (order, 'triggerPrice', '0.00000000');
         const triggerTypeEnums: Dict = {
             'none': 0,
             'last': 1,
             'index': 2,
         };
-        const triggerType = this.safeString (parameters, 'triggerType', 'none');
+        const triggerType = this.safeString (order, 'triggerType', 'none');
         if (!(triggerType in triggerTypeEnums)) {
             throw new BadRequest (this.id + ' createOrder() invalid triggerType: ' + triggerType + ' (last or index are supported only)');
         }
         const triggerTypeEnum = triggerTypeEnums[triggerType];
         const callbackRate = '0.00000000'; // unused
         const conditionalOrderId = 0; // unused
-        const reduceOnly = this.safeBool (parameters, 'reduceOnly', false);
+        const reduceOnly = this.safeBool (order, 'reduceOnly', false);
         const reduceOnlyEnum = reduceOnly ? 1 : 0;
         const timeInForceEnums: Dict = {
             'gtc': 0,
@@ -1430,7 +1410,7 @@ export default class idex extends Exchange {
             'ioc': 2,
             'fok': 3,
         };
-        const timeInForce = this.safeString (parameters, 'timeInForce', 'gtc');
+        const timeInForce = this.safeString (order, 'timeInForce', 'gtc');
         if (!(timeInForce in timeInForceEnums)) {
             throw new BadRequest (this.id + ' createOrder() invalid timeInForce: ' + timeInForce + ' (GTC, GTX, IOC, FOK are supported only)');
         }
@@ -1441,15 +1421,15 @@ export default class idex extends Exchange {
             'cn': 2,
             'cb': 3,
         };
-        const selfTradePrevention = this.safeString (parameters, 'selfTradePrevention', 'dc');
+        const selfTradePrevention = this.safeString (order, 'selfTradePrevention', 'dc');
         if (!(selfTradePrevention in selfTradePreventionEnums)) {
             throw new BadRequest (this.id + ' createOrder() invalid selfTradePrevention: ' + selfTradePrevention + ' (dc, co, cn, cb are supported only)');
         }
         const selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention];
         const isLiquidationAcquisitionOnlyInt = 0; // false - unused
-        const delegatedPublicKey = this.safeString (parameters, 'delegatedKey', '0x0');
+        const delegatedPublicKey = this.safeString (order, 'delegatedKey', '0x0');
         const delegatedPublicKeyBytes = this.remove0xPrefix (delegatedPublicKey);
-        const clientOrderId = this.safeString (parameters, 'clientOrderId', '');
+        const clientOrderId = this.safeString (order, 'clientOrderId', '');
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
