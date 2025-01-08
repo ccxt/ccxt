@@ -6,18 +6,6 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-
-lang="$1"
-
-if [ "$#" -lt 2 ]; then
-    run_all "$lang"
-else
-    rest_exchanges="$2"
-    ws_exchanges="$3"
-    run_specific_tests "$lang" "$rest_exchanges" "$ws_exchanges"
-fi
-
-
 function run_all {
     local lang="$1"
     # Run the command twice in the background
@@ -86,3 +74,15 @@ function run_specific_tests {
     wait $ws_pid
   fi
 }
+
+
+
+lang="$1"
+
+if [ "$#" -lt 2 ]; then
+    run_all "$lang"
+else
+    rest_exchanges="$2"
+    ws_exchanges="$3"
+    run_specific_tests "$lang" "$rest_exchanges" "$ws_exchanges"
+fi
