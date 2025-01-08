@@ -247,7 +247,20 @@ export default class blofin extends Exchange {
             'features': {
                 'default': {
                     'sandbox': false,
-                    'createOrder': {},
+                    'createOrder': {
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
                     'createOrders': {
                         'max': 10,
                     },
@@ -288,19 +301,7 @@ export default class blofin extends Exchange {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
                         'hedged': false,
-                        'leverage': false,
-                        'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
-                        'selfTradePrevention': false,
-                        'trailing': false,
-                        'iceberg': false,
                     },
                 },
                 'forDerivatives': {
@@ -316,19 +317,7 @@ export default class blofin extends Exchange {
                             'triggerPriceType': undefined,
                             'limit': true,
                         },
-                        'timeInForce': {
-                            'IOC': true,
-                            'FOK': true,
-                            'PO': true,
-                            'GTD': false,
-                        },
                         'hedged': true,
-                        'leverage': false,
-                        'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': false,
-                        'selfTradePrevention': false,
-                        'trailing': false,
-                        'iceberg': false,
                     },
                 },
                 'swap': {
