@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ensure shared_env.txt exists
-FILE_NAME="shared_env.txt"
+FILE_NAME="./shared_env.txt"
 if [ ! -f "$FILE_NAME" ]; then
   echo "$FILE_NAME does not exist"
   exit 1
