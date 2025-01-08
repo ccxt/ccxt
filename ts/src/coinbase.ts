@@ -4995,7 +4995,9 @@ export default class coinbase extends Exchange {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
-                    const timestampString = this.nonce ().toString ();
+                    const nonce = this.nonce ();
+                    const timestamp = this.parseToInt (nonce / 1000);
+                    const timestampString = timestamp.toString ();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                     headers = {
