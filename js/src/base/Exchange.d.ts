@@ -1126,7 +1126,6 @@ export default class Exchange {
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: string, market?: Market): FundingRate;
     parseFundingRates(response: any, symbols?: Strings): FundingRates;
-    parseOpenInterests(response: any, market?: Market): OpenInterests;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: any, since?: Int, limit?: Int): LongShortRatio[];
     handleTriggerAndParams(params: any): any[];
@@ -1139,6 +1138,7 @@ export default class Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterests(response: any, symbols?: Strings): OpenInterests;
     parseOpenInterestsHistory(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;

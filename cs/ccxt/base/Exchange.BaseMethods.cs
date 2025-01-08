@@ -5926,17 +5926,6 @@ public partial class Exchange
         return this.filterByArray(fundingRates, "symbol", symbols);
     }
 
-    public virtual object parseOpenInterests(object response, object market = null)
-    {
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object parsed = this.parseOpenInterest(getValue(response, i), market);
-            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
-        }
-        return result;
-    }
-
     public virtual object parseLongShortRatio(object info, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseLongShortRatio() is not supported yet")) ;
@@ -6083,6 +6072,18 @@ public partial class Exchange
     public virtual object parseOpenInterest(object interest, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseOpenInterest () is not supported yet")) ;
+    }
+
+    public virtual object parseOpenInterests(object response, object symbols = null)
+    {
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            object parsed = this.parseOpenInterest(entry);
+            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+        }
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public virtual object parseOpenInterestsHistory(object response, object market = null, object since = null, object limit = null)

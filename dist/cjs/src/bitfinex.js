@@ -3369,8 +3369,7 @@ class bitfinex extends bitfinex$1 {
         //         ]
         //     ]
         //
-        const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(response, symbols);
     }
     /**
      * @method

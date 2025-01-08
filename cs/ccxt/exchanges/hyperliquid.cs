@@ -3567,8 +3567,7 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object swapMarkets = await this.fetchSwapMarkets();
-        object result = this.parseOpenInterests(swapMarkets);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(swapMarkets, symbols);
     }
 
     /**

@@ -8096,8 +8096,7 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_open_interests(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(data, symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
