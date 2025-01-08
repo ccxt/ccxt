@@ -59,6 +59,7 @@ export default class idex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDepositWithdrawaFees': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -155,7 +156,7 @@ export default class idex extends Exchange {
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
                         'withdrawals': { 'cost': 1, 'bundled': 10 },
-                        'gasFees': { 'cost': 1 }, // todo
+                        'gasFees': { 'cost': 1 },
                         'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
                         'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
@@ -177,11 +178,32 @@ export default class idex extends Exchange {
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
-                'network': 'MATIC',
                 'precision': '8',
                 'defaultSettle': 'USDC',
                 'createOrder': {
                     'triggerType': 'last',
+                },
+                'networks': {
+                    'XCHAIN': 'xchain.xchain',
+                    'ARB': 'stargate.arbitrum',
+                    'BASE': 'stargate.base',
+                    'BEP20': 'stargate.bnb',
+                    'ERC20': 'stargate.ethereum',
+                    'MANTLE': 'stargate.mantle',
+                    'OPTIMISM': 'stargate.optimism',
+                    'MATIC': 'stargate.polygon',
+                    'SEI': 'stargate.sei',
+                },
+                'networksById': {
+                    'xchain.xchain': 'XCHAIN',
+                    'stargate.arbitrum': 'ARB',
+                    'stargate.base': 'BASE',
+                    'stargate.bnb': 'BEP20',
+                    'stargate.ethereum': 'ERC20',
+                    'stargate.mantle': 'MANTLE',
+                    'stargate.optimism': 'OPTIMISM',
+                    'stargate.polygon': 'MATIC',
+                    'stargate.sei': 'SEI'
                 },
             },
             'exceptions': {
@@ -1852,6 +1874,66 @@ export default class idex extends Exchange {
             'mined': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://api-docs-v4.idex.io/#get-gas-fees
+     * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetGasFees (params);
+        //
+        //     {
+        //         "withdrawal": {
+        //             "xchain.xchain": "0.05000000",
+        //             "stargate.arbitrum": "0.07648418",
+        //             "stargate.base": "0.07453254",
+        //             "stargate.bnb": "0.35694860",
+        //             "stargate.ethereum": "8.11213457",
+        //             "stargate.mantle": "0.09499113",
+        //             "stargate.optimism": "0.04842092",
+        //             "stargate.polygon": "0.05420854",
+        //             "stargate.sei": "0.01914629"
+        //         }
+        //     }
+        //
+        const withdrawal = this.safeDict (response, 'withdrawal', {});
+        return this.parseDepositWithdrawFees (withdrawal, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+        //
+        //     {
+        //         "xchain.xchain": "0.05000000",
+        //         "stargate.arbitrum": "0.07648418",
+        //         "stargate.base": "0.07453254",
+        //         "stargate.bnb": "0.35694860",
+        //         "stargate.ethereum": "8.11213457",
+        //         "stargate.mantle": "0.09499113",
+        //         "stargate.optimism": "0.04842092",
+        //         "stargate.polygon": "0.05420854",
+        //         "stargate.sei": "0.01914629"
+        //     }
+        //
+        // todo should make the name of the network as ccxt unified network name
+        return {
+            'withdraw': {
+                'fee': this.parseNumber (fee),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+            'info': fee,
+        };
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
