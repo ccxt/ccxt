@@ -1594,6 +1594,17 @@ export default class idex extends Exchange {
             'depositId': id,
         };
         const response = await this.privateGetDeposits (this.extend (request, params));
+        //
+        //     {
+        //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //         "asset": "USDC",
+        //         "quantity": "30.00000000",
+        //         "bridgeSource": "stargate.ethereum",
+        //         "time":1736163836056,
+        //         "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
+        //     }
+        //
         return this.parseTransaction (response);
     }
 
@@ -1606,12 +1617,35 @@ export default class idex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         params = this.extend ({
             'method': 'privateGetDeposits',
         }, params);
+        //
+        //     [
+        //         {
+        //             "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //             "asset": "USDC",
+        //             "quantity": "30.00000000",
+        //             "bridgeSource": "stargate.ethereum",
+        //             "time":1736163836056,
+        //             "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //             "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
+        //         },
+        //         {
+        //             "depositId": "feb34d60-cc23-11ef-b8de-9990667b52c0",
+        //             "asset": "USDC",
+        //             "quantity": "33.07000000",
+        //             "bridgeSource": "stargate.ethereum",
+        //             "time":1736164044086,
+        //             "bridgeTxId": "0xa42a14e7b5c907a42c43a148df679e3ac977608bb6793fccd5d0e9963e6f52a3",
+        //             "xchainTxId": "0xb58a46bc7bfe602bc53d4985781586c496c540596084e3e825431cb7d8b36f9e"
+        //         }
+        //     ]
+        //
         return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
@@ -1681,6 +1715,7 @@ export default class idex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1708,16 +1743,11 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // [
-        //   {
-        //     "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
-        //     "asset": "ETH",
-        //     "quantity": "1.00000000",
-        //     "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
-        //     "txTime": 1598865853000,
-        //     "confirmationTime": 1598865930231
-        //   }
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
         const method = params['method'];
         params = this.omit (params, 'method');
         let response = undefined;
@@ -1731,24 +1761,18 @@ export default class idex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
-        const statuses: Dict = {
-            'mined': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
         //     {
-        //         "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
-        //         "asset": "ETH",
-        //         "quantity": "1.00000000",
-        //         "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
-        //         "txTime": 1598865853000,
-        //         "confirmationTime": 1598865930231
+        //         "depositId": "82b44a70-cc23-11ef-b8de-9990667b52c0",
+        //         "asset": "USDC",
+        //         "quantity": "30.00000000",
+        //         "bridgeSource": "stargate.ethereum",
+        //         "time":1736163836056,
+        //         "bridgeTxId": "0xcf3fe7b1c717e21ccf4381539064b4a0c0f990fa7816382e0ff30af986392b81",
+        //         "xchainTxId": "0xfaa73a0c19b91934759f4831a94b3edcaac49ac40af2bc486240365d5dfd9826"
         //     }
         //
         // fetchWithdrwalas
@@ -1787,7 +1811,7 @@ export default class idex extends Exchange {
         id = this.safeString (transaction, 'withdrawalId', id);
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
-        const txid = this.safeString (transaction, 'txId');
+        const txid = this.safeString2 (transaction, 'txId', 'xchainTxId');
         const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
         let fee = undefined;
         if ('fee' in transaction) {
@@ -1821,6 +1845,13 @@ export default class idex extends Exchange {
             'internal': undefined,
             'fee': fee,
         } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'mined': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
