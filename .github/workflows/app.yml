@@ -26,6 +26,7 @@ jobs:
         echo "Important files modified: ${{ env.important_modified }}"
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
+        cat shared_env.txt
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
@@ -61,3 +62,27 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+
+    - name: Upload Js Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-files
+        path: js/
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Live tests
+        run: ./run-tests-simul.sh --js
+
