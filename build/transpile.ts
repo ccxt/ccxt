@@ -3024,7 +3024,7 @@ class Transpiler {
 
             this.transpileExamples ()
 
-            this.addGeneratedHeaderToJs ('./js/')
+            // this.addGeneratedHeaderToJs ('./js/')
         }
 
         log.bright.green ('Transpiled successfully.')
@@ -3077,6 +3077,7 @@ if (isMainEntry(import.meta.url)) {
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const child = process.argv.includes ('--child')
     const force = process.argv.includes ('--force')
+    const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
 
     const phpOnly = process.argv.includes ('--php');
@@ -3097,6 +3098,8 @@ if (isMainEntry(import.meta.url)) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force, pyOnly, phpOnly)
+    } else if (addJsHeaders) {
+        transpiler.addGeneratedHeaderToJs ('./js/')
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)
