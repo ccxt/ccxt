@@ -21,9 +21,7 @@ jobs:
       run: |
        ./utils/check_modified_files.sh
        OUTPUT=$(./utils/check_modified_files.sh | tr -d '\n')
-       echo "after output"
        IMPORTANT_MODIFIED=$(echo "$OUTPUT" | jq -r '.important_modified')
-       echo "after important modified"
        REST_FILES=$(echo "$OUTPUT" | jq -r '.rest_exchanges')
        WS_FILES=$(echo "$OUTPUT" | jq -r '.ws_exchanges')
        echo "important_modified=$IMPORTANT_MODIFIED" >> $GITHUB_ENV

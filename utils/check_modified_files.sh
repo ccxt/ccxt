@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 diff=$(git diff --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
@@ -15,7 +15,7 @@ else
     IMPORTANT_MODIFIED="false"
 fi
 
-echo "$diff_without_statics"
+# echo "$diff_without_statics"
 
 
 readarray -t y <<<"$diff"
@@ -73,7 +73,20 @@ done
 
 # echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": \"${REST_EXCHANGES[*]}\", \"ws_exchanges\": \"${WS_EXCHANGES[*]}\"}"
 
-rest_exchanges_json=$(printf '%s\n' "${REST_EXCHANGES[@]}" | jq -R . | jq -s .)
-ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
+# rest_exchanges_json=$(printf '%s\n' "${REST_EXCHANGES[@]}" | jq -R . | jq -s .)
+# ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
+
+
+if [ ${#REST_EXCHANGES[@]} -eq 0 ]; then
+  rest_exchanges_json="[]"
+else
+  rest_exchanges_json=$(printf '%s\n' "${REST_EXCHANGES[@]}" | jq -R . | jq -s .)
+fi
+
+if [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
+  ws_exchanges_json="[]"
+else
+  ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
+fi
 
 echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
