@@ -18,20 +18,7 @@ jobs:
       with:
         fetch-depth: 2
     - name: Determine modified files
-      run: |
-       OUTPUT=$(./utils/check_modified_files.sh | tr -d '\n')
-       echo "1"
-       IMPORTANT_MODIFIED=$(echo "$OUTPUT" | jq -r '.important_modified')
-       echo "2"
-       REST_FILES=$(echo "$OUTPUT" | jq -r '.rest_exchanges | join(" ")')
-       WS_FILES=$(echo "$OUTPUT" | jq -r '.ws_exchanges | join(" ")')
-       echo "4"
-       echo "important_modified=$IMPORTANT_MODIFIED" >> $GITHUB_ENV
-       echo "5"
-       echo "rest_files=$REST_FILES" >> $GITHUB_ENV
-        echo "6"
-       echo "ws_files=$WS_FILES" >> $GITHUB_ENV
-        echo "7"
+      run: ./utils/init_actions.sh
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
