@@ -24,6 +24,6 @@ jobs:
     - name: Check git diffs
       run: git diff --name-only
     - name: Check git origin diffs
-      run: git diff origin --name-only
+      run: git diff master --name-only
     - name: Run check files script
       run: ./utils/check_modified_files.sh
