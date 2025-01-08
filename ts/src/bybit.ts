@@ -3320,7 +3320,11 @@ export default class bybit extends Exchange {
                             account['debt'] = Precise.stringAdd (loan, interest);
                         }
                         account['total'] = this.safeString (coinEntry, 'walletBalance');
-                        account['free'] = this.safeString2 (coinEntry, 'availableToWithdraw', 'free');
+                        if (this.isSandboxModeEnabled) {
+                            account['used'] = this.safeString (coinEntry, 'locked');
+                        } else {
+                            account['free'] = this.safeString2 (coinEntry, 'availableToWithdraw', 'free');
+                        }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString (coinEntry, 'coin');
                         const code = this.safeCurrencyCode (currencyId);
@@ -3343,6 +3347,10 @@ export default class bybit extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    parseTestnetBalanceList (response): Balances {
+
     }
 
     /**
