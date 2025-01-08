@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var utils = require('./utils.js');
 
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// ----------------------------------------------------------------------------
 // prettier-ignore
 const _0n = BigInt(0), _1n = BigInt(1), _2n = BigInt(2), _3n = BigInt(3);
 // prettier-ignore

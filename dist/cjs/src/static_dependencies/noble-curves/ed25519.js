@@ -10,7 +10,7 @@ var modular = require('./abstract/modular.js');
 var utils$1 = require('./abstract/utils.js');
 var hashToCurve = require('./abstract/hash-to-curve.js');
 
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// ----------------------------------------------------------------------------
 /**
  * ed25519 Twisted Edwards curve with following addons:
  * - X25519 ECDH
