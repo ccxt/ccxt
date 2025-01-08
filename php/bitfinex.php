@@ -3156,7 +3156,7 @@ class bitfinex extends Exchange {
         //       )
         //   )
         //
-        return $this->parse_funding_rates($response);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

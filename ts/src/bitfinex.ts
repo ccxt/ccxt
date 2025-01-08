@@ -3162,7 +3162,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        return this.parseFundingRates (response);
+        return this.parseFundingRates (response, symbols);
     }
 
     /**

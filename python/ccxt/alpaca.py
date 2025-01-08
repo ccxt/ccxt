@@ -345,6 +345,14 @@ class alpaca(Exchange, ImplicitAPI):
                         'limit': 1000,
                     },
                 },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'exceptions': {
                 'exact': {

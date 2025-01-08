@@ -727,6 +727,7 @@ class ImplicitAPI:
     papi_get_um_symbolconfig = papiGetUmSymbolConfig = Entry('um/symbolConfig', 'papi', 'GET', {'cost': 1})
     papi_get_cm_accountconfig = papiGetCmAccountConfig = Entry('cm/accountConfig', 'papi', 'GET', {'cost': 1})
     papi_get_cm_symbolconfig = papiGetCmSymbolConfig = Entry('cm/symbolConfig', 'papi', 'GET', {'cost': 1})
+    papi_get_ratelimit_order = papiGetRateLimitOrder = Entry('rateLimit/order', 'papi', 'GET', {'cost': 1})
     papi_post_um_order = papiPostUmOrder = Entry('um/order', 'papi', 'POST', {'cost': 1})
     papi_post_um_conditional_order = papiPostUmConditionalOrder = Entry('um/conditional/order', 'papi', 'POST', {'cost': 1})
     papi_post_cm_order = papiPostCmOrder = Entry('cm/order', 'papi', 'POST', {'cost': 1})

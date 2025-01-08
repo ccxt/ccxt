@@ -3180,8 +3180,7 @@ public partial class woo : Exchange
         //     }
         //
         object rows = this.safeList(response, "rows", new List<object>() {});
-        object result = this.parseFundingRates(rows);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rows, symbols);
     }
 
     /**

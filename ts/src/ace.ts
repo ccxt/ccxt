@@ -199,6 +199,14 @@ export default class ace extends Exchange {
                         'limit': 2000,
                     },
                 },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

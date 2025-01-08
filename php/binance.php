@@ -1118,6 +1118,7 @@ class binance extends Exchange {
                         'um/symbolConfig' => 1,
                         'cm/accountConfig' => 1,
                         'cm/symbolConfig' => 1,
+                        'rateLimit/order' => 1,
                     ),
                     'post' => array(
                         'um/order' => 1,
@@ -9726,8 +9727,7 @@ class binance extends Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        $result = $this->parse_funding_rates($response);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -13962,8 +13962,7 @@ class binance extends Exchange {
         //         ),
         //     )
         //
-        $result = $this->parse_funding_rates($response, $market);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

@@ -3012,7 +3012,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #       ]
         #   ]
         #
-        return self.parse_funding_rates(response)
+        return self.parse_funding_rates(response, symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

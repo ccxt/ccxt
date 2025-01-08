@@ -3109,8 +3109,7 @@ public partial class ascendex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object contracts = this.safeList(data, "contracts", new List<object>() {});
-        object result = this.parseFundingRates(contracts);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(contracts, symbols);
     }
 
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)

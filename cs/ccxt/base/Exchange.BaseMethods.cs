@@ -5914,15 +5914,16 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseFundingRate() is not supported yet")) ;
     }
 
-    public virtual object parseFundingRates(object response, object market = null)
+    public virtual object parseFundingRates(object response, object symbols = null)
     {
-        object result = new Dictionary<string, object>() {};
+        object fundingRates = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object parsed = this.parseFundingRate(getValue(response, i), market);
-            ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
+            object entry = getValue(response, i);
+            object parsed = this.parseFundingRate(entry);
+            ((IDictionary<string,object>)fundingRates)[(string)getValue(parsed, "symbol")] = parsed;
         }
-        return result;
+        return this.filterByArray(fundingRates, "symbol", symbols);
     }
 
     public virtual object parseOpenInterests(object response, object market = null)

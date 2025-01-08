@@ -339,6 +339,14 @@ class alpaca extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(

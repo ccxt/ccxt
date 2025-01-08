@@ -7320,8 +7320,7 @@ class htx extends htx$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method

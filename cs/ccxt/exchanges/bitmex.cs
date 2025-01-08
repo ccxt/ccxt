@@ -2794,8 +2794,7 @@ public partial class bitmex : Exchange
             }
         }
         symbols = this.marketSymbols(symbols);
-        object result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

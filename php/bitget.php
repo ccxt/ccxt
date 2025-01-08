@@ -6998,8 +6998,7 @@ class bitget extends Exchange {
         // }
         $symbols = $this->market_symbols($symbols);
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data, $market);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

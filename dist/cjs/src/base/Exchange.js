@@ -5734,13 +5734,14 @@ class Exchange {
     parseFundingRate(contract, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseFundingRate() is not supported yet');
     }
-    parseFundingRates(response, market = undefined) {
-        const result = {};
+    parseFundingRates(response, symbols = undefined) {
+        const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate(response[i], market);
-            result[parsed['symbol']] = parsed;
+            const entry = response[i];
+            const parsed = this.parseFundingRate(entry);
+            fundingRates[parsed['symbol']] = parsed;
         }
-        return result;
+        return this.filterByArray(fundingRates, 'symbol', symbols);
     }
     parseOpenInterests(response, market = undefined) {
         const result = {};

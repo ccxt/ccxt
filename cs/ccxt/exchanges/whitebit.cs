@@ -2568,8 +2568,7 @@ public partial class whitebit : Exchange
         //    ]
         //
         object data = this.safeList(response, "result", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

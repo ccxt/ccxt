@@ -2611,8 +2611,7 @@ export default class bitmex extends Exchange {
             }
         }
         symbols = this.marketSymbols(symbols);
-        const result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here

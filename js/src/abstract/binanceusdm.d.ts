@@ -726,6 +726,7 @@ interface binance {
     papiGetUmSymbolConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmAccountConfig(params?: {}): Promise<implicitReturnType>;
     papiGetCmSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetRateLimitOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder(params?: {}): Promise<implicitReturnType>;

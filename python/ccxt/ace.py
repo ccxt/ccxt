@@ -203,6 +203,14 @@ class ace(Exchange, ImplicitAPI):
                         'limit': 2000,
                     },
                 },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

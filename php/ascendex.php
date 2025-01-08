@@ -2926,8 +2926,7 @@ class ascendex extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $contracts = $this->safe_list($data, 'contracts', array());
-        $result = $this->parse_funding_rates($contracts);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($contracts, $symbols);
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {

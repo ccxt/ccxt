@@ -2467,8 +2467,7 @@ class whitebit extends whitebit$1 {
         //    ]
         //
         const data = this.safeList(response, 'result', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //
