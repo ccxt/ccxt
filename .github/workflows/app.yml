@@ -26,6 +26,42 @@ jobs:
         echo "Important files modified: ${{ env.important_modified }}"
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
-    - name: Run only if "Important files modified" is true
+    - name: Pre-transpile and transpile TS
+      run: npm run pre-transpile-js
+    - name: Run Base Tests
       if: env.important_modified == 'true'
-      run: echo "This step runs only for PRs targeting the main branch"
+      run: npm run test-base-rest-js
+    - name: Run Base Ws Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-ws-js
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-js
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: nnpm run request-js
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        for exchange in "${env.rest_files[@]}"; do
+          npm run request-js -- $exchange
+          npm run request-py-sync -- $exchange
+          npm run request-py-async -- $exchange
+          npm run request-php-sync -- $exchange
+          npm run request-php-async -- $exchange
+          npm run request-cs -- $exchange
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: nnpm run response-js
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        for exchange in "${env.rest_files[@]}"; do
+          npm run request-js -- $exchange
+          npm run request-py-sync -- $exchange
+          npm run request-py-async -- $exchange
+          npm run request-php-sync -- $exchange
+          npm run request-php-async -- $exchange
+          npm run request-cs -- $exchange
+        done
