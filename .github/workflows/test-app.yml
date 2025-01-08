@@ -19,5 +19,9 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
+    - name: Check git diffs
+      run: git diff --name-only
+    - name: Check git origin diffs
+      run: git diff origin --name-only
     - name: Run check files script
       run: ./utils/check_modified_files.sh
