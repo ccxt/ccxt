@@ -149,13 +149,13 @@ export default class idex extends Exchange {
                         'wallets': { 'cost': 1 },
                         'positions': { 'cost': 1 }, // todo
                         'fundingPayments': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
-                        // 'balances': { 'cost': 1 }, not available in v4 API
                         'historicalPnL': { 'cost': 1, 'bundled': 10 }, // todo should it be unified?
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1, 'bundled': 10 },
                         'fills': { 'cost': 1, 'bundled': 10 },
                         'deposits': { 'cost': 1, 'bundled': 10 },
                         'withdrawals': { 'cost': 1, 'bundled': 10 },
+                        'gasFees': { 'cost': 1 }, // todo
                         'marketMakerRewardsV1/epochs': { 'cost': 1 }, // todo
                         'marketMakerRewardsV1/epoch': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
@@ -166,7 +166,7 @@ export default class idex extends Exchange {
                         'initialMarginFractionOverride': { 'cost': 1 }, // todo should it be unified? (add/reduce margin)
                         'orders': { 'cost': 1 },
                         'orders/test': { 'cost': 1 }, // todo not documented in new API
-                        'withdrawals': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 }, // todo
                         'payouts': { 'cost': 1 }, // todo
                     },
                     'delete': {
