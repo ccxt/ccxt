@@ -19,6 +19,8 @@ jobs:
         fetch-depth: 2
     - name: Install npm dependencies
       run: npm ci --include=dev
+    - name: Debug files changes
+      run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
       run: ./utils/init_actions.sh
     - name: Debug output
@@ -98,4 +100,6 @@ jobs:
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --js
-
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --js ${{ env.rest_files }} ${{ env.ws_files }}
