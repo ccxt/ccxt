@@ -19,11 +19,10 @@ interface Exchange {
     publicGetLiquidations (params?: {}): Promise<implicitReturnType>;
     publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
     publicGetFundingRates (params?: {}): Promise<implicitReturnType>;
-    privateGetUser (params?: {}): Promise<implicitReturnType>;
+    publicGetGasFees (params?: {}): Promise<implicitReturnType>;
     privateGetWallets (params?: {}): Promise<implicitReturnType>;
     privateGetPositions (params?: {}): Promise<implicitReturnType>;
     privateGetFundingPayments (params?: {}): Promise<implicitReturnType>;
-    privateGetBalances (params?: {}): Promise<implicitReturnType>;
     privateGetHistoricalPnL (params?: {}): Promise<implicitReturnType>;
     privateGetInitialMarginFractionOverride (params?: {}): Promise<implicitReturnType>;
     privateGetOrders (params?: {}): Promise<implicitReturnType>;
