@@ -10,7 +10,6 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type { Balances, Currency, Dict, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1254,7 +1253,7 @@ export default class idex extends Exchange {
             'takeProfit': 4,
             'takeProfitLimit': 5,
         };
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice' );
+        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
         let triggerPriceString = undefined;
         if ((type === 'stopLossLimit') || (type === 'takeProfitLimit')) {
             if (triggerPrice === undefined) {
