@@ -300,7 +300,7 @@ class Exchange {
     public $restPollerLoopIsRunning = false;
     public $enableRateLimit = true;
     public $enableWsRateLimit = false;
-    public $enableLastJsonResponse = true;
+    public $enableLastJsonResponse = false;
     public $enableLastHttpResponse = true;
     public $enableLastResponseHeaders = true;
     public $last_http_response = null;

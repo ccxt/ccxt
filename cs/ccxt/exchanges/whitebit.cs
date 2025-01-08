@@ -190,6 +190,7 @@ public partial class whitebit : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "This action is unauthorized", typeof(PermissionDenied) },
                     { "Given amount is less than min amount", typeof(InvalidOrder) },
+                    { "Min amount step", typeof(InvalidOrder) },
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },

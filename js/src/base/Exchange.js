@@ -79,7 +79,7 @@ export default class Exchange {
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
-        this.enableLastJsonResponse = true;
+        this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
         this.enableLastResponseHeaders = true;
         this.last_http_response = undefined;

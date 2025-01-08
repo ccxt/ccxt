@@ -300,6 +300,7 @@ export default class whitebit extends Exchange {
                 'broad': {
                     'This action is unauthorized': PermissionDenied,
                     'Given amount is less than min amount': InvalidOrder,
+                    'Min amount step': InvalidOrder,
                     'Total is less than': InvalidOrder,
                     'fee must be no less than': InvalidOrder,
                     'Enable your key in API settings': PermissionDenied,

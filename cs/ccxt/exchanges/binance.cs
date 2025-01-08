@@ -1198,6 +1198,7 @@ public partial class binance : Exchange
                         { "um/symbolConfig", 1 },
                         { "cm/accountConfig", 1 },
                         { "cm/symbolConfig", 1 },
+                        { "rateLimit/order", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "um/order", 1 },

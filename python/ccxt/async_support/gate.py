@@ -2377,7 +2377,8 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                result['networks'][chainKey] = {
+                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                         'percentage': False,

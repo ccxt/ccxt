@@ -1125,6 +1125,7 @@ class binance extends binance$1 {
                         'um/symbolConfig': 1,
                         'cm/accountConfig': 1,
                         'cm/symbolConfig': 1,
+                        'rateLimit/order': 1,
                     },
                     'post': {
                         'um/order': 1,

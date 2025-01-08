@@ -562,6 +562,8 @@ class testMainClass:
             'fetchBorrowRateHistory': [code],
             'fetchLedgerEntry': [code],
         }
+        if get_cli_arg_value('--fundedTests'):
+            tests['createOrder'] = [symbol]
         if self.ws_tests:
             tests = {
                 'watchBalance': [code],

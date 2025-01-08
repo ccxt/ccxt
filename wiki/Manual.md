@@ -2157,7 +2157,8 @@ if (exchange.has['fetchTrades']) {
         const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
             // not thread-safu and exchange-specific !
-            page = exchange.last_json_response['cursor']
+            last_json_response = exchange.parseJson (exchange.last_http_response)
+            page = last_json_response['cursor']
             allTrades.push (trades)
         } else {
             break
@@ -2202,7 +2203,8 @@ if ($exchange->has['fetchMyTrades']) {
         $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
         if (count($trades)) {
             // not thread-safu and exchange-specific !
-            $start = $exchange->last_json_response['next'];
+            $last_json_response = $exchange->parse_json ($exchange->last_http_response);
+            $start = $last_json_response['next'];
             $all_trades = array_merge ($all_trades, $trades);
         } else {
             break;

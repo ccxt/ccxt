@@ -20,7 +20,6 @@ Current feature list:
 
 
 ## Sponsored Promotion
-[![bitmex-campaign](https://github.com/user-attachments/assets/f984bb77-7aca-482b-b5ec-a9ba6448aaa8)](https://www.bitmex.com/ccxt-trading-campaign)
 
 ## See Also
 
