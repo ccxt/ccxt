@@ -3628,8 +3628,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        object result = this.parseOpenInterests(response);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(response, symbols);
     }
 
     /**

@@ -5726,14 +5726,6 @@ export default class Exchange {
         }
         return this.filterByArray(fundingRates, 'symbol', symbols);
     }
-    parseOpenInterests(response, market = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseOpenInterest(response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
-    }
     parseLongShortRatio(info, market = undefined) {
         throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
     }
@@ -5842,6 +5834,15 @@ export default class Exchange {
     }
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
+    }
+    parseOpenInterests(response, symbols = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseOpenInterest(entry);
+            result[parsed['symbol']] = parsed;
+        }
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];

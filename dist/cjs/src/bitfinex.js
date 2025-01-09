@@ -6,7 +6,7 @@ var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bitfinex
@@ -3369,8 +3369,7 @@ class bitfinex extends bitfinex$1 {
         //         ]
         //     ]
         //
-        const result = this.parseOpenInterests(response);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(response, symbols);
     }
     /**
      * @method

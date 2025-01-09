@@ -3240,8 +3240,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        result = self.parse_open_interests(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(response, symbols)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """

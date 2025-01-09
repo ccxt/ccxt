@@ -3464,8 +3464,7 @@ class bitfinex extends Exchange {
             //         )
             //     )
             //
-            $result = $this->parse_open_interests($response);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_open_interests($response, $symbols);
         }) ();
     }
 

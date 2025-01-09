@@ -3439,7 +3439,14 @@ public partial class bybit : Exchange
                             ((IDictionary<string,object>)account)["debt"] = Precise.stringAdd(loan, interest);
                         }
                         ((IDictionary<string,object>)account)["total"] = this.safeString(coinEntry, "walletBalance");
-                        ((IDictionary<string,object>)account)["free"] = this.safeString2(coinEntry, "availableToWithdraw", "free");
+                        object free = this.safeString2(coinEntry, "availableToWithdraw", "free");
+                        if (isTrue(!isEqual(free, null)))
+                        {
+                            ((IDictionary<string,object>)account)["free"] = free;
+                        } else
+                        {
+                            ((IDictionary<string,object>)account)["used"] = this.safeString(coinEntry, "locked");
+                        }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         object currencyId = this.safeString(coinEntry, "coin");
                         object code = this.safeCurrencyCode(currencyId);
