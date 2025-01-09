@@ -62,7 +62,8 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run request-php -- $exchange
+          npm run request-php-sync -- $exchange
+          npm run request-php-async -- $exchange
         done
     - name: Response tests
       if: env.important_modified == 'true'
@@ -72,7 +73,8 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run response-php -- $exchange
+          npm run response-php-sync -- $exchange
+          npm run response-php-async -- $exchange
         done
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
