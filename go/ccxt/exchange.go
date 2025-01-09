@@ -863,6 +863,32 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 	return chars
 }
 
+func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	market := this.Markets[symbol]
+	return NewMarketInterface(market)
+}
+
+func (this *Exchange) GetMarketsList() []MarketInterface {
+	var markets []MarketInterface
+	for _, market := range this.Markets {
+		markets = append(markets, NewMarketInterface(market))
+	}
+	return markets
+}
+
+func (this *Exchange) GetCurrency(currency string) Currency {
+	market := this.Currencies[currency]
+	return NewCurrency(market)
+}
+
+func (this *Exchange) GetCurrenciesList() []Currency {
+	var currencies []Currency
+	for _, currency := range this.Currencies {
+		currencies = append(currencies, NewCurrency(currency))
+	}
+	return currencies
+}
+
 func (this *Exchange) SetProperty(obj interface{}, property interface{}, defaultValue interface{}) {
 	// Convert property to string
 	propName, ok := property.(string)
