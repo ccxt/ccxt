@@ -100,6 +100,8 @@ jobs:
         run: ./utils/restore_shared_env.sh
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - name: Install python dependencies
+        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil # to do cache dependencies
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests

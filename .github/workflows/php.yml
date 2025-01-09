@@ -102,6 +102,8 @@ jobs:
         run: ./utils/restore_shared_env.sh
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - name: Composer install
+        run: composer install
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests
