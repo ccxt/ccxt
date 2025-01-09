@@ -9,6 +9,7 @@ type IExchange interface {
 	GetAlias() interface{}
 	GetTimeframes() map[string]interface{}
 	GetFeatures() map[string]interface{}
+	GetRequiredCredentials() map[string]interface{}
 	SetTimeout(timeout interface{})
 	SetHttpsProxy(httpsProxy interface{})
 	SetHttpProxy(httpProxy interface{})
