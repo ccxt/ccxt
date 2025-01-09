@@ -9,10 +9,7 @@ var num = require('../num.js');
 var shortString = require('../shortString.js');
 var cairo = require('./cairo.js');
 
-/**
- * Validate cairo contract method arguments
- * Flow: Determine type from abi and than validate against parameter
- */
+// ----------------------------------------------------------------------------
 const validateFelt = (parameter, input) => {
     assert(shortString.isString(parameter) || num.isNumber(parameter) || num.isBigInt(parameter), `Validate: arg ${input.name} should be a felt typed as (String, Number or BigInt)`);
     if (shortString.isString(parameter) && !num.isHex(parameter))

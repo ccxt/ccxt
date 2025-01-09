@@ -66,9 +66,10 @@ public partial class testMainClass : BaseTest
                         { "mark", false },
                         { "index", false },
                     } },
-                    { "limitPrice", false },
+                    { "price", false },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
+                    { "GTC", false },
                     { "IOC", false },
                     { "FOK", false },
                     { "PO", false },
@@ -108,7 +109,7 @@ public partial class testMainClass : BaseTest
             { "fetchClosedOrders", new Dictionary<string, object>() {
                 { "marginMode", false },
                 { "limit", 0 },
-                { "daysBackClosed", 0 },
+                { "daysBack", 0 },
                 { "daysBackCanceled", 0 },
                 { "untilDays", 0 },
                 { "trigger", false },

@@ -941,10 +941,10 @@ class defx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $oid = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
-        $buyerMaker = $this->safe_string($trade, 'buyerMaker');
+        $buyerMaker = $this->safe_bool($trade, 'buyerMaker');
         $side = $this->safe_string_lower($trade, 'side');
         if ($buyerMaker !== null) {
-            if ($buyerMaker === 'true') {
+            if ($buyerMaker) {
                 $side = 'sell';
             } else {
                 $side = 'buy';

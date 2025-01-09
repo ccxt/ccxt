@@ -355,7 +355,7 @@ class ndax(Exchange, ImplicitAPI):
             #
             #     {
             #         "Authenticated": True,
-            #         "UserId":57765,
+            #         "UserId":57764,
             #         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             #     }
             #

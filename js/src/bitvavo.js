@@ -197,6 +197,71 @@ export default class bitvavo extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '101': ExchangeError,
@@ -1123,7 +1188,7 @@ export default class bitvavo extends Exchange {
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1450,6 +1515,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1648,7 +1714,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for

@@ -127,11 +127,81 @@
                 ]
             },
             {
+                "description": "Since and until defined",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1h&start=1735603200&end=173568960&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735603200000,
+                  null,
+                  {
+                    "until": 1735689600000
+                  }
+                ]
+            },
+            {
+                "description": "Since, limit and until defined",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1h&start=1735603200&end=1735689600&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735603200000,
+                  3,
+                  {
+                    "until": 1735689600000
+                  }
+                ]
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1h&end=1735689600&start=1728489600&symbol=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735689600000
+                  }
+                ]
+            },
+            {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.delta.exchange/v2/history/candles?resolution=1m&end=1709992993&start=1709872993&symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap since limit until defined",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1h&start=1735603200&end=1735689600&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1735603200000,
+                  3,
+                  {
+                    "until": 1735689600000
+                  }
+                ]
+            },
+            {
+                "description": "Swap until defined",
+                "method": "fetchOHLCV",
+                "url": "https://api.delta.exchange/v2/history/candles?resolution=1h&end=1735689600&start=1728489600&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735689600000
+                  }
                 ]
             }
         ],

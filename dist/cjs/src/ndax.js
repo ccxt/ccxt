@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class ndax
@@ -352,7 +352,7 @@ class ndax extends ndax$1 {
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //

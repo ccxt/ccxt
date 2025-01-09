@@ -73,7 +73,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                          | id                    | name                                                                                         | ver                                                                                                                                              | type | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -155,6 +155,7 @@ The CCXT library currently supports the following 106 cryptocurrency exchange ma
 | [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                       | lykke                 | [Lykke](https://www.lykke.com)                                                               | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                  | cex  |                                                                                                                             |                                                                              |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                          | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | cex  |                                                                                                                             |                                                                              |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![myokx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.my.okx.com/join/CCXT2023)                                        | myokx                 | [MyOKX (EEA)](https://www.my.okx.com/join/CCXT2023)                                          | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://my.okx.com/docs-v5/en/#overview)                                            | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                   | ndax                  | [NDAX](https://one.ndax.io/bfQiSL)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                            | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                         | novadax               | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                     | cex  |                                                                                                                             |                                                                              |
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                 | oceanex               | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                     | cex  |                                                                                                                             |                                                                              |
@@ -275,7 +276,7 @@ $exchange = new $exchange_class(array(
 
 ### Features
 
-Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
+Major exchanges have the `.features` property available, where you can see what methods and functionalities are supported for each market-type (if any method is set to `null/undefined` it means method is "not supported" by the exchange)
 
 *this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
 
@@ -299,7 +300,7 @@ console.log(exchange.features);
             mark: true,
             index: true,
         },
-        limitPrice: true,
+        price: true,               // whether 'limit' price can be used (instead of market order)
       },
       marginMode: true,            // if `marginMode` param is supported (cross, isolated)
       timeInForce: {               // supported TIF types
@@ -309,14 +310,17 @@ console.log(exchange.features);
         PO: true,
         GTD: false
       },
-      hedged: undefined,          // if `hedged` param is supported (true, false)
+      hedged: false,              // if `hedged` param is supported (true, false)
+      leverage: false,            // if `leverage` param is supported (true, false)
       selfTradePrevention: true,  // if `selfTradePrevention` param is supported (true, false)
       trailing: true,             // if trailing order is supported
-      twap: false,                // if twap order is supported
       iceberg: true,              // if iceberg order is supported
-      oco: false                  // if One-Cancels-the-Other order is supported
+      marketBuyByCost: true,      // if creating market buy order is possible with `cost` param
+      marketBuyRequiresPrice: true,// if creating market buy order (if 'cost' not used) requires `price` param to be set
     },
-    createOrders: undefined,      // if batch order creation is supported
+    createOrders: {
+        'max': 50,              // if batch order creation is supported
+    },
     fetchMyTrades: {
       limit: 1000,              // max limit per call
       daysBack: undefined,      // max historical period that can be accessed
@@ -2153,7 +2157,8 @@ if (exchange.has['fetchTrades']) {
         const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
             // not thread-safu and exchange-specific !
-            page = exchange.last_json_response['cursor']
+            last_json_response = exchange.parseJson (exchange.last_http_response)
+            page = last_json_response['cursor']
             allTrades.push (trades)
         } else {
             break
@@ -2198,7 +2203,8 @@ if ($exchange->has['fetchMyTrades']) {
         $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
         if (count($trades)) {
             // not thread-safu and exchange-specific !
-            $start = $exchange->last_json_response['next'];
+            $last_json_response = $exchange->parse_json ($exchange->last_http_response);
+            $start = $last_json_response['next'];
             $all_trades = array_merge ($all_trades, $trades);
         } else {
             break;

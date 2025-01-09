@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class defx
@@ -934,10 +934,10 @@ class defx extends defx$1 {
         const id = this.safeString(trade, 'id');
         const oid = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeStringLower(trade, 'role');
-        const buyerMaker = this.safeString(trade, 'buyerMaker');
+        const buyerMaker = this.safeBool(trade, 'buyerMaker');
         let side = this.safeStringLower(trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             }
             else {

@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
@@ -284,6 +284,11 @@ class krakenfutures extends krakenfutures$1 {
                         },
                         'hedged': false,
                         'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 100,
@@ -305,7 +310,7 @@ class krakenfutures extends krakenfutures$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

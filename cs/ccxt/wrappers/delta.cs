@@ -174,7 +174,7 @@ public partial class delta
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.delta.exchange/#get-ohlc-candles"/>  <br/>
+    /// See <see href="https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,6 +192,12 @@ public partial class delta
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// string : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
     /// </list>

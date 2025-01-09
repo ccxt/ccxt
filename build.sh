@@ -124,16 +124,16 @@ diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
-diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
+diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
 #echo $diff 
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
-if [[ "$diff" =~ $critical_pattern ]]; then
+if [[ "$diff_without_statics" =~ $critical_pattern ]]; then
   echo "$msgPrefix Important changes detected - doing full build & test"
-  echo "$diff"
+  echo "$diff_without_statics"
   build_and_test_all
 fi
 
@@ -141,11 +141,19 @@ echo "$msgPrefix Unimportant changes detected - build & test only specific excha
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason
 ws_pattern='ts\/src\/pro\/([A-Za-z0-9_-]+)\.ts'
+pattern_static_request='ts\/src\/test\/static\/request\/([A-Za-z0-9_-]+)\.json'
+pattern_static_response='ts\/src\/test\/static\/response\/([A-Za-z0-9_-]+)\.json'
 
 REST_EXCHANGES=()
 WS_EXCHANGES=()
 for file in "${y[@]}"; do
   if [[ "$file" =~ $rest_pattern ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    REST_EXCHANGES+=($modified_exchange)
+  elif [[ "$file" =~ $pattern_static_request ]]; then
+    modified_exchange="${BASH_REMATCH[1]}"
+    REST_EXCHANGES+=($modified_exchange)
+  elif [[ "$file" =~ $pattern_static_response ]]; then
     modified_exchange="${BASH_REMATCH[1]}"
     REST_EXCHANGES+=($modified_exchange)
   elif [[ "$file" =~ $ws_pattern ]]; then
@@ -166,7 +174,7 @@ echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[*]}"
 PYTHON_FILES=()
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run eslint "ts/src/$exchange.ts"
-  tsx build/transpile.ts $exchange --force --child
+  npm run transpileRest -- $exchange --force --child
   npm run transpileCsSingle -- $exchange
   PYTHON_FILES+=("python/ccxt/$exchange.py")
   PYTHON_FILES+=("python/ccxt/async_support/$exchange.py")
@@ -174,7 +182,7 @@ done
 echo "$msgPrefix WS_EXCHANGES TO BE TRANSPILED: ${WS_EXCHANGES[*]}"
 for exchange in "${WS_EXCHANGES[@]}"; do
   npm run eslint "ts/src/pro/$exchange.ts"
-  tsx build/transpileWS.ts $exchange --force --child
+  npm run transpileWs -- $exchange --force --child
   npm run transpileCsSingle -- $exchange --ws
   PYTHON_FILES+=("python/ccxt/pro/$exchange.py")
 done

@@ -532,11 +532,11 @@ class coinex(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
-                        # exchange-supported features
-                        # 'marketBuyRequiresPrice': True,
-                        # 'marketBuyByCost': True,
-                        # 'selfTradePrevention': True,
-                        # 'iceberg': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo: implement
+                        'iceberg': True,  # todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -562,7 +562,7 @@ class coinex(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': True,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': None,
                         'trigger': True,
@@ -4588,8 +4588,7 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """

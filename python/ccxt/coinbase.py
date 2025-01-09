@@ -385,7 +385,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'user_native_currency': 'USD',  # needed to get fees for v3
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': False,
                     'createOrder': {
                         'marginMode': True,
@@ -403,6 +403,11 @@ class coinbase(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': True,  # todo implement
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -433,7 +438,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': None,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 10000,
                         'trigger': False,
@@ -443,21 +448,20 @@ class coinbase(Exchange, ImplicitAPI):
                         'limit': 350,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': None,
                 },
                 'future': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'inverse': None,
                 },
             },
         })
@@ -2378,7 +2382,7 @@ class coinbase(Exchange, ImplicitAPI):
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        # eg: instance.last_json_response.pagination.next_starting_after
+        # eg: instance.last_http_response -> pagination.next_starting_after
         response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
         ledger = self.parse_ledger(response['data'], currency, since, limit)
         length = len(ledger)

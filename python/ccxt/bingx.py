@@ -565,7 +565,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'mark': True,
                                 'index': True,
                             },
-                            'limitPrice': True,
+                            'price': True,
                         },
                         'timeInForce': {
                             'IOC': True,
@@ -575,6 +575,11 @@ class bingx(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         'trailing': True,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 5,
@@ -607,7 +612,7 @@ class bingx(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
                         'trigger': False,
@@ -631,7 +636,7 @@ class bingx(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
-                        'daysBackClosed': None,
+                        'daysBack': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
                         'trigger': False,
@@ -1532,8 +1537,7 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols, 'swap', True)
         response = self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2646,8 +2650,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2657,8 +2663,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2668,8 +2676,10 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['quoteOrderQty'] = cost
-        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'quoteOrderQty': cost,
+        }
+        return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

@@ -133,7 +133,7 @@ export default class bitvavo extends Exchange {
      * @method
      * @name bitvavo#createOrder
      * @description create a trade order
-     * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -222,6 +222,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchOpenOrders
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -236,7 +237,7 @@ export default class bitvavo extends Exchange {
     /**
      * @method
      * @name bitvavo#fetchMyTrades
-     * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+     * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for

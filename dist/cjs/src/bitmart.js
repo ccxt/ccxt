@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -707,14 +707,11 @@ class bitmart extends bitmart$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        'marketBuyRequiresPrice': true,
+                        'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
-                        // exchange-supported features
-                        // 'leverage': true,
-                        // 'selfTradePrevention': false,
-                        // 'twap': false,
-                        // 'iceberg': false,
-                        // 'oco': false,
+                        'leverage': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 10,
@@ -740,7 +737,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,
@@ -769,7 +766,7 @@ class bitmart extends bitmart$1 {
                                 'mark': true,
                                 'index': false,
                             },
-                            'limitPrice': false,
+                            'price': false,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -807,7 +804,7 @@ class bitmart extends bitmart$1 {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 200,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': false,

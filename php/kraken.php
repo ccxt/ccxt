@@ -441,6 +441,11 @@ class kraken extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
@@ -464,7 +469,7 @@ class kraken extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => false,
@@ -1523,8 +1528,10 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         // only buy orders are supported by the endpoint
-        $params['cost'] = $cost;
-        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', $side, 1, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {

@@ -15,7 +15,7 @@ public partial class binance
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#check-server-time"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time"/>  <br/>
     /// <list type="table">
@@ -43,7 +43,7 @@ public partial class binance
     /// retrieves data on all markets for binance
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#exchange-information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
@@ -68,7 +68,7 @@ public partial class binance
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-information-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/wallet/asset/funding-wallet"/>  <br/>
@@ -119,7 +119,7 @@ public partial class binance
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#order-book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Order-Book"/>  <br/>
@@ -169,8 +169,8 @@ public partial class binance
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#rolling-window-price-change-statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
@@ -199,7 +199,7 @@ public partial class binance
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker"/>  <br/>
     /// <list type="table">
@@ -227,7 +227,7 @@ public partial class binance
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#symbol-price-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker"/>  <br/>
     /// <list type="table">
@@ -255,7 +255,7 @@ public partial class binance
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#24hr-ticker-price-change-statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
@@ -344,7 +344,7 @@ public partial class binance
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#klinecandlestick-data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data"/>  <br/>
@@ -405,14 +405,14 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#compressedaggregate-trades-list"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#recent-trades-list"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#old-trade-lookup"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup"/>  <br/>
@@ -473,7 +473,7 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -540,6 +540,8 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -551,6 +553,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to edit an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
@@ -566,7 +574,7 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
     /// <list type="table">
@@ -580,6 +588,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to edit an order in a portfolio margin account
     /// </description>
     /// </item>
     /// </list>
@@ -618,13 +632,13 @@ public partial class binance
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/New-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#sor"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-using-sor-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order"/>  <br/>
@@ -721,6 +735,12 @@ public partial class binance
     /// bool : *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -760,7 +780,7 @@ public partial class binance
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -780,7 +800,7 @@ public partial class binance
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -800,7 +820,7 @@ public partial class binance
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -820,7 +840,7 @@ public partial class binance
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#query-order-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order"/>  <br/>
@@ -858,7 +878,7 @@ public partial class binance
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
@@ -930,7 +950,7 @@ public partial class binance
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#current-open-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders"/>  <br/>
@@ -1027,7 +1047,7 @@ public partial class binance
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
@@ -1087,7 +1107,7 @@ public partial class binance
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
@@ -1147,7 +1167,7 @@ public partial class binance
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
@@ -1207,7 +1227,7 @@ public partial class binance
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order"/>  <br/>
@@ -1248,7 +1268,7 @@ public partial class binance
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders"/>  <br/>
@@ -1321,7 +1341,7 @@ public partial class binance
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-trade-list-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>
@@ -1358,7 +1378,7 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#account-trade-list-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>

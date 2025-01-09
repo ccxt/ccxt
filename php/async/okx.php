@@ -1002,7 +1002,7 @@ class okx extends Exchange {
                     'BHP' => 'BHP',
                     'APT' => 'Aptos',
                     'ARBONE' => 'Arbitrum One',
-                    'AVAXC' => 'Avalanche C',
+                    'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
                     'ARK' => 'ARK',
                     'AR' => 'Arweave',
@@ -1188,7 +1188,6 @@ class okx extends Exchange {
                 'brokerId' => 'e847386590ce4dBC',
             ),
             'features' => array(
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -1208,7 +1207,7 @@ class okx extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -1217,12 +1216,12 @@ class okx extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention' => true,
                         'trailing' => true,
-                        'twap' => true,
-                        'iceberg' => true,
-                        'oco' => true,
+                        'iceberg' => true, // todo implement
+                        'leverage' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
                     ),
                     'createOrders' => array(
                         'max' => 20,
@@ -1248,7 +1247,7 @@ class okx extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBackClosed' => 90, // 3 months
+                        'daysBack' => 90, // 3 months
                         'daysBackCanceled' => 1 / 12, // 2 hour
                         'untilDays' => null,
                         'trigger' => true,
@@ -1647,7 +1646,7 @@ class okx extends Exchange {
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
-            'strike' => $strikePrice,
+            'strike' => $this->parse_number($strikePrice),
             'optionType' => $optionType,
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
@@ -1829,8 +1828,8 @@ class okx extends Exchange {
                     $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
-                        $parts = explode('-', $networkId);
-                        $chainPart = $this->safe_string($parts, 1, $networkId);
+                        $parts = explode(mb_substr('-', $networkId), 1);
+                        $chainPart = implode('-', $parts);
                         $networkCode = $this->network_id_to_code($chainPart, $currency['code']);
                         $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                         if ($maxPrecision === null) {
@@ -1858,7 +1857,7 @@ class okx extends Exchange {
                 }
                 $firstChain = $this->safe_dict($chains, 0, array());
                 $result[$code] = array(
-                    'info' => null,
+                    'info' => $chains,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $this->safe_string($firstChain, 'name'),

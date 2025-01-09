@@ -705,7 +705,7 @@ export default class gate extends Exchange {
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
@@ -716,7 +716,6 @@ export default class gate extends Exchange {
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
@@ -724,9 +723,11 @@ export default class gate extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-specific features
-                        'iceberg': true,
-                        'selfTradePrevention': true,
+                        'iceberg': true, // todo implement
+                        'selfTradePrevention': true, // todo implement
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
                     },
                     'createOrders': {
                         'max': 40, // NOTE! max 10 per symbol
@@ -755,12 +756,15 @@ export default class gate extends Exchange {
                         'trailing': false,
                         'limit': 100,
                         'untilDays': 30,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                },
+                'spot': {
+                    'extends': 'default',
                 },
                 'forDerivatives': {
                     'extends': 'spot',
@@ -2002,8 +2006,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        const result = this.parseFundingRates (response);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (response, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -2442,7 +2445,8 @@ export default class gate extends Exchange {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                result['networks'][chainKey] = {
+                const networkCode = this.networkIdToCode (chainKey, this.safeString (fee, 'currency'));
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
                         'percentage': false,

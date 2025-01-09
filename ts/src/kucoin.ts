@@ -1008,11 +1008,11 @@ export default class kucoin extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'iceberg': true,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -1038,7 +1038,7 @@ export default class kucoin extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 500,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
                         'trigger': true,
@@ -2331,8 +2331,10 @@ export default class kucoin extends Exchange {
      */
     async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
         await this.loadMarkets ();
-        params['cost'] = cost;
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', side, 0, undefined, this.extend (req, params));
     }
 
     /**

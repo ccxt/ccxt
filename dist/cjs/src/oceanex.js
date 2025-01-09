@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
@@ -497,7 +497,7 @@ class oceanex extends oceanex$1 {
         //                  "funds":"6.0732952",
         //                  "market":"ethusdt",
         //                  "created_at":"2022-04-19T19:03:15Z",
-        //                  "created_on":1650394995,
+        //                  "created_on":1650394994,
         //                  "side":"bid"
         //              },
         //          ]

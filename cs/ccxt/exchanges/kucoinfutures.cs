@@ -331,9 +331,8 @@ public partial class kucoinfutures : kucoin
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
-                            { "triggerPrice", null },
                             { "triggerPriceType", null },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -343,6 +342,11 @@ public partial class kucoinfutures : kucoin
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 20 },
@@ -368,7 +372,7 @@ public partial class kucoinfutures : kucoin
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", true },

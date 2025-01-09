@@ -278,7 +278,9 @@ export default class onetrading extends Exchange {
                     'CF_RATELIMIT': DDoSProtection,
                     'INTERNAL_SERVER_ERROR': ExchangeError,
                 },
-                'broad': {},
+                'broad': {
+                    'Order not found.': OrderNotFound,
+                },
             },
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
@@ -867,7 +869,8 @@ export default class onetrading extends Exchange {
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcv = this.safeList(response, 'candlesticks');
+        return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1004,6 +1007,7 @@ export default class onetrading extends Exchange {
             'CLOSED': 'canceled',
             'FAILED': 'failed',
             'STOP_TRIGGERED': 'triggered',
+            'DONE': 'closed',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1098,7 +1102,7 @@ export default class onetrading extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': type,
+            'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1113,6 +1117,12 @@ export default class onetrading extends Exchange {
             // 'fee': undefined,
             'trades': rawTrades,
         }, market);
+    }
+    parseOrderType(type) {
+        const types = {
+            'booked': 'limit',
+        };
+        return this.safeString(types, type, type);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1177,6 +1187,9 @@ export default class onetrading extends Exchange {
             request['client_id'] = clientOrderId;
             params = this.omit(params, ['clientOrderId', 'client_id']);
         }
+        const timeInForce = this.safeString2(params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+        params = this.omit(params, 'timeInForce');
+        request['time_in_force'] = timeInForce;
         const response = await this.privatePostAccountOrders(this.extend(request, params));
         //
         //     {
@@ -1218,11 +1231,17 @@ export default class onetrading extends Exchange {
         else {
             request['order_id'] = id;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateDeleteAccountOrdersOrderId') {
+            response = await this.privateDeleteAccountOrdersOrderId(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteAccountOrdersClientClientId(this.extend(request, params));
+        }
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder(response);
     }
     /**
      * @method

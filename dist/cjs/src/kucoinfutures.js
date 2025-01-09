@@ -5,7 +5,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kucoinfutures
@@ -373,9 +373,8 @@ class kucoinfutures extends kucoinfutures$1 {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'triggerPrice': undefined,
                             'triggerPriceType': undefined,
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -385,11 +384,11 @@ class kucoinfutures extends kucoinfutures$1 {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'iceberg': true,
-                        // 'selfTradePrevention': true,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': true,
                     },
                     'createOrders': {
                         'max': 20,
@@ -415,7 +414,7 @@ class kucoinfutures extends kucoinfutures$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
