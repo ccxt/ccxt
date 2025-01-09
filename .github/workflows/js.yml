@@ -37,6 +37,20 @@ jobs:
     - name: Pre-transpile and transpile TS (Simplified)
       if: env.important_modified == 'false'
       run: npm run pre-transpile-js-simple
+    - name: Lint Rest (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run eslint "ts/src/$exchange.ts"
+        done
+    - name: Lint Ws (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run eslint "ts/src/pro/$exchange.ts"
+        done
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-js
@@ -66,7 +80,6 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
-
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
