@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/idex.js';
-import { TICK_SIZE, PAD_WITH_ZERO } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -233,20 +233,11 @@ export default class idex extends Exchange {
                 'secret': true,
             },
             'precisionMode': TICK_SIZE,
-            'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
         });
     }
 
     priceToPrecision (symbol: string, price: any): string {
-        //
-        // we override priceToPrecision to fix the following issue
-        // https://github.com/ccxt/ccxt/issues/13367
-        // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
-        //
-        // const market = this.market (symbol);
-        // price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
-        // return this.decimalToPrecision (price, TRUNCATE, market['precision']['quote'], TICK_SIZE, PAD_WITH_ZERO);
         const priceString = super.priceToPrecision (symbol, price);
         return this.padWithZeroes (priceString, 8);
     }
@@ -312,130 +303,116 @@ export default class idex extends Exchange {
         //         },
         //    ]
         //
-        const response2 = await this.publicGetExchange ();
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market: Dict): Market {
         //
-        //    {
-        //        "timeZone": "UTC",
-        //        "serverTime": "1654460599952",
-        //        "maticDepositContractAddress": "0x3253a7e75539edaeb1db608ce6ef9aa1ac9126b6",
-        //        "maticCustodyContractAddress": "0x3bcc4eca0a40358558ca8d1bcd2d1dbde63eb468",
-        //        "maticUsdPrice": "0.60",
-        //        "gasPrice": "180",
-        //        "volume24hUsd": "10015814.46",
-        //        "totalVolumeUsd": "1589273533.28",
-        //        "totalTrades": "1534904",
-        //        "totalValueLockedUsd": "12041929.44",
-        //        "idexStakingValueLockedUsd": "20133816.98",
-        //        "idexTokenAddress": "0x9Cb74C8032b007466865f060ad2c46145d45553D",
-        //        "idexUsdPrice": "0.07",
-        //        "idexMarketCapUsd": "48012346.00",
-        //        "makerFeeRate": "0.0000",
-        //        "takerFeeRate": "0.0025",
-        //        "takerIdexFeeRate": "0.0005",
-        //        "takerLiquidityProviderFeeRate": "0.0020",
-        //        "makerTradeMinimum": "10.00000000",
-        //        "takerTradeMinimum": "1.00000000",
-        //        "withdrawMinimum": "0.50000000",
-        //        "liquidityAdditionMinimum": "0.50000000",
-        //        "liquidityRemovalMinimum": "0.40000000",
-        //        "blockConfirmationDelay": "64"
-        //    }
         //     {
-        //         timeZone: 'UTC',
-        //         serverTime: '1736243247285',
-        //         exchangeContractAddress: '0x08ea6C351d08fAc8E177267898612A5fc6D92349',
-        //         chainId: '94524',
-        //         quoteTokenAddress: '0xFbDa5F676cB37624f28265A144A48B0d6e87d3b6',
-        //         stargateBridgeAdapterContractAddress: '0x435f51084936E7BFC7ad0635d7032c7A2B374982',
-        //         totalOpenInterest: '940061.84122000',
-        //         volume24h: '7694542.17358000',
-        //         totalVolume: '566918696.44752000',
-        //         totalTrades: '1467408',
-        //         idexTokenAddressArbitrum: '0xdcfa0fab3ae2cac30633b7f4852fe4a50924e421',
-        //         idexTokenAddressEthereum: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
-        //         idexTokenAddressPolygon: '0x9cb74c8032b007466865f060ad2c46145d45553d',
-        //         idexTokenPrice: '0.06718000',
-        //         idexMarketCap: '61419737.00000000',
-        //         defaultMakerFeeRate: '-0.00005000',
-        //         defaultTakerFeeRate: '0.00030000',
-        //         withdrawalMinimum: '1.00000000'
+        //         "market": "ETH-USD",
+        //         "type": "perpetual",
+        //         "status": "active",
+        //         "baseAsset": "ETH",
+        //         "quoteAsset": "USD",
+        //         "stepSize": "0.00000100",
+        //         "tickSize": "0.01000000",
+        //         "indexPrice": "2236.32000000",
+        //         "indexPrice24h": "2101.81000000",
+        //         "indexPricePercentChange": "0.06399722",
+        //         "lastFundingRate": "0.00017100",
+        //         "currentFundingRate": "0.00010000",
+        //         "nextFundingTime": 1704182400000,
+        //         "makerOrderMinimum": "0.01000000",
+        //         "takerOrderMinimum": "0.01000000",
+        //         "marketOrderExecutionPriceLimit": "0.10000000",
+        //         "limitOrderExecutionPriceLimit": "0.40000000",
+        //         "minimumPositionSize": "0.01000000",
+        //         "maximumPositionSize": "500.00000000",
+        //         "initialMarginFraction": "0.05000000",
+        //         "maintenanceMarginFraction": "0.03000000",
+        //         "basePositionSize": "25.00000000",
+        //         "incrementalPositionSize": "5.00000000",
+        //         "incrementalInitialMarginFraction": "0.01000000",
+        //         "makerFeeRate": "-0.00010000",
+        //         "takerFeeRate": "0.00040000",
+        //         "volume24h": "294856820.05",
+        //         "trades24h": 221307,
+        //         "openInterest": "57178.63200000",
         //     }
         //
-        const maker = this.safeNumber (response, 'makerFeeRate');
-        const taker = this.safeNumber (response, 'takerFeeRate');
-        const makerMin = this.safeString (response2, 'makerTradeMinimum');
-        const takerMin = this.safeString (response2, 'takerTradeMinimum');
-        const minCostETH = this.parseNumber (Precise.stringMin (makerMin, takerMin));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'market');
-            const baseId = this.safeString (entry, 'baseAsset');
-            const quoteId = this.safeString (entry, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
-            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
-            const status = this.safeString (entry, 'status');
-            let minCost = undefined;
-            if (quote === 'ETH') {
-                minCost = minCostETH;
-            }
-            result.push ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status !== 'inactive'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': taker,
-                'maker': maker,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': 0.001, // todo fix it properly
-                    'price': 0.001, // todo fix it properly
-                    'base': 0.001, // todo fix it properly
-                    'quote': 0.001, // todo fix it properly
+        const marketId = this.safeString (market, 'market');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = 'USDC'; // todo check
+        const status = this.safeString (market, 'status');
+        const takerMinAmount = this.safeString (market, 'takerOrderMinimum');
+        const makerMinAmount = this.safeString (market, 'makerOrderMinimum');
+        const minAmount = this.parseNumber (Precise.stringMin (takerMinAmount, makerMinAmount));
+        const basePrecision = this.safeNumber (market, 'stepSize');
+        const quotePrecision = this.safeNumber (market, 'tickSize');
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'lowercaseId': marketId.toLowerCase (),
+            'symbol': baseId + '/' + quoteId + ':' + settle,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settle,
+            'type': 'swap', // todo check
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'index': false,
+            'active': status === 'active',
+            'contract': true,
+            'linear': undefined,
+            'inverse': undefined,
+            'subType': undefined,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': 1, // todo check
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': basePrecision,
+                'price': quotePrecision,
+                'cost': undefined,
+                'base': basePrecision,
+                'quote': quotePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': basePrecision,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': quotePrecision,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': this.safeNumber (market, 'maximumPositionSize'),
                 },
-                'created': undefined,
-                'info': entry,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'marginModes': {
+                'cross': undefined,
+                'isolated': undefined,
+            },
+            'created': undefined,
+            'info': undefined,
+        });
     }
 
     /**
