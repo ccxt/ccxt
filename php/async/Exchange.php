@@ -5169,22 +5169,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates($response, ?array $market = null) {
-        $result = array();
+    public function parse_funding_rates($response, ?array $symbols = null) {
+        $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_funding_rate($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
+            $entry = $response[$i];
+            $parsed = $this->parse_funding_rate($entry);
+            $fundingRates[$parsed['symbol']] = $parsed;
         }
-        return $result;
-    }
-
-    public function parse_open_interests($response, ?array $market = null) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_open_interest($response[$i], $market);
-            $result[$parsed['symbol']] = $parsed;
-        }
-        return $result;
+        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
     }
 
     public function parse_long_short_ratio(array $info, ?array $market = null) {
@@ -5301,6 +5293,16 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_open_interest($interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
+    }
+
+    public function parse_open_interests($response, ?array $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parse_open_interest($entry);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_open_interests_history($response, $market = null, ?int $since = null, ?int $limit = null) {

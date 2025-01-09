@@ -4764,8 +4764,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data, $market);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {

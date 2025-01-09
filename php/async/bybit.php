@@ -2801,8 +2801,7 @@ class bybit extends Exchange {
             for ($i = 0; $i < count($tickerList); $i++) {
                 $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
             }
-            $result = $this->parse_funding_rates($tickerList);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($tickerList, $symbols);
         }) ();
     }
 

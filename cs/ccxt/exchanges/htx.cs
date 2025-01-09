@@ -7620,8 +7620,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -8833,8 +8832,7 @@ public partial class htx : Exchange
             response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseOpenInterests(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(data, symbols);
     }
 
     /**

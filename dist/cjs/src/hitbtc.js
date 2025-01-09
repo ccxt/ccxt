@@ -6,6 +6,7 @@ var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 /**
  * @class hitbtc
  * @augments Exchange

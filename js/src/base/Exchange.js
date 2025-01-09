@@ -5717,21 +5717,14 @@ export default class Exchange {
     parseFundingRate(contract, market = undefined) {
         throw new NotSupported(this.id + ' parseFundingRate() is not supported yet');
     }
-    parseFundingRates(response, market = undefined) {
-        const result = {};
+    parseFundingRates(response, symbols = undefined) {
+        const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate(response[i], market);
-            result[parsed['symbol']] = parsed;
+            const entry = response[i];
+            const parsed = this.parseFundingRate(entry);
+            fundingRates[parsed['symbol']] = parsed;
         }
-        return result;
-    }
-    parseOpenInterests(response, market = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseOpenInterest(response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
+        return this.filterByArray(fundingRates, 'symbol', symbols);
     }
     parseLongShortRatio(info, market = undefined) {
         throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
@@ -5841,6 +5834,15 @@ export default class Exchange {
     }
     parseOpenInterest(interest, market = undefined) {
         throw new NotSupported(this.id + ' parseOpenInterest () is not supported yet');
+    }
+    parseOpenInterests(response, symbols = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseOpenInterest(entry);
+            result[parsed['symbol']] = parsed;
+        }
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];

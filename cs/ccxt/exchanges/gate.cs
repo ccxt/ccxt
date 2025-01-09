@@ -2010,8 +2010,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        object result = this.parseFundingRates(response);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(response, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

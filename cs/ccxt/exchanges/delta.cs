@@ -2552,8 +2552,7 @@ public partial class delta : Exchange
         //     }
         //
         object rates = this.safeList(response, "result", new List<object>() {});
-        object result = this.parseFundingRates(rates);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rates, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)

@@ -2463,8 +2463,7 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         rates = self.safe_list(response, 'result', [])
-        result = self.parse_funding_rates(rates)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rates, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

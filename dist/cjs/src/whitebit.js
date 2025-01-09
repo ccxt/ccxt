@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class whitebit
@@ -297,6 +297,7 @@ class whitebit extends whitebit$1 {
                 'broad': {
                     'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
+                    'Min amount step': errors.InvalidOrder,
                     'Total is less than': errors.InvalidOrder,
                     'fee must be no less than': errors.InvalidOrder,
                     'Enable your key in API settings': errors.PermissionDenied,
@@ -2468,8 +2469,7 @@ class whitebit extends whitebit$1 {
         //    ]
         //
         const data = this.safeList(response, 'result', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         //

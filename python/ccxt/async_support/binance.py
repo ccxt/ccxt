@@ -1149,6 +1149,7 @@ class binance(Exchange, ImplicitAPI):
                         'um/symbolConfig': 1,
                         'cm/accountConfig': 1,
                         'cm/symbolConfig': 1,
+                        'rateLimit/order': 1,
                     },
                     'post': {
                         'um/order': 1,
@@ -9324,8 +9325,7 @@ class binance(Exchange, ImplicitAPI):
             response = await self.dapiPublicGetPremiumIndex(query)
         else:
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
@@ -13253,8 +13253,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = self.parse_funding_rates(response, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
         """

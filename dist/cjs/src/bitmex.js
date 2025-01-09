@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmex
@@ -2608,8 +2608,7 @@ class bitmex extends bitmex$1 {
             }
         }
         symbols = this.marketSymbols(symbols);
-        const result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here

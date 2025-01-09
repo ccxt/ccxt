@@ -999,8 +999,7 @@ class hyperliquid extends Exchange {
                 );
                 $result[] = $data;
             }
-            $funding_rates = $this->parse_funding_rates($result);
-            return $this->filter_by_array($funding_rates, 'symbol', $symbols);
+            return $this->parse_funding_rates($result, $symbols);
         }) ();
     }
 
@@ -3380,8 +3379,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $swapMarkets = Async\await($this->fetch_swap_markets());
-            $result = $this->parse_open_interests($swapMarkets);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_open_interests($swapMarkets, $symbols);
         }) ();
     }
 

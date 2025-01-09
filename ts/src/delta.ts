@@ -2547,8 +2547,7 @@ export default class delta extends Exchange {
         //     }
         //
         const rates = this.safeList (response, 'result', []);
-        const result = this.parseFundingRates (rates);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (rates, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

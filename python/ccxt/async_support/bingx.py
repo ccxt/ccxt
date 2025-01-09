@@ -1538,8 +1538,7 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols, 'swap', True)
         response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
         data = self.safe_list(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class huobi
@@ -7320,8 +7320,7 @@ class htx extends htx$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -8739,8 +8738,7 @@ class htx extends htx$1 {
             //
         }
         const data = this.safeList(response, 'data', []);
-        const result = this.parseOpenInterests(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method

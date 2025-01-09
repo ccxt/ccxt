@@ -3,9 +3,8 @@
 var bingx$1 = require('../bingx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var Precise = require('../base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bingx extends bingx$1 {
     describe() {
@@ -1480,12 +1479,10 @@ class bingx extends bingx$1 {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const account = (code in this.balance[type]) ? this.balance[type][code] : this.account();
+            const account = this.account();
+            account['info'] = balance;
+            account['used'] = this.safeString(balance, 'lk');
             account['free'] = this.safeString(balance, 'wb');
-            const balanceChange = this.safeString(balance, 'bc');
-            if (account['used'] !== undefined) {
-                account['used'] = Precise["default"].stringSub(this.safeString(account, 'used'), balanceChange);
-            }
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);

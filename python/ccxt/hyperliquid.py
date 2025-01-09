@@ -966,8 +966,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 self.safe_dict(assetCtxs, i, {})
             )
             result.append(data)
-        funding_rates = self.parse_funding_rates(result)
-        return self.filter_by_array(funding_rates, 'symbol', symbols)
+        return self.parse_funding_rates(result, symbols)
 
     def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
         #
@@ -3146,8 +3145,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         swapMarkets = self.fetch_swap_markets()
-        result = self.parse_open_interests(swapMarkets)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(swapMarkets, symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """

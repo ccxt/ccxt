@@ -5640,19 +5640,13 @@ class Exchange(object):
     def parse_funding_rate(self, contract: str, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response, market: Market = None):
-        result = {}
+    def parse_funding_rates(self, response, symbols: Strings = None):
+        fundingRates = {}
         for i in range(0, len(response)):
-            parsed = self.parse_funding_rate(response[i], market)
-            result[parsed['symbol']] = parsed
-        return result
-
-    def parse_open_interests(self, response, market: Market = None):
-        result = {}
-        for i in range(0, len(response)):
-            parsed = self.parse_open_interest(response[i], market)
-            result[parsed['symbol']] = parsed
-        return result
+            entry = response[i]
+            parsed = self.parse_funding_rate(entry)
+            fundingRates[parsed['symbol']] = parsed
+        return self.filter_by_array(fundingRates, 'symbol', symbols)
 
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
@@ -5747,6 +5741,14 @@ class Exchange(object):
 
     def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
+
+    def parse_open_interests(self, response, symbols: Strings = None):
+        result = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            parsed = self.parse_open_interest(entry)
+            result[parsed['symbol']] = parsed
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_open_interests_history(self, response, market=None, since: Int = None, limit: Int = None):
         interests = []

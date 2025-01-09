@@ -6779,8 +6779,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = self.parse_funding_rates(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(data, symbols)
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
@@ -8097,8 +8096,7 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_open_interests(data)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_open_interests(data, symbols)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
