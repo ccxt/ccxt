@@ -102,4 +102,4 @@ jobs:
         run: ./run-tests-simul.sh --js
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --js ${{ env.rest_files }} ${{ env.ws_files }}
+        run: ./run-tests-simul.sh --js "${{ env.rest_files }}" "${{ env.ws_files }}"
