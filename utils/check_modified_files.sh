@@ -4,12 +4,16 @@ diff=$(git diff --name-only HEAD^1 HEAD)
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
 diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
+diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # add \/test| # remove package json temporatily todo revert this!!
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
-if [[ "$diff_without_statics" =~ $critical_pattern ]]; then
+if [[ "$GITHUB_REF" == "refs/heads/master" ]]; then
+    IMPORTANT_MODIFIED="true"
+    # echo "$msgPrefix Running on master branch - doing full build & test"
+elif [[ "$diff_without_statics" =~ $critical_pattern ]]; then
     IMPORTANT_MODIFIED="true"
     # echo "$msgPrefix Critial changes detected - doing full build & test"
 else
@@ -19,6 +23,10 @@ fi
 
 # echo "$diff_without_statics"
 
+if [ "$IMPORTANT_MODIFIED" == "true" ]; then
+  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
+  exit
+fi
 
 readarray -t y <<<"$diff"
 rest_pattern='ts\/src\/([A-Za-z0-9_-]+).ts' # \w not working for some reason

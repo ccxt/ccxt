@@ -29,6 +29,8 @@ jobs:
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
         cat shared_env.txt
+    - name: Check ref
+      run: echo $GITHUB_REF
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
