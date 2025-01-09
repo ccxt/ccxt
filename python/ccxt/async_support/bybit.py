@@ -3210,7 +3210,11 @@ class bybit(Exchange, ImplicitAPI):
                         if (loan is not None) and (interest is not None):
                             account['debt'] = Precise.string_add(loan, interest)
                         account['total'] = self.safe_string(coinEntry, 'walletBalance')
-                        account['free'] = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        free = self.safe_string_2(coinEntry, 'availableToWithdraw', 'free')
+                        if free is not None:
+                            account['free'] = free
+                        else:
+                            account['used'] = self.safe_string(coinEntry, 'locked')
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)

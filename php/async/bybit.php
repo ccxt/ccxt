@@ -3351,7 +3351,12 @@ class bybit extends Exchange {
                             $account['debt'] = Precise::string_add($loan, $interest);
                         }
                         $account['total'] = $this->safe_string($coinEntry, 'walletBalance');
-                        $account['free'] = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        $free = $this->safe_string_2($coinEntry, 'availableToWithdraw', 'free');
+                        if ($free !== null) {
+                            $account['free'] = $free;
+                        } else {
+                            $account['used'] = $this->safe_string($coinEntry, 'locked');
+                        }
                         // $account['used'] = $this->safe_string($coinEntry, 'locked');
                         $currencyId = $this->safe_string($coinEntry, 'coin');
                         $code = $this->safe_currency_code($currencyId);
