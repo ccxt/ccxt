@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var modular = require('./modular.js');
 var utils = require('./utils.js');
 
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+// ----------------------------------------------------------------------------
 const _0n = BigInt(0);
 const _1n = BigInt(1);
 // Elliptic curve multiplication of Point by scalar. Fragile.

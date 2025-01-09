@@ -6,6 +6,7 @@ var cairo = require('../cairo.js');
 var parser01_1_0 = require('./parser-0-1.1.0.js');
 var parser2_0_0 = require('./parser-2.0.0.js');
 
+// ----------------------------------------------------------------------------
 function createAbiParser(abi) {
     const version = getAbiVersion(abi);
     if (version === 0 || version === 1) {
