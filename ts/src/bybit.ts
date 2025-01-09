@@ -3320,7 +3320,7 @@ export default class bybit extends Exchange {
                             account['debt'] = Precise.stringAdd (loan, interest);
                         }
                         account['total'] = this.safeString (coinEntry, 'walletBalance');
-                        const free =  this.safeString2 (coinEntry, 'availableToWithdraw', 'free');
+                        const free = this.safeString2 (coinEntry, 'availableToWithdraw', 'free');
                         if (free !== undefined) {
                             account['free'] = free;
                         } else {
