@@ -29,7 +29,7 @@ jobs:
       run: npm run pre-transpile-cs
     - name: Transpile to C#
       if: env.important_modified == 'true'
-      run: npm run force-transpile-fast-cs
+      run: npm run transpileCS
     - name: Transpile to C# (specific)
       if: env.important_modified == 'false'
       run: |
