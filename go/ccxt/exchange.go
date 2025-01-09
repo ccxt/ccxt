@@ -359,7 +359,7 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 // error related functions
 
 type BaseError struct {
-	Type string
+	Type    string
 	Message string
 	Stack   string
 }
@@ -774,6 +774,10 @@ func (this *Exchange) IsEmpty(a interface{}) bool {
 	default:
 		return false
 	}
+}
+
+func (this *Exchange) CallInternal(name2 string, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2, args...)
 }
 
 func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {

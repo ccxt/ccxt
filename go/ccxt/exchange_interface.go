@@ -20,6 +20,7 @@ type IExchange interface {
 	SetPassword(password interface{})
 	SetApiKey(apiKey interface{})
 	SetAccounts(account interface{})
+	SetVerbose(verbose interface{})
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
@@ -158,4 +159,5 @@ type IExchange interface {
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
 	SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{}
+	CallInternal(name2 string, args ...interface{}) <-chan interface{}
 }

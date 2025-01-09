@@ -7,78 +7,83 @@ import (
 )
 
 // Utility functions for safe extraction from maps
-func SafeFloatTyped(m interface{}, key interface{}) float64 {
+func SafeFloatTyped(m interface{}, key interface{}) *float64 {
 	res := SafeFloat(m, key, math.NaN())
 	if res != nil {
-		return res.(float64)
+		resFloat := res.(float64)
+		return &resFloat
 	}
-	return math.NaN()
+	return nil
 }
 
-func SafeStringTyped(m interface{}, key interface{}) string {
+func SafeStringTyped(m interface{}, key interface{}) *string {
 	res := SafeString(m, key, nil)
 	if res != nil {
-		return res.(string)
+		resStr := res.(string)
+		return &resStr
 	}
-	return ""
+	return nil
 }
 
-func SafeBoolTyp(m interface{}, key interface{}) bool {
+func SafeBoolTyp(m interface{}, key interface{}) *bool {
 	res := SafeBool(m, key, false)
 	if res != nil {
-		return res.(bool)
+		resBool := res.(bool)
+		return &resBool
 	}
-	return false
+	return nil
 }
 
-func SafeInt64Typed(m interface{}, key interface{}) int64 {
+func SafeInt64Typed(m interface{}, key interface{}) *int64 {
 	res := SafeInteger(m, key, nil)
 	if res != nil {
-		return res.(int64)
+		resInt := res.(int64)
+		return &resInt
 	}
-	return 0
+	return nil
 }
 
-func SafeBoolTyped(m interface{}, key interface{}) bool {
+func SafeBoolTyped(m interface{}, key interface{}) *bool {
 	res := SafeBool(m, key, nil)
 	if res != nil {
-		return res.(bool)
+		resBool := res.(bool)
+		return &resBool
 	}
-	return false
+	return nil
 }
 
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
-	UppercaseId    string
-	LowercaseId    string
-	Symbol         string
-	BaseCurrency   string
-	QuoteCurrency  string
-	BaseId         string
-	QuoteId        string
-	Active         bool
-	Type           string
-	Spot           bool
-	Margin         bool
-	Swap           bool
-	Future         bool
-	Option         bool
-	Contract       bool
-	Settle         string
-	SettleId       string
-	ContractSize   float64
-	Linear         bool
-	Inverse        bool
-	Quanto         bool
-	Expiry         int64
-	ExpiryDatetime string
-	Strike         float64
-	OptionType     string
-	Taker          float64
-	Maker          float64
+	UppercaseId    *string
+	LowercaseId    *string
+	Symbol         *string
+	BaseCurrency   *string
+	QuoteCurrency  *string
+	BaseId         *string
+	QuoteId        *string
+	Active         *bool
+	Type           *string
+	Spot           *bool
+	Margin         *bool
+	Swap           *bool
+	Future         *bool
+	Option         *bool
+	Contract       *bool
+	Settle         *string
+	SettleId       *string
+	ContractSize   *float64
+	Linear         *bool
+	Inverse        *bool
+	Quanto         *bool
+	Expiry         *int64
+	ExpiryDatetime *string
+	Strike         *float64
+	OptionType     *string
+	Taker          *float64
+	Maker          *float64
 	Limits         Limits
-	Created        int64
+	Created        *int64
 }
 
 // CreateMarketInterface initializes the MarketInterface struct
@@ -127,8 +132,8 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 // Precision struct
 type Precision struct {
-	Amount float64
-	Price  float64
+	Amount *float64
+	Price  *float64
 }
 
 func NewPrecision(data interface{}) Precision {
@@ -141,8 +146,8 @@ func NewPrecision(data interface{}) Precision {
 
 // MarketMarginModes struct
 type MarketMarginModes struct {
-	Cross    bool
-	Isolated bool
+	Cross    *bool
+	Isolated *bool
 }
 
 func NewMarketMarginModes(data interface{}) MarketMarginModes {
@@ -155,8 +160,8 @@ func NewMarketMarginModes(data interface{}) MarketMarginModes {
 
 // MinMax struct
 // type MinMax struct {
-// 	Min float64
-// 	Max float64
+// 	Min *float64
+// 	Max *float64
 // }
 
 // func NewMinMax(data interface{}) MinMax {
@@ -169,8 +174,8 @@ func NewMarketMarginModes(data interface{}) MarketMarginModes {
 
 // Fee struct
 type Fee struct {
-	Rate float64
-	Cost float64
+	Rate *float64
+	Cost *float64
 }
 
 func NewFee(data interface{}) Fee {
@@ -183,11 +188,11 @@ func NewFee(data interface{}) Fee {
 
 // TradingFeeInterface struct
 type TradingFeeInterface struct {
-	Symbol     string
-	Maker      float64
-	Taker      float64
-	Percentage bool
-	TierBased  bool
+	Symbol     *string
+	Maker      *float64
+	Taker      *float64
+	Percentage *bool
+	TierBased  *bool
 	Info       map[string]interface{}
 }
 
@@ -240,14 +245,14 @@ func NewLimits(data interface{}) Limits {
 
 // Market struct
 type Market struct {
-	Id            string
-	Symbol        string
-	BaseCurrency  string
-	QuoteCurrency string
-	BaseId        string
-	QuoteId       string
-	Active        bool
-	Type          string
+	Id            *string
+	Symbol        *string
+	BaseCurrency  *string
+	QuoteCurrency *string
+	BaseId        *string
+	QuoteId       *string
+	Active        *bool
+	Type          *string
 	Precision     *Precision
 	MarginModes   *MarketMarginModes
 	Limits        *Limits
@@ -299,18 +304,18 @@ func NewMarket(data interface{}) Market {
 
 // Trade struct
 type Trade struct {
-	Amount       float64
-	Price        float64
-	Cost         float64
-	Id           string
-	Order        string
+	Amount       *float64
+	Price        *float64
+	Cost         *float64
+	Id           *string
+	Order        *string
 	Info         map[string]interface{}
-	Timestamp    int64
-	Datetime     string
-	Symbol       string
-	Type         string
-	Side         string
-	TakerOrMaker string
+	Timestamp    *int64
+	Datetime     *string
+	Symbol       *string
+	Type         *string
+	Side         *string
+	TakerOrMaker *string
 	Fee          Fee
 }
 
@@ -336,28 +341,28 @@ func NewTrade(data interface{}) Trade {
 
 // Order struct
 type Order struct {
-	Id                 string
-	ClientOrderId      string
-	Timestamp          int64
-	Datetime           string
-	LastTradeTimestamp string
-	Symbol             string
-	Type               string
-	Side               string
-	Price              float64
-	Cost               float64
-	Average            float64
-	Amount             float64
-	Filled             float64
-	Remaining          float64
-	Status             string
-	ReduceOnly         bool
-	PostOnly           bool
+	Id                 *string
+	ClientOrderId      *string
+	Timestamp          *int64
+	Datetime           *string
+	LastTradeTimestamp *string
+	Symbol             *string
+	Type               *string
+	Side               *string
+	Price              *float64
+	Cost               *float64
+	Average            *float64
+	Amount             *float64
+	Filled             *float64
+	Remaining          *float64
+	Status             *string
+	ReduceOnly         *bool
+	PostOnly           *bool
 	Fee                Fee
 	Trades             []Trade
-	TriggerPrice       float64
-	StopLossPrice      float64
-	TakeProfitPrice    float64
+	TriggerPrice       *float64
+	StopLossPrice      *float64
+	TakeProfitPrice    *float64
 	Info               map[string]interface{}
 }
 
@@ -401,25 +406,25 @@ func NewOrder(data interface{}) Order {
 
 // Ticker struct
 type Ticker struct {
-	Symbol        string
-	Timestamp     int64
-	Datetime      string
-	High          float64
-	Low           float64
-	Bid           float64
-	BidVolume     float64
-	Ask           float64
-	AskVolume     float64
-	Vwap          float64
-	Open          float64
-	Close         float64
-	Last          float64
-	PreviousClose float64
-	Change        float64
-	Percentage    float64
-	Average       float64
-	BaseVolume    float64
-	QuoteVolume   float64
+	Symbol        *string
+	Timestamp     *int64
+	Datetime      *string
+	High          *float64
+	Low           *float64
+	Bid           *float64
+	BidVolume     *float64
+	Ask           *float64
+	AskVolume     *float64
+	Vwap          *float64
+	Open          *float64
+	Close         *float64
+	Last          *float64
+	PreviousClose *float64
+	Change        *float64
+	Percentage    *float64
+	Average       *float64
+	BaseVolume    *float64
+	QuoteVolume   *float64
 	Info          map[string]interface{}
 }
 
@@ -451,12 +456,12 @@ func NewTicker(data interface{}) Ticker {
 
 // OHLCV struct
 type OHLCV struct {
-	Timestamp int64
-	Open      float64
-	High      float64
-	Low       float64
-	Close     float64
-	Volume    float64
+	Timestamp *int64
+	Open      *float64
+	High      *float64
+	Low       *float64
+	Close     *float64
+	Volume    *float64
 }
 
 func NewOHLCV(data interface{}) OHLCV {
@@ -474,17 +479,17 @@ func NewOHLCV(data interface{}) OHLCV {
 // transaction
 
 type Transaction struct {
-	Id        string
-	TxId      string
-	Address   string
-	Tag       string
-	Type      string
-	Currency  string
-	Amount    float64
-	Status    string
-	Updated   int64
-	Timestamp int64
-	Datetime  string
+	Id        *string
+	TxId      *string
+	Address   *string
+	Tag       *string
+	Type      *string
+	Currency  *string
+	Amount    *float64
+	Status    *string
+	Updated   *int64
+	Timestamp *int64
+	Datetime  *string
 }
 
 // NewTransaction initializes a Transaction struct from a map.
@@ -510,10 +515,10 @@ func NewTransaction(transaction2 interface{}) Transaction {
 type OrderBook struct {
 	Bids      [][]float64
 	Asks      [][]float64
-	Symbol    string
-	Timestamp int64
-	Datetime  string
-	Nonce     int64
+	Symbol    *string
+	Timestamp *int64
+	Datetime  *string
+	Nonce     *int64
 }
 
 // NewOrderBook initializes an OrderBook struct from a map.
@@ -606,9 +611,9 @@ func GetInfo(data2 interface{}) map[string]interface{} {
 // balances
 
 type Balance struct {
-	Free  float64
-	Used  float64
-	Total float64
+	Free  *float64
+	Used  *float64
+	Total *float64
 }
 
 type Balances struct {
@@ -703,22 +708,22 @@ func (b *Balances) SetBalance(key string, balance Balance) {
 // funding rate
 
 type FundingRate struct {
-	Symbol                   string
-	Timestamp                int64
-	Datetime                 string
-	FundingRate              float64
-	MarkPrice                float64
-	IndexPrice               float64
-	InterestRate             float64
-	EstimatedSettlePrice     float64
-	FundingTimestamp         float64
-	NextFundingTimestamp     float64
-	NextFundingRate          float64
-	NextFundingDatetime      int64
-	PreviousFundingTimestamp float64
-	PreviousFundingDatetime  string
-	PreviousFundingRate      float64
-	Interval                 string
+	Symbol                   *string
+	Timestamp                *int64
+	Datetime                 *string
+	FundingRate              *float64
+	MarkPrice                *float64
+	IndexPrice               *float64
+	InterestRate             *float64
+	EstimatedSettlePrice     *float64
+	FundingTimestamp         *float64
+	NextFundingTimestamp     *float64
+	NextFundingRate          *float64
+	NextFundingDatetime      *int64
+	PreviousFundingTimestamp *float64
+	PreviousFundingDatetime  *string
+	PreviousFundingRate      *float64
+	Interval                 *string
 }
 
 // NewFundingRate initializes a FundingRate struct from a map.
@@ -773,14 +778,14 @@ func NewFundingRates(fundingRatesData2 interface{}) FundingRates {
 
 type TransferEntry struct {
 	Info        map[string]interface{}
-	Id          string
-	Timestamp   int64
-	Datetime    string
-	Currency    string
-	Amount      float64
-	FromAccount string
-	ToAccount   string
-	Status      string
+	Id          *string
+	Timestamp   *int64
+	Datetime    *string
+	Currency    *string
+	Amount      *float64
+	FromAccount *string
+	ToAccount   *string
+	Status      *string
 }
 
 // NewTransferEntry initializes a TransferEntry struct from a map.
@@ -800,11 +805,11 @@ func NewTransferEntry(transferData2 interface{}) TransferEntry {
 }
 
 type OrderRequest struct {
-	Symbol     string
-	Type       string
-	Side       string
-	Amount     float64
-	Price      float64
+	Symbol     *string
+	Type       *string
+	Side       *string
+	Amount     *float64
+	Price      *float64
 	Parameters map[string]interface{}
 }
 
@@ -827,11 +832,11 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 }
 
 type LastPrice struct {
-	Symbol    string
-	Timestamp int64
-	Datetime  string
-	Price     float64
-	Side      string
+	Symbol    *string
+	Timestamp *int64
+	Datetime  *string
+	Price     *float64
+	Side      *string
 	Info      map[string]interface{}
 }
 
@@ -887,7 +892,7 @@ func (lp *LastPrices) SetLastPrice(key string, lastPrice LastPrice) {
 
 type WithdrawlResponse struct {
 	Info map[string]interface{}
-	Id   string
+	Id   *string
 }
 
 // NewWithdrawlResponse initializes a WithdrawlResponse struct from a map.
@@ -900,9 +905,9 @@ func NewWithdrawlResponse(withdrawlResponseData map[string]interface{}) Withdraw
 }
 
 type DepositAddressResponse struct {
-	Address string
-	Tag     string
-	Status  string
+	Address *string
+	Tag     *string
+	Status  *string
 	Info    map[string]interface{}
 }
 
@@ -917,10 +922,10 @@ func NewDepositAddressResponse(depositAddressResponseData map[string]interface{}
 }
 
 type CrossBorrowRate struct {
-	Currency  string
-	Rate      float64
-	Timestamp int64
-	Datetime  string
+	Currency  *string
+	Rate      *float64
+	Timestamp *int64
+	Datetime  *string
 	Info      map[string]interface{}
 }
 
@@ -952,13 +957,13 @@ func NewCrossBorrowRates(data2 interface{}) CrossBorrowRates {
 }
 
 type IsolatedBorrowRate struct {
-	Symbol    string
-	BaseRate  float64
-	Quote     string
-	QuoteRate float64
-	Rate      float64
-	Timestamp int64
-	Datetime  string
+	Symbol    *string
+	BaseRate  *float64
+	Quote     *string
+	QuoteRate *float64
+	Rate      *float64
+	Timestamp *int64
+	Datetime  *string
 	Info      map[string]interface{}
 }
 
@@ -994,14 +999,14 @@ func NewIsolatedBorrowRates(data2 interface{}) IsolatedBorrowRates {
 
 type BorrowInterest struct {
 	Info           map[string]interface{}
-	Symbol         string
-	Currency       string
-	Interest       float64
-	InterestRate   float64
-	AmountBorrowed float64
-	MarginMode     string
-	Timestamp      int64
-	Datetime       string
+	Symbol         *string
+	Currency       *string
+	Interest       *float64
+	InterestRate   *float64
+	AmountBorrowed *float64
+	MarginMode     *string
+	Timestamp      *int64
+	Datetime       *string
 }
 
 func NewBorrowInterest(data interface{}) BorrowInterest {
@@ -1019,11 +1024,11 @@ func NewBorrowInterest(data interface{}) BorrowInterest {
 }
 
 type OpenInterest struct {
-	Symbol             string
-	OpenInterestAmount float64
-	OpenInterestValue  float64
-	Timestamp          int64
-	Datetime           string
+	Symbol             *string
+	OpenInterestAmount *float64
+	OpenInterestValue  *float64
+	Timestamp          *int64
+	Datetime           *string
 	Info               map[string]interface{}
 }
 
@@ -1064,11 +1069,11 @@ func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
 }
 
 type Liquidation struct {
-	Symbol     string
-	QuoteValue float64
-	BaseValue  float64
-	Timestamp  int64
-	Datetime   string
+	Symbol     *string
+	QuoteValue *float64
+	BaseValue  *float64
+	Timestamp  *int64
+	Datetime   *string
 	Info       map[string]interface{}
 }
 
@@ -1084,8 +1089,8 @@ func NewLiquidation(data interface{}) Liquidation {
 }
 
 type MinMax struct {
-	Min float64
-	Max float64
+	Min *float64
+	Max *float64
 }
 
 func NewMinMax(data interface{}) MinMax {
@@ -1109,12 +1114,12 @@ func NewCurrencyLimits(data interface{}) CurrencyLimits {
 
 type Network struct {
 	Info      map[string]interface{}
-	Id        string
-	Fee       float64
-	Active    bool
-	Deposit   bool
-	Withdraw  bool
-	Precision float64
+	Id        *string
+	Fee       *float64
+	Active    *bool
+	Deposit   *bool
+	Withdraw  *bool
+	Precision *float64
 	Limits    CurrencyLimits
 }
 
@@ -1133,17 +1138,17 @@ func NewNetwork(data interface{}) Network {
 
 type Currency struct {
 	Info      map[string]interface{}
-	Id        string
-	Code      string
-	Precision float64
-	Name      string
-	Fee       float64
-	Active    bool
-	Deposit   bool
-	Withdraw  bool
-	NumericId int64
-	Type      string
-	Margin    bool
+	Id        *string
+	Code      *string
+	Precision *float64
+	Name      *string
+	Fee       *float64
+	Active    *bool
+	Deposit   *bool
+	Withdraw  *bool
+	NumericId *int64
+	Type      *string
+	Margin    *bool
 	Limits    CurrencyLimits
 	Networks  map[string]Network
 }
@@ -1183,8 +1188,8 @@ func ifExists(data map[string]interface{}, key string, fn func(val interface{}) 
 
 type MarginMode struct {
 	Info       map[string]interface{}
-	Symbol     string
-	MarginMode string
+	Symbol     *string
+	MarginMode *string
 }
 
 func NewMarginMode(data interface{}) MarginMode {
@@ -1226,11 +1231,11 @@ func (m *MarginModes) Set(key string, mode MarginMode) {
 
 type Leverage struct {
 	Info          map[string]interface{}
-	Symbol        string
-	MarginMode    string
-	Leverage      int64
-	LongLeverage  int64
-	ShortLeverage int64
+	Symbol        *string
+	MarginMode    *string
+	Leverage      *int64
+	LongLeverage  *int64
+	ShortLeverage *int64
 }
 
 func NewLeverage(data interface{}) Leverage {
@@ -1274,9 +1279,9 @@ func (l *Leverages) Set(key string, lev Leverage) {
 }
 
 type BalanceAccount struct {
-	Free  string
-	Used  string
-	Total string
+	Free  *string
+	Used  *string
+	Total *string
 }
 
 func NewBalanceAccount(data interface{}) BalanceAccount {
@@ -1288,9 +1293,9 @@ func NewBalanceAccount(data interface{}) BalanceAccount {
 }
 
 type Account struct {
-	Id   string
-	Type string
-	Code string
+	Id   *string
+	Type *string
+	Code *string
 	Info map[string]interface{}
 }
 
@@ -1304,22 +1309,22 @@ func NewAccount(data interface{}) Account {
 }
 
 type Option struct {
-	Currency          string
-	Symbol            string
-	Timestamp         int64
-	Datetime          string
-	ImpliedVolatility float64
-	OpenInterest      float64
-	BidPrice          float64
-	AskPrice          float64
-	MidPrice          float64
-	MarkPrice         float64
-	LastPrice         float64
-	UnderlyingPrice   float64
-	Change            float64
-	Percentage        float64
-	BaseVolume        float64
-	QuoteVolume       float64
+	Currency          *string
+	Symbol            *string
+	Timestamp         *int64
+	Datetime          *string
+	ImpliedVolatility *float64
+	OpenInterest      *float64
+	BidPrice          *float64
+	AskPrice          *float64
+	MidPrice          *float64
+	MarkPrice         *float64
+	LastPrice         *float64
+	UnderlyingPrice   *float64
+	Change            *float64
+	Percentage        *float64
+	BaseVolume        *float64
+	QuoteVolume       *float64
 	Info              map[string]interface{}
 }
 
@@ -1376,11 +1381,11 @@ func (oc *OptionChain) Set(key string, option Option) {
 
 type LongShortRatio struct {
 	Info           map[string]interface{}
-	Symbol         string
-	Timestamp      int64
-	Datetime       string
-	Timeframe      string
-	LongShortRatio float64
+	Symbol         *string
+	Timestamp      *int64
+	Datetime       *string
+	Timeframe      *string
+	LongShortRatio *float64
 }
 
 func NewLongShortRatio(data interface{}) LongShortRatio {
@@ -1395,34 +1400,34 @@ func NewLongShortRatio(data interface{}) LongShortRatio {
 }
 
 type Position struct {
-	Symbol                      string
-	Id                          string
+	Symbol                      *string
+	Id                          *string
 	Info                        map[string]interface{}
-	Timestamp                   float64
-	Datetime                    string
-	Contracts                   float64
-	ContractsSize               float64
-	Side                        string
-	Notional                    float64
-	Leverage                    float64
-	UnrealizedPnl               float64
-	RealizedPnl                 float64
-	Collateral                  float64
-	EntryPrice                  float64
-	MarkPrice                   float64
-	LiquidationPrice            float64
-	MarginMode                  string
-	Hedged                      bool
-	MaintenanceMargin           float64
-	MaintenanceMarginPercentage float64
-	InitialMargin               float64
-	InitialMarginPercentage     float64
-	MarginRatio                 float64
-	LastUpdateTimestamp         float64
-	LastPrice                   float64
-	Percentage                  float64
-	TakeProfitPrice             float64
-	StopLossPrice               float64
+	Timestamp                   *float64
+	Datetime                    *string
+	Contracts                   *float64
+	ContractsSize               *float64
+	Side                        *string
+	Notional                    *float64
+	Leverage                    *float64
+	UnrealizedPnl               *float64
+	RealizedPnl                 *float64
+	Collateral                  *float64
+	EntryPrice                  *float64
+	MarkPrice                   *float64
+	LiquidationPrice            *float64
+	MarginMode                  *string
+	Hedged                      *bool
+	MaintenanceMargin           *float64
+	MaintenanceMarginPercentage *float64
+	InitialMargin               *float64
+	InitialMarginPercentage     *float64
+	MarginRatio                 *float64
+	LastUpdateTimestamp         *float64
+	LastPrice                   *float64
+	Percentage                  *float64
+	TakeProfitPrice             *float64
+	StopLossPrice               *float64
 }
 
 func NewPosition(data interface{}) Position {
@@ -1460,13 +1465,13 @@ func NewPosition(data interface{}) Position {
 
 type FundingHistory struct {
 	Info      map[string]interface{}
-	Id        string
-	Timestamp int64
-	Code      string
-	Symbol    string
-	Datetime  string
-	Currency  string
-	Amount    float64
+	Id        *string
+	Timestamp *int64
+	Code      *string
+	Symbol    *string
+	Datetime  *string
+	Currency  *string
+	Amount    *float64
 }
 
 func NewFundingHistory(data interface{}) FundingHistory {
@@ -1483,20 +1488,20 @@ func NewFundingHistory(data interface{}) FundingHistory {
 }
 
 type LedgerEntry struct {
-	Id               string
+	Id               *string
 	Info             map[string]interface{}
-	Timestamp        int64
-	Datetime         string
-	Direction        string
-	Account          string
-	ReferenceId      string
-	ReferenceAccount string
-	Type             string
-	Currency         string
-	Amount           float64
-	Before           float64
-	After            float64
-	Status           string
+	Timestamp        *int64
+	Datetime         *string
+	Direction        *string
+	Account          *string
+	ReferenceId      *string
+	ReferenceAccount *string
+	Type             *string
+	Currency         *string
+	Amount           *float64
+	Before           *float64
+	After            *float64
+	Status           *string
 	Fee              Fee
 }
 
@@ -1522,23 +1527,23 @@ func NewLedgerEntry(data interface{}) LedgerEntry {
 
 type Greeks struct {
 	Info                  map[string]interface{}
-	Timestamp             int64
-	Datetime              string
-	Delta                 float64
-	Gamma                 float64
-	Theta                 float64
-	Vega                  float64
-	Rho                   float64
-	BidSize               float64
-	AskSize               float64
-	BidImpliedVolatility  float64
-	AskImpliedVolatility  float64
-	MarkImpliedVolatility float64
-	BidPrice              float64
-	AskPrice              float64
-	MarkPrice             float64
-	LastPrice             float64
-	UnderlyingPrice       float64
+	Timestamp             *int64
+	Datetime              *string
+	Delta                 *float64
+	Gamma                 *float64
+	Theta                 *float64
+	Vega                  *float64
+	Rho                   *float64
+	BidSize               *float64
+	AskSize               *float64
+	BidImpliedVolatility  *float64
+	AskImpliedVolatility  *float64
+	MarkImpliedVolatility *float64
+	BidPrice              *float64
+	AskPrice              *float64
+	MarkPrice             *float64
+	LastPrice             *float64
+	UnderlyingPrice       *float64
 }
 
 func NewGreeks(data interface{}) Greeks {
@@ -1565,15 +1570,15 @@ func NewGreeks(data interface{}) Greeks {
 }
 
 type MarginModification struct {
-	Symbol     string
-	Type       string
-	MarginMode string
-	Amount     float64
-	Total      float64
-	Code       string
-	Status     string
-	Timestamp  int64
-	Datetime   string
+	Symbol     *string
+	Type       *string
+	MarginMode *string
+	Amount     *float64
+	Total      *float64
+	Code       *string
+	Status     *string
+	Timestamp  *int64
+	Datetime   *string
 	Info       map[string]interface{}
 }
 
@@ -1623,10 +1628,10 @@ func (c *Currencies) Set(key string, cur Currency) {
 
 type DepositAddress struct {
 	Info     map[string]interface{}
-	Currency string
-	Network  string
-	Address  string
-	Tag      string
+	Currency *string
+	Network  *string
+	Address  *string
+	Tag      *string
 }
 
 func NewDepositAddress(data interface{}) DepositAddress {
@@ -1669,10 +1674,10 @@ func (t *TradingFees) Set(key string, fee TradingFeeInterface) {
 }
 
 type FundingRateHistory struct {
-	Symbol      string
-	Timestamp   int64
-	Datetime    string
-	FundingRate float64
+	Symbol      *string
+	Timestamp   *int64
+	Datetime    *string
+	FundingRate *float64
 }
 
 func NewFundingRateHistory(data interface{}) FundingRateHistory {
@@ -1686,15 +1691,15 @@ func NewFundingRateHistory(data interface{}) FundingRateHistory {
 
 type Conversion struct {
 	Info         map[string]interface{}
-	Timestamp    int64
-	Datetime     string
-	Id           string
-	FromCurrency string
-	FromAmount   float64
-	ToCurrency   string
-	ToAmount     float64
-	Price        float64
-	Fee          float64
+	Timestamp    *int64
+	Datetime     *string
+	Id           *string
+	FromCurrency *string
+	FromAmount   *float64
+	ToCurrency   *string
+	ToAmount     *float64
+	Price        *float64
+	Fee          *float64
 }
 
 func NewConversion(data interface{}) Conversion {
@@ -1748,13 +1753,13 @@ func (lt *LeverageTiers) Set(key string, tiers []LeverageTier) {
 }
 
 type LeverageTier struct {
-	Tier                  int64
-	Symbol                string
-	Currency              string
-	MinNotional           float64
-	MaxNotional           float64
-	MaintenanceMarginRate float64
-	MaxLeverage           float64
+	Tier                  *int64
+	Symbol                *string
+	Currency              *string
+	MinNotional           *float64
+	MaxNotional           *float64
+	MaintenanceMarginRate *float64
+	MaxLeverage           *float64
 	Info                  map[string]interface{}
 }
 
@@ -2039,8 +2044,8 @@ func (o *OrderBooks) Set(key string, value OrderBook) {
 }
 
 type CancellationRequest struct {
-	Symbol string
-	Id     string
+	Symbol *string
+	Id     *string
 }
 
 func NewCancellationRequest(request map[string]interface{}) CancellationRequest {

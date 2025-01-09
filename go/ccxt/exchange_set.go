@@ -127,3 +127,7 @@ func (this *Exchange) SetWsProxy(wsProxy interface{}) {
 func (this *Exchange) SetFetchResponse(fetchResponse interface{}) {
 	this.FetchResponse = fetchResponse
 }
+
+func (this *Exchange) SetVerbose(verbose interface{}) {
+	this.Verbose = verbose.(bool)
+}
