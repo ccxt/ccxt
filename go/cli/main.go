@@ -10,9 +10,18 @@ import (
 	"strings"
 )
 
+var Red = "\033[31m"
+var Green = "\033[32m"
+var Yellow = "\033[33m"
+var Blue = "\033[34m"
+var Reset = "\033[0m"
+
 const (
 	ROOT_DIR = "/../../"
 )
+
+var verbose = false
+var noKeys = false
 
 func contains(arr []interface{}, item interface{}) bool {
 	for _, a := range arr {
@@ -97,7 +106,12 @@ func IoFileExists(path interface{}) bool {
 
 func InitOptions(instance ccxt.IExchange, flags []string) {
 	if containsStr(flags, "--verbose") {
-		instance.SetVerbose(true)
+		// instance.SetVerbose(true)
+		verbose = true
+	}
+
+	if containsStr(flags, "--no-keys") {
+		noKeys = true
 	}
 
 	if containsStr(flags, "--sandbox") {
@@ -105,23 +119,63 @@ func InitOptions(instance ccxt.IExchange, flags []string) {
 	}
 }
 
+func PrettyPrintData(data interface{}) {
+	if prettyOutput, err := json.MarshalIndent(data, "", "  "); err == nil {
+		fmt.Println(Blue + string(prettyOutput) + Reset)
+	} else {
+	}
+}
+
+func SetCredential(instance ccxt.IExchange, key string, value string) {
+	switch key {
+	case "apiKey":
+		instance.SetApiKey(value)
+	case "secret":
+		instance.SetSecret(value)
+	case "uid":
+		instance.SetUid(value)
+	case "password":
+		instance.SetPassword(value)
+	case "walletAddress":
+		instance.SetWalletAddress(value)
+	case "privateKey":
+		instance.SetPrivateKey(value)
+	}
+}
+
+func SetCredentials(instance ccxt.IExchange) {
+	credentials := instance.GetRequiredCredentials()
+
+	for key, value := range credentials {
+		valBool := value.(bool)
+		if valBool {
+			parsedKey := strings.ToUpper(instance.GetId()) + "_" + strings.ToUpper(key)
+
+			res := os.Getenv(parsedKey)
+			if res != "" {
+				SetCredential(instance, key, res)
+			}
+		}
+	}
+}
+
 func main() {
 
 	args := os.Args
 	if len(args) < 3 {
-		panic("Exchange name and method required")
+		panic("Exchange name and method required: Example: go run main.go binance fetchTicker \"BTC/USDT\"")
 	}
 
 	exchangeName := args[1]
 	method := args[2]
 
-	fmt.Println("Exchange name: ", exchangeName)
-	fmt.Println("Method: ", method)
+	fmt.Println("Exchange name: ", Green+exchangeName+Reset)
+	fmt.Println("Method: ", Green+method+Reset)
 
 	exchangeFile := GetRootDir() + "exchanges.json"
 
 	if !IoFileExists(exchangeFile) {
-		panic("exchanges.json file not found")
+		panic(Red + "exchanges.json file not found" + Reset)
 	}
 
 	exchangeIds := IoFileRead(exchangeFile, true)
@@ -129,7 +183,7 @@ func main() {
 	exchangeIdsList := exchangeIdsMap["ids"].([]interface{})
 
 	if !contains(exchangeIdsList, exchangeName) {
-		panic("Exchange not found in exchanges.json")
+		panic(Red + "Exchange not found in exchanges.json" + Reset)
 	}
 
 	var flags []string
@@ -140,7 +194,7 @@ func main() {
 	}
 
 	var parameters []interface{}
-	for _, arg := range args[2:] {
+	for _, arg := range args[3:] {
 		if !strings.HasPrefix(arg, "--") {
 			// parameters = append(parameters, arg)
 			if strings.HasPrefix(arg, "{") {
@@ -165,36 +219,19 @@ func main() {
 		panic(suc)
 	}
 
+	InitOptions(instance, flags)
+
+	if !noKeys {
+		SetCredentials(instance)
+	}
+
 	<-instance.LoadMarkets()
 
-	InitOptions(instance, flags)
+	if verbose {
+		instance.SetVerbose(true)
+	}
 
 	res := <-instance.CallInternal(method, parameters...)
 
-	fmt.Println(res)
-
-	// // second()
-	// // third()
-	// fmt.Println("Let's GO CCXT!")
-	// bybit := ccxt.NewBybit()
-	// bybit.Init(map[string]interface{}{})
-	// // bybit.Verbose = true
-	// bybit.SetSandboxMode(true)
-	// start := time.Now()
-	// log.Printf("will load markets")
-	// <-bybit.LoadMarkets()
-	// elapsed := time.Since(start)
-	// // fmt.Println(res)
-	// log.Printf("Loading markets took %s", elapsed)
-	// fmt.Println(("num of markets:"), len(bybit.Markets))
-	// // return
-	// bybit.ApiKey = "luDbnc4jVrDF7F4HFM"
-	// bybit.Secret = "AO2jICPaoERif6VBntB7WqOibqSLBkYrAEPx"
-	// start = time.Now()
-	// orderCh := bybit.CreateOrder("ADA/USDT:USDT", "limit", "buy", 20, 0.3)
-	// // orderCh := bybit.FetchMyTrades("ADA/USDT:USDT", nil, nil, nil)
-	// order := <-orderCh
-	// elapsed = time.Since(start)
-	// log.Printf("Creating order took %s", elapsed)
-	// fmt.Println(bybit.Json(order))
+	PrettyPrintData(res)
 }

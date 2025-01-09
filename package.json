@@ -70,6 +70,7 @@
     "cli.php": "php ./examples/php/cli.php",
     "cli.ts": "tsx examples/ts/cli.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
+    "cli.go": "go run ./go/cli/main.go",
     "export-exchanges": "node build/export-exchanges",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",
