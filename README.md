@@ -554,14 +554,38 @@ func main() {
 		"clientOrderId": "myOrderId68768678",
 	}
 
+    exchange.LoadMarkets()
+
 	order, error := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
 	if error != nil {
 		fmt.Println(error)
 	} else {
-		fmt.Println(order.Id)
+		fmt.Println(*order.Id)
 	}
 }
 ```
+
+#### Optional parameters
+
+Unlike Javascript/Python/PHP/C# Go does not support "traditional" optional parameters like `function a(optional = false)`. However, the CCXT language and structure has some methods that do have optional params and since the Go language is transpiled from the Typescript source we had to find a way of representing them.
+
+We have decided to "go" (pun intended) with Option structs and the `WithX` methods.
+
+Example, this function `FetchMyTrades` supports 4 different "optional" parameters, symbol, since, limit and params.
+
+```Golang
+func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
+```
+
+And we can provide them by doing
+
+```Golang
+trades, error := exchange.FetchMyTrades(ccxt.withFetchMyTradesSymbol("BTC/USDT"), ccxt.WithFetchOHLCVLimit(5), ccxt.WithFetchMyTradesParams(orderParams))
+```
+
+Lastly, just because the signature ditactates that some argument like `symbol` is optional, it will depend from exchange to exchange and you might need to provide it to avoid getting a `SymbolRequired` error.
+
+You can check different examples in the `examples/go` folder.
 
 ## Contributing
 

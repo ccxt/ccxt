@@ -9,6 +9,7 @@ func spotPerpMarkets() {
 	exchange := ccxt.NewBybit(nil)
 	exchange.ApiKey = ""
 	exchange.Secret = ""
+
 	<-exchange.LoadMarkets(true)
 
 	allMarkets := exchange.GetMarketsList()

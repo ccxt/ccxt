@@ -225,7 +225,7 @@ func main() {
 		SetCredentials(instance)
 	}
 
-	<-instance.LoadMarkets()
+	instance.LoadMarkets()
 
 	if verbose {
 		instance.SetVerbose(true)
