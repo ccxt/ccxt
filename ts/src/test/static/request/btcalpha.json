@@ -149,7 +149,95 @@
                 "input": [
                     "BTC/USDT"
                 ]
-            }
+            },
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?since=1735862400",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?since=1733356&until=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?limit=4&since=1735862399",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?since=1735862400&until=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?limit=4&since=1735934&until=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://btc-alpha.com/api/charts/BTC_USDT/60/chart/?limit=4&since=1735862400&until=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            }  
         ]
     }
 }
