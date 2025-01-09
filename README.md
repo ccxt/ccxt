@@ -567,11 +567,11 @@ func main() {
 
 #### Optional parameters
 
-Unlike Javascript/Python/PHP/C# Go does not support "traditional" optional parameters like `function a(optional = false)`. However, the CCXT language and structure has some methods that do have optional params and since the Go language is transpiled from the Typescript source we had to find a way of representing them.
+Unlike Javascript/Python/PHP/C# Go does not support "traditional" optional parameters like `function a(optional = false)`. However, the CCXT language and structure have some methods with optional params, and since the Go language is transpiled from the Typescript source, we had to find a way of representing them.
 
 We have decided to "go" (pun intended) with Option structs and the `WithX` methods.
 
-Example, this function `FetchMyTrades` supports 4 different "optional" parameters, symbol, since, limit and params.
+For example, this function `FetchMyTrades` supports 4 different "optional" parameters, symbol, since, limit, and params.
 
 ```Golang
 func (this *Binance) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
