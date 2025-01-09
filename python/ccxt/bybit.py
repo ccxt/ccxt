@@ -309,6 +309,7 @@ class bybit(Exchange):
                         'v5/account/info',
                         'v5/account/transaction-log',
                         'v5/account/mmp-state',
+                        'v5/account/withdrawal',
                         # asset
                         'v5/asset/exchange/order-record',  # 10/s => cost = 50 / 10 = 5
                         'v5/asset/delivery-record',
@@ -2763,7 +2764,7 @@ class bybit(Exchange):
                         if (loan is not None) and (interest is not None):
                             account['debt'] = Precise.string_add(loan, interest)
                         account['total'] = self.safe_string(coinEntry, 'walletBalance')
-                        account['free'] = self.safe_string_2(coinEntry, 'free', 'availableToWithdraw')
+                        account['free'] = self.safe_string_2(coinEntry, 'free', 'availableToWithdraw') or '0'
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
@@ -2784,6 +2785,16 @@ class bybit(Exchange):
                     code = self.safe_currency_code(currencyId)
                     result[code] = account
         return self.safe_balance(result)
+
+    def get_available_pair_amount(self, part, params={}):
+        request = {'coinName': part}
+        response = self.privateGetV5AccountWithdrawal(self.extend(request, params))
+        response_result = self.safe_value(response, 'result', {})
+        result = {
+            'info': response,
+            'free': self.safe_float(response_result, 'availableWithdrawal'),
+        }
+        return result
 
     def fetch_balance(self, params={}):
         """
