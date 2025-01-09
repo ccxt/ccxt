@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
+import { BadRequest, InvalidOrder, Precise } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, Trade, FundingRateHistory, FundingRate, Balances } from './base/types.js';
+import type { Dict, Currencies, Market, MarketType, Bool, Str, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -286,6 +286,8 @@ export default class derive extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '14000': BadRequest, // {"code": 14000, "message": "Account not found"}
+                    '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
                 },
                 'broad': {
                 },
@@ -898,8 +900,28 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
+    hashOrderMessage (binaryMessage) {
+        // takes a binary encoded message
+        // const binaryMessage = this.encode (message);
+        const DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
+        const binaryDomainSeparator = this.base16ToBinary (this.remove0xPrefix (DOMAIN_SEPARATOR));
+        const prefix = this.encode ('\x1901');
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryDomainSeparator, binaryMessage), keccak, 'hex');
+    }
+
+    signOrder (order, privateKey) {
+        // const accountHash = this.binaryToBase16 (this.ethAbiEncode ([
+        //     'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
+        // ], order));
+        const accountHash = this.ethAbiEncode ([
+            'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
+        ], order);
+        const signature = ecdsa (this.hashOrderMessage (accountHash).slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (27, signature['v']));
+    }
+
     hashMessage (message) {
-        // takes a hex encoded message
+        // takes a utf8 encoded message
         const binaryMessage = this.encode (message);
         const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
@@ -912,6 +934,191 @@ export default class derive extends Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    /**
+     * @method
+     * @name derive#createOrder
+     * @description create a trade order
+     * @see https://docs.derive.xyz/reference/post_private-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
+        const orderType = type.toLowerCase ();
+        const orderSide = side.toLowerCase ();
+        const nonce = this.now ();
+        const request: Dict = {
+            'instrument_name': market['id'],
+            'direction': orderSide,
+            'order_type': orderType,
+            'nonce': nonce,
+            'amount': amount,
+            'limit_price': price,
+            'max_fee': 0,
+            'subaccount_id': 0,
+            'signature_expiry_sec': 86400,
+            'signer': this.walletAddress,
+        };
+        // ACTION_TYPEHASH, 
+        // order.subaccount_id, 
+        // order.nonce, 
+        // TRADE_MODULE_ADDRESS, 
+        // tradeModuleData, 
+        // order.signature_expiry_sec, 
+        // wallet.address, 
+        // order.signer
+        const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
+        const ASSET_ADDRESS = '0xBcB494059969DAaB460E0B5d4f5c2366aab79aa1';
+        const OPTION_SUB_ID = '644245094401698393600';
+        const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
+        // const subaccount_id = 9
+        // ethers.parseUnits(request['limit_price'].toString(), 18),
+        const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
+            'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
+        ], [
+            ASSET_ADDRESS,
+            OPTION_SUB_ID,
+            request['limit_price'].toString(),
+            request['amount'].toString(),
+            request['max_fee'].toString(),
+            request['subaccount_id'],
+            orderSide === 'buy',
+        ]), keccak, 'hex');
+        const signature = this.signOrder ([
+            ACTION_TYPEHASH,
+            request['subaccount_id'],
+            request['nonce'],
+            TRADE_MODULE_ADDRESS,
+            '0x' + tradeModuleDataHash,
+            request['signature_expiry_sec'],
+            this.walletAddress,
+            request['signer'],
+        ], this.privateKey);
+        request['signature'] = signature;
+        // const accountHash = this.hash ();
+        // request['signature'] = 'xxx';
+        // request['signature_expiry_sec'] = 'xxx';
+        // request['signer'] = 'xxx';
+        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        // const stopLoss = this.safeValue (params, 'stopLoss');
+        // const takeProfit = this.safeValue (params, 'takeProfit');
+        // const algoType = this.safeString (params, 'algoType');
+        // const isConditional = isTrailing || triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        // const isMarket = orderType === 'MARKET';
+        // const timeInForce = this.safeStringLower (params, 'timeInForce');
+        // const postOnly = this.isPostOnly (isMarket, undefined, params);
+        // const reduceOnlyKey = isConditional ? 'reduceOnly' : 'reduce_only';
+        // const clientOrderIdKey = isConditional ? 'clientOrderId' : 'client_order_id';
+        // const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        // const priceKey = isConditional ? 'price' : 'order_price';
+        // const typeKey = isConditional ? 'type' : 'order_type';
+        // request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        // if (!isConditional) {
+        //     if (postOnly) {
+        //         request['order_type'] = 'POST_ONLY';
+        //     } else if (timeInForce === 'fok') {
+        //         request['order_type'] = 'FOK';
+        //     } else if (timeInForce === 'ioc') {
+        //         request['order_type'] = 'IOC';
+        //     }
+        // }
+        // if (reduceOnly) {
+        //     request[reduceOnlyKey] = reduceOnly;
+        // }
+        // if (!isMarket && price !== undefined) {
+        //     request[priceKey] = this.priceToPrecision (symbol, price);
+        // }
+        // if (isMarket && !isConditional) {
+        //     // for market buy it requires the amount of quote currency to spend
+        //     const cost = this.safeString2 (params, 'cost', 'order_amount');
+        //     params = this.omit (params, [ 'cost', 'order_amount' ]);
+        //     const isPriceProvided = price !== undefined;
+        //     if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
+        //         let quoteAmount = undefined;
+        //         if (cost !== undefined) {
+        //             quoteAmount = this.costToPrecision (symbol, cost);
+        //         } else {
+        //             const amountString = this.numberToString (amount);
+        //             const priceString = this.numberToString (price);
+        //             const costRequest = Precise.stringMul (amountString, priceString);
+        //             quoteAmount = this.costToPrecision (symbol, costRequest);
+        //         }
+        //         request['order_amount'] = quoteAmount;
+        //     } else {
+        //         request['order_quantity'] = this.amountToPrecision (symbol, amount);
+        //     }
+        // } else if (algoType !== 'POSITIONAL_TP_SL') {
+        //     request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+        // }
+        // const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        // if (clientOrderId !== undefined) {
+        //     request[clientOrderIdKey] = clientOrderId;
+        // }
+        // if (triggerPrice !== undefined) {
+        //     if (algoType !== 'TRAILING_STOP') {
+        //         request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        //         request['algoType'] = 'STOP';
+        //     }
+        // } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        //     request['algoType'] = 'BRACKET';
+        //     const outterOrder: Dict = {
+        //         'symbol': market['id'],
+        //         'reduceOnly': false,
+        //         'algoType': 'POSITIONAL_TP_SL',
+        //         'childOrders': [],
+        //     };
+        //     const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
+        //     if (stopLoss !== undefined) {
+        //         const stopLossPrice = this.safeString (stopLoss, 'triggerPrice', stopLoss);
+        //         const stopLossOrder: Dict = {
+        //             'side': closeSide,
+        //             'algoType': 'STOP_LOSS',
+        //             'triggerPrice': this.priceToPrecision (symbol, stopLossPrice),
+        //             'type': 'CLOSE_POSITION',
+        //             'reduceOnly': true,
+        //         };
+        //         outterOrder['childOrders'].push (stopLossOrder);
+        //     }
+        //     if (takeProfit !== undefined) {
+        //         const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice', takeProfit);
+        //         const takeProfitOrder: Dict = {
+        //             'side': closeSide,
+        //             'algoType': 'TAKE_PROFIT',
+        //             'triggerPrice': this.priceToPrecision (symbol, takeProfitPrice),
+        //             'type': 'CLOSE_POSITION',
+        //             'reduceOnly': true,
+        //         };
+        //         outterOrder['childOrders'].push (takeProfitOrder);
+        //     }
+        //     request['childOrders'] = [ outterOrder ];
+        // }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
+        const response = await this.privatePostOrderDebug (this.extend (request, params));
+        //
+        //
+        const data = this.safeDict (response, 'data');
+        if (data !== undefined) {
+            const rows = this.safeList (data, 'rows', []);
+            return this.parseOrder (rows[0], market);
+        }
+        const order = this.parseOrder (response, market);
+        order['type'] = type;
+        return order;
     }
 
     /**
@@ -936,6 +1143,20 @@ export default class derive extends Exchange {
 
     parseBalance (response): Balances {
         return this.safeBalance (response);
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const error = this.safeDict (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
+            const feedback = this.id + ' ' + this.json (response);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
