@@ -583,7 +583,7 @@ And we can provide them by doing
 trades, error := exchange.FetchMyTrades(ccxt.withFetchMyTradesSymbol("BTC/USDT"), ccxt.WithFetchOHLCVLimit(5), ccxt.WithFetchMyTradesParams(orderParams))
 ```
 
-Lastly, just because the signature ditactates that some argument like `symbol` is optional, it will depend from exchange to exchange and you might need to provide it to avoid getting a `SymbolRequired` error.
+Lastly, just because the signature dictates that some argument like `symbol` is optional, it will depend from exchange to exchange and you might need to provide it to avoid getting a `SymbolRequired` error.
 
 You can check different examples in the `examples/go` folder.
 
