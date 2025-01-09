@@ -603,7 +603,7 @@ export default class Exchange {
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
-            this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+            this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true.
         }
         // generate implicit api
         if (this.api) {

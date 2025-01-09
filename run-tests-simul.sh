@@ -41,8 +41,8 @@ function run_specific_tests {
     lang="$1"
     rest_args="$2"
     ws_args="$3"
-    echo "inside rest_args: $rest_args"
-    echo "inside ws_args: $ws_args"
+    # echo "inside rest_args: $rest_args"
+    # echo "inside ws_args: $ws_args"
     if [ -z "$rest_args" ]; then
       : &
       local rest_pid=$!
@@ -86,8 +86,8 @@ if [ "$#" -lt 2 ]; then
 else
     rest_exchanges="$2"
     ws_exchanges="$3"
-    echo "beofre calling run_specific_tests"
-    echo "rest_exchanges: $rest_exchanges"
-    echo "ws_exchanges: $ws_exchanges"
+    # echo "beofre calling run_specific_tests"
+    # echo "rest_exchanges: $rest_exchanges"
+    # echo "ws_exchanges: $ws_exchanges"
     run_specific_tests "$lang" "$rest_exchanges" "$ws_exchanges"
 fi
