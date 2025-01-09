@@ -37,11 +37,11 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run transpileRest --php $exchange
+          npm run transpileRest -- --php $exchange
         done
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
-          npm run transpileWs --php $exchange
+          npm run transpileWs -- --php $exchange
         done
     - name: Post-transpile (syntax check)
       run: npm run check-php-syntax
