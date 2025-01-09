@@ -391,7 +391,7 @@ export default class paradex extends Exchange {
         //             "imf_base": "0.2",
         //             "imf_shift": "180000",
         //             "imf_factor": "0.00071",
-        //             "mmf_factor": "0.4"
+        //             "mmf_factor": "0.5"
         //         },
         //         "price_feed_id": "9LScEHse1ioZt2rUuhwiN6bmYnqpMqvZkQJDNUpxVHN5",
         //         "oracle_ewma_factor": "0.14999987905913592",
