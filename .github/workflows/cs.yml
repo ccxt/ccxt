@@ -106,7 +106,7 @@ jobs:
         run: npm run export-exchanges
       - name: Live tests
         if: env.important_modified == 'true'
-        run: ./run-tests-simul.sh --cs
+        run: ./run-tests-simul.sh --csharp
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --cs "${{ env.rest_files }}" "${{ env.ws_files }}"
+        run: ./run-tests-simul.sh --csharp "${{ env.rest_files }}" "${{ env.ws_files }}"
