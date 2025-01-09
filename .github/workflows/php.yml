@@ -23,6 +23,8 @@ jobs:
         php-version: '8.1'
     - name: Install npm dependencies
       run: npm ci --include=dev
+    - name: Composer install
+      run: composer install
     - name: Determine modified files
       run: ./utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
