@@ -35,11 +35,11 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          tsx build/csharpTranspiler.ts $exchange
+          npm run transpileCsSingle -- $exchange
         done
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
-          tsx build/csharpTranspiler.ts --ws $exchange
+          npm run transpileCsSingle -- --ws $exchange
         done
     - name: Build Projext
       run: npm run buildCS

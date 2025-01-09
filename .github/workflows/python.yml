@@ -33,11 +33,11 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          tsx build/transpile.ts --python $exchange
+          npm run transpileRest --python $exchange
         done
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
-          tsx build/transpileWS.ts --python $exchange
+          npm run transpileWs --python $exchange
         done
     - name: Post-transpile (syntax check)
       run: npm run check-python-syntax
