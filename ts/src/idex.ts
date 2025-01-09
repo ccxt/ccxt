@@ -89,6 +89,7 @@ export default class idex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -719,6 +720,8 @@ export default class idex extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'fillId');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market, '-');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'quoteQuantity');
@@ -736,7 +739,7 @@ export default class idex extends Exchange {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': this.safeString (market, 'settle'), // todo check
+                'currency': 'USDC', // todo check
             };
         }
         return this.safeTrade ({
@@ -927,6 +930,9 @@ export default class idex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {string} [params.fromId] trade id of the earliest trade to fetch
+     * @param {string} [params.fillId] fillId of the single trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -947,26 +953,35 @@ export default class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // [
-        //   {
-        //     "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
-        //     "price": "0.09905990",
-        //     "quantity": "0.40000000",
-        //     "quoteQuantity": "0.03962396",
-        //     "time": 1598873478762,
-        //     "makerSide": "sell",
-        //     "sequence": 5053,
-        //     "market": "DIL-ETH",
-        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
-        //     "side": "buy",
-        //     "fee": "0.00080000",
-        //     "feeAsset": "DIL",
-        //     "gas": "0.00857497",
-        //     "liquidity": "taker",
-        //     "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
-        //     "txStatus": "mined"
-        //   }
-        // ]
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        //
+        //     [
+        //         {
+        //             "fillId": "38a0e73a-4793-3f0d-bc6a-c00586584338",
+        //             "price": "3347.00000000",
+        //             "quantity": "0.01000000",
+        //             "quoteQuantity": "33.47000000",
+        //             "realizedPnL": "-0.01004100",
+        //             "time": 1736322747566,
+        //             "makerSide": "sell",
+        //             "sequence": 221970,
+        //             "market": "ETH-USD",
+        //             "orderId": "81588ce0-cd95-11ef-9297-8bb2bcc7f7ee",
+        //             "side": "buy",
+        //             "fee": "0.01004100",
+        //             "liquidity": "taker",
+        //             "action": "open",
+        //             "position": "long",
+        //             "type": "market",
+        //             "txId": "0x582f6f7fc68c3bcf38dd9eaa8f29369065eb33460771b6e2522175903cc57fe7",
+        //             "txStatus": "mined"
+        //         }
+        //     ]
+        //
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
             throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
@@ -983,7 +998,31 @@ export default class idex extends Exchange {
                 throw e;
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        let result = response;
+        if (!Array.isArray (response)) {
+            result = [ response ]; // for single trade
+        }
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name idex#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api-docs-v4.idex.io/#get-fills
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     /**
