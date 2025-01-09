@@ -1,4 +1,4 @@
-name: Js
+name: Python
 
 on:
   workflow_dispatch:
@@ -17,65 +17,70 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+    - name: Install python dependencies
+      run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
     - name: Install npm dependencies
       run: npm ci --include=dev
-    - name: Debug files changes
-      run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
       run: ./utils/init_actions.sh
-    - name: Debug output
-      run: |
-        echo "Important files modified: ${{ env.important_modified }}"
-        echo "REST files: ${{ env.rest_files }}"
-        echo "WS files: ${{ env.ws_files }}"
-        cat shared_env.txt
-    - name: Pre-transpile and transpile TS
+    - name: Pre-transpile (export exchanges and emit API)
+      run: npm run pre-transpile-py
+    - name: Transpile to Python
       if: env.important_modified == 'true'
-      run: npm run pre-transpile-js
-    - name: Pre-transpile and transpile TS (Simplified)
+      run: npm run force-transpile-fast-py
+    - name: Transpile to Python (specific)
       if: env.important_modified == 'false'
-      run: npm run pre-transpile-js-simple
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          tsx build/transpile.ts --python $exchange
+        done
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          tsx build/transpileWS.ts --python $exchange
+        done
+    - name: Post-transpile (syntax check)
+      run: npm run check-python-syntax
     - name: Run Base Tests
       if: env.important_modified == 'true'
-      run: npm run test-base-rest-js
+      run: npm run test-base-rest-py
     - name: Run Base Ws Tests
       if: env.important_modified == 'true'
-      run: npm run test-base-ws-js
+      run: npm run test-base-ws-py
     - name: Run Id Tests
       if: env.important_modified == 'true'
-      run: npm run id-tests-js
+      run: npm run id-tests-py
     - name: Request tests
       if: env.important_modified == 'true'
-      run: npm run request-js
+      run: npm run request-py
     - name: Request tests (specific)
       if: env.important_modified == 'false'
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run request-js -- $exchange
+          npm run request-py -- $exchange
         done
     - name: Response tests
       if: env.important_modified == 'true'
-      run: npm run response-js
+      run: npm run response-py
     - name: Response tests (specific)
       if: env.important_modified == 'false'
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run response-js -- $exchange
+          npm run response-py -- $exchange
         done
-
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
           name: shared_env
           path: shared_env.txt
 
-    - name: Upload Js Files
+    - name: Upload Python Files
       uses: actions/upload-artifact@v4
       with:
-        name: js-files
-        path: js/
+        name: python-files
+        path: python/
 
   live-tests:
     needs: build
@@ -86,11 +91,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - name: Download JS Files
+      - name: Download Py Files
         uses: actions/download-artifact@v4
         with:
-          name: js-files
-          path: js/
+          name: python-files
+          path: python/
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
       - name: Install npm dependencies
@@ -99,7 +104,7 @@ jobs:
         run: npm run export-exchanges
       - name: Live tests
         if: env.important_modified == 'true'
-        run: ./run-tests-simul.sh --js
+        run: ./run-tests-simul.sh --python-async
       - name: Live tests (specific)
         if: env.important_modified == 'false'
-        run: ./run-tests-simul.sh --js "${{ env.rest_files }}" "${{ env.ws_files }}"
+        run: ./run-tests-simul.sh --python-async "${{ env.rest_files }}" "${{ env.ws_files }}"
