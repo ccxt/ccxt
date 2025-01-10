@@ -2071,6 +2071,10 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },

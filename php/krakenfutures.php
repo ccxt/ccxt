@@ -2588,6 +2588,9 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tiers = array();
+        if ($marginLevels === null) {
+            return $tiers;
+        }
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
             $initialMargin = $this->safe_string($tier, 'initialMargin');

@@ -1934,6 +1934,9 @@ class hyperliquid extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => 'fundingHistory',
