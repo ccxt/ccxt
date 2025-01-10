@@ -1947,6 +1947,9 @@ export default class hyperliquid extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'fundingHistory',
