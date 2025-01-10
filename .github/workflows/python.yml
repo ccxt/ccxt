@@ -17,8 +17,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+        cache: 'pip'
     - name: Install python dependencies
-      run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
+      run: pip install -r ci-requirements.txt
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -112,8 +116,12 @@ jobs:
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+          cache: 'pip'
       - name: Install python dependencies
-        run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil # to do cache dependencies
+        run: pip install -r ci-requirements.txt
       - name: Export exchanges
         run: npm run export-exchanges
       - name: Live tests
