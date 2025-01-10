@@ -21,6 +21,6 @@ from . import curried
 
 # functoolz._sigs.create_signature_registry()
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+#from ._version import get_versions
+__version__ = 'ccxt'  # custom ccxt version
+#del get_versions
