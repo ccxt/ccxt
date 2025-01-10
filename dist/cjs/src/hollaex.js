@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -346,7 +346,7 @@ class hollaex extends hollaex$1 {
         //                 "verified":true,
         //                 "allow_deposit":true,
         //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0001,
+        //                 "withdrawal_fee":0.0002,
         //                 "min":0.001,
         //                 "max":100000,
         //                 "increment_unit":0.001,

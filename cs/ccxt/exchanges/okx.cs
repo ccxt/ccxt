@@ -2861,9 +2861,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2885,9 +2887,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)

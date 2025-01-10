@@ -17,6 +17,7 @@ require('../../noble-hashes/sha256.js');
 var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 
+// ----------------------------------------------------------------------------
 const BN_0 = BigInt(0);
 const BN_1 = BigInt(1);
 const BN_MAX_UINT256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");

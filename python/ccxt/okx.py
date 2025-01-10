@@ -2749,9 +2749,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2768,9 +2770,11 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        params['tgtCcy'] = 'quote_ccy'
-        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+            'tgtCcy': 'quote_ccy',
+        }
+        return self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)

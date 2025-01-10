@@ -4,7 +4,7 @@ var poloniexfutures$1 = require('../poloniexfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class poloniexfutures extends poloniexfutures$1 {
     describe() {
