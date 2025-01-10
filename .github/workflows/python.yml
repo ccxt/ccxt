@@ -19,6 +19,10 @@ jobs:
         fetch-depth: 2
     - name: Install python dependencies
       run: pip install tox cryptography requests ruff pyopenssl aiohttp typing-extensions psutil
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
@@ -100,6 +104,10 @@ jobs:
           path: python/
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Install python dependencies
