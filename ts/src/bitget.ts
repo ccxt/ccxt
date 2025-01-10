@@ -1952,6 +1952,7 @@ export default class bitget extends Exchange {
                 const period = this.safeString (market, 'deliveryPeriod');
                 if ((period === 'this_quarter') || (period === 'next_quarter')) {
                     deliveryAlias = symbol;
+                    this.market_symbol_aliases.push (deliveryAlias);
                     symbol = deliveryAlias + 'Q';
                 }
             }
