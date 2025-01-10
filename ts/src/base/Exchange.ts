@@ -5878,6 +5878,17 @@ export default class Exchange {
             return markets[0];
         } else if ((symbol.endsWith ('-C')) || (symbol.endsWith ('-P')) || (symbol.startsWith ('C-')) || (symbol.startsWith ('P-'))) {
             return this.createExpiredOptionMarket (symbol);
+        } else if (symbol in this.market_symbol_aliases) {
+            // find the first market symbol that has the legacy symbol in its name
+            const markets = this.markets;
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                const currentSymbol = market['symbol'];
+                if (currentSymbol.indexOf (symbol) > -1) {
+                    return market as MarketInterface;
+                }
+            }
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
