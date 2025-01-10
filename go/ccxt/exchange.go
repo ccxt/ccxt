@@ -358,14 +358,14 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 
 // error related functions
 
-type BaseError struct {
+type Error struct {
 	Type    string
 	Message string
 	Stack   string
 }
 
-func (e *BaseError) Error() string {
-	return fmt.Sprintf("ccxtError::%s::%s", e.Type, e.Message)
+func (e *Error) Error() string {
+	return fmt.Sprintf("[ccxtError]::[%s]::[%s]\nStack:\n%s", e.Type, e.Message, e.Stack)
 }
 
 func NewError(errType interface{}, message ...interface{}) error {
@@ -378,7 +378,7 @@ func NewError(errType interface{}, message ...interface{}) error {
 			stack = ToString(message[1])
 		}
 	}
-	return &BaseError{Type: typeErr, Message: msg, Stack: stack}
+	return &Error{Type: typeErr, Message: msg, Stack: stack}
 }
 
 func Exception(v ...interface{}) error {
@@ -399,8 +399,10 @@ func CreateReturnError(res interface{}) error {
 	if strings.Contains(resStr, "ccxtError") {
 		// resStr = strings.ReplaceAll(resStr, "ccxtError", "")
 		splitted := strings.Split(resStr, "::")
-		exceptionName := splitted[1]
-		message := splitted[2]
+		s1 := splitted[1]
+		s2 := splitted[2]
+		exceptionName := s1[1 : len(s1)-1]
+		message := s2[1 : len(s2)-1]
 		return CreateError(exceptionName, message, res)
 
 	}

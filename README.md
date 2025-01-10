@@ -556,9 +556,15 @@ func main() {
 
     exchange.LoadMarkets()
 
-	order, error := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
-	if error != nil {
-		fmt.Println(error)
+	order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
+	if err != nil {
+		if ccxtError, ok := err.(*ccxt.Error); ok {
+			if ccxtError.Type == "InvalidOrder" {
+				fmt.Println("Invalid order")
+			} else {
+				fmt.Println("Some other error")
+			}
+		}
 	} else {
 		fmt.Println(*order.Id)
 	}
