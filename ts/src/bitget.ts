@@ -1948,8 +1948,12 @@ export default class bitget extends Exchange {
                 const expiryString = year + month + day;
                 type = 'future';
                 future = true;
-                deliveryAlias = symbol + ':' + settle + '-' + expiryString;
-                symbol = deliveryAlias + 'Q';
+                symbol = symbol + ':' + settle + '-' + expiryString;
+                const period = this.safeString (market, 'deliveryPeriod');
+                if ((period === 'this_quarter') || (period === 'next_quarter')) {
+                    deliveryAlias = symbol;
+                    symbol = deliveryAlias + 'Q';
+                }
             }
             contract = true;
             inverse = (base === settle);
