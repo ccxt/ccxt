@@ -478,7 +478,7 @@ export default class coincatch extends Exchange {
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': undefined,
                             'price': false,
-                        }
+                        },
                     },
                     'fetchMyTrades': {
                         'limit': 100,
