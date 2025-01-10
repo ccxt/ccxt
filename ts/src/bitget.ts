@@ -1918,6 +1918,7 @@ export default class bitget extends Exchange {
         const symbolType = this.safeString (market, 'symbolType');
         let marginModes = undefined;
         let isMarginTradingAllowed = false;
+        let deliveryAlias = undefined;
         if (symbolType === undefined) {
             type = 'spot';
             spot = true;
@@ -1947,7 +1948,8 @@ export default class bitget extends Exchange {
                 const expiryString = year + month + day;
                 type = 'future';
                 future = true;
-                symbol = symbol + ':' + settle + '-' + expiryString;
+                deliveryAlias = symbol + ':' + settle + '-' + expiryString;
+                symbol = deliveryAlias + 'Q';
             }
             contract = true;
             inverse = (base === settle);
