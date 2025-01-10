@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var Red = "\033[31m"
@@ -22,6 +23,7 @@ const (
 
 var verbose = false
 var noKeys = false
+var timeIt = false
 
 func contains(arr []interface{}, item interface{}) bool {
 	for _, a := range arr {
@@ -116,6 +118,10 @@ func InitOptions(instance ccxt.IExchange, flags []string) {
 
 	if containsStr(flags, "--sandbox") {
 		instance.SetSandboxMode(true)
+	}
+
+	if containsStr(flags, "--time") {
+		timeIt = true
 	}
 }
 
@@ -225,13 +231,20 @@ func main() {
 		SetCredentials(instance)
 	}
 
-	instance.LoadMarkets()
+	<-instance.LoadMarkets()
 
 	if verbose {
 		instance.SetVerbose(true)
 	}
 
+	before := time.Now().UnixMilli()
+
 	res := <-instance.CallInternal(method, parameters...)
 
+	after := time.Now().UnixMilli()
+
 	PrettyPrintData(res)
+
+	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
+
 }
