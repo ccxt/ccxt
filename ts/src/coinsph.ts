@@ -348,7 +348,7 @@ export default class coinsph extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
-                    }
+                    },
                 },
                 'swap': {
                     'linear': undefined,
