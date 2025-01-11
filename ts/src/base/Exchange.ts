@@ -356,7 +356,7 @@ export default class Exchange {
         },
     };
     markets_by_id: Dictionary<any> = undefined;
-    market_symbol_aliases: string[] = undefined;
+    market_symbol_aliases: string[] = [];
     symbols: string[] = undefined;
     ids: string[] = undefined;
     currencies: Currencies = {};
