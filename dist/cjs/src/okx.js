@@ -2800,9 +2800,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2820,9 +2822,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);

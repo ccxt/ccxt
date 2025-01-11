@@ -2714,6 +2714,10 @@ public partial class krakenfutures : Exchange
         object marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
+        if (isTrue(isEqual(marginLevels, null)))
+        {
+            return tiers;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);

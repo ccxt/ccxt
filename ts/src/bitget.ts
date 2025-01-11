@@ -4313,8 +4313,10 @@ export default class bitget extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**

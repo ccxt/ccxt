@@ -1913,6 +1913,9 @@ class hyperliquid extends hyperliquid$1 {
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',

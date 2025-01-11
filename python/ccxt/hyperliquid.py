@@ -1857,6 +1857,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         request: dict = {
             'type': 'fundingHistory',
