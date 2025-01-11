@@ -2476,6 +2476,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
         tiers = []
+        if marginLevels is None:
+            return tiers
         for i in range(0, len(marginLevels)):
             tier = marginLevels[i]
             initialMargin = self.safe_string(tier, 'initialMargin')
