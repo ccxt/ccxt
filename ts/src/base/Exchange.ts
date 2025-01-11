@@ -4260,7 +4260,8 @@ export default class Exchange {
                 const contract = this.safeBool (market, 'contract', false);
                 if (contract && (noSymbols || this.inArray (symbol, symbols))) {
                     const leverageTier = this.parseMarketLeverageTiers (item, market);
-                    if (Array.isArray (leverageTier) && leverageTier.length > 0) {
+                    const tiersLength = leverageTier.length;
+                    if (Array.isArray (leverageTier) && tiersLength > 0) {
                         tiers[symbol] = leverageTier;
                     }
                 }
@@ -4275,7 +4276,8 @@ export default class Exchange {
                 const contract = this.safeBool (market, 'contract', false);
                 if (contract && (noSymbols || this.inArray (symbol, symbols))) {
                     const leverageTier = this.parseMarketLeverageTiers (item, market);
-                    if (Array.isArray (leverageTier) && leverageTier.length > 0) {
+                    const tiersLength = leverageTier.length;
+                    if (Array.isArray (leverageTier) && tiersLength > 0) {
                         tiers[symbol] = leverageTier;
                     }
                 }
