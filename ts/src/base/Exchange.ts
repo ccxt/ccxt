@@ -5881,11 +5881,11 @@ export default class Exchange {
         } else if (this.inArray (symbol, this.market_symbol_aliases)) {
             // find the first market symbol that has the legacy symbol in its name
             const markets = this.markets;
-            for (let i = 0; i < markets.length; i++) {
-                const market = markets[i];
-                const currentSymbol = market['symbol'];
+            const keys = Object.keys (markets);
+            for (let i = 0; i < keys.length; i++) {
+                const currentSymbol = keys[i];
                 if (currentSymbol.indexOf (symbol) > -1) {
-                    return market as MarketInterface;
+                    return markets[currentSymbol] as MarketInterface;
                 }
             }
             throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
