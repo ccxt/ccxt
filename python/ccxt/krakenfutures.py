@@ -2481,17 +2481,17 @@ class krakenfutures(Exchange, ImplicitAPI):
         for i in range(0, len(marginLevels)):
             tier = marginLevels[i]
             initialMargin = self.safe_string(tier, 'initialMargin')
-            notionalFloor = self.safe_number(tier, 'contracts')
+            minNotional = self.safe_number(tier, 'numNonContractUnits')
             if i != 0:
                 tiersLength = len(tiers)
                 previousTier = tiers[tiersLength - 1]
-                previousTier['notionalCap'] = notionalFloor
+                previousTier['maxNotional'] = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': None,
+                'minNotional': minNotional,
+                'maxNotional': None,
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMargin)),
                 'info': tier,

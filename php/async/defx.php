@@ -1722,8 +1722,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'OPEN';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'OPEN',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 
@@ -1741,8 +1743,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'FILLED';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'FILLED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 
@@ -1760,8 +1764,10 @@ class defx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $params['statuses'] = 'CANCELED';
-            return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $req = array(
+                'statuses' => 'CANCELED',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params)));
         }) ();
     }
 

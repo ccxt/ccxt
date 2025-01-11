@@ -4193,8 +4193,10 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['createMarketBuyOrderRequiresPrice'] = False
-        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'createMarketBuyOrderRequiresPrice': False,
+        }
+        return await self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

@@ -4512,8 +4512,10 @@ public partial class bitget : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
