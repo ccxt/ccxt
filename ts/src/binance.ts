@@ -4008,7 +4008,7 @@ export default class binance extends Exchange {
         //     [
         //       {
         //         "asset": "BUSD",
-        //         "free": "1129.83",
+        //         "free": "1129.84",
         //         "locked": "0",
         //         "freeze": "0",
         //         "withdrawing": "0"

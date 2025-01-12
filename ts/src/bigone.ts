@@ -179,6 +179,7 @@ export default class bigone extends Exchange {
                 },
             },
             'options': {
+                'adjustForTimeDifference': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -580,6 +581,9 @@ export default class bigone extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
         const response = promisesResult[0];
@@ -1905,7 +1909,8 @@ export default class bigone extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const randNum = this.randNumber (4);
+            const nonce = this.nonce ().toString () + randNum.toString ();
             const request: Dict = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
