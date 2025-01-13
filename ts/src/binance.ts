@@ -1729,7 +1729,7 @@ export default class binance extends Exchange {
                         '-1008': OperationFailed, // undocumented, but mentioned: This is sent whenever the servers are overloaded with requests.
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                         '-1108': BadRequest, // undocumented, but mentioned: This error will occur if a value to a parameter being sent was too large, potentially causing overflow
-                        '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                        '-1131': BadRequest, // {"code":-1131, "msg":"recvWindow must be less than 60000"}
                         '-1134': BadRequest, // strategyType was less than 1000000.
                         '-1135': BadRequest, // undocumented, but mentioned: This error code will occur if a parameter requiring a JSON object is invalid.
                         '-1145': BadRequest, // cancelRestrictions has to be either ONLY_NEW or ONLY_PARTIALLY_FILLED.
