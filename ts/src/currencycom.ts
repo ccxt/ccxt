@@ -268,7 +268,7 @@ export default class currencycom extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': false,
-                            'GTD': false,
+                            'GTD': true,
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
@@ -281,9 +281,9 @@ export default class currencycom extends Exchange {
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': undefined,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implementation
                     },
                     'fetchOrder': {
                         'marginMode': false,
@@ -296,14 +296,7 @@ export default class currencycom extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOrders': {
-                        'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': undefined,
-                        'untilDays': undefined,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined,
                     'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
