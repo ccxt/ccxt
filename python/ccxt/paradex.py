@@ -270,6 +270,7 @@ class paradex(Exchange, ImplicitAPI):
                     '40112': PermissionDenied,  # Geo IP blocked
                 },
                 'broad': {
+                    'missing or malformed jwt': AuthenticationError,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1016,7 +1017,8 @@ class paradex(Exchange, ImplicitAPI):
             if now < cachedExpires:
                 return cachedToken
         account = self.retrieve_account()
-        expires = now + 86400 * 7
+        # https://docs.paradex.trade/api-reference/general-information/authentication
+        expires = now + 180
         req = {
             'method': 'POST',
             'path': '/v1/auth',

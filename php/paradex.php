@@ -260,6 +260,7 @@ class paradex extends Exchange {
                     '40112' => '\\ccxt\\PermissionDenied', // Geo IP blocked
                 ),
                 'broad' => array(
+                    'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -1045,7 +1046,8 @@ class paradex extends Exchange {
             }
         }
         $account = $this->retrieve_account();
-        $expires = $now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        $expires = $now + 180;
         $req = array(
             'method' => 'POST',
             'path' => '/v1/auth',

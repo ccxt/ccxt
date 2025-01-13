@@ -491,7 +491,7 @@ class ace extends Exchange {
             //     }
             //
             $orderBook = $this->safe_dict($response, 'attachment');
-            return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
+            return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks', 1, 0);
         }) ();
     }
 
