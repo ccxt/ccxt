@@ -263,6 +263,7 @@ export default class defx extends Exchange {
                         'triggerPriceType': {
                             'last': true,
                             'mark': true,
+                            'index': false,
                         },
                         'triggerDirection': false,
                         'stopLossPrice': false, // todo
