@@ -1196,6 +1196,8 @@ func promiseAll(tasksInterface interface{}) <-chan interface{} {
 
 		results := make([]interface{}, len(tasks))
 		var wg sync.WaitGroup
+		var resultsLock sync.Mutex
+		
 		wg.Add(len(tasks))
 
 		for i, task := range tasks {
@@ -1214,10 +1216,15 @@ func promiseAll(tasksInterface interface{}) <-chan interface{} {
 				// Assert the task is a channel
 				if chanTask, ok := task.(<-chan interface{}); ok {
 					// Receive the result from the channel
-					results[i] = <-chanTask
+					result := <-chanTask
+					resultsLock.Lock()
+					results[i] = result
+					resultsLock.Unlock()
 				} else {
 					// If the task is not a channel, set the result to nil
+					resultsLock.Lock()
 					results[i] = nil
+					resultsLock.Unlock()
 				}
 			}(i, task)
 		}
