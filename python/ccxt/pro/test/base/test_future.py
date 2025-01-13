@@ -178,6 +178,17 @@ async def test_closed_by_user():
     except Exception as e:
         assert False, f"Received Exception {e}"
 
+async def test_reject_with_non_exception():
+    print("test_reject_with_non_exception")
+    future = Future()
+    future.reject("test error")
+    assert future.done(), "Future is not marked as done"
+    try:
+        future.result()
+        assert False, "Expected an exception but none was raised"
+    except Exception as e:
+        assert str(e) == "test error", f"Expected 'test error', got '{str(e)}'"
+
 async def test_ws_future():
     await test_resolve_before()
     await test_reject()
@@ -191,4 +202,5 @@ async def test_ws_future():
     await test_race_with_wait_for_completion()
     await test_race_with_precompleted_future()
     await test_closed_by_user()
+    await test_reject_with_non_exception()
 

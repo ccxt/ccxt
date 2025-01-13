@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -46,7 +47,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': False,
-                'createDepositAddress': True,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
@@ -61,9 +62,10 @@ class onetrading(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
-                'fetchDepositAddress': True,
+                'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
-                'fetchDeposits': True,
+                'fetchDepositAddressesByNetwork': False,
+                'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -96,7 +98,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': True,
+                'fetchTrades': False,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFee': False,
@@ -105,14 +107,14 @@ class onetrading(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
-                'fetchWithdrawals': True,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
-                'withdraw': True,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -128,8 +130,8 @@ class onetrading(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api': {
-                    'public': 'https://api.onetrading.com/public',
-                    'private': 'https://api.onetrading.com/public',
+                    'public': 'https://api.onetrading.com/fast',
+                    'private': 'https://api.onetrading.com/fast',
                 },
                 'www': 'https://onetrading.com/',
                 'doc': [
@@ -147,32 +149,20 @@ class onetrading(Exchange, ImplicitAPI):
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
                         'time',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balances',
-                        'account/deposit/crypto/{currency_code}',
-                        'account/deposit/fiat/EUR',
-                        'account/deposits',
-                        'account/deposits/bitpanda',
-                        'account/withdrawals',
-                        'account/withdrawals/bitpanda',
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
                         'account/trades/{trade_id}',
-                        'account/trading-volume',
                     ],
                     'post': [
-                        'account/deposit/crypto',
-                        'account/withdraw/crypto',
-                        'account/withdraw/fiat',
-                        'account/fees',
                         'account/orders',
                     ],
                     'delete': [
@@ -299,6 +289,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'INTERNAL_SERVER_ERROR': ExchangeError,
                 },
                 'broad': {
+                    'Order not found.': OrderNotFound,
                 },
             },
             'commonCurrencies': {
@@ -316,6 +307,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+
+        https://docs.onetrading.com/#time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -331,6 +325,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://docs.onetrading.com/#currencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -369,6 +366,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for onetrading
+
+        https://docs.onetrading.com/#instruments
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -449,6 +449,10 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
+
+        https://docs.onetrading.com/#fee-groups
+        https://docs.onetrading.com/#fees
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -457,7 +461,12 @@ class onetrading(Exchange, ImplicitAPI):
         if method is None:
             options = self.safe_value(self.options, 'fetchTradingFees', {})
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
-        return getattr(self, method)(params)
+        if method == 'fetchPrivateTradingFees':
+            return self.fetch_private_trading_fees(params)
+        elif method == 'fetchPublicTradingFees':
+            return self.fetch_public_trading_fees(params)
+        else:
+            raise NotSupported(self.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported')
 
     def fetch_public_trading_fees(self, params={}):
         self.load_markets()
@@ -616,6 +625,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.onetrading.com/#market-ticker-for-instrument
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -649,7 +661,10 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+
+        https://docs.onetrading.com/#market-ticker
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -686,6 +701,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.onetrading.com/#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -808,6 +826,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.onetrading.com/#candlesticks
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -845,7 +866,8 @@ class onetrading(Exchange, ImplicitAPI):
         #         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        ohlcv = self.safe_list(response, 'candlesticks')
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -926,44 +948,6 @@ class onetrading(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
-        """
-        get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
-        """
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'instrument_code': market['id'],
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),
-        }
-        if since is not None:
-            # returns price ticks for a specific market with an interval of maximum of 4 hours
-            # sorted by latest first
-            request['from'] = self.iso8601(since)
-            request['to'] = self.iso8601(self.sum(since, 14400000))
-        response = self.publicGetPriceTicksInstrumentCode(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "instrument_code":"BTC_EUR",
-        #             "price":"8137.28",
-        #             "amount":"0.22269",
-        #             "taker_side":"BUY",
-        #             "volume":"1812.0908832",
-        #             "time":"2020-07-10T14:44:32.299Z",
-        #             "trade_timestamp":1594392272299,
-        #             "sequence":603047
-        #         }
-        #     ]
-        #
-        return self.parse_trades(response, market, since, limit)
-
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])
         result: dict = {'info': response}
@@ -980,6 +964,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.onetrading.com/#balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1003,317 +990,6 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
-        code = None
-        if currency is not None:
-            code = currency['code']
-        address = self.safe_string(depositAddress, 'address')
-        tag = self.safe_string(depositAddress, 'destination_tag')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': None,
-            'info': depositAddress,
-        }
-
-    def create_deposit_address(self, code: str, params={}):
-        """
-        create a currency deposit address
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
-        """
-        self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'currency': currency['id'],
-        }
-        response = self.privatePostAccountDepositCrypto(self.extend(request, params))
-        #
-        #     {
-        #         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
-        #         "destination_tag":"865690307",
-        #         "enabled":true,
-        #         "is_smart_contract":false
-        #     }
-        #
-        return self.parse_deposit_address(response, currency)
-
-    def fetch_deposit_address(self, code: str, params={}):
-        """
-        fetch the deposit address for a currency associated with self account
-        :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
-        """
-        self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'currency_code': currency['id'],
-        }
-        response = self.privateGetAccountDepositCryptoCurrencyCode(self.extend(request, params))
-        #
-        #     {
-        #         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
-        #         "destination_tag":"865690307",
-        #         "enabled":true,
-        #         "is_smart_contract":false,
-        #         "can_create_more":false
-        #     }
-        #
-        return self.parse_deposit_address(response, currency)
-
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
-        """
-        fetch all deposits made to an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
-        :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        self.load_markets()
-        request: dict = {
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
-        }
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-            request['currency_code'] = currency['id']
-        if limit is not None:
-            request['max_page_size'] = limit
-        if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified')
-            request['from'] = self.iso8601(since)
-        response = self.privateGetAccountDeposits(self.extend(request, params))
-        #
-        #     {
-        #         "deposit_history": [
-        #             {
-        #                 "transaction_id": "e5342efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-        #                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        #                 "amount": "100",
-        #                 "type": "CRYPTO",
-        #                 "funds_source": "INTERNAL",
-        #                 "time": "2020-04-22T09:57:47Z",
-        #                 "currency": "BTC",
-        #                 "fee_amount": "0.0",
-        #                 "fee_currency": "BTC"
-        #             },
-        #             {
-        #                 "transaction_id": "79793d00-2899-4a4d-95b7-73ae6b31384f",
-        #                 "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        #                 "time": "2020-05-05T11:22:07.925Z",
-        #                 "currency": "EUR",
-        #                 "funds_source": "EXTERNAL",
-        #                 "type": "FIAT",
-        #                 "amount": "50.0",
-        #                 "fee_amount": "0.01",
-        #                 "fee_currency": "EUR"
-        #             }
-        #         ],
-        #         "max_page_size": 2,
-        #         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
-        #     }
-        #
-        depositHistory = self.safe_list(response, 'deposit_history', [])
-        return self.parse_transactions(depositHistory, currency, since, limit, {'type': 'deposit'})
-
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
-        """
-        fetch all withdrawals made from an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
-        :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        self.load_markets()
-        request: dict = {
-            # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
-        }
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-            request['currency_code'] = currency['id']
-        if limit is not None:
-            request['max_page_size'] = limit
-        if since is not None:
-            to = self.safe_string(params, 'to')
-            if to is None:
-                raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified')
-            request['from'] = self.iso8601(since)
-        response = self.privateGetAccountWithdrawals(self.extend(request, params))
-        #
-        #     {
-        #         "withdrawal_history": [
-        #             {
-        #                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        #                 "amount": "0.1",
-        #                 "currency": "BTC",
-        #                 "fee_amount": "0.00002",
-        #                 "fee_currency": "BTC",
-        #                 "funds_source": "EXTERNAL",
-        #                 "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157",
-        #                 "time": "2020-05-05T11:11:32.110Z",
-        #                 "transaction_id": "6693ff40-bb10-4dcf-ada7-3b287727c882",
-        #                 "type": "CRYPTO"
-        #             },
-        #             {
-        #                 "account_id": "e369ac80-4577-11e9-ae08-9bedc4790b84",
-        #                 "amount": "0.1",
-        #                 "currency": "BTC",
-        #                 "fee_amount": "0.0",
-        #                 "fee_currency": "BTC",
-        #                 "funds_source": "INTERNAL",
-        #                 "time": "2020-05-05T10:29:53.464Z",
-        #                 "transaction_id": "ec9703b1-954b-4f76-adea-faac66eabc0b",
-        #                 "type": "CRYPTO"
-        #             }
-        #         ],
-        #         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6ZWM5NzAzYjEtOTU0Yi00Zjc2LWFkZWEtZmFhYzY2ZWFiYzBiIiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODY3NDU5MzQ2NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19",
-        #         "max_page_size": 2
-        #     }
-        #
-        withdrawalHistory = self.safe_list(response, 'withdrawal_history', [])
-        return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
-
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
-        """
-        make a withdrawal
-        :param str code: unified currency code
-        :param float amount: the amount to withdraw
-        :param str address: the address to withdraw to
-        :param str tag:
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
-        """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
-        self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'currency': code,
-            'amount': self.currency_to_precision(code, amount),
-            # 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2',  # fiat only
-            # 'recipient': { # crypto only
-            #     'address': address,
-            #     # 'destination_tag': '',
-            # },
-        }
-        options = self.safe_value(self.options, 'fiat', [])
-        isFiat = self.in_array(code, options)
-        method = 'privatePostAccountWithdrawFiat' if isFiat else 'privatePostAccountWithdrawCrypto'
-        if isFiat:
-            payoutAccountId = self.safe_string(params, 'payout_account_id')
-            if payoutAccountId is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals')
-        else:
-            recipient: dict = {'address': address}
-            if tag is not None:
-                recipient['destination_tag'] = tag
-            request['recipient'] = recipient
-        response = getattr(self, method)(self.extend(request, params))
-        #
-        # crypto
-        #
-        #     {
-        #         "amount": "1234.5678",
-        #         "fee": "1234.5678",
-        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        #         "destination_tag": "",
-        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        #     }
-        #
-        # fiat
-        #
-        #     {
-        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        #     }
-        #
-        return self.parse_transaction(response, currency)
-
-    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
-        #
-        # fetchDeposits, fetchWithdrawals
-        #
-        #     {
-        #         "transaction_id": "C2b42efcd-d5b7-4a56-8e12-b69ffd68c5ef",
-        #         "type": "FIAT",
-        #         "account_id": "c2d0076a-c20d-41f8-9e9a-1a1d028b2b58",
-        #         "amount": "1234.5678",
-        #         "time": "2019-08-24T14:15:22Z",
-        #         "funds_source": "INTERNAL",
-        #         "currency": "BTC",
-        #         "fee_amount": "1234.5678",
-        #         "fee_currency": "BTC",
-        #         "blockchain_transaction_id": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
-        #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
-        #     }
-        #
-        # withdraw
-        #
-        #
-        #     crypto
-        #
-        #     {
-        #         "amount": "1234.5678",
-        #         "fee": "1234.5678",
-        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        #         "destination_tag": "",
-        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        #     }
-        #
-        #     fiat
-        #
-        #     {
-        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        #     }
-        #
-        id = self.safe_string(transaction, 'transaction_id')
-        amount = self.safe_number(transaction, 'amount')
-        timestamp = self.parse8601(self.safe_string(transaction, 'time'))
-        currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_currency(currencyId, currency)
-        status = 'ok'  # the exchange returns cleared transactions only
-        feeCost = self.safe_number_2(transaction, 'fee_amount', 'fee')
-        fee = None
-        addressTo = self.safe_string(transaction, 'recipient')
-        tagTo = self.safe_string(transaction, 'destination_tag')
-        if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency', currencyId)
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            }
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': currency['code'],
-            'amount': amount,
-            'network': None,
-            'address': addressTo,
-            'addressFrom': None,
-            'addressTo': addressTo,
-            'tag': tagTo,
-            'tagFrom': None,
-            'tagTo': tagTo,
-            'status': status,
-            'type': None,
-            'updated': None,
-            'txid': self.safe_string(transaction, 'blockchain_transaction_id'),
-            'comment': None,
-            'internal': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fee': fee,
-        }
-
     def parse_order_status(self, status: Str):
         statuses: dict = {
             'FILLED': 'open',
@@ -1325,6 +1001,7 @@ class onetrading(Exchange, ImplicitAPI):
             'CLOSED': 'canceled',
             'FAILED': 'failed',
             'STOP_TRIGGERED': 'triggered',
+            'DONE': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1409,7 +1086,6 @@ class onetrading(Exchange, ImplicitAPI):
         side = self.safe_string_lower(rawOrder, 'side')
         type = self.safe_string_lower(rawOrder, 'type')
         timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
-        stopPrice = self.safe_number(rawOrder, 'trigger_price')
         postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
         return self.safe_order({
@@ -1420,13 +1096,12 @@ class onetrading(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': type,
+            'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': self.safe_number(rawOrder, 'trigger_price'),
             'amount': amount,
             'cost': None,
             'average': None,
@@ -1436,6 +1111,12 @@ class onetrading(Exchange, ImplicitAPI):
             # 'fee': None,
             'trades': rawTrades,
         }, market)
+
+    def parse_order_type(self, type: Str):
+        types: dict = {
+            'booked': 'limit',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces: dict = {
@@ -1449,7 +1130,9 @@ class onetrading(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.onetrading.com/#create-order
+
+        https://docs.onetrading.com/#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1492,6 +1175,9 @@ class onetrading(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_id'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED')
+        params = self.omit(params, 'timeInForce')
+        request['time_in_force'] = timeInForce
         response = self.privatePostAccountOrders(self.extend(request, params))
         #
         #     {
@@ -1513,6 +1199,9 @@ class onetrading(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://docs.onetrading.com/#close-order-by-order-id
+
         :param str id: order id
         :param str symbol: not used by bitmex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1528,15 +1217,22 @@ class onetrading(Exchange, ImplicitAPI):
             request['client_id'] = clientOrderId
         else:
             request['order_id'] = id
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateDeleteAccountOrdersOrderId':
+            response = self.privateDeleteAccountOrdersOrderId(self.extend(request, params))
+        else:
+            response = self.privateDeleteAccountOrdersClientClientId(self.extend(request, params))
         #
         # responds with an empty body
         #
-        return response
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+
+        https://docs.onetrading.com/#close-all-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1557,6 +1253,9 @@ class onetrading(Exchange, ImplicitAPI):
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
+
+        https://docs.onetrading.com/#close-all-orders
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1577,6 +1276,10 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://docs.onetrading.com/#get-order
+
+        :param str id: the order id
         :param str symbol: not used by onetrading fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1632,6 +1335,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+
+        https://docs.onetrading.com/#get-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1746,6 +1452,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+
+        https://docs.onetrading.com/#get-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1760,6 +1469,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+
+        https://docs.onetrading.com/#trades-for-order
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1815,6 +1527,9 @@ class onetrading(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://docs.onetrading.com/#all-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve

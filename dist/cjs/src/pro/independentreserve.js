@@ -4,7 +4,7 @@ var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class independentreserve extends independentreserve$1 {
     describe() {
@@ -15,6 +15,7 @@ class independentreserve extends independentreserve$1 {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
@@ -26,23 +27,25 @@ class independentreserve extends independentreserve$1 {
                 },
             },
             'options': {
-                'checksum': false, // TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': true, // TODO: currently only working for snapshot
+                },
             },
             'streaming': {},
             'exceptions': {},
         });
     }
+    /**
+     * @method
+     * @name independentreserve#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name independentreserve#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -116,16 +119,16 @@ class independentreserve extends independentreserve$1 {
             'datetime': datetime,
         }, market);
     }
+    /**
+     * @method
+     * @name independentreserve#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name independentreserve#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -196,7 +199,7 @@ class independentreserve extends independentreserve$1 {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         if (checksum && receivedSnapshot) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
@@ -216,7 +219,7 @@ class independentreserve extends independentreserve$1 {
             const calculatedChecksum = this.crc32(payload, true);
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);

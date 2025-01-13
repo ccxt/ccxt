@@ -1,0 +1,25 @@
+from ccxt.base.types import Entry
+
+
+class ImplicitAPI:
+    _rest_get_market = _restGetMarket = Entry('Market', '_rest', 'GET', {'cost': 1})
+    _rest_get_market_currencypair = _restGetMarketCurrencyPair = Entry('Market/{currencyPair}', '_rest', 'GET', {'cost': 1})
+    _rest_get_crypto_token_info = _restGetCryptoTokenInfo = Entry('Crypto/Token/Info', '_rest', 'GET', {'cost': 1})
+    public_get_market_currencypair_getdepth = publicGetMarketCurrencyPairGetDepth = Entry('Market/{currencyPair}:getDepth', 'public', 'GET', {'cost': 1})
+    public_get_market_currencypair_ticker = publicGetMarketCurrencyPairTicker = Entry('Market/{currencyPair}:ticker', 'public', 'GET', {'cost': 1})
+    public_get_market_currencypair_gettrades = publicGetMarketCurrencyPairGetTrades = Entry('Market/{currencyPair}:getTrades', 'public', 'GET', {'cost': 1})
+    public_get_market_currencypair_getgraph = publicGetMarketCurrencyPairGetGraph = Entry('Market/{currencyPair}:getGraph', 'public', 'GET', {'cost': 1})
+    public_get_cmc_summary = publicGetCMCSummary = Entry('CMC:summary', 'public', 'GET', {'cost': 1})
+    public_get_cmc_currencypair_ticker = publicGetCMCCurrencyPairTicker = Entry('CMC/{currencyPair}:ticker', 'public', 'GET', {'cost': 1})
+    private_get_user_wallet = privateGetUserWallet = Entry('User/Wallet', 'private', 'GET', {'cost': 1})
+    private_get_market_currencypair_order = privateGetMarketCurrencyPairOrder = Entry('Market/{currencyPair}/Order', 'private', 'GET', {'cost': 1})
+    private_get_market_order_orderuuid = privateGetMarketOrderOrderUuid = Entry('Market/Order/{orderUuid}', 'private', 'GET', {'cost': 1})
+    private_get_market_currencypair_trade = privateGetMarketCurrencyPairTrade = Entry('Market/{currencyPair}/Trade', 'private', 'GET', {'cost': 1})
+    private_get_market_tradefee_query = privateGetMarketTradeFeeQuery = Entry('Market/TradeFee:query', 'private', 'GET', {'cost': 1})
+    private_get_unit_currency = privateGetUnitCurrency = Entry('Unit/{currency}', 'private', 'GET', {'cost': 1})
+    private_get_crypto_token_currency = privateGetCryptoTokenCurrency = Entry('Crypto/Token/{currency}', 'private', 'GET', {'cost': 1})
+    private_get_crypto_token_currency_chains = privateGetCryptoTokenCurrencyChains = Entry('Crypto/Token/{currency}:chains', 'private', 'GET', {'cost': 1})
+    private_post_market_currencypair_order = privatePostMarketCurrencyPairOrder = Entry('Market/{currencyPair}/Order', 'private', 'POST', {'cost': 1})
+    private_post_crypto_address_fetch = privatePostCryptoAddressFetch = Entry('Crypto/Address:fetch', 'private', 'POST', {'cost': 1})
+    private_post_crypto_disbursement_withdraw = privatePostCryptoDisbursementWithdraw = Entry('Crypto/Disbursement:withdraw', 'private', 'POST', {'cost': 1})
+    private_delete_market_order_orderuuid = privateDeleteMarketOrderOrderUuid = Entry('Market/Order/{orderUuid}', 'private', 'DELETE', {'cost': 1})

@@ -452,9 +452,12 @@ class mercado extends Exchange {
             $method = 'privatePostPlaceMarket' . $method;
             if ($side === 'buy') {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and amount');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and amount');
                 }
-                $request['cost'] = $this->price_to_precision($market['symbol'], $amount * $price);
+                $amountString = $this->number_to_string($amount);
+                $priceString = $this->number_to_string($price);
+                $cost = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
+                $request['cost'] = $this->price_to_precision($market['symbol'], $cost);
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
             }
@@ -582,7 +585,6 @@ class mercado extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'average' => $average,
@@ -598,6 +600,7 @@ class mercado extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -617,7 +620,7 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a $withdrawal
          * @param {string} $code unified $currency $code

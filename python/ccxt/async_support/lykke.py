@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lykke import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -50,6 +50,8 @@ class lykke(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -195,7 +197,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://lykkecity.github.io/Trading-API/#get-all-assets
+
+        https://lykkecity.github.io/Trading-API/#get-all-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -205,7 +209,7 @@ class lykke(Exchange, ImplicitAPI):
         #     {
         #         "payload":[
         #             {
-        #                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+        #                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9075",
         #                 "name":"Monaco Token",
         #                 "symbol":"MCO",
         #                 "accuracy":6,
@@ -271,7 +275,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for lykke
-        :see: https://lykkecity.github.io/Trading-API/#get-asset-by-id
+
+        https://lykkecity.github.io/Trading-API/#get-asset-by-id
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -428,8 +434,10 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://lykkecity.github.io/Trading-API/#get-current-prices
-        :see: https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
+
+        https://lykkecity.github.io/Trading-API/#get-current-prices
+        https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -485,7 +493,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
+
+        https://lykkecity.github.io/Trading-API/#24hr-ticker-price-change-statistics
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -515,7 +525,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://lykkecity.github.io/Trading-API/#asset-pair-order-book-ticker
+
+        https://lykkecity.github.io/Trading-API/#asset-pair-order-book-ticker
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -616,7 +628,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://lykkecity.github.io/Trading-API/#get-public-trades
+
+        https://lykkecity.github.io/Trading-API/#get-public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -667,9 +681,9 @@ class lykke(Exchange, ImplicitAPI):
             currencyId = self.safe_string(balance, 'assetId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_string(balance, 'available')
+            total = self.safe_string(balance, 'available')
             used = self.safe_string(balance, 'reserved')
-            account['free'] = free
+            account['total'] = total
             account['used'] = used
             result[code] = account
         return self.safe_balance(result)
@@ -677,7 +691,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://lykkecity.github.io/Trading-API/#get-the-current-balance
+
+        https://lykkecity.github.io/Trading-API/#get-the-current-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -756,7 +772,6 @@ class lykke(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': cost,
@@ -771,8 +786,10 @@ class lykke(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://lykkecity.github.io/Trading-API/#place-a-limit-order
-        :see: https://lykkecity.github.io/Trading-API/#place-a-market-order
+
+        https://lykkecity.github.io/Trading-API/#place-a-limit-order
+        https://lykkecity.github.io/Trading-API/#place-a-market-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -843,7 +860,9 @@ class lykke(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://lykkecity.github.io/Trading-API/#cancel-orders-by-id
+
+        https://lykkecity.github.io/Trading-API/#cancel-orders-by-id
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -866,7 +885,9 @@ class lykke(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://lykkecity.github.io/Trading-API/#mass-cancel-orders
+
+        https://lykkecity.github.io/Trading-API/#mass-cancel-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -895,7 +916,10 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://lykkecity.github.io/Trading-API/#get-order-by-id
+
+        https://lykkecity.github.io/Trading-API/#get-order-by-id
+
+        :param str id: order id
         :param str symbol: not used by lykke fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -930,7 +954,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
+
+        https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -975,7 +1001,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
+
+        https://lykkecity.github.io/Trading-API/#get-active-or-closed-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1020,7 +1048,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://lykkecity.github.io/Trading-API/#get-trade-history
+
+        https://lykkecity.github.io/Trading-API/#get-trade-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1072,10 +1102,12 @@ class lykke(Exchange, ImplicitAPI):
         amount = Precise.string_abs(self.safe_string(bidask, amountKey))
         return [self.parse_number(price), self.parse_number(amount)]
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://lykkecity.github.io/Trading-API/#get-deposit-address-for-a-given-asset
+
+        https://lykkecity.github.io/Trading-API/#get-deposit-address-for-a-given-asset
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1100,11 +1132,11 @@ class lykke(Exchange, ImplicitAPI):
         tag = self.safe_string(response, 'addressExtension')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -1169,7 +1201,9 @@ class lykke(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://lykkecity.github.io/Trading-API/#get-the-history-of-withdrawals-and-deposits
+
+        https://lykkecity.github.io/Trading-API/#get-the-history-of-withdrawals-and-deposits
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1205,10 +1239,12 @@ class lykke(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(payload, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://lykkecity.github.io/Trading-API/#withdrawal
+
+        https://lykkecity.github.io/Trading-API/#withdrawal
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to

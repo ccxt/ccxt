@@ -23,6 +23,7 @@ class ascendex extends \ccxt\async\ascendex {
                 'watchOrders' => true,
                 'watchTicker' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -64,6 +65,19 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
+    public function watch_public_multiple($messageHashes, $params = array ()) {
+        return Async\async(function () use ($messageHashes, $params) {
+            $url = $this->urls['api']['ws']['public'];
+            $id = $this->nonce();
+            $request = array(
+                'id' => (string) $id,
+                'op' => 'sub',
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        }) ();
+    }
+
     public function watch_private($channel, $messageHash, $params = array ()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             Async\await($this->load_accounts());
@@ -86,6 +100,9 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-bar-data
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -152,23 +169,54 @@ class ascendex extends \ccxt\async\ascendex {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             *
+             * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             *
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-$market-$trades
+             *
+             * @param {string[]} $symbols unified symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $channel = 'trades' . ':' . $market['id'];
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $marketIds = array();
+            $messageHashes = array();
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $market = $this->market($symbols[$i]);
+                    $marketIds[] = $market['id'];
+                    $messageHashes[] = 'trades:' . $market['id'];
+                }
+            }
+            $channel = 'trades:' . implode(',', $marketIds);
             $params = $this->extend($params, array(
                 'ch' => $channel,
             ));
-            $trades = Async\await($this->watch_public($channel, $params));
+            $trades = Async\await($this->watch_public_multiple($messageHashes, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -216,6 +264,9 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-level-2-order-book-updates
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -383,6 +434,9 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-order-and-balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -504,7 +558,9 @@ class ascendex extends \ccxt\async\ascendex {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://ascendex.github.io/ascendex-pro-api/#$channel-order-and-balance
+             *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for

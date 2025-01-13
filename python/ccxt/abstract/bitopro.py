@@ -20,6 +20,7 @@ class ImplicitAPI:
     private_get_wallet_withdraw_currency_id_id = privateGetWalletWithdrawCurrencyIdId = Entry('wallet/withdraw/{currency}/id/{id}', 'private', 'GET', {'cost': 1})
     private_get_wallet_deposithistory_currency = privateGetWalletDepositHistoryCurrency = Entry('wallet/depositHistory/{currency}', 'private', 'GET', {'cost': 1})
     private_get_wallet_withdrawhistory_currency = privateGetWalletWithdrawHistoryCurrency = Entry('wallet/withdrawHistory/{currency}', 'private', 'GET', {'cost': 1})
+    private_get_orders_open = privateGetOrdersOpen = Entry('orders/open', 'private', 'GET', {'cost': 1})
     private_post_orders_pair = privatePostOrdersPair = Entry('orders/{pair}', 'private', 'POST', {'cost': 0.5})
     private_post_orders_batch = privatePostOrdersBatch = Entry('orders/batch', 'private', 'POST', {'cost': 6.666666666666667})
     private_post_wallet_withdraw_currency = privatePostWalletWithdrawCurrency = Entry('wallet/withdraw/{currency}', 'private', 'POST', {'cost': 10})

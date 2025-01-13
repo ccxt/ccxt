@@ -153,9 +153,11 @@
                   "previousClose": null,
                   "change": -0.001829,
                   "percentage": -0.1456821452950401,
-                  "average": 1.2545585,
+                  "average": 1.254558,
                   "baseVolume": 10705.03736069,
                   "quoteVolume": 13615.501509988173,
+                  "markPrice": null,
+                  "indexPrice": null,
                   "info": {
                     "firstPrice": "1.255473",
                     "lastPrice": "1.253644",

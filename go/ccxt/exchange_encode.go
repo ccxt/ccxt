@@ -108,7 +108,8 @@ func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
 }
 
 func (e *Exchange) binaryConcatArray(a interface{}) string {
-	return a.(string) // stub
+	// return a.(string) // stub
+	return ""
 }
 
 func (e *Exchange) BinaryConcatArray(a interface{}) string {
@@ -116,7 +117,8 @@ func (e *Exchange) BinaryConcatArray(a interface{}) string {
 }
 
 func (e *Exchange) numberToBE(n, padding interface{}) string {
-	return n.(string) // stub
+	// return n.(string) // stub
+	return ""
 }
 
 func (e *Exchange) NumberToBE(n, padding interface{}) string {
@@ -149,6 +151,10 @@ func (e *Exchange) Encode(data interface{}) string {
 	return data.(string) // stub
 }
 
+func Encode(data interface{}) string {
+	return data.(string) // stub
+}
+
 func (e *Exchange) Decode(data interface{}) string {
 	return data.(string) // stub
 }
@@ -175,6 +181,9 @@ func (e *Exchange) Rawencode(parameters2 interface{}) string {
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
+		if IsNumber(value) {
+			value = NumberToString(value)
+		}
 		outList = append(outList, fmt.Sprintf("%s=%v", key, value))
 	}
 	return strings.Join(outList, "&")
@@ -189,6 +198,10 @@ func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 				outList = append(outList, fmt.Sprintf("%s=%v", key, item))
 			}
 		} else {
+			if IsNumber(value) {
+				value = NumberToString(value)
+			}
+			value = strings.ReplaceAll(value.(string), ",", "%2C")
 			outList = append(outList, fmt.Sprintf("%s=%v", key, value))
 		}
 	}
@@ -202,16 +215,21 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 		if subDict, ok := value.(map[string]interface{}); ok {
 			for subKey, subValue := range subDict {
 				finalValue := fmt.Sprintf("%v", subValue)
+				// finalValue = strings.ReplaceAll(finalValue, " ", "%20")
 				if boolVal, ok := subValue.(bool); ok {
 					finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 				}
 				queryString.Add(fmt.Sprintf("%s[%s]", key, subKey), finalValue)
 			}
 		} else {
-			queryString.Add(key, fmt.Sprintf("%v", value))
+			valueStr := ToString(value)
+			// valueStr = strings.ReplaceAll(valueStr, " ", "%20")
+			queryString.Add(key, valueStr)
 		}
 	}
-	return queryString.Encode()
+	res := queryString.Encode()
+	res = strings.ReplaceAll(res, "+", "%20")
+	return res
 }
 
 func (e *Exchange) Urlencode(parameters2 interface{}) string {
@@ -219,7 +237,12 @@ func (e *Exchange) Urlencode(parameters2 interface{}) string {
 	var queryString []string
 	for key, value := range parameters {
 		encodedKey := url.QueryEscape(key)
-		finalValue := fmt.Sprintf("%v", value)
+		finalValue := ""
+		if IsNumber(value) {
+			finalValue = NumberToString(value)
+		} else {
+			finalValue = ToString(value)
+		}
 		if boolVal, ok := value.(bool); ok {
 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}

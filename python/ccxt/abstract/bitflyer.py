@@ -11,6 +11,7 @@ class ImplicitAPI:
     public_get_gethealth = publicGetGethealth = Entry('gethealth', 'public', 'GET', {})
     public_get_getboardstate = publicGetGetboardstate = Entry('getboardstate', 'public', 'GET', {})
     public_get_getchats = publicGetGetchats = Entry('getchats', 'public', 'GET', {})
+    public_get_getfundingrate = publicGetGetfundingrate = Entry('getfundingrate', 'public', 'GET', {})
     private_get_getpermissions = privateGetGetpermissions = Entry('getpermissions', 'private', 'GET', {})
     private_get_getbalance = privateGetGetbalance = Entry('getbalance', 'private', 'GET', {})
     private_get_getbalancehistory = privateGetGetbalancehistory = Entry('getbalancehistory', 'private', 'GET', {})

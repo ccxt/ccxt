@@ -1320,6 +1320,19 @@
         ],
         "setMarginMode": [
             {
+                "description": "set margin mode isolated",
+                "method": "setMarginMode",
+                "url": "https://www.okx.com/api/v5/account/set-leverage",
+                "input": [
+                    "isolated",
+                    "ADA/USDT:USDT",
+                    {
+                        "leverage": 10
+                    }
+                ],
+                "output": "{\"lever\":10,\"mgnMode\":\"isolated\",\"instId\":\"ADA-USDT-SWAP\"}"
+            },
+            {
                 "description": "set margin mode cross",
                 "method": "setMarginMode",
                 "url": "https://www.okx.com/api/v5/account/set-leverage",
@@ -1406,6 +1419,24 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instType=SWAP",
+                "input": []
+              }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instId=ETH-USDT-SWAP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+              }
         ],
         "fetchTickers": [
             {
@@ -1545,6 +1576,26 @@
                 "method": "fetchPositionMode",
                 "url": "https://www.okx.com/api/v5/account/config",
                 "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "swap fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ]
     }

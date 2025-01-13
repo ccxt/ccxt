@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -17,6 +17,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class indodax(Exchange, ImplicitAPI):
@@ -28,7 +29,7 @@ class indodax(Exchange, ImplicitAPI):
             'countries': ['ID'],  # Indonesia
             # 10 requests per second for making trades => 1000ms / 10 = 100ms
             # 180 requests per minute(public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
-            'rateLimit': 100,
+            'rateLimit': 50,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -219,7 +220,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -235,7 +238,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for indodax
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -352,7 +357,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -393,7 +400,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -451,7 +460,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -482,7 +493,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -529,7 +542,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -698,7 +713,6 @@ class indodax(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': cost,
             'average': None,
@@ -713,7 +727,10 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -735,7 +752,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -770,7 +789,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -792,7 +813,9 @@ class indodax(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -801,8 +824,6 @@ class indodax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if type != 'limit':
-            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -810,12 +831,36 @@ class indodax(Exchange, ImplicitAPI):
             'type': side,
             'price': price,
         }
-        currency = market['baseId']
-        if side == 'buy':
-            request[market['quoteId']] = amount * price
-        else:
-            request[market['baseId']] = amount
-        request[currency] = amount
+        priceIsRequired = False
+        quantityIsRequired = False
+        if type == 'market':
+            if side == 'buy':
+                quoteAmount = None
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
+                else:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price).')
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+                request[market['quoteId']] = quoteAmount
+            else:
+                quantityIsRequired = True
+        elif type == 'limit':
+            priceIsRequired = True
+            quantityIsRequired = True
+            if side == 'buy':
+                request[market['quoteId']] = self.parse_to_numeric(Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
+            request['price'] = price
+        if quantityIsRequired:
+            request[market['baseId']] = self.amount_to_precision(symbol, amount)
         result = await self.privatePostTrade(self.extend(request, params))
         data = self.safe_value(result, 'return', {})
         id = self.safe_string(data, 'order_id')
@@ -827,7 +872,9 @@ class indodax(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -871,7 +918,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -903,7 +952,9 @@ class indodax(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -995,10 +1046,12 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1125,10 +1178,12 @@ class indodax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
-        :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+
         :param str[] [codes]: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1196,8 +1251,8 @@ class indodax(Exchange, ImplicitAPI):
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'address': address,
                     'network': network,
+                    'address': address,
                     'tag': None,
                 }
         return result
@@ -1230,11 +1285,15 @@ class indodax(Exchange, ImplicitAPI):
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
+        # {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
         if not ('success' in response) and error == '':
             return None  # no 'success' property on public responses
+        status = self.safe_string(response, 'success')
+        if status == 'approved':
+            return None
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not ('return' in response):

@@ -24,6 +24,11 @@ export default class Client {
     rejections: Dictionary<any>
 
     // @ts-ignore: 2564
+    messageQueue: Dictionary<any>
+
+    useMessageQueue: boolean = false
+
+    // @ts-ignore: 2564
     keepAlive: number
 
     connection: any
@@ -81,6 +86,8 @@ export default class Client {
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
+            messageQueue: {}, // store unresolved messages per messageHash
+            useMessageQueue: false, // if false, messageQueue logic won't be used
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -112,6 +119,15 @@ export default class Client {
         if (messageHash in this.rejections) {
             future.reject (this.rejections[messageHash])
             delete this.rejections[messageHash]
+            delete this.messageQueue[messageHash]
+            return future;
+        }
+        if (this.useMessageQueue) {
+            const queue = this.messageQueue[messageHash]
+            if (queue && queue.length) {
+                future.resolve (queue.shift ())
+                delete this.futures[messageHash]
+            }
         }
         return future
     }
@@ -120,10 +136,26 @@ export default class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
-        if ((messageHash !== undefined) && (messageHash in this.futures)) {
-            const promise = this.futures[messageHash]
-            promise.resolve (result)
-            delete this.futures[messageHash]
+        if (this.useMessageQueue === true) {
+            if (!(messageHash in this.messageQueue)) {
+                this.messageQueue[messageHash] = []
+            }
+            const queue = this.messageQueue[messageHash]
+            queue.push (result);
+            while (queue.length > 10) { // limit size to 10 messages in the queue
+                queue.shift ()
+            }
+            if ((messageHash !== undefined) && (messageHash in this.futures)) {
+                const promise = this.futures[messageHash]
+                promise.resolve (queue.shift ())
+                delete this.futures[messageHash]
+            }
+        } else {
+            if (messageHash in this.futures) {
+                const promise = this.futures[messageHash]
+                promise.resolve (result)
+                delete this.futures[messageHash]
+            }
         }
         return result
     }
@@ -167,6 +199,7 @@ export default class Client {
     reset (error: any) {
         this.clearConnectionTimeout ()
         this.clearPingInterval ()
+        this.messageQueue = {}
         this.reject (error)
     }
 

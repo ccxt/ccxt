@@ -9,7 +9,7 @@ class ImplicitAPI:
     v1_public_get_instruments_instrument = v1PublicGetInstrumentsInstrument = Entry('instruments/{instrument}', ['v1', 'public'], 'GET', {})
     v1_public_get_instruments_instrument_quote = v1PublicGetInstrumentsInstrumentQuote = Entry('instruments/{instrument}/quote', ['v1', 'public'], 'GET', {})
     v1_public_get_instruments_instrument_funding = v1PublicGetInstrumentsInstrumentFunding = Entry('instruments/{instrument}/funding', ['v1', 'public'], 'GET', {})
-    v1_public_get = v1PublicGet = Entry('', ['v1', 'public'], 'GET', {})
+    v1_public_get_instruments_instrument_candles = v1PublicGetInstrumentsInstrumentCandles = Entry('instruments/{instrument}/candles', ['v1', 'public'], 'GET', {})
     v1_private_get_orders = v1PrivateGetOrders = Entry('orders', ['v1', 'private'], 'GET', {})
     v1_private_get_orders_id = v1PrivateGetOrdersId = Entry('orders/{id}', ['v1', 'private'], 'GET', {})
     v1_private_get_portfolios = v1PrivateGetPortfolios = Entry('portfolios', ['v1', 'private'], 'GET', {})

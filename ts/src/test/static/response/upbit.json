@@ -50,7 +50,7 @@
                         "price": 73249.665,
                         "amount": 0.00840925,
                         "cost": 615.97474540125,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -113,6 +113,8 @@
                     "average": 72352.40049018,
                     "baseVolume": 7.03935349,
                     "quoteVolume": 506342.98398488,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "market": "USDT-BTC",
                         "trade_date": "20240313",

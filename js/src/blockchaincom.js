@@ -42,6 +42,8 @@ export default class blockchaincom extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -77,7 +79,7 @@ export default class blockchaincom extends Exchange {
             },
             'timeframes': undefined,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo': 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test': {
                     'public': 'https://testnet-api.delta.exchange',
                     'private': 'https://testnet-api.delta.exchange',
@@ -214,6 +216,70 @@ export default class blockchaincom extends Exchange {
                     // 'DIGITALGOLD': 'DGLD',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true, // todo implementation
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implementation
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': undefined, // todo webapi
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -224,15 +290,15 @@ export default class blockchaincom extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchMarkets
+     * @description retrieves data on all markets for blockchaincom
+     * @see https://api.blockchain.com/v3/#getsymbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchMarkets
-         * @description retrieves data on all markets for blockchaincom
-         * @see https://api.blockchain.com/v3/#getsymbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         //
         //     "USDC-GBP": {
         //         "base_currency": "USDC",
@@ -355,30 +421,30 @@ export default class blockchaincom extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://api.blockchain.com/v3/#getl3orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.fetchL3OrderBook(symbol, limit, params);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchL3OrderBook
+     * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
     async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchL3OrderBook
-         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://api.blockchain.com/v3/#getl3orderbook
-         * @param {string} symbol unified market symbol
-         * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -439,16 +505,16 @@ export default class blockchaincom extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.blockchain.com/v3/#gettickerbysymbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://api.blockchain.com/v3/#gettickerbysymbol
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -457,16 +523,16 @@ export default class blockchaincom extends Exchange {
         const response = await this.publicGetTickersSymbol(this.extend(request, params));
         return this.parseTicker(response, market);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api.blockchain.com/v3/#gettickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://api.blockchain.com/v3/#gettickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const tickers = await this.publicGetTickers(params);
         return this.parseTickers(tickers, symbols);
@@ -538,20 +604,20 @@ export default class blockchaincom extends Exchange {
         });
         return result;
     }
+    /**
+     * @method
+     * @name blockchaincom#createOrder
+     * @description create a trade order
+     * @see https://api.blockchain.com/v3/#createorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#createOrder
-         * @description create a trade order
-         * @see https://api.blockchain.com/v3/#createorder
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const orderType = this.safeString(params, 'ordType', type);
@@ -569,14 +635,14 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision(symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const stopPrice = this.safeValue2(params, 'stopPx', 'stopPrice');
-        params = this.omit(params, ['stopPx', 'stopPrice']);
+        const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
+            if (triggerPrice === undefined) {
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order');
             }
         }
-        if (stopPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (uppercaseOrderType === 'MARKET') {
                 request['ordType'] = 'STOP';
             }
@@ -596,22 +662,22 @@ export default class blockchaincom extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if (stopPriceRequired) {
-            request['stopPx'] = this.priceToPrecision(symbol, stopPrice);
+            request['stopPx'] = this.priceToPrecision(symbol, triggerPrice);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name blockchaincom#cancelOrder
+     * @description cancels an open order
+     * @see https://api.blockchain.com/v3/#deleteorder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#cancelOrder
-         * @description cancels an open order
-         * @see https://api.blockchain.com/v3/#deleteorder
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const request = {
             'orderId': id,
         };
@@ -621,16 +687,16 @@ export default class blockchaincom extends Exchange {
             'info': response,
         });
     }
+    /**
+     * @method
+     * @name blockchaincom#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api.blockchain.com/v3/#deleteallorders
+     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://api.blockchain.com/v3/#deleteallorders
-         * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         await this.loadMarkets();
@@ -651,15 +717,15 @@ export default class blockchaincom extends Exchange {
             }),
         ];
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api.blockchain.com/v3/#getfees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @see https://api.blockchain.com/v3/#getfees
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privateGetFees(params);
         //
@@ -683,48 +749,48 @@ export default class blockchaincom extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://api.blockchain.com/v3/#getorders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-         * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const state = 'CANCELED';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://api.blockchain.com/v3/#getorders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const state = 'FILLED';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://api.blockchain.com/v3/#getorders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const state = 'OPEN';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
     }
@@ -790,18 +856,18 @@ export default class blockchaincom extends Exchange {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.blockchain.com/v3/#getfills
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://api.blockchain.com/v3/#getfills
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         const request = {};
         if (limit !== undefined) {
@@ -815,16 +881,16 @@ export default class blockchaincom extends Exchange {
         const trades = await this.privateGetFills(this.extend(request, params));
         return this.parseTrades(trades, market, since, limit, params); // need to define
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.blockchain.com/v3/#getdepositaddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://api.blockchain.com/v3/#getdepositaddress
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -840,13 +906,13 @@ export default class blockchaincom extends Exchange {
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        const result = { 'info': response };
-        result['currency'] = currency['code'];
-        result['address'] = address;
-        if (tag !== undefined) {
-            result['tag'] = tag;
-        }
-        return result;
+        return {
+            'info': response,
+            'currency': currency['code'],
+            'network': undefined,
+            'address': address,
+            'tag': tag,
+        };
     }
     parseTransactionState(state) {
         const states = {
@@ -929,19 +995,19 @@ export default class blockchaincom extends Exchange {
             'fee': fee,
         };
     }
+    /**
+     * @method
+     * @name blockchaincom#withdraw
+     * @description make a withdrawal
+     * @see https://api.blockchain.com/v3/#createwithdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#withdraw
-         * @description make a withdrawal
-         * @see https://api.blockchain.com/v3/#createwithdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -964,18 +1030,18 @@ export default class blockchaincom extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api.blockchain.com/v3/#getwithdrawals
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://api.blockchain.com/v3/#getwithdrawals
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'from' : integer timestamp in ms
@@ -991,17 +1057,17 @@ export default class blockchaincom extends Exchange {
         const response = await this.privateGetWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency, since, limit);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://api.blockchain.com/v3/#getwithdrawalbyid
+     * @param {string} id withdrawal id
+     * @param {string} code not used by blockchaincom.fetchWithdrawal
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawal(id, code = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchWithdrawal
-         * @description fetch data on a currency withdrawal via the withdrawal id
-         * @see https://api.blockchain.com/v3/#getwithdrawalbyid
-         * @param {string} id withdrawal id
-         * @param {string} code not used by blockchaincom.fetchWithdrawal
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
             'withdrawalId': id,
@@ -1009,18 +1075,18 @@ export default class blockchaincom extends Exchange {
         const response = await this.privateGetWithdrawalsWithdrawalId(this.extend(request, params));
         return this.parseTransaction(response);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api.blockchain.com/v3/#getdeposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://api.blockchain.com/v3/#getdeposits
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'from' : integer timestamp in ms
@@ -1036,17 +1102,17 @@ export default class blockchaincom extends Exchange {
         const response = await this.privateGetDeposits(this.extend(request, params));
         return this.parseTransactions(response, currency, since, limit);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://api.blockchain.com/v3/#getdepositbyid
+     * @param {string} id deposit id
+     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposit(id, code = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchDeposit
-         * @description fetch information on a deposit
-         * @see https://api.blockchain.com/v3/#getdepositbyid
-         * @param {string} id deposit id
-         * @param {string} code not used by blockchaincom fetchDeposit ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const depositId = this.safeString(params, 'depositId', id);
         const request = {
@@ -1055,15 +1121,15 @@ export default class blockchaincom extends Exchange {
         const deposit = await this.privateGetDepositsDepositId(this.extend(request, params));
         return this.parseTransaction(deposit);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.blockchain.com/v3/#getaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://api.blockchain.com/v3/#getaccounts
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const accountName = this.safeString(params, 'account', 'primary');
         params = this.omit(params, 'account');
@@ -1102,16 +1168,17 @@ export default class blockchaincom extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name blockchaincom#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.blockchain.com/v3/#getorderbyid
+     * @param {string} id the order id
+     * @param {string} symbol not used by blockchaincom fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blockchaincom#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://api.blockchain.com/v3/#getorderbyid
-         * @param {string} symbol not used by blockchaincom fetchOrder
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         await this.loadMarkets();

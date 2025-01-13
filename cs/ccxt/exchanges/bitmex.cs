@@ -32,7 +32,9 @@ public partial class bitmex : Exchange
                 { "closePosition", true },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", true },
+                { "createStopOrder", true },
                 { "createTrailingAmountOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
@@ -44,7 +46,7 @@ public partial class bitmex : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -96,7 +98,7 @@ public partial class bitmex : Exchange
                     { "public", "https://testnet.bitmex.com" },
                     { "private", "https://testnet.bitmex.com" },
                 } },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445" },
+                { "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitmex.com" },
                     { "private", "https://www.bitmex.com" },
@@ -256,6 +258,106 @@ public partial class bitmex : Exchange
                     { "SOL", "sol" },
                     { "ADA", "ada" },
                 } },
+                { "features", new Dictionary<string, object>() {
+                    { "default", new Dictionary<string, object>() {
+                        { "sandbox", true },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "marginMode", true },
+                            { "triggerPrice", true },
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                            } },
+                            { "triggerDirection", true },
+                            { "stopLossPrice", false },
+                            { "takeProfitPrice", false },
+                            { "attachedStopLossTakeProfit", null },
+                            { "timeInForce", new Dictionary<string, object>() {
+                                { "IOC", true },
+                                { "FOK", true },
+                                { "PO", true },
+                                { "GTD", false },
+                            } },
+                            { "hedged", false },
+                            { "trailing", true },
+                            { "marketBuyRequiresPrice", false },
+                            { "marketBuyByCost", false },
+                            { "leverage", false },
+                            { "selfTradePrevention", false },
+                            { "iceberg", true },
+                        } },
+                        { "createOrders", null },
+                        { "fetchMyTrades", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBack", null },
+                            { "untilDays", 1000000 },
+                        } },
+                        { "fetchOrder", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOpenOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBack", null },
+                            { "untilDays", 1000000 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchClosedOrders", new Dictionary<string, object>() {
+                            { "marginMode", false },
+                            { "limit", 500 },
+                            { "daysBack", null },
+                            { "daysBackCanceled", null },
+                            { "untilDays", 1000000 },
+                            { "trigger", false },
+                            { "trailing", false },
+                        } },
+                        { "fetchOHLCV", new Dictionary<string, object>() {
+                            { "limit", 10000 },
+                        } },
+                    } },
+                    { "spot", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "index", false },
+                            } },
+                        } },
+                    } },
+                    { "forDeriv", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                        { "createOrder", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "index", true },
+                            } },
+                        } },
+                    } },
+                    { "swap", new Dictionary<string, object>() {
+                        { "linear", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                        { "inverse", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                    } },
+                    { "future", new Dictionary<string, object>() {
+                        { "linear", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                        { "inverse", new Dictionary<string, object>() {
+                            { "extends", "forDeriv" },
+                        } },
+                    } },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "USDt", "USDT" },
@@ -269,16 +371,16 @@ public partial class bitmex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetWalletAssets(parameters);
         //
@@ -467,16 +569,16 @@ public partial class bitmex : Exchange
         return this.convertFromRawQuantity(symbol, rawQuantity, "quote");
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchMarkets
+     * @description retrieves data on all markets for bitmex
+     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchMarkets
-        * @description retrieves data on all markets for bitmex
-        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetInstrumentActive(parameters);
         //
@@ -792,16 +894,16 @@ public partial class bitmex : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -858,18 +960,18 @@ public partial class bitmex : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -908,17 +1010,18 @@ public partial class bitmex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = new Dictionary<string, object>() {
             { "filter", new Dictionary<string, object>() {
@@ -934,21 +1037,21 @@ public partial class bitmex : Exchange
         throw new OrderNotFound ((string)add(add(add(this.id, ": The order "), id), " not found.")) ;
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOrders
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the earliest time in ms to fetch orders for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchOrders
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-        * @description fetches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the earliest time in ms to fetch orders for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -992,19 +1095,19 @@ public partial class bitmex : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "filter", new Dictionary<string, object>() {
@@ -1014,39 +1117,39 @@ public partial class bitmex : Exchange
         return await this.fetchOrders(symbol, since, limit, this.deepExtend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // Bitmex barfs if you set 'open': false in the filter...
         parameters ??= new Dictionary<string, object>();
         object orders = await this.fetchOrders(symbol, since, limit, parameters);
         return this.filterByArray(orders, "status", new List<object>() {"closed", "canceled"}, false);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1070,7 +1173,7 @@ public partial class bitmex : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["count"] = limit;
+            ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
         object until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
@@ -1207,6 +1310,7 @@ public partial class bitmex : Exchange
         object type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amountString = this.safeString(item, "amount");
         object amount = this.convertToRealAmount(code, amountString);
         object timestamp = this.parse8601(this.safeString(item, "transactTime"));
@@ -1217,15 +1321,16 @@ public partial class bitmex : Exchange
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        object fee = null;
         object feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
             feeCost = this.convertToRealAmount(code, feeCost);
+            fee = new Dictionary<string, object>() {
+                { "cost", this.parseNumber(feeCost) },
+                { "currency", code },
+            };
         }
-        object fee = new Dictionary<string, object>() {
-            { "cost", this.parseNumber(feeCost) },
-            { "currency", code },
-        };
         object after = this.safeString(item, "walletBalance");
         if (isTrue(!isEqual(after, null)))
         {
@@ -1242,9 +1347,9 @@ public partial class bitmex : Exchange
             direction = "in";
         }
         object status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "direction", direction },
@@ -1253,27 +1358,27 @@ public partial class bitmex : Exchange
             { "referenceAccount", referenceAccount },
             { "type", type },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.parseNumber(amount) },
             { "before", before },
             { "after", this.parseNumber(after) },
             { "status", status },
             { "fee", fee },
-        };
+        }, currency);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1316,19 +1421,19 @@ public partial class bitmex : Exchange
         return this.parseLedger(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1445,17 +1550,17 @@ public partial class bitmex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1471,17 +1576,17 @@ public partial class bitmex : Exchange
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1528,6 +1633,7 @@ public partial class bitmex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "homeNotional24h") },
             { "quoteVolume", this.safeString(ticker, "foreignNotional24h") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -1557,21 +1663,21 @@ public partial class bitmex : Exchange
         return new List<object> {this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), volume};
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1599,7 +1705,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100, max 500
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1867,7 +1973,7 @@ public partial class bitmex : Exchange
             postOnly = (isEqual(execInst, "ParticipateDoNotInitiate"));
         }
         object timestamp = this.parse8601(this.safeString(order, "timestamp"));
-        object stopPrice = this.safeNumber(order, "stopPx");
+        object triggerPrice = this.safeNumber(order, "stopPx");
         object remaining = this.safeString(order, "leavesQty");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1882,8 +1988,7 @@ public partial class bitmex : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -1895,20 +2000,20 @@ public partial class bitmex : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1973,24 +2078,24 @@ public partial class bitmex : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmex#createOrder
+     * @description create a trade order
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#createOrder
-        * @description create a trade order
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-        * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
-        * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
-        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2058,7 +2163,7 @@ public partial class bitmex : Exchange
             {
                 if (isTrue(isEqual(triggerPrice, null)))
                 {
-                    throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the "), orderType), " order type")) ;
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
                 }
                 ((IDictionary<string,object>)request)["stopPx"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2152,18 +2257,18 @@ public partial class bitmex : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name bitmex#cancelOrder
+     * @description cancels an open order
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+     * @param {string} id order id
+     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#cancelOrder
-        * @description cancels an open order
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
-        * @param {string} id order id
-        * @param {string} symbol not used by bitmex cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // https://github.com/ccxt/ccxt/issues/6507
@@ -2190,18 +2295,18 @@ public partial class bitmex : Exchange
         return this.parseOrder(order);
     }
 
+    /**
+     * @method
+     * @name bitmex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+     * @param {string[]} ids order ids
+     * @param {string} symbol not used by bitmex cancelOrders ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#cancelOrders
-        * @description cancel multiple orders
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
-        * @param {string[]} ids order ids
-        * @param {string} symbol not used by bitmex cancelOrders ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // return await this.cancelOrder (ids, symbol, params);
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2220,17 +2325,17 @@ public partial class bitmex : Exchange
         return this.parseOrders(response);
     }
 
+    /**
+     * @method
+     * @name bitmex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2283,17 +2388,17 @@ public partial class bitmex : Exchange
         return this.parseOrders(response, market);
     }
 
+    /**
+     * @method
+     * @name bitmex#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#cancelAllOrdersAfter
-        * @description dead man's switch, cancel all orders after the given timeout
-        * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
-        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} the api result
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2309,17 +2414,17 @@ public partial class bitmex : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchLeverages
-        * @description fetch the set leverage for all contract markets
-        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-        * @param {string[]} [symbols] a list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object leverages = await this.fetchPositions(symbols, parameters);
@@ -2338,17 +2443,17 @@ public partial class bitmex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchPositions
-        * @description fetch all open positions
-        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetPosition(parameters);
@@ -2604,20 +2709,20 @@ public partial class bitmex : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmex#withdraw
+     * @description make a withdrawal
+     * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#withdraw
-        * @description make a withdrawal
-        * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2636,6 +2741,10 @@ public partial class bitmex : Exchange
             { "address", address },
             { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
+        if (isTrue(!isEqual(this.twofa, null)))
+        {
+            ((IDictionary<string,object>)request)["otpToken"] = totp(this.twofa);
+        }
         object response = await this.privatePostUserRequestWithdrawal(this.extend(request, parameters));
         //
         //     {
@@ -2657,17 +2766,17 @@ public partial class bitmex : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchFundingRates
-        * @description fetch the funding rate for multiple markets
-        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetInstrumentActiveAndIndices(parameters);
@@ -2685,8 +2794,7 @@ public partial class bitmex : Exchange
             }
         }
         symbols = this.marketSymbols(symbols);
-        object result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2705,7 +2813,7 @@ public partial class bitmex : Exchange
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", this.iso8601(fundingDatetime) },
+            { "fundingTimestamp", this.parse8601(fundingDatetime) },
             { "fundingDatetime", fundingDatetime },
             { "nextFundingRate", this.safeNumber(contract, "indicativeFundingRate") },
             { "nextFundingTimestamp", null },
@@ -2713,27 +2821,28 @@ public partial class bitmex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchFundingRateHistory
+     * @description Fetches the history of funding rates
+     * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for ending date filter
+     * @param {bool} [params.reverse] if true, will sort results newest first
+     * @param {int} [params.start] starting point for results
+     * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
+     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchFundingRateHistory
-        * @description Fetches the history of funding rates
-        * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for ending date filter
-        * @param {bool} [params.reverse] if true, will sort results newest first
-        * @param {int} [params.start] starting point for results
-        * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
-        * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2813,18 +2922,18 @@ public partial class bitmex : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2847,18 +2956,18 @@ public partial class bitmex : Exchange
         return await this.privatePostPositionLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitmex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
-        * @param {string} marginMode 'cross' or 'isolated'
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2883,18 +2992,18 @@ public partial class bitmex : Exchange
         return await this.privatePostPositionIsolate(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object networkCode = null;
@@ -2916,11 +3025,11 @@ public partial class bitmex : Exchange
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", ((string)((string)response).Replace((string)"\"", (string)"")).Replace((string)"\"", (string)"") },
             { "tag", null },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 
@@ -2998,17 +3107,17 @@ public partial class bitmex : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object assets = await this.publicGetWalletAssets(parameters);
@@ -3062,21 +3171,21 @@ public partial class bitmex : Exchange
         return cost;
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchLiquidations
+     * @description retrieves the public liquidations of a trading pair
+     * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmex#fetchLiquidations
-        * @description retrieves the public liquidations of a trading pair
-        * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;

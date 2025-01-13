@@ -13,25 +13,30 @@ public partial class coinex : ccxt.coinex
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchBidsAsks", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
-                { "watchMyTrades", false },
+                { "watchTradesForSymbols", true },
+                { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
-                { "watchOHLCV", true },
-                { "fetchOHLCVWs", true },
+                { "watchOrderBookForSymbols", true },
+                { "watchOHLCV", false },
+                { "fetchOHLCVWs", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
-                        { "spot", "wss://socket.coinex.com/" },
-                        { "swap", "wss://perpetual.coinex.com/" },
+                        { "spot", "wss://socket.coinex.com/v2/spot/" },
+                        { "swap", "wss://socket.coinex.com/v2/futures/" },
                     } },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "watchOHLCVWarning", true },
+                { "ws", new Dictionary<string, object>() {
+                    { "gunzip", true },
+                } },
                 { "timeframes", new Dictionary<string, object>() {
                     { "1m", 60 },
                     { "3m", 180 },
@@ -51,20 +56,31 @@ public partial class coinex : ccxt.coinex
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "limits", new List<object>() {5, 10, 20, 50} },
                     { "defaultLimit", 50 },
-                    { "aggregations", new List<object>() {"10", "1", "0", "0.1", "0.01"} },
+                    { "aggregations", new List<object>() {"1000", "100", "10", "1", "0", "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001", "0.00000001", "0.000000001", "0.0000000001", "0.00000000001"} },
                     { "defaultAggregation", "0" },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
-                { "codes", new Dictionary<string, object>() {
-                    { "1", typeof(BadRequest) },
-                    { "2", typeof(ExchangeError) },
-                    { "3", typeof(ExchangeNotAvailable) },
-                    { "4", typeof(NotSupported) },
-                    { "5", typeof(RequestTimeout) },
-                    { "6", typeof(AuthenticationError) },
+                { "exact", new Dictionary<string, object>() {
+                    { "20001", typeof(BadRequest) },
+                    { "20002", typeof(NotSupported) },
+                    { "21001", typeof(AuthenticationError) },
+                    { "21002", typeof(AuthenticationError) },
+                    { "23001", typeof(RequestTimeout) },
+                    { "23002", typeof(RateLimitExceeded) },
+                    { "24001", typeof(ExchangeError) },
+                    { "24002", typeof(ExchangeNotAvailable) },
+                    { "30001", typeof(BadRequest) },
+                    { "30002", typeof(NotSupported) },
+                    { "31001", typeof(AuthenticationError) },
+                    { "31002", typeof(AuthenticationError) },
+                    { "33001", typeof(RequestTimeout) },
+                    { "33002", typeof(RateLimitExceeded) },
+                    { "34001", typeof(ExchangeError) },
+                    { "34002", typeof(ExchangeNotAvailable) },
                 } },
+                { "broad", new Dictionary<string, object>() {} },
             } },
         });
     }
@@ -83,62 +99,67 @@ public partial class coinex : ccxt.coinex
         //
         //     {
         //         "method": "state.update",
-        //         "params": [{
-        //             "BTCUSDT": {
-        //                 "last": "31577.89",
-        //                 "open": "29318.36",
-        //                 "close": "31577.89",
-        //                 "high": "32222.19",
-        //                 "low": "29317.21",
-        //                 "volume": "630.43024965",
-        //                 "sell_total": "13.66143951",
-        //                 "buy_total": "2.76410939",
-        //                 "period": 86400,
-        //                 "deal": "19457487.84611409070000000000"
-        //             }
-        //         }]
+        //         "data": {
+        //             "state_list": [
+        //                 {
+        //                     "market": "LATUSDT",
+        //                     "last": "0.008157",
+        //                     "open": "0.008286",
+        //                     "close": "0.008157",
+        //                     "high": "0.008390",
+        //                     "low": "0.008106",
+        //                     "volume": "807714.49139758",
+        //                     "volume_sell": "286170.69645599",
+        //                     "volume_buy": "266161.23236408",
+        //                     "value": "6689.21644207",
+        //                     "period": 86400
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
         //     }
         //
         //  swap
         //
         //     {
         //         "method": "state.update",
-        //         "params": [{
-        //             "BTCUSDT": {
-        //                 "period": 86400,
-        //                 "funding_time": 422,
-        //                 "position_amount": "285.6246",
-        //                 "funding_rate_last": "-0.00097933",
-        //                 "funding_rate_next": "0.00022519",
-        //                 "funding_rate_predict": "0.00075190",
-        //                 "insurance": "17474289.49925859030905338270",
-        //                 "last": "31570.08",
-        //                 "sign_price": "31568.09",
-        //                 "index_price": "31561.85000000",
-        //                 "open": "29296.11",
-        //                 "close": "31570.08",
-        //                 "high": "32463.40",
-        //                 "low": "29296.11",
-        //                 "volume": "8774.7318",
-        //                 "deal": "270675177.827928219109030017258398",
-        //                 "sell_total": "19.2230",
-        //                 "buy_total": "25.7814"
-        //             }
-        //         }]
+        //         "data": {
+        //             "state_list": [
+        //                 {
+        //                     "market": "ETHUSD_SIGNPRICE",
+        //                     "last": "1892.29",
+        //                     "open": "1884.62",
+        //                     "close": "1892.29",
+        //                     "high": "1894.09",
+        //                     "low": "1863.72",
+        //                     "volume": "0",
+        //                     "value": "0",
+        //                     "volume_sell": "0",
+        //                     "volume_buy": "0",
+        //                     "open_interest_size": "0",
+        //                     "insurance_fund_size": "0",
+        //                     "latest_funding_rate": "0",
+        //                     "next_funding_rate": "0",
+        //                     "latest_funding_time": 0,
+        //                     "next_funding_time": 0,
+        //                     "period": 86400
+        //                 },
+        //             ]
+        //         ],
+        //         "id": null
         //     }
         //
         object defaultType = this.safeString(this.options, "defaultType");
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object rawTickers = this.safeValue(parameters, 0, new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)rawTickers).Keys);
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object rawTickers = this.safeList(data, "state_list", new List<object>() {});
         object newTickers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object marketId = getValue(keys, i);
-            object rawTicker = getValue(rawTickers, marketId);
+            object entry = getValue(rawTickers, i);
+            object marketId = this.safeString(entry, "market");
             object symbol = this.safeSymbol(marketId, null, null, defaultType);
             object market = this.safeMarket(marketId, null, null, defaultType);
-            object parsedTicker = this.parseWSTicker(rawTicker, market);
+            object parsedTicker = this.parseWSTicker(entry, market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
             ((IList<object>)newTickers).Add(parsedTicker);
         }
@@ -166,52 +187,53 @@ public partial class coinex : ccxt.coinex
         //  spot
         //
         //     {
-        //         "last": "31577.89",
-        //         "open": "29318.36",
-        //         "close": "31577.89",
-        //         "high": "32222.19",
-        //         "low": "29317.21",
-        //         "volume": "630.43024965",
-        //         "sell_total": "13.66143951",
-        //         "buy_total": "2.76410939",
-        //         "period": 86400,
-        //         "deal": "19457487.84611409070000000000"
+        //         "market": "LATUSDT",
+        //         "last": "0.008157",
+        //         "open": "0.008286",
+        //         "close": "0.008157",
+        //         "high": "0.008390",
+        //         "low": "0.008106",
+        //         "volume": "807714.49139758",
+        //         "volume_sell": "286170.69645599",
+        //         "volume_buy": "266161.23236408",
+        //         "value": "6689.21644207",
+        //         "period": 86400
         //     }
         //
         //  swap
         //
         //     {
-        //         "period": 86400,
-        //         "funding_time": 422,
-        //         "position_amount": "285.6246",
-        //         "funding_rate_last": "-0.00097933",
-        //         "funding_rate_next": "0.00022519",
-        //         "funding_rate_predict": "0.00075190",
-        //         "insurance": "17474289.49925859030905338270",
-        //         "last": "31570.08",
-        //         "sign_price": "31568.09",
-        //         "index_price": "31561.85000000",
-        //         "open": "29296.11",
-        //         "close": "31570.08",
-        //         "high": "32463.40",
-        //         "low": "29296.11",
-        //         "volume": "8774.7318",
-        //         "deal": "270675177.827928219109030017258398",
-        //         "sell_total": "19.2230",
-        //         "buy_total": "25.7814"
+        //         "market": "ETHUSD_SIGNPRICE",
+        //         "last": "1892.29",
+        //         "open": "1884.62",
+        //         "close": "1892.29",
+        //         "high": "1894.09",
+        //         "low": "1863.72",
+        //         "volume": "0",
+        //         "value": "0",
+        //         "volume_sell": "0",
+        //         "volume_buy": "0",
+        //         "open_interest_size": "0",
+        //         "insurance_fund_size": "0",
+        //         "latest_funding_rate": "0",
+        //         "next_funding_rate": "0",
+        //         "latest_funding_time": 0,
+        //         "next_funding_time": 0,
+        //         "period": 86400
         //     }
         //
         object defaultType = this.safeString(this.options, "defaultType");
+        object marketId = this.safeString(ticker, "market");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(null, market, null, defaultType) },
+            { "symbol", this.safeSymbol(marketId, market, null, defaultType) },
             { "timestamp", null },
             { "datetime", null },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
             { "bid", null },
-            { "bidVolume", this.safeString(ticker, "buy_total") },
+            { "bidVolume", this.safeString(ticker, "volume_buy") },
             { "ask", null },
-            { "askVolume", this.safeString(ticker, "sell_total") },
+            { "askVolume", this.safeString(ticker, "volume_sell") },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
             { "close", this.safeString(ticker, "close") },
@@ -221,33 +243,48 @@ public partial class coinex : ccxt.coinex
             { "percentage", null },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
-            { "quoteVolume", this.safeString(ticker, "deal") },
+            { "quoteVolume", this.safeString(ticker, "value") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+     * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinex#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        await this.authenticate(parameters);
-        object messageHash = "balance";
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, "spot");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         object currencies = new List<object>(((IDictionary<string,object>)this.currencies_by_id).Keys);
+        if (isTrue(isEqual(currencies, null)))
+        {
+            currencies = new List<object>() {};
+        }
+        object messageHash = "balances";
+        if (isTrue(isEqual(type, "spot")))
+        {
+            messageHash = add(messageHash, ":spot");
+        } else
+        {
+            messageHash = add(messageHash, ":swap");
+        }
         object subscribe = new Dictionary<string, object>() {
-            { "method", "asset.subscribe" },
-            { "params", currencies },
+            { "method", "balance.subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "ccy_list", currencies },
+            } },
             { "id", this.requestId() },
         };
         object request = this.deepExtend(subscribe, parameters);
@@ -257,61 +294,287 @@ public partial class coinex : ccxt.coinex
     public virtual void handleBalance(WebSocketClient client, object message)
     {
         //
+        // spot
+        //
         //     {
-        //         "method": "asset.update",
-        //         "params": [
-        //             {
-        //                 "BTC": {
-        //                     "available": "250",
-        //                     "frozen": "10",
-        //                 }
-        //             }
-        //         ],
+        //         "method": "balance.update",
+        //         "data": {
+        //             "balance_list": [
+        //                 {
+        //                     "margin_market": "BTCUSDT",
+        //                     "ccy": "BTC",
+        //                     "available": "44.62207740",
+        //                     "frozen": "0.00000000",
+        //                     "updated_at": 1689152421692
+        //                 },
+        //             ]
+        //         },
         //         "id": null
         //     }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object first = this.safeValue(parameters, 0, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)this.balance)["info"] = first;
-        object currencies = new List<object>(((IDictionary<string,object>)first).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        // swap
+        //
+        //     {
+        //         "method": "balance.update",
+        //         "data": {
+        //             "balance_list": [
+        //                 {
+        //                     "ccy": "USDT",
+        //                     "available": "97.92470982756335000001",
+        //                     "frozen": "0.00000000000000000000",
+        //                     "margin": "0.61442700000000000000",
+        //                     "transferrable": "97.92470982756335000001",
+        //                     "unrealized_pnl": "-0.00807000000000000000",
+        //                     "equity": "97.92470982756335000001"
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
+        //     }
+        //
+        if (isTrue(isEqual(this.balance, null)))
         {
-            object currencyId = getValue(currencies, i);
-            object code = this.safeCurrencyCode(currencyId);
-            object available = this.safeString(getValue(first, currencyId), "available");
-            object frozen = this.safeString(getValue(first, currencyId), "frozen");
-            object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = available;
-            ((IDictionary<string,object>)account)["used"] = frozen;
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
-            this.balance = this.safeBalance(this.balance);
+            this.balance = new Dictionary<string, object>() {};
         }
-        object messageHash = "balance";
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object balances = this.safeList(data, "balance_list", new List<object>() {});
+        object firstEntry = getValue(balances, 0);
+        object updated = this.safeInteger(firstEntry, "updated_at");
+        object unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
+        object isSpot = (!isEqual(updated, null));
+        object isSwap = (!isEqual(unrealizedPnl, null));
+        object info = null;
+        object account = null;
+        object rawBalances = new List<object>() {};
+        if (isTrue(isSpot))
+        {
+            account = "spot";
+            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            {
+                rawBalances = this.arrayConcat(rawBalances, balances);
+            }
+            info = rawBalances;
+        }
+        if (isTrue(isSwap))
+        {
+            account = "swap";
+            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            {
+                rawBalances = this.arrayConcat(rawBalances, balances);
+            }
+            info = rawBalances;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawBalances)); postFixIncrement(ref i))
+        {
+            object entry = getValue(rawBalances, i);
+            this.parseWsBalance(entry, account);
+        }
+        object messageHash = null;
+        if (isTrue(!isEqual(account, null)))
+        {
+            if (isTrue(isEqual(this.safeValue(this.balance, account), null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
+            }
+            ((IDictionary<string,object>)getValue(this.balance, account))["info"] = info;
+            ((IDictionary<string,object>)this.balance)[(string)account] = this.safeBalance(getValue(this.balance, account));
+            messageHash = add("balances:", account);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, account), messageHash});
+        }
+    }
+
+    public virtual void parseWsBalance(object balance, object accountType = null)
+    {
+        //
+        // spot
+        //
+        //     {
+        //         "margin_market": "BTCUSDT",
+        //         "ccy": "BTC",
+        //         "available": "44.62207740",
+        //         "frozen": "0.00000000",
+        //         "updated_at": 1689152421692
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "ccy": "USDT",
+        //         "available": "97.92470982756335000001",
+        //         "frozen": "0.00000000000000000000",
+        //         "margin": "0.61442700000000000000",
+        //         "transferrable": "97.92470982756335000001",
+        //         "unrealized_pnl": "-0.00807000000000000000",
+        //         "equity": "97.92470982756335000001"
+        //     }
+        //
+        object account = this.account();
+        object currencyId = this.safeString(balance, "ccy");
+        object code = this.safeCurrencyCode(currencyId);
+        ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
+        ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
+        if (isTrue(!isEqual(accountType, null)))
+        {
+            if (isTrue(isEqual(this.safeValue(this.balance, accountType), null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
+            }
+            ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+        } else
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
+    }
+
+    /**
+     * @method
+     * @name coinex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
+     * @see https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+     * @param {string} [symbol] unified symbol of the market the trades were made in
+     * @param {int} [since] the earliest time in ms to watch trades
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object subscribedSymbols = new List<object>() {};
+        object messageHash = "myTrades";
+        if (isTrue(!isEqual(market, null)))
+        {
+            messageHash = add(messageHash, add(":", symbol));
+            ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
+        } else
+        {
+            if (isTrue(isEqual(type, "spot")))
+            {
+                messageHash = add(messageHash, ":spot");
+            } else
+            {
+                messageHash = add(messageHash, ":swap");
+            }
+        }
+        object message = new Dictionary<string, object>() {
+            { "method", "user_deals.subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", subscribedSymbols },
+            } },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        object trades = await this.watch(url, messageHash, request, messageHash);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+
+    public virtual void handleMyTrades(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "method": "user_deals.update",
+        //         "data": {
+        //             "deal_id": 3514376759,
+        //             "created_at": 1689152421692,
+        //             "market": "BTCUSDT",
+        //             "side": "buy",
+        //             "order_id": 8678890,
+        //             "margin_market": "BTCUSDT",
+        //             "price": "30718.42",
+        //             "amount": "0.00000325",
+        //             "role": "taker",
+        //             "fee": "0.0299",
+        //             "fee_ccy": "USDT"
+        //         },
+        //         "id": null
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object marketId = this.safeString(data, "market");
+        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        object market = this.safeMarket(marketId, null, null, defaultType);
+        object symbol = getValue(market, "symbol");
+        object messageHash = add("myTrades:", symbol);
+        object messageWithType = add("myTrades:", getValue(market, "type"));
+        object stored = this.safeValue(this.trades, symbol);
+        if (isTrue(isEqual(stored, null)))
+        {
+            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            stored = new ArrayCache(limit);
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        }
+        object parsed = this.parseWsTrade(data, market);
+        callDynamically(stored, "append", new object[] {parsed});
+        ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageWithType});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
+        // spot
+        //
         //     {
         //         "method": "deals.update",
-        //         "params": [
-        //             "BTCUSD",
-        //             [{
-        //                 "type": "sell",
-        //                 "time": 1496458040.059284,
-        //                 "price ": "46444.74",
-        //                 "id": 29433,
-        //                 "amount": "0.00120000"
-        //             }]
-        //         ],
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "deal_list": [
+        //                 {
+        //                     "deal_id": 3514376759,
+        //                     "created_at": 1689152421692,
+        //                     "side": "buy",
+        //                     "price": "30718.42",
+        //                     "amount": "0.00000325"
+        //                 },
+        //             ]
+        //         },
         //         "id": null
         //     }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object marketId = this.safeString(parameters, 0);
-        object trades = this.safeValue(parameters, 1, new List<object>() {});
-        object defaultType = this.safeString(this.options, "defaultType");
+        // swap
+        //
+        //     {
+        //         "method": "deals.update",
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "deal_list": [
+        //                 {
+        //                     "deal_id": 3514376759,
+        //                     "created_at": 1689152421692,
+        //                     "side": "buy",
+        //                     "price": "30718.42",
+        //                     "amount": "0.00000325"
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "deal_list", new List<object>() {});
+        object marketId = this.safeString(data, "market");
+        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trades:", symbol);
@@ -335,348 +598,313 @@ public partial class coinex : ccxt.coinex
     public override object parseWsTrade(object trade, object market = null)
     {
         //
+        // spot watchTrades
+        //
         //     {
-        //         "type": "sell",
-        //         "time": 1496458040.059284,
-        //         "price ": "46444.74",
-        //         "id": 29433,
-        //         "amount": "0.00120000"
+        //         "deal_id": 3514376759,
+        //         "created_at": 1689152421692,
+        //         "side": "buy",
+        //         "price": "30718.42",
+        //         "amount": "0.00000325"
         //     }
         //
-        object timestamp = this.safeTimestamp(trade, "time");
-        object defaultType = this.safeString(this.options, "defaultType");
+        // swap watchTrades
+        //
+        //     {
+        //         "deal_id": 3514376759,
+        //         "created_at": 1689152421692,
+        //         "side": "buy",
+        //         "price": "30718.42",
+        //         "amount": "0.00000325"
+        //     }
+        //
+        // spot and swap watchMyTrades
+        //
+        //     {
+        //         "deal_id": 3514376759,
+        //         "created_at": 1689152421692,
+        //         "market": "BTCUSDT",
+        //         "side": "buy",
+        //         "order_id": 8678890,
+        //         "margin_market": "BTCUSDT",
+        //         "price": "30718.42",
+        //         "amount": "0.00000325",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
+        //     }
+        //
+        object timestamp = this.safeInteger(trade, "created_at");
+        object isSpot = (inOp(trade, "margin_market"));
+        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        object marketId = this.safeString(trade, "market");
+        market = this.safeMarket(marketId, market, null, defaultType);
+        object fee = new Dictionary<string, object>() {};
+        object feeCost = this.omitZero(this.safeString(trade, "fee"));
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "fee_ccy", getValue(market, "quote"));
+            fee = new Dictionary<string, object>() {
+                { "currency", this.safeCurrencyCode(feeCurrencyId) },
+                { "cost", feeCost },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeString(trade, "id") },
+            { "id", this.safeString(trade, "deal_id") },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", this.safeSymbol(null, market, null, defaultType) },
-            { "order", null },
+            { "symbol", this.safeSymbol(marketId, market, null, defaultType) },
+            { "order", this.safeString(trade, "order_id") },
             { "type", null },
-            { "side", this.safeString(trade, "type") },
-            { "takerOrMaker", null },
+            { "side", this.safeString(trade, "side") },
+            { "takerOrMaker", this.safeString(trade, "role") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "amount") },
             { "cost", null },
-            { "fee", null },
+            { "fee", fee },
         }, market);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
-    {
-        //
-        //  spot
-        //     {
-        //         "error": null,
-        //         "result": [
-        //           [
-        //             1673846940,
-        //             "21148.74",
-        //             "21148.38",
-        //             "21148.75",
-        //             "21138.66",
-        //             "1.57060173",
-        //             "33214.9138778914"
-        //           ],
-        //         ]
-        //         "id": 1,
-        //     }
-        //  swap
-        //     {
-        //         "method": "kline.update",
-        //         "params": [
-        //             [
-        //                 1654019640,   // timestamp
-        //                 "32061.99",   // open
-        //                 "32061.28",   // close
-        //                 "32061.99",   // high
-        //                 "32061.28",   // low
-        //                 "0.1285",     // amount base
-        //                 "4119.943736" // amount quote
-        //             ]
-        //         ],
-        //         "id": null
-        //     }
-        //
-        object candles = this.safeValue2(message, "params", "result", new List<object>() {});
-        object messageHash = "ohlcv";
-        object id = this.safeString(message, "id");
-        object ohlcvs = this.parseOHLCVs(candles);
-        if (isTrue(!isEqual(id, null)))
-        {
-            // spot subscription response
-            callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcvs, messageHash});
-            return;
-        }
-        object keys = new List<object>(((IDictionary<string,object>)this.ohlcvs).Keys);
-        object keysLength = getArrayLength(keys);
-        if (isTrue(isEqual(keysLength, 0)))
-        {
-            ((IDictionary<string,object>)this.ohlcvs)["unknown"] = new Dictionary<string, object>() {};
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, "unknown"))["unknown"] = stored;
-        }
-        object ohlcv = getValue(getValue(this.ohlcvs, "unknown"), "unknown");
-        for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
-        {
-            object candle = getValue(ohlcvs, i);
-            callDynamically(ohlcv, "append", new object[] {candle});
-        }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
-    }
-
+    /**
+     * @method
+     * @name coinex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinex#watchTicker
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
-        return this.safeValue(tickers, symbol);
-    }
-
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name coinex#watchTickers
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        object market = this.market(symbol);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, getValue(market, "symbol"));
+    }
+
+    /**
+     * @method
+     * @name coinex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object marketIds = this.marketIds(symbols);
+        object market = null;
+        object messageHashes = new List<object>() {};
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                market = this.market(symbol);
+                ((IList<object>)messageHashes).Add(add("tickers::", getValue(market, "symbol")));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add("tickers");
+        }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", null, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object messageHash = "tickers";
-        if (isTrue(!isEqual(symbols, null)))
-        {
-            messageHash = add("tickers::", String.Join(",", ((IList<object>)symbols).ToArray()));
-        }
+        object subscriptionHashes = new List<object>() {"all@ticker"};
         object subscribe = new Dictionary<string, object>() {
             { "method", "state.subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", marketIds },
+            } },
             { "id", this.requestId() },
-            { "params", new List<object>() {} },
         };
-        object request = this.deepExtend(subscribe, parameters);
-        object newTickers = await this.watch(url, messageHash, request, messageHash);
+        object result = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name coinex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinex#watchTrades
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTrades";
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    /**
+     * @method
+     * @name coinex#watchTradesForSymbols
+     * @description watch the most recent trades for a list of symbols
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
+        object subscribedSymbols = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        object market = null;
+        object callerMethodName = null;
+        var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
+        callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
+        parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                market = this.market(symbol);
+                ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
+                ((IList<object>)messageHashes).Add(add("trades:", getValue(market, "symbol")));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add("trades");
+        }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object messageHash = add("trades:", symbol);
-        object subscriptionHash = "trades";
-        object subscribedSymbols = this.safeValue(this.options, "watchTradesSubscriptions", new List<object>() {});
-        ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
-        object message = new Dictionary<string, object>() {
+        object subscriptionHashes = new List<object>() {"trades"};
+        object subscribe = new Dictionary<string, object>() {
             { "method", "deals.subscribe" },
-            { "params", subscribedSymbols },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", subscribedSymbols },
+            } },
             { "id", this.requestId() },
         };
-        ((IDictionary<string,object>)this.options)["watchTradesSubscriptions"] = subscribedSymbols;
-        object request = this.deepExtend(message, parameters);
-        object trades = await this.watch(url, messageHash, request, subscriptionHash);
+        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            return trades;
+        }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name coinex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinex#watchOrderBook
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object watchOrderBookSubscriptions = new Dictionary<string, object>() {};
+        object messageHashes = new List<object>() {};
+        object market = null;
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrderBook", market, parameters);
+        object callerMethodName = null;
+        var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
+        callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
+        parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
+        var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object name = "orderbook";
-        object messageHash = add(add(name, ":"), symbol);
-        object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        object limits = this.safeValue(options, "limits", new List<object>() {});
+        object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        object limits = this.safeList(options, "limits", new List<object>() {});
         if (isTrue(isEqual(limit, null)))
         {
-            limit = this.safeValue(options, "defaultLimit", 50);
+            limit = this.safeInteger(options, "defaultLimit", 50);
         }
         if (!isTrue(this.inArray(limit, limits)))
         {
-            throw new NotSupported ((string)add(add(this.id, " watchOrderBook() limit must be one of "), String.Join(", ", ((IList<object>)limits).ToArray()))) ;
+            throw new NotSupported ((string)add(add(this.id, " watchOrderBookForSymbols() limit must be one of "), String.Join(", ", ((IList<object>)limits).ToArray()))) ;
         }
         object defaultAggregation = this.safeString(options, "defaultAggregation", "0");
-        object aggregations = this.safeValue(options, "aggregations", new List<object>() {});
+        object aggregations = this.safeList(options, "aggregations", new List<object>() {});
         object aggregation = this.safeString(parameters, "aggregation", defaultAggregation);
         if (!isTrue(this.inArray(aggregation, aggregations)))
         {
-            throw new NotSupported ((string)add(add(this.id, " watchOrderBook() aggregation must be one of "), String.Join(", ", ((IList<object>)aggregations).ToArray()))) ;
+            throw new NotSupported ((string)add(add(this.id, " watchOrderBookForSymbols() aggregation must be one of "), String.Join(", ", ((IList<object>)aggregations).ToArray()))) ;
         }
         parameters = this.omit(parameters, "aggregation");
-        object watchOrderBookSubscriptions = this.safeValue(this.options, "watchOrderBookSubscriptions", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {getValue(market, "id"), limit, aggregation, true};
-        object subscribe = new Dictionary<string, object>() {
-            { "method", "depth.subscribe_multi" },
-            { "id", this.requestId() },
-            { "params", new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values) },
-        };
-        ((IDictionary<string,object>)this.options)["watchOrderBookSubscriptions"] = watchOrderBookSubscriptions;
-        object subscriptionHash = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256);
-        object request = this.deepExtend(subscribe, parameters);
-        object orderbook = await this.watch(url, messageHash, request, subscriptionHash, request);
-        return (orderbook as IOrderBook).limit();
-    }
-
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name coinex#watchOHLCV
-        * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
-        timeframe ??= "1m";
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOHLCV", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(!isEqual(type, "swap")))
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
         {
-            throw new NotSupported ((string)add(this.id, " watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead")) ;
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                market = this.market(symbol);
+                ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
+                ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {getValue(market, "id"), limit, aggregation, true};
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add("orderbook");
         }
+        object marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
+        object subscribe = new Dictionary<string, object>() {
+            { "method", "depth.subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", marketList },
+            } },
+            { "id", this.requestId() },
+        };
+        object subscriptionHashes = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object messageHash = "ohlcv";
-        object watchOHLCVWarning = this.safeBool(this.options, "watchOHLCVWarning", true);
-        var client = this.safeValue(this.clients, url, new Dictionary<string, object>() {});
-        object clientSub = this.safeValue(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
-        object existingSubscription = this.safeValue(clientSub, messageHash);
-        object subSymbol = this.safeString(existingSubscription, "symbol");
-        object subTimeframe = this.safeString(existingSubscription, "timeframe");
-        // due to nature of coinex response can only watch one symbol at a time
-        if (isTrue(isTrue(isTrue(watchOHLCVWarning) && isTrue(!isEqual(existingSubscription, null))) && isTrue((isTrue(!isEqual(subSymbol, symbol)) || isTrue(!isEqual(subTimeframe, timeframe))))))
-        {
-            throw new ExchangeError ((string)add(this.id, " watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options")) ;
-        }
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object subscribe = new Dictionary<string, object>() {
-            { "method", "kline.subscribe" },
-            { "id", this.requestId() },
-            { "params", new List<object>() {getValue(market, "id"), this.safeInteger(timeframes, timeframe)} },
-        };
-        object subscription = new Dictionary<string, object>() {
-            { "symbol", symbol },
-            { "timeframe", timeframe },
-        };
-        object request = this.deepExtend(subscribe, parameters);
-        object ohlcvs = await this.watch(url, messageHash, request, messageHash, subscription);
+        object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcvs, "getLimit", new object[] {symbol, limit});
+            return orderbooks;
         }
-        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
+        return (orderbooks as IOrderBook).limit();
     }
 
-    public async override Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    /**
+     * @method
+     * @name coinex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinex#fetchOHLCV
-        * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
-        * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to query OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-        * @param {int|undefined} limit the maximum amount of candles to fetch
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
-        timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        var typequeryVariable = this.handleMarketTypeAndParams("fetchOHLCV", market, parameters);
-        var type = ((IList<object>) typequeryVariable)[0];
-        var query = ((IList<object>) typequeryVariable)[1];
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        symbol = getValue(market, "symbol");
-        object messageHash = "ohlcv";
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        timeframe = this.safeString(timeframes, timeframe, timeframe);
-        if (isTrue(isEqual(since, null)))
-        {
-            since = 1640995200; // January 1, 2022
-        }
-        object id = this.requestId();
-        object subscribe = new Dictionary<string, object>() {
-            { "method", "kline.query" },
-            { "params", new List<object>() {getValue(market, "id"), this.parseToInt(divide(since, 1000)), this.safeInteger(parameters, "end", this.seconds()), this.parseToInt(timeframe)} },
-            { "id", id },
-        };
-        object subscription = new Dictionary<string, object>() {
-            { "id", id },
-            { "future", messageHash },
-        };
-        object subscriptionHash = id;
-        object request = this.deepExtend(subscribe, query);
-        object ohlcvs = await this.watch(url, messageHash, request, subscriptionHash, subscription);
-        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrderBook";
+        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -698,54 +926,56 @@ public partial class coinex : ccxt.coinex
         //
         //     {
         //         "method": "depth.update",
-        //         "params": [
-        //             false,
-        //             {
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "is_full": true,
+        //             "depth": {
         //                 "asks": [
-        //                     ["46350.52", "1.07871851"],
-        //                     ...
+        //                     [
+        //                         "30740.00",
+        //                         "0.31763545"
+        //                     ],
         //                 ],
         //                 "bids": [
-        //                     ["46349.61", "0.04000000"],
-        //                     ...
+        //                     [
+        //                         "30736.00",
+        //                         "0.04857373"
+        //                     ],
         //                 ],
-        //                 "last": "46349.93",
-        //                 "time": 1639987469166,
-        //                 "checksum": 1533284725
-        //             },
-        //             "BTCUSDT"
-        //         ],
+        //                 "last": "30746.28",
+        //                 "updated_at": 1689152421692,
+        //                 "checksum": 2578768879
+        //             }
+        //         },
         //         "id": null
         //     }
         //
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "perpetual"), 0);
-        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object fullOrderBook = this.safeValue(parameters, 0);
-        object orderbook = this.safeValue(parameters, 1);
-        object marketId = this.safeString(parameters, 2);
-        object market = this.safeMarket(marketId, null, null, marketType);
+        object defaultType = this.safeString(this.options, "defaultType");
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
+        object marketId = this.safeString(data, "market");
+        object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
         object name = "orderbook";
         object messageHash = add(add(name, ":"), symbol);
-        object timestamp = this.safeInteger(orderbook, "time");
+        object timestamp = this.safeInteger(depth, "updated_at");
         object currentOrderBook = this.safeValue(this.orderbooks, symbol);
+        object fullOrderBook = this.safeBool(data, "is_full", false);
         if (isTrue(fullOrderBook))
         {
-            object snapshot = this.parseOrderBook(orderbook, symbol, timestamp);
+            object snapshot = this.parseOrderBook(depth, symbol, timestamp);
             if (isTrue(isEqual(currentOrderBook, null)))
             {
-                orderbook = this.orderBook(snapshot);
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(snapshot);
             } else
             {
-                orderbook = getValue(this.orderbooks, symbol);
+                object orderbook = getValue(this.orderbooks, symbol);
                 (orderbook as IOrderBook).reset(snapshot);
             }
         } else
         {
-            object asks = this.safeValue(orderbook, "asks", new List<object>() {});
-            object bids = this.safeValue(orderbook, "bids", new List<object>() {});
+            object asks = this.safeList(depth, "asks", new List<object>() {});
+            object bids = this.safeList(depth, "bids", new List<object>() {});
             this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
             this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
             ((IDictionary<string,object>)currentOrderBook)["nonce"] = timestamp;
@@ -757,32 +987,70 @@ public partial class coinex : ccxt.coinex
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }
 
+    /**
+     * @method
+     * @name coinex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.coinex.com/api/v2/spot/order/ws/user-order
+     * @see https://docs.coinex.com/api/v2/futures/order/ws/user-order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        await this.authenticate(parameters);
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object messageHash = "orders";
         object market = null;
-        var typequeryVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        var type = ((IList<object>) typequeryVariable)[0];
-        var query = ((IList<object>) typequeryVariable)[1];
-        object message = new Dictionary<string, object>() {
-            { "method", "order.subscribe" },
-            { "id", this.requestId() },
-        };
+        object marketList = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            ((IDictionary<string,object>)message)["params"] = new List<object>() {getValue(market, "id")};
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        await this.authenticate(type);
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            marketList = new List<object>() {getValue(market, "id")};
             messageHash = add(messageHash, add(":", symbol));
         } else
         {
-            ((IDictionary<string,object>)message)["params"] = new List<object>() {};
+            marketList = new List<object>() {};
+            if (isTrue(isEqual(type, "spot")))
+            {
+                messageHash = add(messageHash, ":spot");
+            } else
+            {
+                messageHash = add(messageHash, ":swap");
+            }
         }
+        object method = null;
+        if (isTrue(trigger))
+        {
+            method = "stop.subscribe";
+        } else
+        {
+            method = "order.subscribe";
+        }
+        object message = new Dictionary<string, object>() {
+            { "method", method },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", marketList },
+            } },
+            { "id", this.requestId() },
+        };
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object request = this.deepExtend(message, query);
+        object request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
@@ -794,94 +1062,126 @@ public partial class coinex : ccxt.coinex
     public virtual void handleOrders(WebSocketClient client, object message)
     {
         //
-        //  spot
+        // spot
         //
-        //      {
-        //          "method": "order.update",
-        //          "params": [
-        //              1,
-        //              {
-        //                  "id": 77782469357,
-        //                  "type": 1,
-        //                  "side": 2,
-        //                  "user": 1849116,
-        //                  "account": 0,
-        //                  "option": 2,
-        //                  "ctime": 1653961043.048967,
-        //                  "mtime": 1653961043.048967,
-        //                  "market": "BTCUSDT",
-        //                  "source": "web",
-        //                  "client_id": '',
-        //                  "price": "1.00",
-        //                  "amount": "1.00000000",
-        //                  "taker_fee": "0.0020",
-        //                  "maker_fee": "0.0020",
-        //                  "left": "1.00000000",
-        //                  "deal_stock": "0",
-        //                  "deal_money": "0",
-        //                  "money_fee": "0",
-        //                  "stock_fee": "0",
-        //                  "asset_fee": "0",
-        //                  "fee_discount": "1",
-        //                  "last_deal_amount": "0",
-        //                  "last_deal_price": "0",
-        //                  "last_deal_time": 0,
-        //                  "last_deal_id": 0,
-        //                  "last_role": 0,
-        //                  "fee_asset": null,
-        //                  "stop_id": 0
-        //              }
-        //          ],
-        //          "id": null
-        //      }
+        //     {
+        //         "method": "order.update",
+        //         "data": {
+        //             "event": "put",
+        //             "order": {
+        //                 "order_id": 12750,
+        //                 "market": "BTCUSDT",
+        //                 "margin_market": "BTCUSDT",
+        //                 "type": "limit",
+        //                 "side": "buy",
+        //                 "price": "5999.00",
+        //                 "amount": "1.50000000",
+        //                 "unfill_amount": "1.50000000",
+        //                 "fill_value": "1.50000000",
+        //                 "taker_fee_rate": "0.0001",
+        //                 "maker_fee_rate": "0.0001",
+        //                 "base_ccy_fee": "0.0001",
+        //                 "quote_ccy_fee": "0.0001",
+        //                 "discount_ccy_fee": "0.0001",
+        //                 "last_fill_amount": "0",
+        //                 "last_fill_price": "0",
+        //                 "client_id": "buy1_1234",
+        //                 "created_at": 1689152421692,
+        //                 "updated_at": 1689152421692,
+        //             }
+        //         },
+        //         "id": null
+        //     }
         //
-        //  swap
+        // spot stop
         //
-        //      {
-        //          "method": "order.update",
-        //          "params": [
-        //              1,
-        //              {
-        //                  "order_id": 23423462821,
-        //                  "position_id": 0,
-        //                  "stop_id": 0,
-        //                  "market": "BTCUSDT",
-        //                  "type": 1,
-        //                  "side": 2,
-        //                  "target": 0,
-        //                  "effect_type": 1,
-        //                  "user_id": 1849116,
-        //                  "create_time": 1653961509.25049,
-        //                  "update_time": 1653961509.25049,
-        //                  "source": "web",
-        //                  "price": "1.00",
-        //                  "amount": "1.0000",
-        //                  "taker_fee": "0.00050",
-        //                  "maker_fee": "0.00030",
-        //                  "left": "1.0000",
-        //                  "deal_stock": "0.00000000000000000000",
-        //                  "deal_fee": "0.00000000000000000000",
-        //                  "deal_profit": "0.00000000000000000000",
-        //                  "last_deal_amount": "0.00000000000000000000",
-        //                  "last_deal_price": "0.00000000000000000000",
-        //                  "last_deal_time": 0,
-        //                  "last_deal_id": 0,
-        //                  "last_deal_type": 0,
-        //                  "last_deal_role": 0,
-        //                  "client_id": '',
-        //                  "fee_asset": '',
-        //                  "fee_discount": "0.00000000000000000000",
-        //                  "deal_asset_fee": "0.00000000000000000000",
-        //                  "leverage": "3",
-        //                  "position_type": 2
-        //              }
-        //          ],
-        //          "id": null
-        //      }
+        //     {
+        //         "method": "stop.update",
+        //         "data": {
+        //             "event": 1,
+        //             "stop": {
+        //                 "stop_id": 102067022299,
+        //                 "market": "BTCUSDT",
+        //                 "margin_market": "BTCUSDT",
+        //                 "type": "limit",
+        //                 "side": "buy",
+        //                 "price": "20000.00",
+        //                 "amount": "0.10000000",
+        //                 "trigger_price": "20000.00",
+        //                 "trigger_direction": "lower",
+        //                 "taker_fee_rate": "0.0016",
+        //                 "maker_fee_rate": "0.0016",
+        //                 "status": "active_success",
+        //                 "client_id": "",
+        //                 "created_at": 1689152996689,
+        //                 "updated_at": 1689152996689,
+        //             }
+        //         },
+        //         "id": null
+        //     }
         //
-        object parameters = this.safeValue(message, "params", new List<object>() {});
-        object order = this.safeValue(parameters, 1, new Dictionary<string, object>() {});
+        // swap
+        //
+        //     {
+        //         "method": "order.update",
+        //         "data": {
+        //             "event": "put",
+        //             "order": {
+        //                 "order_id": 98388656341,
+        //                 "stop_id": 0,
+        //                 "market": "BTCUSDT",
+        //                 "side": "buy",
+        //                 "type": "limit",
+        //                 "amount": "0.0010",
+        //                 "price": "50000.00",
+        //                 "unfilled_amount": "0.0010",
+        //                 "filled_amount": "0",
+        //                 "filled_value": "0",
+        //                 "fee": "0",
+        //                 "fee_ccy": "USDT",
+        //                 "taker_fee_rate": "0.00046",
+        //                 "maker_fee_rate": "0.00000000000000000000",
+        //                 "client_id": "",
+        //                 "last_filled_amount": "0.0010",
+        //                 "last_filled_price": "30721.35",
+        //                 "created_at": 1689145715129,
+        //                 "updated_at": 1689145715129
+        //             }
+        //         },
+        //         "id": null
+        //     }
+        //
+        // swap stop
+        //
+        //     {
+        //         "method": "stop.update",
+        //         "data": {
+        //             "event": "put",
+        //             "stop": {
+        //                 "stop_id": 98389557871,
+        //                 "market": "BTCUSDT",
+        //                 "side": "sell",
+        //                 "type": "limit",
+        //                 "price": "20000.00",
+        //                 "amount": "0.0100",
+        //                 "trigger_price": "20000.00",
+        //                 "trigger_direction": "higer",
+        //                 "trigger_price_type": "index_price",
+        //                 "taker_fee_rate": "0.00046",
+        //                 "maker_fee_rate": "0.00026",
+        //                 "client_id": "",
+        //                 "created_at": 1689146382674,
+        //                 "updated_at": 1689146382674
+        //             }
+        //         },
+        //         "id": null
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {});
         object parsedOrder = this.parseWsOrder(order);
+        object symbol = getValue(parsedOrder, "symbol");
+        object market = this.market(symbol);
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -890,142 +1190,113 @@ public partial class coinex : ccxt.coinex
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsedOrder});
         object messageHash = "orders";
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
-        messageHash = add(messageHash, add(":", getValue(parsedOrder, "symbol")));
+        object messageWithType = add(add(messageHash, ":"), getValue(market, "type"));
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageWithType});
+        messageHash = add(messageHash, add(":", symbol));
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
     }
 
     public override object parseWsOrder(object order, object market = null)
     {
         //
-        //  spot
+        // spot
         //
-        //       {
-        //           "id": 77782469357,
-        //           "type": 1,
-        //           "side": 2,
-        //           "user": 1849116,
-        //           "account": 0,
-        //           "option": 2,
-        //           "ctime": 1653961043.048967,
-        //           "mtime": 1653961043.048967,
-        //           "market": "BTCUSDT",
-        //           "source": "web",
-        //           "client_id": '',
-        //           "price": "1.00",
-        //           "amount": "1.00000000",
-        //           "taker_fee": "0.0020",
-        //           "maker_fee": "0.0020",
-        //           "left": "1.00000000",
-        //           "deal_stock": "0",
-        //           "deal_money": "0",
-        //           "money_fee": "0",
-        //           "stock_fee": "0",
-        //           "asset_fee": "0",
-        //           "fee_discount": "1",
-        //           "last_deal_amount": "0",
-        //           "last_deal_price": "0",
-        //           "last_deal_time": 0,
-        //           "last_deal_id": 0,
-        //           "last_role": 0,
-        //           "fee_asset": null,
-        //           "stop_id": 0
-        //       }
+        //     {
+        //         "order_id": 12750,
+        //         "market": "BTCUSDT",
+        //         "margin_market": "BTCUSDT",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": "5999.00",
+        //         "amount": "1.50000000",
+        //         "unfill_amount": "1.50000000",
+        //         "fill_value": "1.50000000",
+        //         "taker_fee_rate": "0.0001",
+        //         "maker_fee_rate": "0.0001",
+        //         "base_ccy_fee": "0.0001",
+        //         "quote_ccy_fee": "0.0001",
+        //         "discount_ccy_fee": "0.0001",
+        //         "last_fill_amount": "0",
+        //         "last_fill_price": "0",
+        //         "client_id": "buy1_1234",
+        //         "created_at": 1689152421692,
+        //         "updated_at": 1689152421692,
+        //     }
         //
-        //  swap
+        // spot stop
         //
-        //      {
-        //          "order_id": 23423462821,
-        //          "position_id": 0,
-        //          "stop_id": 0,
-        //          "market": "BTCUSDT",
-        //          "type": 1,
-        //          "side": 2,
-        //          "target": 0,
-        //          "effect_type": 1,
-        //          "user_id": 1849116,
-        //          "create_time": 1653961509.25049,
-        //          "update_time": 1653961509.25049,
-        //          "source": "web",
-        //          "price": "1.00",
-        //          "amount": "1.0000",
-        //          "taker_fee": "0.00050",
-        //          "maker_fee": "0.00030",
-        //          "left": "1.0000",
-        //          "deal_stock": "0.00000000000000000000",
-        //          "deal_fee": "0.00000000000000000000",
-        //          "deal_profit": "0.00000000000000000000",
-        //          "last_deal_amount": "0.00000000000000000000",
-        //          "last_deal_price": "0.00000000000000000000",
-        //          "last_deal_time": 0,
-        //          "last_deal_id": 0,
-        //          "last_deal_type": 0,
-        //          "last_deal_role": 0,
-        //          "client_id": '',
-        //          "fee_asset": '',
-        //          "fee_discount": "0.00000000000000000000",
-        //          "deal_asset_fee": "0.00000000000000000000",
-        //          "leverage": "3",
-        //          "position_type": 2
-        //      }
+        //     {
+        //         "stop_id": 102067022299,
+        //         "market": "BTCUSDT",
+        //         "margin_market": "BTCUSDT",
+        //         "type": "limit",
+        //         "side": "buy",
+        //         "price": "20000.00",
+        //         "amount": "0.10000000",
+        //         "trigger_price": "20000.00",
+        //         "trigger_direction": "lower",
+        //         "taker_fee_rate": "0.0016",
+        //         "maker_fee_rate": "0.0016",
+        //         "status": "active_success",
+        //         "client_id": "",
+        //         "created_at": 1689152996689,
+        //         "updated_at": 1689152996689,
+        //     }
         //
-        //  order.update_stop
+        // swap
         //
-        //       {
-        //           "id": 78006745870,
-        //           "type": 1,
-        //           "side": 2,
-        //           "user": 1849116,
-        //           "account": 1,
-        //           "option": 70,
-        //           "direction": 1,
-        //           "ctime": 1654171725.131976,
-        //           "mtime": 1654171725.131976,
-        //           "market": "BTCUSDT",
-        //           "source": "web",
-        //           "client_id": '',
-        //           "stop_price": "1.00",
-        //           "price": "1.00",
-        //           "amount": "1.00000000",
-        //           "taker_fee": "0.0020",
-        //           "maker_fee": "0.0020",
-        //           "fee_discount": "1",
-        //           "fee_asset": null,
-        //           "status": 0
-        //       }
+        //     {
+        //         "order_id": 98388656341,
+        //         "stop_id": 0,
+        //         "market": "BTCUSDT",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "amount": "0.0010",
+        //         "price": "50000.00",
+        //         "unfilled_amount": "0.0010",
+        //         "filled_amount": "0",
+        //         "filled_value": "0",
+        //         "fee": "0",
+        //         "fee_ccy": "USDT",
+        //         "taker_fee_rate": "0.00046",
+        //         "maker_fee_rate": "0.00000000000000000000",
+        //         "client_id": "",
+        //         "last_filled_amount": "0.0010",
+        //         "last_filled_price": "30721.35",
+        //         "created_at": 1689145715129,
+        //         "updated_at": 1689145715129
+        //     }
         //
-        object timestamp = this.safeTimestamp2(order, "update_time", "mtime");
+        // swap stop
+        //
+        //     {
+        //         "stop_id": 98389557871,
+        //         "market": "BTCUSDT",
+        //         "side": "sell",
+        //         "type": "limit",
+        //         "price": "20000.00",
+        //         "amount": "0.0100",
+        //         "trigger_price": "20000.00",
+        //         "trigger_direction": "higer",
+        //         "trigger_price_type": "index_price",
+        //         "taker_fee_rate": "0.00046",
+        //         "maker_fee_rate": "0.00026",
+        //         "client_id": "",
+        //         "created_at": 1689146382674,
+        //         "updated_at": 1689146382674
+        //     }
+        //
+        object timestamp = this.safeInteger(order, "created_at");
         object marketId = this.safeString(order, "market");
-        object typeCode = this.safeString(order, "type");
-        object type = this.safeString(new Dictionary<string, object>() {
-            { "1", "limit" },
-            { "2", "market" },
-        }, typeCode);
-        object sideCode = this.safeString(order, "side");
-        object side = this.safeString(new Dictionary<string, object>() {
-            { "1", "sell" },
-            { "2", "buy" },
-        }, sideCode);
-        object remaining = this.safeString(order, "left");
-        object amount = this.safeString(order, "amount");
         object status = this.safeString(order, "status");
-        object defaultType = this.safeString(this.options, "defaultType");
+        object isSpot = (inOp(order, "margin_market"));
+        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
-        object cost = this.safeString(order, "deal_money");
-        object filled = this.safeString(order, "deal_stock");
-        object average = null;
-        if (isTrue(getValue(market, "swap")))
-        {
-            object leverage = this.safeString(order, "leverage");
-            cost = Precise.stringDiv(filled, leverage);
-            average = Precise.stringDiv(filled, amount);
-            filled = null;
-        }
         object fee = null;
-        object feeCost = this.omitZero(this.safeString(order, "money_fee"));
+        object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurrencyId = this.safeString(order, "fee_asset", getValue(market, "quote"));
+            object feeCurrencyId = this.safeString(order, "fee_ccy", getValue(market, "quote"));
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
                 { "cost", feeCost },
@@ -1033,24 +1304,24 @@ public partial class coinex : ccxt.coinex
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
-            { "id", this.safeString2(order, "order_id", "id") },
+            { "id", this.safeString2(order, "order_id", "stop_id") },
             { "clientOrderId", this.safeString(order, "client_id") },
             { "datetime", this.iso8601(timestamp) },
             { "timestamp", timestamp },
-            { "lastTradeTimestamp", this.safeTimestamp(order, "last_deal_time") },
+            { "lastTradeTimestamp", this.safeInteger(order, "updated_at") },
             { "symbol", getValue(market, "symbol") },
-            { "type", type },
+            { "type", this.safeString(order, "type") },
             { "timeInForce", null },
             { "postOnly", null },
-            { "side", side },
+            { "side", this.safeString(order, "side") },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", this.safeString(order, "stop_price") },
-            { "triggerPrice", this.safeString(order, "stop_price") },
-            { "amount", amount },
-            { "filled", filled },
-            { "remaining", remaining },
-            { "cost", cost },
-            { "average", average },
+            { "stopPrice", this.safeString(order, "trigger_price") },
+            { "triggerPrice", this.safeString(order, "trigger_price") },
+            { "amount", this.safeString(order, "amount") },
+            { "filled", this.safeString2(order, "filled_amount", "fill_value") },
+            { "remaining", this.safeString2(order, "unfilled_amount", "unfill_amount") },
+            { "cost", null },
+            { "average", null },
             { "status", this.parseWsOrderStatus(status) },
             { "fee", fee },
             { "trades", null },
@@ -1060,28 +1331,133 @@ public partial class coinex : ccxt.coinex
     public virtual object parseWsOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
-            { "0", "pending" },
-            { "1", "ok" },
+            { "active_success", "open" },
+            { "active_fail", "canceled" },
+            { "cancel", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name coinex#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object marketIds = this.marketIds(symbols);
+        object messageHashes = new List<object>() {};
+        object market = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                market = this.market(symbol);
+                ((IList<object>)messageHashes).Add(add("bidsasks:", getValue(market, "symbol")));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add("bidsasks");
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object subscriptionHashes = new List<object>() {"all@bidsasks"};
+        object subscribe = new Dictionary<string, object>() {
+            { "method", "bbo.subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "market_list", marketIds },
+            } },
+            { "id", this.requestId() },
+        };
+        object result = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "method": "bbo.update",
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "updated_at": 1656660154,
+        //             "best_bid_price": "20000",
+        //             "best_bid_size": "0.1",
+        //             "best_ask_price": "20001",
+        //             "best_ask_size": "0.15"
+        //         },
+        //         "id": null
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object parsedTicker = this.parseWsBidAsk(data);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = add("bidsasks:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "updated_at": 1656660154,
+        //         "best_bid_price": "20000",
+        //         "best_bid_size": "0.1",
+        //         "best_ask_price": "20001",
+        //         "best_ask_size": "0.15"
+        //     }
+        //
+        object defaultType = this.safeString(this.options, "defaultType");
+        object marketId = this.safeString(ticker, "market");
+        market = this.safeMarket(marketId, market, null, defaultType);
+        object timestamp = this.safeInteger(ticker, "updated_at");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(marketId, market, null, defaultType) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(ticker, "best_ask_price") },
+            { "askVolume", this.safeNumber(ticker, "best_ask_size") },
+            { "bid", this.safeNumber(ticker, "best_bid_price") },
+            { "bidVolume", this.safeNumber(ticker, "best_bid_size") },
+            { "info", ticker },
+        }, market);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object error = this.safeValue(message, "error");
+        object method = this.safeString(message, "method");
+        object error = this.safeString(message, "message");
         if (isTrue(!isEqual(error, null)))
         {
-            throw new ExchangeError ((string)add(add(this.id, " "), this.json(error))) ;
+            this.handleErrors(null, null, client.url, method, null, this.json(error), message, null, null);
         }
-        object method = this.safeString(message, "method");
         object handlers = new Dictionary<string, object>() {
             { "state.update", this.handleTicker },
-            { "asset.update", this.handleBalance },
+            { "balance.update", this.handleBalance },
             { "deals.update", this.handleTrades },
+            { "user_deals.update", this.handleMyTrades },
             { "depth.update", this.handleOrderBook },
             { "order.update", this.handleOrders },
-            { "kline.update", this.handleOHLCV },
-            { "order.update_stop", this.handleOrders },
+            { "stop.update", this.handleOrders },
+            { "bbo.update", this.handleBidAsk },
         };
         object handler = this.safeValue(handlers, method);
         if (isTrue(!isEqual(handler, null)))
@@ -1092,26 +1468,66 @@ public partial class coinex : ccxt.coinex
         this.handleSubscriptionStatus(client as WebSocketClient, message);
     }
 
-    public virtual object handleAuthenticationMessage(WebSocketClient client, object message)
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;
+        }
+        //
+        //     { "id": 1, "code": 20001, "message": "invalid argument" }
+        //     { "id": 2, "code": 21001, "message": "require auth" }
+        //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
+        //
+        object message = this.safeStringLower(response, "message");
+        object isErrorMessage = isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "ok")));
+        object errorCode = this.safeString(response, "code");
+        object isErrorCode = isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "0")));
+        if (isTrue(isTrue(isErrorCode) || isTrue(isErrorMessage)))
+        {
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
+    }
+
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
         //
+        // success
+        //
         //     {
-        //         "error": null,
-        //         "result": {
-        //             "status": "success"
-        //         },
-        //         "id": 1
+        //         "id": 1,
+        //         "code": 0,
+        //         "message": "OK"
         //     }
         //
-        object messageHashSpot = "authenticated:spot";
-        object messageHashSwap = "authenticated:swap";
-        // client.resolve (message, messageHashSpot);
-        // client.resolve (message, messageHashSwap);
-        object spotFuture = this.safeValue((client as WebSocketClient).futures, messageHashSpot);
-        callDynamically(spotFuture, "resolve", new object[] {true});
-        object swapFutures = this.safeValue((client as WebSocketClient).futures, messageHashSwap);
-        callDynamically(swapFutures, "resolve", new object[] {true});
-        return message;
+        // fail
+        //
+        //     {
+        //         "id": 1,
+        //         "code": 21002,
+        //         "message": ""
+        //     }
+        //
+        object status = this.safeStringLower(message, "message");
+        object errorCode = this.safeString(message, "code");
+        object messageHash = "authenticated";
+        if (isTrue(isTrue((isEqual(status, "ok"))) || isTrue((isEqual(errorCode, "0")))))
+        {
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            (future as Future).resolve(true);
+        } else
+        {
+            var error = new AuthenticationError(this.json(message));
+            ((WebSocketClient)client).reject(error, messageHash);
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            }
+        }
     }
 
     public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
@@ -1121,78 +1537,45 @@ public partial class coinex : ccxt.coinex
         if (isTrue(!isEqual(subscription, null)))
         {
             object futureIndex = this.safeString(subscription, "future");
-            if (isTrue(isEqual(futureIndex, "ohlcv")))
-            {
-                this.handleOHLCV(client as WebSocketClient, message);
-                return;
-            }
             var future = this.safeValue((client as WebSocketClient).futures, futureIndex);
             if (isTrue(!isEqual(future, null)))
             {
                 (future as Future).resolve(true);
             }
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
         }
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(object type)
     {
-        parameters ??= new Dictionary<string, object>();
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("authenticate", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         var client = this.client(url);
         object time = this.milliseconds();
-        object isSpot = (isEqual(type, "spot"));
-        object spotMessageHash = "authenticated:spot";
-        object swapMessageHash = "authenticated:swap";
-        object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
+        object timestamp = ((object)time).ToString();
+        object messageHash = "authenticated";
         var future = client.future(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(!isEqual(authenticated, null)))
         {
-            if (isTrue(!isEqual(authenticated, null)))
-            {
-                return await (future as Exchange.Future);
-            }
-            object requestId = this.requestId();
-            object subscribe = new Dictionary<string, object>() {
-                { "id", requestId },
-                { "future", spotMessageHash },
-            };
-            object signData = add(add(add(add(add("access_id=", this.apiKey), "&tonce="), this.numberToString(time)), "&secret_key="), this.secret);
-            object hash = this.hash(this.encode(signData), md5);
-            object request = new Dictionary<string, object>() {
-                { "method", "server.sign" },
-                { "params", new List<object>() {this.apiKey, ((string)hash).ToUpper(), time} },
-                { "id", requestId },
-            };
-            this.watch(url, messageHash, request, requestId, subscribe);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
-            return await (future as Exchange.Future);
-        } else
-        {
-            if (isTrue(!isEqual(authenticated, null)))
-            {
-                return await (future as Exchange.Future);
-            }
-            object requestId = this.requestId();
-            object subscribe = new Dictionary<string, object>() {
-                { "id", requestId },
-                { "future", swapMessageHash },
-            };
-            object signData = add(add(add(add(add("access_id=", this.apiKey), "&timestamp="), this.numberToString(time)), "&secret_key="), this.secret);
-            object hash = this.hash(this.encode(signData), sha256, "hex");
-            object request = new Dictionary<string, object>() {
-                { "method", "server.sign" },
-                { "params", new List<object>() {this.apiKey, ((string)hash).ToLower(), time} },
-                { "id", requestId },
-            };
-            this.watch(url, messageHash, request, requestId, subscribe);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
             return await (future as Exchange.Future);
         }
+        object requestId = this.requestId();
+        object subscribe = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "future", messageHash },
+        };
+        object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256, "hex");
+        object request = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "method", "server.sign" },
+            { "params", new Dictionary<string, object>() {
+                { "access_id", this.apiKey },
+                { "signed_str", ((string)hmac).ToLower() },
+                { "timestamp", time },
+            } },
+        };
+        this.watch(url, messageHash, request, requestId, subscribe);
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = true;
+        return await (future as Exchange.Future);
     }
 }

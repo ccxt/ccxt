@@ -10,7 +10,7 @@ public partial class poloniexfutures
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#get-real-time-symbol-ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class poloniexfutures
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#full-matching-engine-data-level-3"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -64,7 +64,7 @@ public partial class poloniexfutures
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#level-2-market-data"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -97,7 +97,7 @@ public partial class poloniexfutures
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#private-messages"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -137,7 +137,7 @@ public partial class poloniexfutures
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://futures-docs.poloniex.com/#account-balance-events"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

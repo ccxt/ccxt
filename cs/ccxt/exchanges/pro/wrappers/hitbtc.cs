@@ -31,7 +31,7 @@ public partial class hitbtc
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+    /// string : 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
     /// </description>
     /// </item>
     /// <item>
@@ -74,6 +74,38 @@ public partial class hitbtc
         return new Tickers(res);
     }
     /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.hitbtc.com/#subscribe-to-top-of-book"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.speed</term>
+    /// <description>
+    /// string : '100ms' (default) or '500ms' or '1000ms'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
@@ -111,30 +143,19 @@ public partial class hitbtc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#subscribe-to-candles"/>  <br/>
+    /// See <see href="https://doc.xt.com/#websocket_publicsymbolKline"/>  <br/>
+    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2symbolKline"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>timeframe</term>
-    /// <description>
-    /// string : the length of time each candle represents
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by hitbtc watchOHLCV
+    /// int : not used by xt watchOHLCV
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : 0 – 1000, default value = 0 (no history returned)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// int : not used by xt watchOHLCV
     /// </description>
     /// </item>
     /// </list>

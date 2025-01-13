@@ -426,16 +426,16 @@ public partial class coinsph : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coins-docs.github.io/rest-api/#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://coins-docs.github.io/rest-api/#test-connectivity
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenapiV1Ping(parameters);
         return new Dictionary<string, object>() {
@@ -447,16 +447,16 @@ public partial class coinsph : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://coins-docs.github.io/rest-api/#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://coins-docs.github.io/rest-api/#check-server-time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenapiV1Time(parameters);
         //
@@ -465,16 +465,16 @@ public partial class coinsph : Exchange
         return this.safeInteger(response, "serverTime");
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchMarkets
+     * @description retrieves data on all markets for coinsph
+     * @see https://coins-docs.github.io/rest-api/#exchange-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchMarkets
-        * @description retrieves data on all markets for coinsph
-        * @see https://coins-docs.github.io/rest-api/#exchange-information
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenapiV1ExchangeInfo(parameters);
         //
@@ -536,7 +536,7 @@ public partial class coinsph : Exchange
         //         ]
         //     }
         //
-        object markets = this.safeValue(response, "symbols");
+        object markets = this.safeList(response, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
@@ -546,7 +546,7 @@ public partial class coinsph : Exchange
             object quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object limits = this.indexBy(this.safeValue(market, "filters"), "filterType");
+            object limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
@@ -606,19 +606,19 @@ public partial class coinsph : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -634,7 +634,7 @@ public partial class coinsph : Exchange
             ((IDictionary<string,object>)request)["symbols"] = ids;
         }
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTickers", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object tickers = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -650,19 +650,19 @@ public partial class coinsph : Exchange
         return this.parseTickers(tickers, symbols, parameters);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
+     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -670,7 +670,7 @@ public partial class coinsph : Exchange
             { "symbol", getValue(market, "id") },
         };
         object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-        object options = this.safeValue(this.options, "fetchTicker", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchTicker", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object ticker = null;
         if (isTrue(isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -766,18 +766,18 @@ public partial class coinsph : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://coins-docs.github.io/rest-api/#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://coins-docs.github.io/rest-api/#order-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -807,20 +807,20 @@ public partial class coinsph : Exchange
         return orderbook;
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -876,19 +876,19 @@ public partial class coinsph : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://coins-docs.github.io/rest-api/#recent-trades-list
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -923,19 +923,19 @@ public partial class coinsph : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -959,20 +959,20 @@ public partial class coinsph : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1042,7 +1042,7 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeValue2(trade, "isBuyer", "isBuyerMaker", null);
+        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
         object side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1076,16 +1076,16 @@ public partial class coinsph : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://coins-docs.github.io/rest-api/#accept-the-quote
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetOpenapiV1Account(parameters);
@@ -1115,7 +1115,7 @@ public partial class coinsph : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "balances", new List<object>() {});
+        object balances = this.safeList(response, "balances", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -1134,23 +1134,23 @@ public partial class coinsph : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name coinsph#createOrder
+     * @description create a trade order
+     * @see https://coins-docs.github.io/rest-api/#new-order--trade
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+     * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#createOrder
-        * @description create a trade order
-        * @see https://coins-docs.github.io/rest-api/#new-order--trade
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
-        * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // todo: add test order low priority
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1221,12 +1221,12 @@ public partial class coinsph : Exchange
         }
         if (isTrue(isTrue(isTrue(isTrue(isEqual(orderType, "STOP_LOSS")) || isTrue(isEqual(orderType, "STOP_LOSS_LIMIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT"))) || isTrue(isEqual(orderType, "TAKE_PROFIT_LIMIT"))))
         {
-            object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            if (isTrue(isEqual(stopPrice, null)))
+            object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+            if (isTrue(isEqual(triggerPrice, null)))
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         ((IDictionary<string,object>)request)["newOrderRespType"] = newOrderRespType;
         parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
@@ -1268,18 +1268,18 @@ public partial class coinsph : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @param {int|string} id order id
+     * @param {string} symbol not used by coinsph fetchOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://coins-docs.github.io/rest-api/#query-order-user_data
-        * @param {int|string} id order id
-        * @param {string} symbol not used by coinsph fetchOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1296,19 +1296,19 @@ public partial class coinsph : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://coins-docs.github.io/rest-api/#query-order-user_data
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1322,19 +1322,19 @@ public partial class coinsph : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1358,18 +1358,18 @@ public partial class coinsph : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinsph#cancelOrder
+     * @description cancels an open order
+     * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+     * @param {string} id order id
+     * @param {string} symbol not used by coinsph cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#cancelOrder
-        * @description cancels an open order
-        * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
-        * @param {string} id order id
-        * @param {string} symbol not used by coinsph cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1386,17 +1386,17 @@ public partial class coinsph : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name coinsph#cancelAllOrders
+     * @description cancel open orders of market
+     * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#cancelAllOrders
-        * @description cancel open orders of market
-        * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1489,10 +1489,10 @@ public partial class coinsph : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills", null);
-        object stopPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(stopPrice, "0")))
+        object triggerPrice = this.safeString(order, "stopPrice");
+        if (isTrue(Precise.stringEq(triggerPrice, "0")))
         {
-            stopPrice = null;
+            triggerPrice = null;
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1506,8 +1506,7 @@ public partial class coinsph : Exchange
             { "timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")) },
             { "side", this.parseOrderSide(this.safeString(order, "side")) },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "average", null },
             { "amount", this.safeString(order, "origQty") },
             { "cost", this.safeString(order, "cummulativeQuoteQty") },
@@ -1589,17 +1588,17 @@ public partial class coinsph : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1616,20 +1615,20 @@ public partial class coinsph : Exchange
         //       }
         //     ]
         //
-        object tradingFee = this.safeValue(response, 0, new Dictionary<string, object>() {});
+        object tradingFee = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseTradingFee(tradingFee, market);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetOpenapiV1AssetTradeFee(parameters);
@@ -1679,26 +1678,26 @@ public partial class coinsph : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coinsph#withdraw
+     * @description make a withdrawal to coins_ph account
+     * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address not used by coinsph withdraw ()
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#withdraw
-        * @description make a withdrawal to coins_ph account
-        * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address not used by coinsph withdraw ()
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "withdraw");
         object warning = this.safeBool(options, "warning", true);
         if (isTrue(warning))
         {
-            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options[\'withdraw\'][\'warning\'] = false to make a withdrawal to your coins_ph account")) ;
+            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         object networkCode = this.safeString(parameters, "network");
         object networkId = this.networkCodeToId(networkCode, code);
@@ -1723,19 +1722,19 @@ public partial class coinsph : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         // todo: returns an empty array - find out why
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1786,19 +1785,19 @@ public partial class coinsph : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         // todo: returns an empty array - find out why
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1967,18 +1966,18 @@ public partial class coinsph : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name coinsph#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinsph#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.network] network for fetch deposit address
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object networkCode = this.safeString(parameters, "network");
         object networkId = this.networkCodeToId(networkCode, code);
@@ -2016,11 +2015,11 @@ public partial class coinsph : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "addressTag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

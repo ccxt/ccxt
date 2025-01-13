@@ -143,12 +143,18 @@ public partial class krakenfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
     /// float : limit order price
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -195,7 +201,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -206,8 +212,14 @@ public partial class krakenfutures
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -505,7 +517,7 @@ public partial class krakenfutures
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the current funding rates
+    /// fetch the current funding rates for multiple markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
@@ -519,10 +531,10 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -598,6 +610,20 @@ public partial class krakenfutures
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
     }
+    /// <summary>
+    /// transfer from futures wallet to spot wallet
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// dict : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
     public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transferOut(code, amount, parameters);

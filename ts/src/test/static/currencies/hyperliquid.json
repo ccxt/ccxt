@@ -9,5 +9,31 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "BTC": {
+        "id": 0,
+        "name": "BTC",
+        "code": "BTC",
+        "precision": null,
+        "info": {
+            "szDecimals": "5",
+            "name": "BTC",
+            "maxLeverage": "50"
+        },
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "networks": null,
+        "fee": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

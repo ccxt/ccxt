@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,28 +31,62 @@ func (this *Exchange) ImplodeParams(path interface{}, parameter interface{}) int
 		if value.IsNil() {
 			continue
 		}
+
+		valueStr := ""
+		valueInterface := value.Interface()
+		if IsNumber(valueInterface) {
+			valueStr = NumberToString(valueInterface)
+		} else {
+			valueStr = fmt.Sprintf("%v", value)
+		}
 		if value.Kind() != reflect.Slice {
 			placeholder := "{" + key.String() + "}"
-			pathStr = strings.ReplaceAll(pathStr, placeholder, fmt.Sprintf("%v", value))
+			pathStr = strings.ReplaceAll(pathStr, placeholder, valueStr)
 		}
 	}
 	return pathStr
 }
 
-func parseTimeframe(timeframe interface{}) int64 {
-	// This function should return the number of seconds corresponding to the given timeframe
-	switch tf := timeframe.(type) {
-	case string:
-		switch tf {
-		case "1m":
-			return 60
-		case "1h":
-			return 3600
-		case "1d":
-			return 86400
-		}
+func ParseTimeframe(timeframe2 interface{}) int64 {
+	timeframe := timeframe2.(string)
+
+	if len(timeframe) < 2 {
+		return 0
 	}
-	return 0
+
+	// Split the timeframe into amount and unit
+	amountStr := timeframe[:len(timeframe)-1]
+	unit := timeframe[len(timeframe)-1:]
+
+	// Convert the amount to a float
+	amount, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return 0
+	}
+
+	// Define the unit scale
+	var scale int64
+	switch unit {
+	case "y":
+		scale = 60 * 60 * 24 * 365
+	case "M":
+		scale = 60 * 60 * 24 * 30
+	case "w":
+		scale = 60 * 60 * 24 * 7
+	case "d":
+		scale = 60 * 60 * 24
+	case "h":
+		scale = 60 * 60
+	case "m":
+		scale = 60
+	case "s":
+		scale = 1
+	default:
+		return 0
+	}
+
+	// Return the calculated timeframe in seconds
+	return int64(amount * float64(scale))
 }
 
 func (this *Exchange) RoundTimeframe(timeframe interface{}, timestamp interface{}, direction ...interface{}) interface{} {
@@ -64,7 +99,7 @@ func (this *Exchange) RoundTimeframe(timeframe interface{}, timestamp interface{
 	}
 
 	// Convert timeframe to milliseconds
-	ms := parseTimeframe(timeframe) * 1000
+	ms := ParseTimeframe(timeframe) * 1000
 
 	// Convert timestamp to int64
 	var ts int64

@@ -10,6 +10,7 @@ public partial class ndax
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#subscribelevel1"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class ndax
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#subscribetrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -62,6 +64,7 @@ public partial class ndax
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#subscribeticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -95,6 +98,7 @@ public partial class ndax
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#subscribelevel2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

@@ -21,6 +21,7 @@ class huobijp(ccxt.async_support.huobijp):
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,  # for now
                 'watchOHLCV': True,
             },

@@ -80,7 +80,7 @@ public partial class btcturk : Exchange
                 { "1y", "1 y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.btcturk.com/api/v2" },
                     { "private", "https://api.btcturk.com/api/v1" },
@@ -123,6 +123,67 @@ public partial class btcturk : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 30 },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 30 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
                     { "maker", this.parseNumber("0.0005") },
@@ -140,16 +201,16 @@ public partial class btcturk : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchMarkets
+     * @description retrieves data on all markets for btcturk
+     * @see https://docs.btcturk.com/public-endpoints/exchange-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchMarkets
-        * @description retrieves data on all markets for btcturk
-        * @see https://docs.btcturk.com/public-endpoints/exchange-info
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetServerExchangeinfo(parameters);
         //
@@ -195,8 +256,8 @@ public partial class btcturk : Exchange
         //        ],
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object markets = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object markets = this.safeList(data, "symbols", new List<object>() {});
         return this.parseMarkets(markets);
     }
 
@@ -207,7 +268,7 @@ public partial class btcturk : Exchange
         object quoteId = this.safeString(entry, "denominator");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object filters = this.safeValue(entry, "filters", new List<object>() {});
+        object filters = this.safeList(entry, "filters", new List<object>() {});
         object minPrice = null;
         object maxPrice = null;
         object minAmount = null;
@@ -280,7 +341,7 @@ public partial class btcturk : Exchange
 
     public override object parseBalance(object response)
     {
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
@@ -300,16 +361,16 @@ public partial class btcturk : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.btcturk.com/private-endpoints/account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.btcturk.com/private-endpoints/account-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetUsersBalances(parameters);
@@ -332,18 +393,18 @@ public partial class btcturk : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.btcturk.com/public-endpoints/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.btcturk.com/public-endpoints/orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -362,7 +423,7 @@ public partial class btcturk : Exchange
         //         ]
         //       }
         //     }
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
     }
@@ -418,17 +479,17 @@ public partial class btcturk : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.btcturk.com/public-endpoints/ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.btcturk.com/public-endpoints/ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTicker(parameters);
@@ -436,17 +497,17 @@ public partial class btcturk : Exchange
         return this.parseTickers(tickers, symbols);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.btcturk.com/public-endpoints/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.btcturk.com/public-endpoints/ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
@@ -518,19 +579,19 @@ public partial class btcturk : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.btcturk.com/public-endpoints/trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.btcturk.com/public-endpoints/trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -579,21 +640,21 @@ public partial class btcturk : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.btcturk.com/public-endpoints/get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.btcturk.com/public-endpoints/get-kline-data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1h";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -668,47 +729,48 @@ public partial class btcturk : Exchange
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
-    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null, object tail = null)
     {
         timeframe ??= "1m";
+        tail ??= false;
         object results = new List<object>() {};
-        object timestamp = this.safeValue(ohlcvs, "t");
-        object high = this.safeValue(ohlcvs, "h");
-        object open = this.safeValue(ohlcvs, "o");
-        object low = this.safeValue(ohlcvs, "l");
-        object close = this.safeValue(ohlcvs, "c");
-        object volume = this.safeValue(ohlcvs, "v");
+        object timestamp = this.safeList(ohlcvs, "t", new List<object>() {});
+        object high = this.safeList(ohlcvs, "h", new List<object>() {});
+        object open = this.safeList(ohlcvs, "o", new List<object>() {});
+        object low = this.safeList(ohlcvs, "l", new List<object>() {});
+        object close = this.safeList(ohlcvs, "c", new List<object>() {});
+        object volume = this.safeList(ohlcvs, "v", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(timestamp)); postFixIncrement(ref i))
         {
             object ohlcv = new Dictionary<string, object>() {
-                { "timestamp", this.safeValue(timestamp, i) },
-                { "high", this.safeValue(high, i) },
-                { "open", this.safeValue(open, i) },
-                { "low", this.safeValue(low, i) },
-                { "close", this.safeValue(close, i) },
-                { "volume", this.safeValue(volume, i) },
+                { "timestamp", this.safeInteger(timestamp, i) },
+                { "high", this.safeNumber(high, i) },
+                { "open", this.safeNumber(open, i) },
+                { "low", this.safeNumber(low, i) },
+                { "close", this.safeNumber(close, i) },
+                { "volume", this.safeNumber(volume, i) },
             };
             ((IList<object>)results).Add(this.parseOHLCV(ohlcv, market));
         }
         object sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
+    /**
+     * @method
+     * @name btcturk#createOrder
+     * @description create a trade order
+     * @see https://docs.btcturk.com/private-endpoints/submit-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#createOrder
-        * @description create a trade order
-        * @see https://docs.btcturk.com/private-endpoints/submit-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -734,18 +796,18 @@ public partial class btcturk : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name btcturk#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.btcturk.com/private-endpoints/cancel-order
+     * @param {string} id order id
+     * @param {string} symbol not used by btcturk cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.btcturk.com/private-endpoints/cancel-order
-        * @param {string} id order id
-        * @param {string} symbol not used by btcturk cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "id", id },
@@ -763,19 +825,19 @@ public partial class btcturk : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.btcturk.com/private-endpoints/open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.btcturk.com/private-endpoints/open-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -786,25 +848,25 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)request)["pairSymbol"] = getValue(market, "id");
         }
         object response = await this.privateGetOpenOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object bids = this.safeList(data, "bids", new List<object>() {});
         object asks = this.safeList(data, "asks", new List<object>() {});
         return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.btcturk.com/private-endpoints/all-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.btcturk.com/private-endpoints/all-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -924,19 +986,19 @@ public partial class btcturk : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name btcturk#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.btcturk.com/private-endpoints/user-transactions
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name btcturk#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.btcturk.com/private-endpoints/user-transactions
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;

@@ -26,7 +26,7 @@ process.on ('unhandledRejection', (e: any) => {
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const ExchangeError = ccxt.ExchangeError;
-const ProxyError = ccxt.ProxyError;
+const InvalidProxySettings = ccxt.InvalidProxySettings;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -43,54 +43,26 @@ function selectArgv (argsArray, needle) {
     return foundArray.length ? foundArray[0] : undefined;
 }
 
-const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvs_filtered = filterArgvs (argv, '--', false);
+const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
 
 
-// non-transpiled part, but shared names among langs
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
-const proxyTestFileName = 'proxies';
-class baseMainTestClass {
-    lang = 'JS';
-    isSynchronous = false;
-    idTests = false;
-    requestTestsFailed = false;
-    responseTestsFailed = false;
-    requestTests = false;
-    wsTests = false;
-    responseTests = false;
-    staticTests = false;
-    info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    loadKeys = false;
-    sandbox = false;
-    skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
-    testFiles = {};
-    publicTests = {};
-    newLine = '\n';
-    rootDir = DIR_NAME + '/../../../';
-    rootDirForSkips = DIR_NAME + '/../../../';
-    onlySpecificTests = [];
-    envVars = process.env;
-    proxyTestFileName = proxyTestFileName;
-    ext = import.meta.url.split ('.')[1];
-}
-// const rootDir = DIR_NAME + '/../../../';
-// const rootDirForSkips = DIR_NAME + '/../../../';
-// const envVars = process.env;
+// non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split ('.');
+const EXT = fileParts[fileParts.length - 1];
+const LANG = 'JS';
+const ROOT_DIR = DIR_NAME + '/../../../';
+const ENV_VARS = process.env;
+const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
-const parts = import.meta.url.split ('.');
-const ext = parts[parts.length - 1];
+const PROXY_TEST_FILE_NAME = "proxies";
 
 function dump (...args) {
     console.log (...args);
@@ -127,6 +99,11 @@ function ioDirRead (path) {
     return files;
 }
 
+async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+    // empty in js
+    return {};
+}
+
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
@@ -148,6 +125,11 @@ async function callOverridenMethod (exchange, methodName, args) {
 
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
+}
+
+// stub for c#
+function getRootException (exc) {
+    return exc;
 }
 
 function exitScript (code = 0) {
@@ -175,15 +157,20 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
+function getTestFilesSync (properties, ws = false) {
+    // empty in js
+    return {};
+}
+
 async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat ([ proxyTestFileName ]);
+    const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
+        if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);
         }
@@ -193,7 +180,7 @@ async function getTestFiles (properties, ws = false) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
+        if (ioFileExists (filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile (filePathWoExt);
         }
@@ -214,47 +201,74 @@ async function close (exchange: Exchange) {
     await exchange.close ();
 }
 
+function isSync () {
+    return false;
+}
+
+function getRootDir () {
+    return ROOT_DIR;
+}
+
+function getEnvVars () {
+    return ENV_VARS;
+}
+
+function getLang () {
+    return LANG;
+}
+
+function getExt () {
+    return EXT;
+}
+
 
 export {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
     ExchangeError,
-    ProxyError,
+    InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
     OnMaintenance,
     // shared
     getCliArgValue,
     //
-    proxyTestFileName,
-    baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
     convertAscii,
-    getTestName,
     ioFileExists,
     ioFileRead,
     ioDirRead,
     callMethod,
+    callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
     callOverridenMethod,
     exceptionMessage,
+    getRootException,
     exitScript,
     getExchangeProp,
     setExchangeProp,
     initExchange,
-    importTestFile,
     getTestFiles,
+    getTestFilesSync,
     setFetchResponse,
     isNullValue,
     close,
+    getRootDir,
     argvExchange,
     argvSymbol,
     argvMethod,
+    isSync,
+    LANG,
+    ENV_VARS,
+    NEW_LINE,
+    EXT,
+    getEnvVars,
+    getLang,
+    getExt
 };
 
 export default {};

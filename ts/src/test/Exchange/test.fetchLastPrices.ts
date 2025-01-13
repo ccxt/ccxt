@@ -22,6 +22,7 @@ async function testFetchLastPrices (exchange: Exchange, skippedProperties: objec
         // todo: symbol check here
         testLastPrice (exchange, skippedProperties, method, values[i], checkedSymbol);
     }
+    return true;
 }
 
 export default testFetchLastPrices;

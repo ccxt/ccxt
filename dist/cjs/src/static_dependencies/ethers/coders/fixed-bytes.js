@@ -18,6 +18,7 @@ require('../../noble-hashes/sha256.js');
 var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 
+// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */

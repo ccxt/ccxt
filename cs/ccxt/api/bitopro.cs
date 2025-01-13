@@ -101,6 +101,11 @@ public partial class bitopro : Exchange
         return await this.callAsync ("privateGetWalletWithdrawHistoryCurrency",parameters);
     }
 
+    public async Task<object> privateGetOrdersOpen (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersOpen",parameters);
+    }
+
     public async Task<object> privatePostOrdersPair (object parameters = null)
     {
         return await this.callAsync ("privatePostOrdersPair",parameters);

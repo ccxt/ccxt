@@ -44,6 +44,8 @@
             "percentage": null,
             "average": null,
             "baseVolume": null,
+            "markPrice": null,
+            "indexPrice": null,
             "quoteVolume": null,
             "info": {
               "trade_id": "635541194",
@@ -1010,6 +1012,177 @@
             }
           }
         }
+      ],
+      "fetchDepositsWithdrawals": [
+          {
+              "description": "spot",
+              "method": "fetchDepositsWithdrawals",
+              "input": [
+                "USDT"
+              ],
+              "httpResponse": {
+                "data": [
+                  {
+                    "amount": {
+                      "amount": "-2.010000",
+                      "currency": "USDT"
+                    },
+                    "created_at": "2024-11-03T13:50:09Z",
+                    "id": "e457a27e-8ad0-56ee-90d3-94d9a86fc203",
+                    "idem": "8b7f740a-3802-4663-88f6-5ffbc09af030",
+                    "native_amount": {
+                      "amount": "-2.01",
+                      "currency": "USD"
+                    },
+                    "network": {
+                      "hash": "123485af495b4a19521e989b3c67c14cd36e38e7eda755faf8aa4321c8f41be8",
+                      "network_name": "ethereum",
+                      "status": "pending",
+                      "transaction_fee": {
+                        "amount": "1.530199",
+                        "currency": "USDT"
+                      }
+                    },
+                    "resource": "transaction",
+                    "resource_path": "/v2/accounts/952ea6fb-7422-5097-841f-23749355aca5/transactions/e457a27e-8ad0-56ee-90d3-94d9a86fc203",
+                    "status": "completed",
+                    "to": {
+                      "address": "0x22d35481cb74fa959aec61d11a5d4507a6112345",
+                      "resource": "address"
+                    },
+                    "type": "send"
+                  },
+                  {
+                    "amount": {
+                      "amount": "2.010000",
+                      "currency": "USDT"
+                    },
+                    "created_at": "2024-11-03T13:32:02Z",
+                    "id": "45cdc829-ba86-5125-8c53-61b8ff3b2f2a",
+                    "native_amount": {
+                      "amount": "2.01",
+                      "currency": "USD"
+                    },
+                    "network": {
+                      "hash": "432e6504d28630c9fbe44ea0aeb6c8f2ff60d271d92045b24b02d65a8b0c2e3a",
+                      "network_name": "ethereum",
+                      "status": "confirmed"
+                    },
+                    "resource": "transaction",
+                    "resource_path": "/v2/accounts/952ea6fb-7422-5097-841f-23749355aca5/transactions/45cdc829-ba86-5125-8c53-61b8ff3b2f2a",
+                    "status": "completed",
+                    "type": "send"
+                  }
+                ],
+                "pagination": {
+                  "ending_before": null,
+                  "limit": "25",
+                  "next_starting_after": null,
+                  "next_uri": null,
+                  "order": "desc",
+                  "previous_ending_before": null,
+                  "previous_uri": null,
+                  "starting_after": null
+                }
+              },
+              "parsedResponse": [
+                {
+                  "info": {
+                    "amount": {
+                      "amount": "2.010000",
+                      "currency": "USDT"
+                    },
+                    "created_at": "2024-11-03T13:32:02Z",
+                    "id": "45cdc829-ba86-5125-8c53-61b8ff3b2f2a",
+                    "native_amount": {
+                      "amount": "2.01",
+                      "currency": "USD"
+                    },
+                    "network": {
+                      "hash": "432e6504d28630c9fbe44ea0aeb6c8f2ff60d271d92045b24b02d65a8b0c2e3a",
+                      "network_name": "ethereum",
+                      "status": "confirmed"
+                    },
+                    "resource": "transaction",
+                    "resource_path": "/v2/accounts/952ea6fb-7422-5097-841f-23749355aca5/transactions/45cdc829-ba86-5125-8c53-61b8ff3b2f2a",
+                    "status": "completed",
+                    "type": "send"
+                  },
+                  "id": "45cdc829-ba86-5125-8c53-61b8ff3b2f2a",
+                  "txid": "432e6504d28630c9fbe44ea0aeb6c8f2ff60d271d92045b24b02d65a8b0c2e3a",
+                  "timestamp": 1730640722000,
+                  "datetime": "2024-11-03T13:32:02Z",
+                  "network": "ERC20",
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": "deposit",
+                  "amount": 2.01,
+                  "currency": "USDT",
+                  "status": "ok",
+                  "updated": null,
+                  "fee": {
+                    "cost": null,
+                    "currency": null
+                  }
+                },
+                {
+                  "info": {
+                    "amount": {
+                      "amount": "-2.010000",
+                      "currency": "USDT"
+                    },
+                    "created_at": "2024-11-03T13:50:09Z",
+                    "id": "e457a27e-8ad0-56ee-90d3-94d9a86fc203",
+                    "idem": "8b7f740a-3802-4663-88f6-5ffbc09af030",
+                    "native_amount": {
+                      "amount": "-2.01",
+                      "currency": "USD"
+                    },
+                    "network": {
+                      "hash": "123485af495b4a19521e989b3c67c14cd36e38e7eda755faf8aa4321c8f41be8",
+                      "network_name": "ethereum",
+                      "status": "pending",
+                      "transaction_fee": {
+                        "amount": "1.530199",
+                        "currency": "USDT"
+                      }
+                    },
+                    "resource": "transaction",
+                    "resource_path": "/v2/accounts/952ea6fb-7422-5097-841f-23749355aca5/transactions/e457a27e-8ad0-56ee-90d3-94d9a86fc203",
+                    "status": "completed",
+                    "to": {
+                      "address": "0x22d35481cb74fa959aec61d11a5d4507a6112345",
+                      "resource": "address"
+                    },
+                    "type": "send"
+                  },
+                  "id": "e457a27e-8ad0-56ee-90d3-94d9a86fc203",
+                  "txid": "123485af495b4a19521e989b3c67c14cd36e38e7eda755faf8aa4321c8f41be8",
+                  "timestamp": 1730641809000,
+                  "datetime": "2024-11-03T13:50:09Z",
+                  "network": "ERC20",
+                  "address": "0x22d35481cb74fa959aec61d11a5d4507a6112345",
+                  "addressTo": "0x22d35481cb74fa959aec61d11a5d4507a6112345",
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": "withdrawal",
+                  "amount": 2.01,
+                  "currency": "USDT",
+                  "status": "ok",
+                  "updated": null,
+                  "fee": {
+                    "cost": 1.530199,
+                    "currency": "USDT"
+                  }
+                }
+              ]
+          }
       ]
     }
 }

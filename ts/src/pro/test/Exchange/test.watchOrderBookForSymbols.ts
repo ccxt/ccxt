@@ -3,8 +3,9 @@ import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbols) {
+async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchOrderBookForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

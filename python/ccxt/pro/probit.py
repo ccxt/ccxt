@@ -22,6 +22,7 @@ class probit(ccxt.async_support.probit):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -40,15 +41,6 @@ class probit(ccxt.async_support.probit):
                     'filter': 'order_books_l2',
                     'interval': 100,  # or 500
                 },
-                'watchTrades': {
-                    'filter': 'recent_trades',
-                },
-                'watchTicker': {
-                    'filter': 'ticker',
-                },
-                'watchOrders': {
-                    'channel': 'open_order',
-                },
             },
             'streaming': {
             },
@@ -57,19 +49,15 @@ class probit(ccxt.async_support.probit):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs-en.probit.com/reference/balance-1
+
+        https://docs-en.probit.com/reference/balance-1
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
-        url = self.urls['api']['ws']
-        subscribe: dict = {
-            'type': 'subscribe',
-            'channel': 'balance',
-        }
-        request = self.extend(subscribe, params)
-        return await self.watch(url, messageHash, request, messageHash)
+        return await self.subscribe_private(messageHash, 'balance', params)
 
     def handle_balance(self, client: Client, message):
         #
@@ -119,15 +107,16 @@ class probit(ccxt.async_support.probit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs-en.probit.com/reference/marketdata
+
+        https://docs-en.probit.com/reference/marketdata
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        filter = None
-        filter, params = self.handle_option_and_params(params, 'watchTicker', 'filter', 'ticker')
-        return await self.subscribe_order_book(symbol, 'ticker', filter, params)
+        channel = 'ticker'
+        return await self.subscribe_public('watchTicker', symbol, 'ticker', channel, params)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -160,7 +149,9 @@ class probit(ccxt.async_support.probit):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs-en.probit.com/reference/trade_history
+
+        https://docs-en.probit.com/reference/trade_history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -168,9 +159,9 @@ class probit(ccxt.async_support.probit):
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        filter = None
-        filter, params = self.handle_option_and_params(params, 'watchTrades', 'filter', 'recent_trades')
-        trades = await self.subscribe_order_book(symbol, 'trades', filter, params)
+        channel = 'recent_trades'
+        symbol = self.safe_symbol(symbol)
+        trades = await self.subscribe_public('watchTrades', symbol, 'trades', channel, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -200,10 +191,11 @@ class probit(ccxt.async_support.probit):
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
         trades = self.safe_value(message, 'recent_trades', [])
-        reset = self.safe_bool(message, 'reset', False)
+        if self.safe_bool(message, 'reset', False):
+            return  # see comment in handleMessage
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
-        if stored is None or reset:
+        if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
@@ -217,6 +209,9 @@ class probit(ccxt.async_support.probit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of trades associated with the user
+
+        https://docs-en.probit.com/reference/trade_history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -225,19 +220,11 @@ class probit(ccxt.async_support.probit):
         """
         await self.load_markets()
         await self.authenticate(params)
-        messageHash = 'myTrades'
+        messageHash = 'trades'
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(symbol)
             messageHash = messageHash + ':' + symbol
-        url = self.urls['api']['ws']
-        channel = 'trade_history'
-        message: dict = {
-            'type': 'subscribe',
-            'channel': channel,
-        }
-        request = self.extend(message, params)
-        trades = await self.watch(url, messageHash, request, channel)
+        trades = await self.subscribe_private(messageHash, 'trade_history', params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -266,10 +253,11 @@ class probit(ccxt.async_support.probit):
         length = len(rawTrades)
         if length == 0:
             return
-        reset = self.safe_bool(message, 'reset', False)
-        messageHash = 'myTrades'
+        if self.safe_bool(message, 'reset', False):
+            return  # see comment in handleMessage
+        messageHash = 'trades'
         stored = self.myTrades
-        if (stored is None) or reset:
+        if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCacheBySymbolById(limit)
             self.myTrades = stored
@@ -277,9 +265,15 @@ class probit(ccxt.async_support.probit):
         tradeSymbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
+            # don't include 'executed' state, because it's just blanket state of the trade, emited before actual trade event
+            if self.safe_string(trade['info'], 'status') == 'executed':
+                continue
             tradeSymbols[trade['symbol']] = True
             stored.append(trade)
         unique = list(tradeSymbols.keys())
+        uniqueLength = len(unique)
+        if uniqueLength == 0:
+            return
         for i in range(0, len(unique)):
             symbol = unique[i]
             symbolSpecificMessageHash = messageHash + ':' + symbol
@@ -289,7 +283,9 @@ class probit(ccxt.async_support.probit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on an order made by the user
-        :see: https://docs-en.probit.com/reference/open_order
+
+        https://docs-en.probit.com/reference/open_order
+
         :param str symbol: unified symbol of the market the order was made in
         :param int [since]: timestamp in ms of the earliest order to watch
         :param int [limit]: the maximum amount of orders to watch
@@ -298,20 +294,11 @@ class probit(ccxt.async_support.probit):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.authenticate(params)
-        url = self.urls['api']['ws']
         messageHash = 'orders'
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(symbol)
             messageHash = messageHash + ':' + symbol
-        channel = None
-        channel, params = self.handle_option_and_params(params, 'watchOrders', 'channel', 'open_order')
-        subscribe: dict = {
-            'type': 'subscribe',
-            'channel': channel,
-        }
-        request = self.extend(subscribe, params)
-        orders = await self.watch(url, messageHash, request, channel)
+        orders = await self.subscribe_private(messageHash, 'open_order', params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -368,45 +355,57 @@ class probit(ccxt.async_support.probit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs-en.probit.com/reference/marketdata
+
+        https://docs-en.probit.com/reference/marketdata
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        filter = None
-        filter, params = self.handle_option_and_params(params, 'watchOrderBook', 'filter', 'order_books')
-        orderbook = await self.subscribe_order_book(symbol, 'orderbook', filter, params)
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'filter', 'order_books')
+        orderbook = await self.subscribe_public('watchOrderBook', symbol, 'orderbook', channel, params)
         return orderbook.limit()
 
-    async def subscribe_order_book(self, symbol: str, messageHash, filter, params={}):
+    async def subscribe_private(self, messageHash, channel, params):
+        url = self.urls['api']['ws']
+        subscribe: dict = {
+            'type': 'subscribe',
+            'channel': channel,
+        }
+        request = self.extend(subscribe, params)
+        subscribeHash = messageHash
+        return await self.watch(url, messageHash, request, subscribeHash)
+
+    async def subscribe_public(self, methodName: str, symbol: str, dataType, filter, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
         client = self.client(url)
-        interval = None
-        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 100)
-        subscriptionHash = 'marketdata:' + symbol
-        messageHash = messageHash + ':' + symbol
+        subscribeHash = 'marketdata:' + symbol
+        messageHash = dataType + ':' + symbol
         filters = {}
-        if subscriptionHash in client.subscriptions:
+        if subscribeHash in client.subscriptions:
             # already subscribed
-            filters = client.subscriptions[subscriptionHash]
+            filters = client.subscriptions[subscribeHash]
             if not (filter in filters):
                 # resubscribe
-                del client.subscriptions[subscriptionHash]
+                del client.subscriptions[subscribeHash]
         filters[filter] = True
         keys = list(filters.keys())
-        message: dict = {
-            'channel': 'marketdata',
-            'interval': interval,
-            'market_id': market['id'],
+        interval = None
+        interval, params = self.handle_option_and_params(params, methodName, 'interval', 100)
+        request: dict = {
             'type': 'subscribe',
+            'channel': 'marketdata',
+            'market_id': market['id'],
             'filter': keys,
+            'interval': interval,
         }
-        request = self.extend(message, params)
-        return await self.watch(url, messageHash, request, messageHash, filters)
+        request = self.extend(request, params)
+        return await self.watch(url, messageHash, request, subscribeHash, filters)
 
     def handle_order_book(self, client: Client, message, orderBook):
         #
@@ -479,7 +478,8 @@ class probit(ccxt.async_support.probit):
         result = self.safe_string(message, 'result')
         future = client.subscriptions['authenticated']
         if result == 'ok':
-            future.resolve(True)
+            messageHash = 'authenticated'
+            client.resolve(message, messageHash)
         else:
             future.reject(message)
             del client.subscriptions['authenticated']
@@ -489,10 +489,12 @@ class probit(ccxt.async_support.probit):
         if ticker is not None:
             self.handle_ticker(client, message)
         trades = self.safe_value(message, 'recent_trades', [])
-        if len(trades):
+        tradesLength = len(trades)
+        if tradesLength:
             self.handle_trades(client, message)
         orderBook = self.safe_value_n(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], [])
-        if len(orderBook):
+        orderBookLength = len(orderBook)
+        if orderBookLength:
             self.handle_order_book(client, message, orderBook)
 
     def handle_message(self, client: Client, message):
@@ -504,6 +506,9 @@ class probit(ccxt.async_support.probit):
         #             "interval": "invalid"
         #         }
         #     }
+        #
+        # Note about 'reset' field
+        # 'reset': True field - it happens once after initial subscription, which just returns old items by the moment of subscription(like "fetchMyTrades" does)
         #
         errorCode = self.safe_string(message, 'errorCode')
         if errorCode is not None:

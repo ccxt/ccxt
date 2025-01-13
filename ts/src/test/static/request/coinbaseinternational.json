@@ -232,5 +232,17 @@
         ],
         "output": "{\"portfolio\":\"1yun54bb-1-6\",\"type\":\"send\",\"asset\":\"USDC\",\"address\":\"0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB\",\"amount\":5,\"currency\":\"USDC\",\"network_arn_id\":\"networks/arbitrum-mainnet/assets/5f9ba01c-4cfe-5519-977e-21af64a3a2a8\",\"nonce\":1710440664,\"network\":\"ARBITRUM\"}"
       }
+    ],
+    "fetchOHLCV": [
+      {
+        "description": "fetchOHLCV",
+        "method": "fetchOHLCV",
+        "url": "https://api.international.coinbase.com/api/v1/instruments/BTC-PERP/candles?granularity=ONE_HOUR&start=2024-06-30T14%3A05%3A17.000Z",
+        "input": [
+          "BTC/USDC:USDC",
+          "1h",
+          1719756317000
+        ]
+      }
     ]
 }

@@ -254,6 +254,36 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://sg-api.upbit.com/v1/orders/open?market=SGD-XRP",
+                "input": [
+                  "XRP/SGD"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://sg-api.upbit.com/v1/orders/closed?state=done&market=SGD-XRP",
+                "input": [
+                  "XRP/SGD"
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Spot fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://sg-api.upbit.com/v1/orders/closed?state=cancel&market=SGD-XRP",
+                "input": [
+                  "XRP/SGD"
+                ]
+            }
         ]
     }
 }

@@ -1,0 +1,744 @@
+{
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT-PERPETUAL",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "subType": "linear",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "contractSize": 0.001,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0012,
+        "maker": 0.0012,
+        "precision": { "amount": 0.001, "price": 0.1 },
+        "limits": {
+            "amount": { "min": 0.001, "max": 10 },
+            "price": { "min": 0.1, "max": 100000 },
+            "leverage": {},
+            "cost": {}
+        },
+        "info": {
+            "filters": [
+                {
+                    "minPrice": "0.1",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.1",
+                    "filterType": "PRICE_FILTER"
+                },
+                {
+                    "minQty": "0.001",
+                    "maxQty": "10",
+                    "stepSize": "0.001",
+                    "marketOrderMinQty": "0",
+                    "marketOrderMaxQty": "0",
+                    "filterType": "LOT_SIZE"
+                },
+                { "minNotional": "0", "filterType": "MIN_NOTIONAL" },
+                {
+                    "maxSellPrice": "999999",
+                    "buyPriceUpRate": "0.05",
+                    "sellPriceDownRate": "0.05",
+                    "maxEntrustNum": "200",
+                    "maxConditionNum": "200",
+                    "filterType": "LIMIT_TRADING"
+                },
+                {
+                    "buyPriceUpRate": "0.05",
+                    "sellPriceDownRate": "0.05",
+                    "filterType": "MARKET_TRADING"
+                },
+                {
+                    "noAllowMarketStartTime": "0",
+                    "noAllowMarketEndTime": "0",
+                    "limitOrderStartTime": "0",
+                    "limitOrderEndTime": "0",
+                    "limitMinPrice": "0",
+                    "limitMaxPrice": "0",
+                    "filterType": "OPEN_QUOTE"
+                }
+            ],
+            "exchangeId": "301",
+            "symbol": "BTCUSDT-PERPETUAL",
+            "symbolName": "BTCUSDT-PERPETUAL",
+            "status": "TRADING",
+            "baseAsset": "BTCUSDT-PERPETUAL",
+            "baseAssetPrecision": "0.001",
+            "quoteAsset": "USDT",
+            "quoteAssetPrecision": "0.1",
+            "icebergAllowed": false,
+            "inverse": false,
+            "index": "USDT",
+            "marginToken": "USDT",
+            "marginPrecision": "0.0001",
+            "contractMultiplier": "0.001",
+            "underlying": "BTC",
+            "riskLimits": [
+                {
+                    "riskLimitId": "200000722",
+                    "quantity": "1000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.005",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000723",
+                    "quantity": "2000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.01",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000724",
+                    "quantity": "3500.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.015",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000725",
+                    "quantity": "5000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.02",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000726",
+                    "quantity": "6500.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.025",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000727",
+                    "quantity": "8000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.03",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000728",
+                    "quantity": "10000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.035",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000729",
+                    "quantity": "12000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.04",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000730",
+                    "quantity": "14000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.045",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000731",
+                    "quantity": "16000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.05",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000732",
+                    "quantity": "30000.00",
+                    "initialMargin": "0.1111",
+                    "maintMargin": "0.055",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000733",
+                    "quantity": "45000.00",
+                    "initialMargin": "0.125",
+                    "maintMargin": "0.065",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000734",
+                    "quantity": "60000.00",
+                    "initialMargin": "0.1428",
+                    "maintMargin": "0.075",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000735",
+                    "quantity": "75000.00",
+                    "initialMargin": "0.1666",
+                    "maintMargin": "0.085",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000736",
+                    "quantity": "90000.00",
+                    "initialMargin": "0.20",
+                    "maintMargin": "0.10",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000737",
+                    "quantity": "105000.00",
+                    "initialMargin": "0.25",
+                    "maintMargin": "0.125",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000738",
+                    "quantity": "120000.00",
+                    "initialMargin": "0.3333",
+                    "maintMargin": "0.165",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000739",
+                    "quantity": "135000.00",
+                    "initialMargin": "0.50",
+                    "maintMargin": "0.25",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000740",
+                    "quantity": "150000.00",
+                    "initialMargin": "1.00",
+                    "maintMargin": "0.50",
+                    "isWhite": false
+                }
+            ]
+        }
+    },
+    "ETH/USD:OX": {
+        "id": "ETHUSDT-PERPETUAL",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "subType": "linear",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "contractSize": 0.001,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0012,
+        "maker": 0.0012,
+        "precision": { "amount": 0.001, "price": 0.01 },
+        "limits": {
+            "amount": { "min": 0.001, "max": 50 },
+            "price": { "min": 0.01, "max": 100000 },
+            "leverage": {},
+            "cost": {}
+        },
+        "info": {
+            "filters": [
+                {
+                    "minPrice": "0.01",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.01",
+                    "filterType": "PRICE_FILTER"
+                },
+                {
+                    "minQty": "0.001",
+                    "maxQty": "50",
+                    "stepSize": "0.001",
+                    "marketOrderMinQty": "0",
+                    "marketOrderMaxQty": "0",
+                    "filterType": "LOT_SIZE"
+                },
+                { "minNotional": "0", "filterType": "MIN_NOTIONAL" },
+                {
+                    "maxSellPrice": "99999",
+                    "buyPriceUpRate": "0.05",
+                    "sellPriceDownRate": "0.05",
+                    "maxEntrustNum": "200",
+                    "maxConditionNum": "200",
+                    "filterType": "LIMIT_TRADING"
+                },
+                {
+                    "buyPriceUpRate": "0.05",
+                    "sellPriceDownRate": "0.05",
+                    "filterType": "MARKET_TRADING"
+                },
+                {
+                    "noAllowMarketStartTime": "0",
+                    "noAllowMarketEndTime": "0",
+                    "limitOrderStartTime": "0",
+                    "limitOrderEndTime": "0",
+                    "limitMinPrice": "0",
+                    "limitMaxPrice": "0",
+                    "filterType": "OPEN_QUOTE"
+                }
+            ],
+            "exchangeId": "301",
+            "symbol": "ETHUSDT-PERPETUAL",
+            "symbolName": "ETHUSDT-PERPETUAL",
+            "status": "TRADING",
+            "baseAsset": "ETHUSDT-PERPETUAL",
+            "baseAssetPrecision": "0.001",
+            "quoteAsset": "USDT",
+            "quoteAssetPrecision": "0.01",
+            "icebergAllowed": false,
+            "inverse": false,
+            "index": "USDT",
+            "marginToken": "USDT",
+            "marginPrecision": "0.0001",
+            "contractMultiplier": "0.001",
+            "underlying": "ETH",
+            "riskLimits": [
+                {
+                    "riskLimitId": "200000702",
+                    "quantity": "10000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.005",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000703",
+                    "quantity": "40000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.01",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000704",
+                    "quantity": "70000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.015",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000705",
+                    "quantity": "100000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.02",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000706",
+                    "quantity": "130000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.025",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000707",
+                    "quantity": "160000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.03",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000708",
+                    "quantity": "190000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.035",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000709",
+                    "quantity": "220000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.04",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000710",
+                    "quantity": "250000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.045",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000711",
+                    "quantity": "280000.00",
+                    "initialMargin": "0.10",
+                    "maintMargin": "0.05",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000712",
+                    "quantity": "560000.00",
+                    "initialMargin": "0.1111",
+                    "maintMargin": "0.055",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000713",
+                    "quantity": "840000.00",
+                    "initialMargin": "0.125",
+                    "maintMargin": "0.065",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000714",
+                    "quantity": "1120000.00",
+                    "initialMargin": "0.1428",
+                    "maintMargin": "0.075",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000715",
+                    "quantity": "1400000.00",
+                    "initialMargin": "0.1666",
+                    "maintMargin": "0.085",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000716",
+                    "quantity": "1680000.00",
+                    "initialMargin": "0.20",
+                    "maintMargin": "0.10",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000717",
+                    "quantity": "1960000.00",
+                    "initialMargin": "0.25",
+                    "maintMargin": "0.125",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000718",
+                    "quantity": "2240000.00",
+                    "initialMargin": "0.3333",
+                    "maintMargin": "0.165",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000719",
+                    "quantity": "2520000.00",
+                    "initialMargin": "0.50",
+                    "maintMargin": "0.25",
+                    "isWhite": false
+                },
+                {
+                    "riskLimitId": "200000720",
+                    "quantity": "2800000.00",
+                    "initialMargin": "1.00",
+                    "maintMargin": "0.50",
+                    "isWhite": false
+                }
+            ]
+        }
+    },
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0012,
+        "maker": 0.0012,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 8
+            },
+            "price": {
+                "min": 0.01,
+                "max": 100000
+            },
+            "leverage": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "BTCUSDT",
+            "symbolName": "BTCUSDT",
+            "status": "TRADING",
+            "baseAsset": "BTC",
+            "baseAssetName": "BTC",
+            "baseAssetPrecision": "0.00001",
+            "quoteAsset": "USDT",
+            "quoteAssetName": "USDT",
+            "quotePrecision": "0.0000001",
+            "retailAllowed": true,
+            "piAllowed": true,
+            "corporateAllowed": true,
+            "omnibusAllowed": true,
+            "icebergAllowed": false,
+            "isAggregate": false,
+            "allowMargin": false,
+            "filters": [
+                {
+                    "minPrice": "0.01",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.01",
+                    "filterType": "PRICE_FILTER"
+                },
+                {
+                    "minQty": "0.00001",
+                    "maxQty": "8",
+                    "stepSize": "0.00001",
+                    "marketOrderMinQty": "0.00001",
+                    "marketOrderMaxQty": "4",
+                    "filterType": "LOT_SIZE"
+                },
+                {
+                    "minNotional": "1",
+                    "filterType": "MIN_NOTIONAL"
+                },
+                {
+                    "minAmount": "1",
+                    "maxAmount": "400000",
+                    "minBuyPrice": "0",
+                    "marketOrderMinAmount": "1",
+                    "marketOrderMaxAmount": "200000",
+                    "filterType": "TRADE_AMOUNT"
+                },
+                {
+                    "maxSellPrice": "0",
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "LIMIT_TRADING"
+                },
+                {
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "MARKET_TRADING"
+                },
+                {
+                    "noAllowMarketStartTime": "1710485700000",
+                    "noAllowMarketEndTime": "1710486000000",
+                    "limitOrderStartTime": "0",
+                    "limitOrderEndTime": "0",
+                    "limitMinPrice": "0",
+                    "limitMaxPrice": "0",
+                    "filterType": "OPEN_QUOTE"
+                }
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0012,
+        "maker": 0.0012,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 520
+            },
+            "price": {
+                "min": 0.01,
+                "max": 100000
+            },
+            "leverage": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "LTCUSDT",
+            "symbolName": "LTCUSDT",
+            "status": "TRADING",
+            "baseAsset": "LTC",
+            "baseAssetName": "LTC",
+            "baseAssetPrecision": "0.001",
+            "quoteAsset": "USDT",
+            "quoteAssetName": "USDT",
+            "quotePrecision": "0.00001",
+            "retailAllowed": true,
+            "piAllowed": true,
+            "corporateAllowed": true,
+            "omnibusAllowed": true,
+            "icebergAllowed": false,
+            "isAggregate": false,
+            "allowMargin": false,
+            "filters": [
+                {
+                    "minPrice": "0.01",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.01",
+                    "filterType": "PRICE_FILTER"
+                },
+                {
+                    "minQty": "0.001",
+                    "maxQty": "520",
+                    "stepSize": "0.001",
+                    "marketOrderMinQty": "0.001",
+                    "marketOrderMaxQty": "260",
+                    "filterType": "LOT_SIZE"
+                },
+                {
+                    "minNotional": "1",
+                    "filterType": "MIN_NOTIONAL"
+                },
+                {
+                    "minAmount": "1",
+                    "maxAmount": "40000",
+                    "minBuyPrice": "0",
+                    "marketOrderMinAmount": "1",
+                    "marketOrderMaxAmount": "20000",
+                    "filterType": "TRADE_AMOUNT"
+                },
+                {
+                    "maxSellPrice": "0",
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "LIMIT_TRADING"
+                },
+                {
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "MARKET_TRADING"
+                },
+                {
+                    "noAllowMarketStartTime": "1705046400000",
+                    "noAllowMarketEndTime": "1705046700000",
+                    "limitOrderStartTime": "0",
+                    "limitOrderEndTime": "0",
+                    "limitMinPrice": "0",
+                    "limitMaxPrice": "0",
+                    "filterType": "OPEN_QUOTE"
+                }
+            ]
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0012,
+        "maker": 0.0012,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 140
+            },
+            "price": {
+                "min": 0.01,
+                "max": 100000
+            },
+            "leverage": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "ETHUSDT",
+            "symbolName": "ETHUSDT",
+            "status": "TRADING",
+            "baseAsset": "ETH",
+            "baseAssetName": "ETH",
+            "baseAssetPrecision": "0.0001",
+            "quoteAsset": "USDT",
+            "quoteAssetName": "USDT",
+            "quotePrecision": "0.000001",
+            "retailAllowed": true,
+            "piAllowed": true,
+            "corporateAllowed": true,
+            "omnibusAllowed": true,
+            "icebergAllowed": false,
+            "isAggregate": false,
+            "allowMargin": false,
+            "filters": [
+                {
+                    "minPrice": "0.01",
+                    "maxPrice": "100000.00000000",
+                    "tickSize": "0.01",
+                    "filterType": "PRICE_FILTER"
+                },
+                {
+                    "minQty": "0.0001",
+                    "maxQty": "140",
+                    "stepSize": "0.0001",
+                    "marketOrderMinQty": "0.0001",
+                    "marketOrderMaxQty": "70",
+                    "filterType": "LOT_SIZE"
+                },
+                {
+                    "minNotional": "1",
+                    "filterType": "MIN_NOTIONAL"
+                },
+                {
+                    "minAmount": "1",
+                    "maxAmount": "400000",
+                    "minBuyPrice": "0",
+                    "marketOrderMinAmount": "1",
+                    "marketOrderMaxAmount": "200000",
+                    "filterType": "TRADE_AMOUNT"
+                },
+                {
+                    "maxSellPrice": "0",
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "LIMIT_TRADING"
+                },
+                {
+                    "buyPriceUpRate": "0.1",
+                    "sellPriceDownRate": "0.1",
+                    "filterType": "MARKET_TRADING"
+                },
+                {
+                    "noAllowMarketStartTime": "1710485700000",
+                    "noAllowMarketEndTime": "1710486000000",
+                    "limitOrderStartTime": "0",
+                    "limitOrderEndTime": "0",
+                    "limitMinPrice": "0",
+                    "limitMaxPrice": "0",
+                    "filterType": "OPEN_QUOTE"
+                }
+            ]
+        }
+    }
+}

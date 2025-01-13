@@ -26,6 +26,8 @@ public partial class okcoin : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -36,10 +38,13 @@ public partial class okcoin : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchLedger", true },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
@@ -548,6 +553,9 @@ public partial class okcoin : Exchange
                 { "defaultNetwork", "ERC20" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
+                    { "BTC", "Bitcoin" },
+                    { "OMNI", "Omni" },
+                    { "TRC20", "TRON" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -564,15 +572,15 @@ public partial class okcoin : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPublicTime(parameters);
         //
@@ -584,16 +592,16 @@ public partial class okcoin : Exchange
         return this.parse8601(this.safeString(response, "iso"));
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchMarkets
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+     * @description retrieves data on all markets for okcoin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchMarkets
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
-        * @description retrieves data on all markets for okcoin
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "instType", "SPOT" },
@@ -689,25 +697,15 @@ public partial class okcoin : Exchange
         });
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
+    /**
+     * @method
+     * @name okcoin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
@@ -749,7 +747,7 @@ public partial class okcoin : Exchange
                     {
                         object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         object chainPart = this.safeString(parts, 1, networkId);
-                        object networkCode = this.safeNetwork(chainPart);
+                        object networkCode = this.networkIdToCode(chainPart);
                         object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                         if (isTrue(isEqual(maxPrecision, null)))
                         {
@@ -800,18 +798,18 @@ public partial class okcoin : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchOrderBook
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchOrderBook
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -908,17 +906,17 @@ public partial class okcoin : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchTicker
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchTicker
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -957,17 +955,17 @@ public partial class okcoin : Exchange
         return this.parseTicker(first, market);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchTickers
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchTickers
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {
@@ -1058,20 +1056,20 @@ public partial class okcoin : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchTrades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchTrades
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1116,21 +1114,21 @@ public partial class okcoin : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchOHLCV
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchOHLCV
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1229,15 +1227,15 @@ public partial class okcoin : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -1334,18 +1332,18 @@ public partial class okcoin : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name okcoin#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1358,36 +1356,36 @@ public partial class okcoin : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name okcoin#createOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
+     * @param {bool} [params.postOnly] true to place a post only order
+     * @param {float} [params.triggerPrice] conditional orders only, the price at which the order is to be triggered
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+     * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+     * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#createOrder
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
-        * @param {bool} [params.postOnly] true to place a post only order
-        * @param {float} [params.triggerPrice] conditional orders only, the price at which the order is to be triggered
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
-        * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
-        * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1687,31 +1685,31 @@ public partial class okcoin : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name okcoin#cancelOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if cancel trigger or conditional orders
+     * @param {bool} [params.advanced] True if canceling advanced orders only
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#cancelOrder
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] True if cancel trigger or conditional orders
-        * @param {bool} [params.advanced] True if canceling advanced orders only
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
-        if (isTrue(isTrue(stop) || isTrue(advanced)))
+        if (isTrue(isTrue(trigger) || isTrue(advanced)))
         {
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             return this.safeValue(orderInner, 0);
@@ -1754,27 +1752,27 @@ public partial class okcoin : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name okcoin#cancelOrders
+     * @description cancel multiple orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#cancelOrders
-        * @description cancel multiple orders
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
-        object stop = this.safeValue2(parameters, "stop", "trigger");
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
         object advanced = this.safeValue(parameters, "advanced");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "advanced"});
         object market = this.market(symbol);
@@ -1796,7 +1794,7 @@ public partial class okcoin : Exchange
             }
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                if (isTrue(isTrue(stop) || isTrue(advanced)))
+                if (isTrue(isTrue(trigger) || isTrue(advanced)))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
@@ -1821,7 +1819,7 @@ public partial class okcoin : Exchange
             }
         }
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privatePostTradeCancelAlgos(request);
         } else if (isTrue(advanced))
@@ -2032,7 +2030,6 @@ public partial class okcoin : Exchange
         }
         object stopLossPrice = this.safeNumber2(order, "slTriggerPx", "slOrdPx");
         object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
-        object stopPrice = this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"});
         object reduceOnlyRaw = this.safeString(order, "reduceOnly");
         object reduceOnly = false;
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -2055,8 +2052,7 @@ public partial class okcoin : Exchange
             { "price", price },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", this.safeNumberN(order, new List<object>() {"triggerPx", "moveTriggerPx"}) },
             { "average", average },
             { "cost", cost },
             { "amount", amount },
@@ -2069,18 +2065,19 @@ public partial class okcoin : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchOrder
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchOrder
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
-        * @description fetches information on an order made by the user
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2092,8 +2089,8 @@ public partial class okcoin : Exchange
             { "instId", getValue(market, "id") },
         };
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object stop = this.safeValue2(parameters, "stop", "trigger");
-        if (isTrue(stop))
+        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        if (isTrue(trigger))
         {
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -2114,7 +2111,7 @@ public partial class okcoin : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"clientOrderId", "stop", "trigger"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         } else
@@ -2126,22 +2123,22 @@ public partial class okcoin : Exchange
         return this.parseOrder(order);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchOpenOrders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchOpenOrders
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] True if fetching trigger or conditional orders
-        * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2156,14 +2153,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, parameters));
         } else
@@ -2174,23 +2171,23 @@ public partial class okcoin : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchClosedOrders
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] True if fetching trigger or conditional orders
+     * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchClosedOrders
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.stop] True if fetching trigger or conditional orders
-        * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2203,14 +2200,14 @@ public partial class okcoin : Exchange
             ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
         }
         object ordType = this.safeString(parameters, "ordType");
-        object stop = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
-        if (isTrue(isTrue(stop) && isTrue((isEqual(ordType, null)))))
+        object trigger = isTrue(this.safeValue(parameters, "stop")) || isTrue((!isEqual(this.safeString(parameters, "ordType"), null)));
+        if (isTrue(isTrue(trigger) && isTrue((isEqual(ordType, null)))))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger"; // default to trigger
         }
         parameters = this.omit(parameters, new List<object>() {"stop"});
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, parameters));
         } else
@@ -2358,25 +2355,25 @@ public partial class okcoin : Exchange
         //
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name okx#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultNetwork = this.safeString(this.options, "defaultNetwork", "ERC20");
@@ -2392,17 +2389,17 @@ public partial class okcoin : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name okx#fetchDepositAddressesByNetwork
-        * @description fetch a dictionary of addresses for a currency, indexed by network
-        * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2437,20 +2434,20 @@ public partial class okcoin : Exchange
         return this.indexBy(parsed, "network");
     }
 
+    /**
+     * @method
+     * @name okcoin#transfer
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#transfer
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
-        * @description transfer currency internally between wallets on the same account
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2586,20 +2583,20 @@ public partial class okcoin : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name okcoin#withdraw
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#withdraw
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2655,19 +2652,19 @@ public partial class okcoin : Exchange
         return this.parseTransaction(transaction, currency);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchDeposits
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchDeposits
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2731,19 +2728,19 @@ public partial class okcoin : Exchange
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchWithdrawals
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchWithdrawals
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2939,20 +2936,20 @@ public partial class okcoin : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchMyTrades
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchMyTrades
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2984,19 +2981,19 @@ public partial class okcoin : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -3004,21 +3001,21 @@ public partial class okcoin : Exchange
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name okcoin#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+     * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#fetchLedger
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
-        * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object method = null;
@@ -3158,47 +3155,38 @@ public partial class okcoin : Exchange
         //         "ts": "1597026383085"
         //     }
         //
-        object id = this.safeString(item, "billId");
-        object account = null;
-        object referenceId = this.safeString(item, "ordId");
-        object referenceAccount = null;
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "ccy"), currency);
-        object amountString = this.safeString(item, "balChg");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "ccy");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
         object feeCostString = this.safeString(item, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
+                { "cost", this.parseToNumeric(Precise.stringNeg(feeCostString)) },
                 { "currency", code },
             };
         }
-        object before = null;
-        object afterString = this.safeString(item, "bal");
-        object after = this.parseNumber(afterString);
-        object status = "ok";
         object marketId = this.safeString(item, "instId");
         object symbol = this.safeSymbol(marketId, null, "-");
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "account", account },
-            { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
-            { "type", type },
+            { "account", null },
+            { "referenceId", this.safeString(item, "ordId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
             { "symbol", symbol },
-            { "amount", amount },
-            { "before", before },
-            { "after", after },
-            { "status", status },
+            { "amount", this.safeNumber(item, "balChg") },
+            { "before", null },
+            { "after", this.safeNumber(item, "bal") },
+            { "status", "ok" },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

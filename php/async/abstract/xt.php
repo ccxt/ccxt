@@ -11,10 +11,10 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_depth($params = array()) {
-        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.05));
+        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function public_spot_get_kline($params = array()) {
-        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_symbol($params = array()) {
         return $this->request('symbol', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -35,10 +35,10 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_trade_history($params = array()) {
-        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_trade_recent($params = array()) {
-        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_spot_get_wallet_support_currency($params = array()) {
         return $this->request('wallet/support/currency', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -200,13 +200,16 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function private_spot_post_withdraw($params = array()) {
-        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_spot_post_balance_transfer($params = array()) {
         return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_spot_post_balance_account_transfer($params = array()) {
         return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_post_ws_token($params = array()) {
+        return $this->request('ws-token', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_spot_delete_batch_order($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -455,10 +458,10 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetDepth($params = array()) {
-        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.05));
+        return $this->request('depth', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function publicSpotGetKline($params = array()) {
-        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('kline', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetSymbol($params = array()) {
         return $this->request('symbol', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -479,10 +482,10 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetTradeHistory($params = array()) {
-        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/history', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetTradeRecent($params = array()) {
-        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('trade/recent', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetWalletSupportCurrency($params = array()) {
         return $this->request('wallet/support/currency', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -644,13 +647,16 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('order', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privateSpotPostWithdraw($params = array()) {
-        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('withdraw', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function privateSpotPostBalanceTransfer($params = array()) {
         return $this->request('balance/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotPostBalanceAccountTransfer($params = array()) {
         return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostWsToken($params = array()) {
+        return $this->request('ws-token', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotDeleteBatchOrder($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));

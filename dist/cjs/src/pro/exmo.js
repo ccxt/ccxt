@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class exmo extends exmo$1 {
     describe() {
@@ -14,10 +14,10 @@ class exmo extends exmo$1 {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
@@ -40,14 +40,14 @@ class exmo extends exmo$1 {
         this.options['requestId'] = requestId;
         return requestId;
     }
+    /**
+     * @method
+     * @name exmo#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name exmo#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.authenticate(params);
         const [type, query] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
@@ -195,15 +195,16 @@ class exmo extends exmo$1 {
             this.balance = this.safeBalance(this.balance);
         }
     }
+    /**
+     * @method
+     * @name exmo#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name exmo#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -218,6 +219,35 @@ class exmo extends exmo$1 {
         };
         const request = this.deepExtend(message, params);
         return await this.watch(url, messageHash, request, messageHash, request);
+    }
+    /**
+     * @method
+     * @name exmo#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('ticker:' + market['symbol']);
+            args.push('spot/ticker:' + market['id']);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message = {
+            'method': 'subscribe',
+            'topics': args,
+            'id': this.requestId(),
+        };
+        const request = this.deepExtend(message, params);
+        await this.watchMultiple(url, messageHashes, request, messageHashes, request);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -250,17 +280,17 @@ class exmo extends exmo$1 {
         this.tickers[symbol] = parsedTicker;
         client.resolve(parsedTicker, messageHash);
     }
+    /**
+     * @method
+     * @name exmo#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name exmo#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -314,17 +344,17 @@ class exmo extends exmo$1 {
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
+    /**
+     * @method
+     * @name exmo#watchTrades
+     * @description get the list of trades associated with the user
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name exmo#watchTrades
-         * @description get the list of trades associated with the user
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         await this.authenticate(params);
         const [type, query] = this.handleMarketTypeAndParams('watchMyTrades', undefined, params);
@@ -444,16 +474,16 @@ class exmo extends exmo$1 {
         }
         client.resolve(myTrades, messageHash);
     }
+    /**
+     * @method
+     * @name exmo#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name exmo#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -540,6 +570,219 @@ class exmo extends exmo$1 {
             this.handleDelta(bookside, deltas[i]);
         }
     }
+    /**
+     * @method
+     * @name exmo#watchOrders
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        await this.authenticate(params);
+        const [type, query] = this.handleMarketTypeAndParams('watchOrders', undefined, params);
+        const url = this.urls['api']['ws'][type];
+        let messageHash = undefined;
+        if (symbol === undefined) {
+            messageHash = 'orders:' + type;
+        }
+        else {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            messageHash = 'orders:' + market['symbol'];
+        }
+        const message = {
+            'method': 'subscribe',
+            'topics': [
+                type + '/orders',
+            ],
+            'id': this.requestId(),
+        };
+        const request = this.deepExtend(message, query);
+        const orders = await this.watch(url, messageHash, request, messageHash, request);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    handleOrders(client, message) {
+        //
+        //  spot
+        // {
+        //     "ts": 1574427585174,
+        //     "event": "snapshot",
+        //     "topic": "spot/orders",
+        //     "data": [
+        //       {
+        //         "order_id": "14",
+        //         "client_id":"100500",
+        //         "created": "1574427585",
+        //         "pair": "BTC_USD",
+        //         "price": "7750",
+        //         "quantity": "0.1",
+        //         "amount": "775",
+        //         "original_quantity": "0.1",
+        //         "original_amount": "775",
+        //         "type": "sell",
+        //         "status": "open"
+        //       }
+        //     ]
+        // }
+        //
+        //  margin
+        // {
+        //     "ts":1624371281773,
+        //     "event":"snapshot",
+        //     "topic":"margin/orders",
+        //     "data":[
+        //        {
+        //           "order_id":"692844278081168665",
+        //           "created":"1624371250919761600",
+        //           "type":"limit_buy",
+        //           "previous_type":"limit_buy",
+        //           "pair":"BTC_USD",
+        //           "leverage":"2",
+        //           "price":"10000",
+        //           "stop_price":"0",
+        //           "distance":"0",
+        //           "trigger_price":"10000",
+        //           "init_quantity":"0.1",
+        //           "quantity":"0.1",
+        //           "funding_currency":"USD",
+        //           "funding_quantity":"1000",
+        //           "funding_rate":"0",
+        //           "client_id":"111111",
+        //           "expire":0,
+        //           "src":1,
+        //           "comment":"comment1",
+        //           "updated":1624371250938136600,
+        //           "status":"active"
+        //        }
+        //     ]
+        // }
+        //
+        const topic = this.safeString(message, 'topic');
+        const parts = topic.split('/');
+        const type = this.safeString(parts, 0);
+        const messageHash = 'orders:' + type;
+        const event = this.safeString(message, 'event');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
+        }
+        const cachedOrders = this.orders;
+        let rawOrders = [];
+        if (event === 'snapshot') {
+            rawOrders = this.safeValue(message, 'data', []);
+        }
+        else if (event === 'update') {
+            const rawOrder = this.safeDict(message, 'data', {});
+            rawOrders.push(rawOrder);
+        }
+        const symbols = {};
+        for (let j = 0; j < rawOrders.length; j++) {
+            const order = this.parseWsOrder(rawOrders[j]);
+            cachedOrders.append(order);
+            symbols[order['symbol']] = true;
+        }
+        const symbolKeys = Object.keys(symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = 'orders:' + symbol;
+            client.resolve(cachedOrders, symbolSpecificMessageHash);
+        }
+        client.resolve(cachedOrders, messageHash);
+    }
+    parseWsOrder(order, market = undefined) {
+        //
+        // {
+        //     order_id: '43226756791',
+        //     client_id: 0,
+        //     created: '1730371416',
+        //     type: 'market_buy',
+        //     pair: 'TRX_USD',
+        //     quantity: '0',
+        //     original_quantity: '30',
+        //     status: 'cancelled',
+        //     last_trade_id: '726480870',
+        //     last_trade_price: '0.17',
+        //     last_trade_quantity: '30'
+        // }
+        //
+        const id = this.safeString(order, 'order_id');
+        const timestamp = this.safeTimestamp(order, 'created');
+        const orderType = this.safeString(order, 'type');
+        const side = this.parseSide(orderType);
+        const marketId = this.safeString(order, 'pair');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
+        let amount = this.safeString(order, 'quantity');
+        if (amount === undefined) {
+            const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
+            amount = this.safeString(order, amountField);
+        }
+        const price = this.safeString(order, 'price');
+        const clientOrderId = this.omitZero(this.safeString(order, 'client_id'));
+        const triggerPrice = this.omitZero(this.safeString(order, 'stop_price'));
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
+        let trades = undefined;
+        if ('last_trade_id' in order) {
+            const trade = this.parseWsTrade(order, market);
+            trades = [trade];
+        }
+        return this.safeOrder({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': this.parseStatus(this.safeString(order, 'status')),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'cost': undefined,
+            'amount': this.safeString(order, 'original_quantity'),
+            'filled': undefined,
+            'remaining': this.safeString(order, 'quantity'),
+            'average': undefined,
+            'trades': trades,
+            'fee': undefined,
+            'info': order,
+        }, market);
+    }
+    parseWsTrade(trade, market = undefined) {
+        const id = this.safeString(trade, 'order_id');
+        const orderType = this.safeString(trade, 'type');
+        const side = this.parseSide(orderType);
+        const marketId = this.safeString(trade, 'pair');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
+        return this.safeTrade({
+            'id': this.safeString(trade, 'last_trade_id'),
+            'symbol': symbol,
+            'order': id,
+            'type': type,
+            'side': side,
+            'price': this.safeString(trade, 'last_trade_price'),
+            'amount': this.safeString(trade, 'last_trade_quantity'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
     handleMessage(client, message) {
         //
         // {
@@ -580,8 +823,8 @@ class exmo extends exmo$1 {
                     'spot/trades': this.handleTrades,
                     'margin/trades': this.handleTrades,
                     'spot/order_book_updates': this.handleOrderBook,
-                    // 'spot/orders': this.handleOrders,
-                    // 'margin/orders': this.handleOrders,
+                    'spot/orders': this.handleOrders,
+                    'margin/orders': this.handleOrders,
                     'spot/user_trades': this.handleMyTrades,
                     'margin/user_trades': this.handleMyTrades,
                 };

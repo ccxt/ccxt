@@ -52,6 +52,10 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
                 'max': exchange.parseNumber ('1000'), // order cost should be < max
             },
         },
+        'marginModes': {
+            'cross': true,
+            'isolated': false,
+        },
         'info': {},
     };
     const emptyAllowedFor = [ 'linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
@@ -175,6 +179,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
         }
     }
+    const isInactiveMarket = market['active'] === false;
     // check limits
     if (!('limits' in skippedProperties)) {
         const limitsKeys = Object.keys (market['limits']);
@@ -183,6 +188,10 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         for (let i = 0; i < limitsKeys.length; i++) {
             const key = limitsKeys[i];
             const limitEntry = market['limits'][key];
+            if (isInactiveMarket) {
+                // for inactive markets, there might be `0` for min & max values, so we skip
+                continue;
+            }
             // min >= 0
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
             // max >= 0
@@ -201,6 +210,14 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'created');
+    // margin modes
+    if (!('marginModes' in skippedProperties)) {
+        const marginModes = exchange.safeDict (market, 'marginModes'); // in future, remove safeDict
+        assert ('cross' in marginModes, 'marginModes should have "cross" key' + logText);
+        assert ('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, marginModes, 'cross', [ true, false, undefined ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, marginModes, 'isolated', [ true, false, undefined ]);
+    }
 }
 
 export default testMarket;

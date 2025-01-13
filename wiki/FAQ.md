@@ -1,70 +1,5 @@
-  # Frequently Asked Questions
+# Frequently Asked Questions
 
-  ## How to create an order with takeProfit+stopLoss?
-  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
-
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
-  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
-
-  ## How to create a spot market buy with cost?
-  To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
-  If it does, then you can use the `createMarketBuyOrderWithCost` method.
-  Example:
-  ```Python
-  order = await exchange.createMarketBuyOrderWithCost(symbol, cost)
-  ```
-
-  See more: [Market Buys](Manual.md#market-buys)
-
-  ## What's the difference between trading spot and swap/perpetual futures?
-  Spot trading involves buying or selling a financial instrument (like a cryptocurrency) for immediate delivery. It's straightforward, involving the direct exchange of assets.
-
-  Swap trading, on the other hand, involves derivative contracts where two parties exchange financial instruments or cash flows at a set date in the future, based on the underlying asset. Swaps are often used for leverage, speculation, or hedging and do not necessarily involve the exchange of the underlying asset until the contract expires.
-
-
-  Besides that, you will be handling contracts if you're trading swaps and not the base currency (e.g., BTC) directly, so if you create an order with `amount = 1`, the amount in BTC will vary depending on the `contractSize`. You can check the contract size by doing:
-
-  ```Python
-  await exchange.loadMarkets()
-  symbol = 'XRP/USDT:USDT'
-  market = exchange.market(symbol)
-  print(market['contractSize'])
-  ```
-
-  ## How to place a reduceOnly order?
-  A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
-
-<!-- tabs:start -->
-#### **Javascript**
-```javascript
-const params = {
-    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
-}
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
-```
-#### **Python**
-```python
-params = {
-    'reduceOnly': True, # set to True if you want to close a position, set to False if you want to open a new position
-}
-order = exchange.create_order (symbol, type, side, amount, price, params)
-```
-#### **PHP**
-```php
-$params = {
-    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
-}
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
-```
-<!-- tabs:end -->
-
-
-  See more: [Trailing Orders](Manual.md#trailing-orders)
-
-  ## How to check the endpoint used by the unified method?
-  To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.
-
-  See more: [Unified API](Manual.md#unified-api)
 
   ## I'm trying to run the code, but it's not working, how do I fix it?
 
@@ -142,3 +77,97 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
+
+
+
+  ## How to create an order with takeProfit+stopLoss?
+  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
+
+  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
+  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
+
+  ## How to create a spot market buy with cost?
+  To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
+  If it does, then you can use the `createMarketBuyOrderWithCost` method.
+  Example:
+  ```Python
+  order = await exchange.createMarketBuyOrderWithCost(symbol, cost)
+  ```
+
+## What does the `createMarketBuyRequiresPrice` option mean?
+
+Many exchanges require the amount to be in the quote currency (they don't accept the base amount) when placing spot-market buy orders. In those cases, the exchange will have the option `createMarketBuyRequiresPrice` set to `true`.
+
+Example: If you wanted to buy BTC/USDT with a market buy-order, you would need to provide an amount = 5 USDT instead of 0.000X. We have a check to prevent errors that explicitly require the price because users will usually provide the amount in the base currency.
+
+So by default, if you do, `create_order(symbol, 'market,' 'buy,' 10)` will throw an error if the exchange has that option (`createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false...`).
+
+If the exchange requires the cost and the user provided the base amount, we need to request an extra parameter **price** and multiply them to get the cost. If you're aware of this behavior, you can simply disable `createMarketBuyOrderRequiresPrice` and pass the cost in the amount parameter, but disabling it does not mean you can place the order using the base amount instead of the quote.
+
+If you do `create_order(symbol, 'market', 'buy', 0.001, 20000)`  ccxt will use the required price to calculate the cost by doing `0.01*20000` and send that value to the exchange.
+
+If you want to provide the cost directly in the amount argument, you can do `exchange.options['createMarketBuyOrderRequiresPrice'] = False` (you acknowledge that the amount will be the cost for market-buy) and then you can do `create_order(symbol, 'market', 'buy', 10)`
+
+This is basically to avoid a user doing this: `create_order('SHIB/USDT', market, buy, 1000000)` and thinking he's trying to buy 1kk of shib but in reality he's buying 1kk USDT worth of SHIB. For that reason, by default ccxt always accepts the base currency in the amount parameter.
+
+Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `createMarketSellOrderWithCost` if they are available.
+
+  See more: [Market Buys](Manual.md#market-buys)
+
+  ## What's the difference between trading spot and swap/perpetual futures?
+  Spot trading involves buying or selling a financial instrument (like a cryptocurrency) for immediate delivery. It's straightforward, involving the direct exchange of assets.
+
+  Swap trading, on the other hand, involves derivative contracts where two parties exchange financial instruments or cash flows at a set date in the future, based on the underlying asset. Swaps are often used for leverage, speculation, or hedging and do not necessarily involve the exchange of the underlying asset until the contract expires.
+
+
+  Besides that, you will be handling contracts if you're trading swaps and not the base currency (e.g., BTC) directly, so if you create an order with `amount = 1`, the amount in BTC will vary depending on the `contractSize`. You can check the contract size by doing:
+
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'XRP/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  ## How to place a reduceOnly order?
+  A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const params = {
+    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+#### **Python**
+```python
+params = {
+    'reduceOnly': True, # set to True if you want to close a position, set to False if you want to open a new position
+}
+order = exchange.create_order (symbol, type, side, amount, price, params)
+```
+#### **PHP**
+```php
+$params = {
+    'reduceOnly': true, // set to true if you want to close a position, set to false if you want to open a new position
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+```
+<!-- tabs:end -->
+
+
+  See more: [Trailing Orders](Manual.md#trailing-orders)
+
+  ## How to check the endpoint used by the unified method?
+  To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.
+
+  See more: [Unified API](Manual.md#unified-api)
+
+  ## How to differentiate between previousFundingRate, fundingRate and nextFundingRate in the funding rate structure?
+  The funding rate structure has three different funding rate values that can be returned:
+  1. `previousFundingRate`refers to the most recently completed rate.
+  2. `fundingRate` is the upcoming rate. This value is always changing until the funding time passes and then it becomes the previousFundingRate.
+  3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
+
+  As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.

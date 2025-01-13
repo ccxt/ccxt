@@ -20,6 +20,7 @@
                         "address": "btcaddress"
                     },
                     "currency": "BTC",
+                    "network": null,
                     "address": null,
                     "tag": "btcaddress"
                 }
@@ -231,6 +232,8 @@
                     "average": 72297.34,
                     "baseVolume": 0.71952468,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC-USDT",
                         "price_24h": "71400.89",

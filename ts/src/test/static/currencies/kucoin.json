@@ -1778,5 +1778,139 @@
                 }
             }
         }
+    },
+    "BNB": {
+        "id": "BNB",
+        "name": "Binance Chain Native Token",
+        "code": "BNB",
+        "type": "crypto",
+        "precision": 1e-8,
+        "info": {
+            "currency": "BNB",
+            "name": "BNB",
+            "fullName": "Binance Chain Native Token",
+            "precision": 8,
+            "confirms": null,
+            "contractAddress": null,
+            "isMarginEnabled": true,
+            "isDebitEnabled": true,
+            "chains": [
+                {
+                    "chainName": "BEP20",
+                    "withdrawalMinSize": "0.004",
+                    "depositMinSize": "0.002",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.002",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 32,
+                    "preConfirms": 32,
+                    "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "bsc"
+                },
+                {
+                    "chainName": "BEP2",
+                    "withdrawalMinSize": "0.01",
+                    "depositMinSize": "0.005",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.005",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
+                    "confirms": 2,
+                    "preConfirms": 2,
+                    "contractAddress": "BNB",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "bnb"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chainName": "BEP20",
+                    "withdrawalMinSize": "0.004",
+                    "depositMinSize": "0.002",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.002",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 32,
+                    "preConfirms": 32,
+                    "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "bsc"
+                },
+                "id": "bsc",
+                "name": "BEP20",
+                "code": "BEP20",
+                "active": true,
+                "fee": 0.002,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.004
+                    },
+                    "deposit": {
+                        "min": 0.002
+                    }
+                }
+            },
+            "BEP2": {
+                "info": {
+                    "chainName": "BEP2",
+                    "withdrawalMinSize": "0.01",
+                    "depositMinSize": "0.005",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.005",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
+                    "confirms": 2,
+                    "preConfirms": 2,
+                    "contractAddress": "BNB",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "bnb"
+                },
+                "id": "bnb",
+                "name": "BEP2",
+                "code": "BEP2",
+                "active": false,
+                "fee": 0.005,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01
+                    },
+                    "deposit": {
+                        "min": 0.005
+                    }
+                }
+            }
+        }
     }
 }

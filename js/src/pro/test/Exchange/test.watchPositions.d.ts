@@ -1,2 +1,3 @@
-declare function testWatchPositions(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
+import { Exchange } from '../../../../ccxt.js';
+declare function testWatchPositions(exchange: Exchange, skippedProperties: object, symbol: string): Promise<void>;
 export default testWatchPositions;

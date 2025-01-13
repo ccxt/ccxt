@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _sha2 = require('./_sha2.js');
 var utils = require('./utils.js');
 
+// ----------------------------------------------------------------------------
 // SHA1 was cryptographically broken.
 // It is still widely used in legacy apps. Don't use it for a new protocol.
 // RFC 3174

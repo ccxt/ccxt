@@ -1,0 +1,1035 @@
+{
+    "exchange": "paradex",
+    "options": {
+        "systemConfig": {
+            "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
+            "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
+            "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
+            "block_explorer_url": "https://voyager.testnet.paradex.trade/",
+            "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
+            "paraclear_decimals": 8,
+            "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
+            "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
+            "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
+            "bridged_tokens": [
+                {
+                    "name": "TEST USDC",
+                    "symbol": "USDC",
+                    "decimals": 6,
+                    "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
+                    "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
+                    "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
+                    "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
+                }
+            ],
+            "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
+            "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
+            "l1_chain_id": "11155111",
+            "liquidation_fee": "0.2"
+        },
+        "authToken": "token"
+    },
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "server_time": "1721281853309"
+                },
+                "parsedResponse": 1721281853309
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "status": "ok"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "status": "ok"
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "500",
+                            "open_at": 1698756879745,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "position_limit": "60",
+                            "price_bands_width": "0.05",
+                            "max_open_orders": 100,
+                            "max_funding_rate": "0.02",
+                            "delta1_cross_margin_params": {
+                                "imf_base": "0.02",
+                                "imf_shift": "180000",
+                                "imf_factor": "0.00007",
+                                "mmf_factor": "0.5"
+                            },
+                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                            "oracle_ewma_factor": "0.20000046249626113",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0.0002",
+                            "max_tob_spread": "0.1"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD-PERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": null,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0003,
+                        "maker": -0.00005,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 100
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 500,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "500",
+                            "open_at": 1698756879745,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "position_limit": "60",
+                            "price_bands_width": "0.05",
+                            "max_open_orders": 100,
+                            "max_funding_rate": "0.02",
+                            "delta1_cross_margin_params": {
+                                "imf_base": "0.02",
+                                "imf_shift": "180000",
+                                "imf_factor": "0.00007",
+                                "mmf_factor": "0.5"
+                            },
+                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                            "oracle_ewma_factor": "0.20000046249626113",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0.0002",
+                            "max_tob_spread": "0.1"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "results": [
+                        [
+                            1719993660000,
+                            60823.3,
+                            60823.3,
+                            60823.3,
+                            60823.3,
+                            4561
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1719993660000,
+                        60823.3,
+                        60823.3,
+                        60823.3,
+                        60823.3,
+                        4561
+                    ]
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67307.7225876",
+                            "mark_price": "67307.7225876",
+                            "last_traded_price": "66821.1",
+                            "bid": "66821.1",
+                            "ask": "67643.2",
+                            "volume_24h": "2611476.262600002",
+                            "total_volume": "589169794.979260343",
+                            "created_at": 1718377962698,
+                            "underlying_price": "66806.71304318",
+                            "open_interest": "152.777",
+                            "funding_rate": "0.00749938923192",
+                            "price_change_rate_24h": "-0.036863"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:USDC": {
+                        "symbol": "BTC/USD:USDC",
+                        "timestamp": 1718377962698,
+                        "datetime": "2024-06-14T15:12:42.698Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 66821.1,
+                        "bidVolume": null,
+                        "ask": 67643.2,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 66821.1,
+                        "last": 66821.1,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": -3.6863,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": 2611476.262600002,
+                        "markPrice":  67307.7225876,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67307.7225876",
+                            "mark_price": "67307.7225876",
+                            "last_traded_price": "66821.1",
+                            "bid": "66821.1",
+                            "ask": "67643.2",
+                            "volume_24h": "2611476.262600002",
+                            "total_volume": "589169794.979260343",
+                            "created_at": 1718377962698,
+                            "underlying_price": "66806.71304318",
+                            "open_interest": "152.777",
+                            "funding_rate": "0.00749938923192",
+                            "price_change_rate_24h": "-0.036863"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67275.25940213",
+                            "mark_price": "67275.25940213",
+                            "last_traded_price": "66821.1",
+                            "bid": "66821.1",
+                            "ask": "67643.2",
+                            "volume_24h": "2611476.262600002",
+                            "total_volume": "589169794.979260343",
+                            "created_at": 1718377977698,
+                            "underlying_price": "66814.28166666",
+                            "open_interest": "152.777",
+                            "funding_rate": "0.00689938923192",
+                            "price_change_rate_24h": "-0.036863"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "timestamp": 1718377977698,
+                    "datetime": "2024-06-14T15:12:57.698Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 66821.1,
+                    "bidVolume": null,
+                    "ask": 67643.2,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": 66821.1,
+                    "last": 66821.1,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": -3.6863,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 2611476.262600002,
+                    "markPrice":  67275.25940213,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "oracle_price": "67275.25940213",
+                        "mark_price": "67275.25940213",
+                        "last_traded_price": "66821.1",
+                        "bid": "66821.1",
+                        "ask": "67643.2",
+                        "volume_24h": "2611476.262600002",
+                        "total_volume": "589169794.979260343",
+                        "created_at": 1718377977698,
+                        "underlying_price": "66814.28166666",
+                        "open_interest": "152.777",
+                        "funding_rate": "0.00689938923192",
+                        "price_change_rate_24h": "-0.036863"
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "market": "BTC-USD-PERP",
+                    "seq_no": 14139427,
+                    "last_updated_at": 1718377985388,
+                    "asks": [
+                        [
+                            "67643.2",
+                            "3.734"
+                        ],
+                        [
+                            "79981",
+                            "0.5"
+                        ],
+                        [
+                            "83681",
+                            "0.5"
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            "66810",
+                            "0.078"
+                        ],
+                        [
+                            "66762.2",
+                            "0.979"
+                        ],
+                        [
+                            "66691.4",
+                            "0.025"
+                        ],
+                        [
+                            "66689.2",
+                            "0.973"
+                        ],
+                        [
+                            "66685.2",
+                            "1"
+                        ],
+                        [
+                            "66678.8",
+                            "0.027"
+                        ],
+                        [
+                            "66672.8",
+                            "0.921"
+                        ],
+                        [
+                            "66671.2",
+                            "0.059"
+                        ],
+                        [
+                            "66669.2",
+                            "1.029"
+                        ],
+                        [
+                            "66667.1",
+                            "0.023"
+                        ],
+                        [
+                            "66655.1",
+                            "0.947"
+                        ],
+                        [
+                            "66630.2",
+                            "1"
+                        ],
+                        [
+                            "66618.8",
+                            "0.053"
+                        ],
+                        [
+                            "66604.5",
+                            "1"
+                        ],
+                        [
+                            "66591.2",
+                            "1"
+                        ],
+                        [
+                            "66559.3",
+                            "0.673"
+                        ],
+                        [
+                            "66554.1",
+                            "0.106"
+                        ],
+                        [
+                            "66551.2",
+                            "0.94"
+                        ],
+                        [
+                            "66134.9",
+                            "0.223"
+                        ],
+                        [
+                            "66131.9",
+                            "0.109"
+                        ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "bids": [
+                        [
+                            66810,
+                            0.078
+                        ],
+                        [
+                            66762.2,
+                            0.979
+                        ],
+                        [
+                            66691.4,
+                            0.025
+                        ],
+                        [
+                            66689.2,
+                            0.973
+                        ],
+                        [
+                            66685.2,
+                            1
+                        ],
+                        [
+                            66678.8,
+                            0.027
+                        ],
+                        [
+                            66672.8,
+                            0.921
+                        ],
+                        [
+                            66671.2,
+                            0.059
+                        ],
+                        [
+                            66669.2,
+                            1.029
+                        ],
+                        [
+                            66667.1,
+                            0.023
+                        ],
+                        [
+                            66655.1,
+                            0.947
+                        ],
+                        [
+                            66630.2,
+                            1
+                        ],
+                        [
+                            66618.8,
+                            0.053
+                        ],
+                        [
+                            66604.5,
+                            1
+                        ],
+                        [
+                            66591.2,
+                            1
+                        ],
+                        [
+                            66559.3,
+                            0.673
+                        ],
+                        [
+                            66554.1,
+                            0.106
+                        ],
+                        [
+                            66551.2,
+                            0.94
+                        ],
+                        [
+                            66134.9,
+                            0.223
+                        ],
+                        [
+                            66131.9,
+                            0.109
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            67643.2,
+                            3.734
+                        ],
+                        [
+                            79981,
+                            0.5
+                        ],
+                        [
+                            83681,
+                            0.5
+                        ]
+                    ],
+                    "timestamp": 1718377985388,
+                    "datetime": "2024-06-14T15:13:05.388Z",
+                    "nonce": 14139427
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "next": "eyJmaWx0ZXIiOnsiTWFya2V0IjoiQlRDLVVTRC1QRVJQIiwiVHJhZGVSb2xlIjoiVEFLRVIiLCJBY2NvdW50IjoiIiwiTGltaXQiOjEsIlN0YXJ0VGltZSI6MCwiRW5kVGltZSI6MH0sInRpbWUiOjE3MTgzNzgwMDc5MzczMzYzODAsIm1hcmtlciI6eyJtYXJrZXIiOiIxNzE4Mzc3OTg1MzgwMjAxNzAzOTk0MDAwMDAxIiwiZGlyZWN0aW9uIjowfSwiaW5pdGlhbF9tYXJrZXIiOiIxNzE4Mzc3OTg1MzgwMjAxNzAzOTk0MDAwMDAxIn0=",
+                    "prev": null,
+                    "results": [
+                        {
+                            "id": "1718377985380201703994000001",
+                            "market": "BTC-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.026",
+                            "price": "67643.2",
+                            "created_at": 1718377985388,
+                            "trade_type": "FILL"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1718377985380201703994000001",
+                            "market": "BTC-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.026",
+                            "price": "67643.2",
+                            "created_at": 1718377985388,
+                            "trade_type": "FILL",
+                            "next": "eyJmaWx0ZXIiOnsiTWFya2V0IjoiQlRDLVVTRC1QRVJQIiwiVHJhZGVSb2xlIjoiVEFLRVIiLCJBY2NvdW50IjoiIiwiTGltaXQiOjEsIlN0YXJ0VGltZSI6MCwiRW5kVGltZSI6MH0sInRpbWUiOjE3MTgzNzgwMDc5MzczMzYzODAsIm1hcmtlciI6eyJtYXJrZXIiOiIxNzE4Mzc3OTg1MzgwMjAxNzAzOTk0MDAwMDAxIiwiZGlyZWN0aW9uIjowfSwiaW5pdGlhbF9tYXJrZXIiOiIxNzE4Mzc3OTg1MzgwMjAxNzAzOTk0MDAwMDAxIn0="
+                        },
+                        "id": "1718377985380201703994000001",
+                        "order": null,
+                        "timestamp": 1718377985388,
+                        "datetime": "2024-06-14T15:13:05.388Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 67643.2,
+                        "amount": 0.026,
+                        "cost": 1758.7232,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67301.22184172",
+                            "mark_price": "67301.22184172",
+                            "last_traded_price": "67643.2",
+                            "bid": "66814.2",
+                            "ask": "67643.2",
+                            "volume_24h": "2611549.0808000015",
+                            "total_volume": "589171553.702460343",
+                            "created_at": 1718378012699,
+                            "underlying_price": "66773.75",
+                            "open_interest": "152.803",
+                            "funding_rate": "0.00789938923192",
+                            "price_change_rate_24h": "0.00307"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USDC",
+                    "openInterestAmount": 152.803,
+                    "openInterestValue": null,
+                    "timestamp": 1718378012699,
+                    "datetime": "2024-06-14T15:13:32.699Z",
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "oracle_price": "67301.22184172",
+                        "mark_price": "67301.22184172",
+                        "last_traded_price": "67643.2",
+                        "bid": "66814.2",
+                        "ask": "67643.2",
+                        "volume_24h": "2611549.0808000015",
+                        "total_volume": "589171553.702460343",
+                        "created_at": 1718378012699,
+                        "underlying_price": "66773.75",
+                        "open_interest": "152.803",
+                        "funding_rate": "0.00789938923192",
+                        "price_change_rate_24h": "0.00307"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                  "next": null,
+                  "prev": null,
+                  "results": [
+                    {
+                      "id": "1721828326450201709187710000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                      "kind": "DEPOSIT",
+                      "status": "COMPLETED",
+                      "amount": "78.544",
+                      "token": "USDC",
+                      "created_at": "1721828356455",
+                      "last_updated_at": "1721828373926",
+                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                      "socialized_loss_factor": "",
+                      "bridge": "RHINOFI",
+                      "external_chain": "ETHEREUM",
+                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                      "failure_reason": ""
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "1721828326450201709187710000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                      "kind": "DEPOSIT",
+                      "status": "COMPLETED",
+                      "amount": "78.544",
+                      "token": "USDC",
+                      "created_at": "1721828356455",
+                      "last_updated_at": "1721828373926",
+                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                      "socialized_loss_factor": "",
+                      "bridge": "RHINOFI",
+                      "external_chain": "ETHEREUM",
+                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                      "failure_reason": ""
+                    },
+                    "id": "1721828326450201709187710000",
+                    "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                    "timestamp": 1721828356455,
+                    "datetime": "2024-07-24T13:39:16.455Z",
+                    "network": null,
+                    "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                    "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 78.544,
+                    "currency": "USDC",
+                    "status": "ok",
+                    "updated": 1721828373926,
+                    "internal": null,
+                    "comment": null,
+                    "fee": null
+                  }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "input": [
+                  "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                  "next": null,
+                  "prev": null,
+                  "results": [
+                    {
+                      "id": "1721903808500201709220290000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                      "market": "SOL-USD-PERP",
+                      "side": "BUY",
+                      "type": "LIMIT",
+                      "size": "0.3",
+                      "remaining_size": "0.3",
+                      "price": "50",
+                      "status": "CLOSED",
+                      "created_at": "1721903808505",
+                      "last_updated_at": "1721903808521",
+                      "timestamp": "0",
+                      "cancel_reason": "ORDER_SIZE_BELOW_MIN",
+                      "client_id": "",
+                      "seq_no": "1721903808521364144",
+                      "instruction": "",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1722423908658",
+                      "published_at": "1722423908675",
+                      "flags": [],
+                      "trigger_price": "0"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1721903808500201709220290000",
+                    "clientOrderId": null,
+                    "timestamp": 1721903808505,
+                    "datetime": "2024-07-25T10:36:48.505Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1721903808521,
+                    "status": "closed",
+                    "symbol": "SOL/USD:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 50,
+                    "stopPrice": 0,
+                    "triggerPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.3,
+                    "filled": 0,
+                    "remaining": 0.3,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                      "cost": null,
+                      "currency": null
+                    },
+                    "info": {
+                      "id": "1721903808500201709220290000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                      "market": "SOL-USD-PERP",
+                      "side": "BUY",
+                      "type": "LIMIT",
+                      "size": "0.3",
+                      "remaining_size": "0.3",
+                      "price": "50",
+                      "status": "CLOSED",
+                      "created_at": "1721903808505",
+                      "last_updated_at": "1721903808521",
+                      "timestamp": "0",
+                      "cancel_reason": "ORDER_SIZE_BELOW_MIN",
+                      "client_id": "",
+                      "seq_no": "1721903808521364144",
+                      "instruction": "",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1722423908658",
+                      "published_at": "1722423908675",
+                      "flags": [],
+                      "trigger_price": "0"
+                    },
+                    "fees": [
+                      {
+                        "cost": null,
+                        "currency": null
+                      }
+                    ]
+                  }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "results": [
+                    {
+                      "token": "USDC",
+                      "size": "78.544",
+                      "last_updated_at": "1721828383887"
+                    }
+                  ]
+                },
+                "parsedResponse": {
+                  "info": [
+                    {
+                      "token": "USDC",
+                      "size": "78.544",
+                      "last_updated_at": "1721828383887"
+                    }
+                  ],
+                  "USDC": {
+                    "free": null,
+                    "used": null,
+                    "total": 78.544
+                  },
+                  "free": {
+                    "USDC": null
+                  },
+                  "used": {
+                    "USDC": null
+                  },
+                  "total": {
+                    "USDC": 78.544
+                  }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                  "results": [
+                    {
+                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                      "market": "SOL-USD-PERP",
+                      "status": "OPEN",
+                      "side": "LONG",
+                      "size": "3",
+                      "average_entry_price": "183.06499451",
+                      "average_entry_price_usd": "183.065",
+                      "realized_pnl": "0",
+                      "unrealized_pnl": "-2.84428356",
+                      "unrealized_funding_pnl": "-0.00059564",
+                      "cost": "549.19498352",
+                      "cost_usd": "549.195",
+                      "cached_funding_index": "84.33843058",
+                      "last_updated_at": "1722426261489",
+                      "last_fill_id": "1722426248360201703986560001",
+                      "seq_no": "1722426261489298037",
+                      "liquidation_price": ""
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                      "market": "SOL-USD-PERP",
+                      "status": "OPEN",
+                      "side": "LONG",
+                      "size": "3",
+                      "average_entry_price": "183.06499451",
+                      "average_entry_price_usd": "183.065",
+                      "realized_pnl": "0",
+                      "unrealized_pnl": "-2.84428356",
+                      "unrealized_funding_pnl": "-0.00059564",
+                      "cost": "549.19498352",
+                      "cost_usd": "549.195",
+                      "cached_funding_index": "84.33843058",
+                      "last_updated_at": "1722426261489",
+                      "last_fill_id": "1722426248360201703986560001",
+                      "seq_no": "1722426261489298037",
+                      "liquidation_price": ""
+                    },
+                    "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                    "symbol": "SOL/USD:USDC",
+                    "entryPrice": "183.06499451",
+                    "markPrice": null,
+                    "notional": null,
+                    "collateral": "549.19498352",
+                    "unrealizedPnl": "-2.84428356",
+                    "side": "long",
+                    "contracts": 3,
+                    "contractSize": 1,
+                    "timestamp": null,
+                    "datetime": null,
+                    "hedged": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "liquidationPrice": null,
+                    "marginRatio": null,
+                    "marginMode": null,
+                    "percentage": null
+                  }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                  "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                  "results": [
+                    {
+                      "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                      "market": "SOL-USD-PERP",
+                      "status": "OPEN",
+                      "side": "LONG",
+                      "size": "3",
+                      "average_entry_price": "183.06499451",
+                      "average_entry_price_usd": "183.065",
+                      "realized_pnl": "0",
+                      "unrealized_pnl": "-2.03176491",
+                      "unrealized_funding_pnl": "-0.00301126",
+                      "cost": "549.19498352",
+                      "cost_usd": "549.195",
+                      "cached_funding_index": "84.33843058",
+                      "last_updated_at": "1722426301528",
+                      "last_fill_id": "1722426248360201703986560001",
+                      "seq_no": "1722426301528359510",
+                      "liquidation_price": ""
+                    }
+                  ]
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                    "market": "SOL-USD-PERP",
+                    "status": "OPEN",
+                    "side": "LONG",
+                    "size": "3",
+                    "average_entry_price": "183.06499451",
+                    "average_entry_price_usd": "183.065",
+                    "realized_pnl": "0",
+                    "unrealized_pnl": "-2.03176491",
+                    "unrealized_funding_pnl": "-0.00301126",
+                    "cost": "549.19498352",
+                    "cost_usd": "549.195",
+                    "cached_funding_index": "84.33843058",
+                    "last_updated_at": "1722426301528",
+                    "last_fill_id": "1722426248360201703986560001",
+                    "seq_no": "1722426301528359510",
+                    "liquidation_price": ""
+                  },
+                  "id": "0x59c31d5be66edd29d80aace25348e68da856c6d6c0edf1429c16a8cc724c509-SOL-USD-PERP",
+                  "symbol": "SOL/USD:USDC",
+                  "entryPrice": "183.06499451",
+                  "markPrice": null,
+                  "notional": null,
+                  "collateral": "549.19498352",
+                  "unrealizedPnl": "-2.03176491",
+                  "side": "long",
+                  "contracts": 3,
+                  "contractSize": 1,
+                  "timestamp": null,
+                  "datetime": null,
+                  "hedged": null,
+                  "maintenanceMargin": null,
+                  "maintenanceMarginPercentage": null,
+                  "initialMargin": null,
+                  "initialMarginPercentage": null,
+                  "leverage": null,
+                  "liquidationPrice": null,
+                  "marginRatio": null,
+                  "marginMode": null,
+                  "percentage": null
+                }
+            }
+        ]
+    }
+}

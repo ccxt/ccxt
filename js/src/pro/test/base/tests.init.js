@@ -4,8 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import testWsOrderBook from "./test.OrderBook.js";
-import testWsCache from "./test.Cache.js";
+import testWsOrderBook from "./test.orderBook.js";
+import testWsCache from "./test.cache.js";
 function testBaseWs() {
     testWsOrderBook();
     testWsCache();

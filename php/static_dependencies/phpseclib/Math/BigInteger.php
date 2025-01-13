@@ -2970,7 +2970,7 @@ class BigInteger
                     $two = gmp_init('2');
                 }
 
-                $temp->value = gmp_div_q($this->value, gmp_pow($two, $shift));
+                $temp->value = gmp_div_q($this->value, $this->gmp_pow($two, $shift));
 
                 break;
             case self::MODE_BCMATH:
@@ -3008,7 +3008,7 @@ class BigInteger
                     $two = gmp_init('2');
                 }
 
-                $temp->value = gmp_mul($this->value, gmp_pow($two, $shift));
+                $temp->value = gmp_mul($this->value, $this->gmp_pow($two, $shift));
 
                 break;
             case self::MODE_BCMATH:
@@ -3562,5 +3562,13 @@ class BigInteger
 
         // self::$base === 31
         return ($x - ($x % $y)) / $y;
+    }
+
+    public function gmp_pow($a, $b) {
+        try {
+            return gmp_pow($a, $b);
+        } catch (\Throwable $_) {
+            return bcpow(gmp_strval($a), $b);
+        }
     }
 }

@@ -19,6 +19,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,

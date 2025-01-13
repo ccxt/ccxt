@@ -79,6 +79,42 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function private_get_affiliate_basic($params = array()) {
         return $this->request('affiliate/basic', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_copytrading_instruments($params = array()) {
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_balance($params = array()) {
+        return $this->request('copytrading/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_positions_by_order($params = array()) {
+        return $this->request('copytrading/account/positions-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_positions_details_by_order($params = array()) {
+        return $this->request('copytrading/account/positions-details-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_positions_by_contract($params = array()) {
+        return $this->request('copytrading/account/positions-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_position_mode($params = array()) {
+        return $this->request('copytrading/account/position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_account_leverage_info($params = array()) {
+        return $this->request('copytrading/account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_trade_orders_pending($params = array()) {
+        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_trade_pending_tpsl_by_contract($params = array()) {
+        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_trade_position_history_by_order($params = array()) {
+        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_trade_orders_history($params = array()) {
+        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_copytrading_trade_pending_tpsl_by_order($params = array()) {
+        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -105,6 +141,36 @@ abstract class blofin extends \ccxt\async\Exchange {
     }
     public function private_post_asset_transfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_account_set_position_mode($params = array()) {
+        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_account_set_leverage($params = array()) {
+        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_place_order($params = array()) {
+        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_cancel_order($params = array()) {
+        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_place_tpsl_by_contract($params = array()) {
+        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_cancel_tpsl_by_contract($params = array()) {
+        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_place_tpsl_by_order($params = array()) {
+        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_cancel_tpsl_by_order($params = array()) {
+        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_close_position_by_order($params = array()) {
+        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_copytrading_trade_close_position_by_contract($params = array()) {
+        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketInstruments($params = array()) {
         return $this->request('market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -178,6 +244,42 @@ abstract class blofin extends \ccxt\async\Exchange {
     public function privateGetAffiliateBasic($params = array()) {
         return $this->request('affiliate/basic', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetCopytradingInstruments($params = array()) {
+        return $this->request('copytrading/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountBalance($params = array()) {
+        return $this->request('copytrading/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountPositionsByOrder($params = array()) {
+        return $this->request('copytrading/account/positions-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountPositionsDetailsByOrder($params = array()) {
+        return $this->request('copytrading/account/positions-details-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountPositionsByContract($params = array()) {
+        return $this->request('copytrading/account/positions-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountPositionMode($params = array()) {
+        return $this->request('copytrading/account/position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingAccountLeverageInfo($params = array()) {
+        return $this->request('copytrading/account/leverage-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingTradeOrdersPending($params = array()) {
+        return $this->request('copytrading/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingTradePendingTpslByContract($params = array()) {
+        return $this->request('copytrading/trade/pending-tpsl-by-contract', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingTradePositionHistoryByOrder($params = array()) {
+        return $this->request('copytrading/trade/position-history-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingTradeOrdersHistory($params = array()) {
+        return $this->request('copytrading/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetCopytradingTradePendingTpslByOrder($params = array()) {
+        return $this->request('copytrading/trade/pending-tpsl-by-order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -204,5 +306,35 @@ abstract class blofin extends \ccxt\async\Exchange {
     }
     public function privatePostAssetTransfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingAccountSetPositionMode($params = array()) {
+        return $this->request('copytrading/account/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingAccountSetLeverage($params = array()) {
+        return $this->request('copytrading/account/set-leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradePlaceOrder($params = array()) {
+        return $this->request('copytrading/trade/place-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradeCancelOrder($params = array()) {
+        return $this->request('copytrading/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradePlaceTpslByContract($params = array()) {
+        return $this->request('copytrading/trade/place-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradeCancelTpslByContract($params = array()) {
+        return $this->request('copytrading/trade/cancel-tpsl-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradePlaceTpslByOrder($params = array()) {
+        return $this->request('copytrading/trade/place-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradeCancelTpslByOrder($params = array()) {
+        return $this->request('copytrading/trade/cancel-tpsl-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradeClosePositionByOrder($params = array()) {
+        return $this->request('copytrading/trade/close-position-by-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCopytradingTradeClosePositionByContract($params = array()) {
+        return $this->request('copytrading/trade/close-position-by-contract', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

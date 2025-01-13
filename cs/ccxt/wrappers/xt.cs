@@ -285,9 +285,15 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : alias for triggerPrice
     /// </description>
     /// </item>
     /// <item>
@@ -337,9 +343,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -383,9 +389,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// </list>
@@ -433,9 +439,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -482,9 +488,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -531,9 +537,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -568,9 +574,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -603,9 +609,9 @@ public partial class xt
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : if the order is a stop trigger order or not
+    /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
     /// <item>
@@ -669,12 +675,12 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -685,10 +691,10 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -767,7 +773,7 @@ public partial class xt
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :          * @param {object} params extra parameters specific to the xt api endpoint
+    /// string :      * @param {object} params extra parameters specific to the xt api endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -807,10 +813,10 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     /// <summary>
     /// retrieve information on the maximum leverage for different trade sizes of a single market
@@ -861,6 +867,26 @@ public partial class xt
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/#futures_quotesgetFundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
@@ -869,10 +895,10 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding history

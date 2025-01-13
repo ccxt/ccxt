@@ -49,7 +49,7 @@ interface Exchange {
     contractPrivatePutPositionsSymbolRiskLimit (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;
     contractPrivateDeleteOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    webExchangeGetUcV2Assets (params?: {}): Promise<implicitReturnType>;
+    webExchangeGetV3Assets (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

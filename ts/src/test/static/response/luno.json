@@ -42,16 +42,8 @@
                         "price": 73998.98,
                         "amount": 0.0008,
                         "cost": 59.199184,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -92,6 +84,8 @@
                     "average": null,
                     "baseVolume": 0.3111,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "pair": "XBTUSDT",
                         "timestamp": "1710328244969",

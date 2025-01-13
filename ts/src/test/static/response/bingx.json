@@ -73,6 +73,92 @@
                     ],
                     "reduceOnly": null
                 }
+            },
+            {
+                "description": "twap cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    },
+                    "id": null,
+                    "clientOrderId": null,
+                    "symbol": "BNB/USDT",
+                    "timestamp": 1702731661854,
+                    "datetime": "2023-12-16T13:01:01.854Z",
+                    "lastTradeTimestamp": 1702731661854,
+                    "lastUpdateTimestamp": 1702731661854,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 0.511,
+                    "filled": 0.1,
+                    "remaining": 0.411,
+                    "status": "open",
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "closeAllPositions": [
@@ -278,6 +364,7 @@
                 "description": "Create order with tp and sl",
                 "method": "createOrder",
                 "disabledCS": true,
+                "disabledGO": true,
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -642,6 +729,71 @@
                     }
                   ]
                 }
+            },
+            {
+                "description": "swap create TWAP order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "twap",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "priceType": "constant",
+                        "priceVariance": "10",
+                        "triggerPrice": "120",
+                        "interval": 8,
+                        "amountPerOrder": "0.5"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1732693774386,
+                    "data": {
+                        "mainOrderId": "4633860139993029715"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "mainOrderId": "4633860139993029715"
+                    },
+                    "id": "4633860139993029715",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "fetchClosedOrders": [
@@ -867,7 +1019,103 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "twap closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "success",
+                    "timestamp": 1732697991924,
+                    "data": {
+                        "list": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "mainOrderId": "774133392271760467",
+                                "side": "BUY",
+                                "positionSide": "LONG",
+                                "priceType": "constant",
+                                "priceVariance": "10.00",
+                                "triggerPrice": "120.00",
+                                "interval": 8,
+                                "amountPerOrder": "0.5",
+                                "totalAmount": "1.0",
+                                "orderStatus": "Filled",
+                                "executedQty": "1.0",
+                                "duration": 16,
+                                "maxDuration": 86400,
+                                "createdTime": 1732695030000,
+                                "updateTime": 1732695046000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "mainOrderId": "774133392271760467",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "priceType": "constant",
+                            "priceVariance": "10.00",
+                            "triggerPrice": "120.00",
+                            "interval": 8,
+                            "amountPerOrder": "0.5",
+                            "totalAmount": "1.0",
+                            "orderStatus": "Filled",
+                            "executedQty": "1.0",
+                            "duration": 16,
+                            "maxDuration": 86400,
+                            "createdTime": 1732695030000,
+                            "updateTime": 1732695046000
+                        },
+                        "id": "774133392271760467",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1732695030000,
+                        "datetime": "2024-11-27T08:10:30.000Z",
+                        "lastTradeTimestamp": 1732695046000,
+                        "lastUpdateTimestamp": 1732695046000,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": null
+                            }
+                        ]
+                    }
+                ]
             }
+
         ],
         "fetchBalance": [
             {
@@ -1091,14 +1339,12 @@
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
-                            "currency": "USDT",
-                            "rate": null
+                            "currency": "USDT"
                         },
                         "fees": [
                             {
                                 "cost": 0.0326,
-                                "currency": "USDT",
-                                "rate": null
+                                "currency": "USDT"
                             }
                         ]
                     }
@@ -1162,14 +1408,12 @@
                         "cost": 7.5562000000000005,
                         "fee": {
                             "cost": 0.0001,
-                            "currency": "LTC",
-                            "rate": null
+                            "currency": "LTC"
                         },
                         "fees": [
                             {
                                 "cost": 0.0001,
-                                "currency": "LTC",
-                                "rate": null
+                                "currency": "LTC"
                             }
                         ]
                     }
@@ -1264,107 +1508,287 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "twap open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                      "list": [
+                        {
+                          "symbol": "BNB-USDT",
+                          "side": "BUY",
+                          "positionSide": "LONG",
+                          "priceType": "constant",
+                          "priceVariance": "2000",
+                          "triggerPrice": "68000",
+                          "interval": 8,
+                          "amountPerOrder": "0.111",
+                          "totalAmount": "0.511",
+                          "orderStatus": "Running",
+                          "executedQty": "0.1",
+                          "duration": 800,
+                          "maxDuration": 9000,
+                          "createdTime": 1702731661854,
+                          "updateTime": 1702731661854
+                        }
+                      ],
+                      "total": 1
+                    }
+                  },
+                "parsedResponse": []
             }
         ],
         "fetchDepositAddressesByNetwork": [
             {
-                "description": "fetch USDT addresses",
+                "description": "usdt addresses with prefix",
                 "method": "fetchDepositAddressesByNetwork",
                 "input": [
-                    "USDT"
+                  "USDT"
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "timestamp": "1707911818729",
-                    "data": {
-                        "data": [
-                            {
-                                "coinId": "780",
-                                "coin": "USDT",
-                                "network": "TRC20",
-                                "address": "ADD1",
-                                "tag": ""
-                            },
-                            {
-                                "coinId": "799",
-                                "coin": "USDT",
-                                "network": "BEP20",
-                                "address": "ADD2",
-                                "tag": ""
-                            },
-                            {
-                                "coinId": "857",
-                                "coin": "USDT",
-                                "network": "SOL",
-                                "address": "ADD3",
-                                "tag": ""
-                            },
-                            {
-                                "coinId": "1192",
-                                "coin": "USDT",
-                                "network": "POLYGON",
-                                "address": "ADD2",
-                                "tag": ""
-                            }
-                        ],
-                        "total": "4"
-                    }
+                  "code": "0",
+                  "timestamp": "1730886872514",
+                  "data": {
+                    "data": [
+                      {
+                        "coinId": "4",
+                        "coin": "USDT",
+                        "network": "OMNI",
+                        "address": "1HXyx8HVQRY6ahqz23awnRB7SpS9xQPzLN",
+                        "addressWithPrefix": "1HXyx8HVQRY6ahqz23awnRB7SpS9xQPzLN"
+                      },
+                      {
+                        "coinId": "760",
+                        "coin": "USDT",
+                        "network": "ERC20",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "780",
+                        "coin": "USDT",
+                        "network": "TRC20",
+                        "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                        "addressWithPrefix": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                      },
+                      {
+                        "coinId": "799",
+                        "coin": "USDT",
+                        "network": "BEP20",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "803",
+                        "coin": "USDT",
+                        "network": "HECO",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "857",
+                        "coin": "USDT",
+                        "network": "SOL",
+                        "address": "Daadgs5SaodraZEWqk5M1rjV1Drzy6Tu7EcUi6W3K685",
+                        "addressWithPrefix": "Daadgs5SaodraZEWqk5M1rjV1Drzy6Tu7EcUi6W3K685"
+                      },
+                      {
+                        "coinId": "1192",
+                        "coin": "USDT",
+                        "network": "POLYGON",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "1367",
+                        "coin": "USDT",
+                        "network": "ARBITRUM",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "1371",
+                        "coin": "USDT",
+                        "network": "OPTIMISM",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      },
+                      {
+                        "coinId": "1967",
+                        "coin": "USDT",
+                        "network": "TON",
+                        "address": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI",
+                        "addressWithPrefix": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI"
+                      },
+                      {
+                        "coinId": "2050",
+                        "coin": "USDT",
+                        "network": "AVAX-C",
+                        "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                        "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                      }
+                    ],
+                    "total": "11"
+                  }
                 },
                 "parsedResponse": {
-                    "TRC20": {
-                        "currency": "USDT",
-                        "address": "ADD1",
-                        "tag": null,
-                        "network": "TRC20",
-                        "info": {
-                            "coinId": "780",
-                            "coin": "USDT",
-                            "network": "TRC20",
-                            "address": "ADD1",
-                            "tag": ""
-                        }
+                  "OMNI": {
+                    "info": {
+                      "coinId": "4",
+                      "coin": "USDT",
+                      "network": "OMNI",
+                      "address": "1HXyx8HVQRY6ahqz23awnRB7SpS9xQPzLN",
+                      "addressWithPrefix": "1HXyx8HVQRY6ahqz23awnRB7SpS9xQPzLN"
                     },
-                    "BEP20": {
-                        "currency": "USDT",
-                        "address": "ADD2",
-                        "tag": null,
-                        "network": "BEP20",
-                        "info": {
-                            "coinId": "799",
-                            "coin": "USDT",
-                            "network": "BEP20",
-                            "address": "ADD2",
-                            "tag": ""
-                        }
+                    "currency": "USDT",
+                    "network": "OMNI",
+                    "address": "1HXyx8HVQRY6ahqz23awnRB7SpS9xQPzLN",
+                    "tag": null
+                  },
+                  "ERC20": {
+                    "info": {
+                      "coinId": "760",
+                      "coin": "USDT",
+                      "network": "ERC20",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
                     },
-                    "SOL": {
-                        "currency": "USDT",
-                        "address": "ADD3",
-                        "tag": null,
-                        "network": "SOL",
-                        "info": {
-                            "coinId": "857",
-                            "coin": "USDT",
-                            "network": "SOL",
-                            "address": "ADD3",
-                            "tag": ""
-                        }
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "TRC20": {
+                    "info": {
+                      "coinId": "780",
+                      "coin": "USDT",
+                      "network": "TRC20",
+                      "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                      "addressWithPrefix": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
                     },
-                    "POLYGON": {
-                        "currency": "USDT",
-                        "address": "ADD2",
-                        "tag": null,
-                        "network": "POLYGON",
-                        "info": {
-                            "coinId": "1192",
-                            "coin": "USDT",
-                            "network": "POLYGON",
-                            "address": "ADD2",
-                            "tag": ""
-                        }
-                    }
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                    "tag": null
+                  },
+                  "BEP20": {
+                    "info": {
+                      "coinId": "799",
+                      "coin": "USDT",
+                      "network": "BEP20",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "BEP20",
+                    "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "HECO": {
+                    "info": {
+                      "coinId": "803",
+                      "coin": "USDT",
+                      "network": "HECO",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "HECO",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "SOL": {
+                    "info": {
+                      "coinId": "857",
+                      "coin": "USDT",
+                      "network": "SOL",
+                      "address": "Daadgs5SaodraZEWqk5M1rjV1Drzy6Tu7EcUi6W3K685",
+                      "addressWithPrefix": "Daadgs5SaodraZEWqk5M1rjV1Drzy6Tu7EcUi6W3K685"
+                    },
+                    "currency": "USDT",
+                    "network": "SOL",
+                    "address": "Daadgs5SaodraZEWqk5M1rjV1Drzy6Tu7EcUi6W3K685",
+                    "tag": null
+                  },
+                  "MATIC": {
+                    "info": {
+                      "coinId": "1192",
+                      "coin": "USDT",
+                      "network": "POLYGON",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "MATIC",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "ARB": {
+                    "info": {
+                      "coinId": "1367",
+                      "coin": "USDT",
+                      "network": "ARBITRUM",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "ARB",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "OPTIMISM": {
+                    "info": {
+                      "coinId": "1371",
+                      "coin": "USDT",
+                      "network": "OPTIMISM",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "OPTIMISM",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  },
+                  "TON": {
+                    "info": {
+                      "coinId": "1967",
+                      "coin": "USDT",
+                      "network": "TON",
+                      "address": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI",
+                      "addressWithPrefix": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI"
+                    },
+                    "currency": "USDT",
+                    "network": "TON",
+                    "address": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI",
+                    "tag": null
+                  },
+                  "AVAX-C": {
+                    "info": {
+                      "coinId": "2050",
+                      "coin": "USDT",
+                      "network": "AVAX-C",
+                      "address": "6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                      "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
+                    },
+                    "currency": "USDT",
+                    "network": "AVAX-C",
+                    "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
+                    "tag": null
+                  }
                 }
-            }
+              }
         ],
         "fetchTrades": [
             {
@@ -1408,18 +1832,8 @@
                         "price": 73239.12,
                         "amount": 0.09624,
                         "cost": 7048.5329088,
-                        "fee": {
-                            "cost": null,
-                            "currency": null,
-                            "rate": null
-                        },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null,
-                                "rate": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -1474,6 +1888,8 @@
                     "average": 72760.07,
                     "baseVolume": 36378.57,
                     "quoteVolume": 2589539809.04,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC-USDT",
                         "openPrice": "72147.31",
@@ -1538,9 +1954,11 @@
                   "previousClose": null,
                   "change": -392.1,
                   "percentage": -0.56,
-                  "average": 70134.95,
+                  "average": 70134.9,
                   "baseVolume": 74183.8679,
                   "quoteVolume": 5237383426.37,
+                  "markPrice":  null,
+                  "indexPrice": null,
                   "info": {
                     "symbol": "BTC-USDT",
                     "priceChange": "-392.1",
@@ -1886,6 +2304,94 @@
                     }
                   ]
                 }
+            },
+            {
+                "description": "twap order",
+                "method": "fetchOrder",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "success cancel order",
+                    "timestamp": 1732761562874,
+                    "data": {
+                        "symbol": "LTC-USDT",
+                        "mainOrderId": "5596903086063901779",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "10.00",
+                        "triggerPrice": "120.00",
+                        "interval": 8,
+                        "amountPerOrder": "0.5",
+                        "totalAmount": "1.0",
+                        "orderStatus": "Filled",
+                        "executedQty": "1.0",
+                        "duration": 16,
+                        "maxDuration": 86400,
+                        "createdTime": 1732693017000,
+                        "updateTime": 1732693033000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "LTC-USDT",
+                        "mainOrderId": "5596903086063901779",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "10.00",
+                        "triggerPrice": "120.00",
+                        "interval": 8,
+                        "amountPerOrder": "0.5",
+                        "totalAmount": "1.0",
+                        "orderStatus": "Filled",
+                        "executedQty": "1.0",
+                        "duration": 16,
+                        "maxDuration": 86400,
+                        "createdTime": 1732693017000,
+                        "updateTime": 1732693033000
+                    },
+                    "id": "5596903086063901779",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": 1732693017000,
+                    "datetime": "2024-11-27T07:36:57.000Z",
+                    "lastTradeTimestamp": 1732693033000,
+                    "lastUpdateTimestamp": 1732693033000,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "fetchPositions": [
@@ -1958,7 +2464,7 @@
                     "percentage": null,
                     "contracts": 0.1,
                     "contractSize": 1,
-                    "markPrice": null,
+                    "markPrice": 95.62,
                     "lastPrice": null,
                     "side": "long",
                     "hedged": null,
@@ -1971,6 +2477,141 @@
                     "initialMargin": 1.9128,
                     "initialMarginPercentage": null,
                     "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "marginType": "CROSSED",
+                    "symbol": "BTC-USDT"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "marginType": "CROSSED",
+                    "symbol": "BTC-USDT"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "cross"
+                }
+            },
+            {
+                "description": "fetch inverse swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "timestamp": "1731567460653",
+                  "data": {
+                    "symbol": "BTC-USD",
+                    "marginType": "CROSSED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTC-USD",
+                    "marginType": "CROSSED"
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "cross"
+                }
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "linear swap fetch position history with a limit argument",
+                "method": "fetchPositionHistory",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": {
+                    "positionHistory": [
+                      {
+                        "positionId": "1861675561156571136",
+                        "symbol": "LTC-USDT",
+                        "isolated": false,
+                        "positionSide": "LONG",
+                        "openTime": "1732693017000",
+                        "updateTime": "1733310292000",
+                        "avgPrice": "95.18",
+                        "avgClosePrice": "129.48",
+                        "realisedProfit": "102.89",
+                        "netProfit": "99.63",
+                        "positionAmt": "30.0",
+                        "closePositionAmt": "30.0",
+                        "leverage": "6",
+                        "closeAllPositions": true,
+                        "positionCommission": "-0.33699650000000003",
+                        "totalFunding": "-2.921461693902908"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "positionId": "1861675561156571136",
+                      "symbol": "LTC-USDT",
+                      "isolated": false,
+                      "positionSide": "LONG",
+                      "openTime": "1732693017000",
+                      "updateTime": "1733310292000",
+                      "avgPrice": "95.18",
+                      "avgClosePrice": "129.48",
+                      "realisedProfit": "102.89",
+                      "netProfit": "99.63",
+                      "positionAmt": "30.0",
+                      "closePositionAmt": "30.0",
+                      "leverage": "6",
+                      "closeAllPositions": true,
+                      "positionCommission": "-0.33699650000000003",
+                      "totalFunding": "-2.921461693902908"
+                    },
+                    "id": "1861675561156571136",
+                    "symbol": "LTC/USDT:USDT",
+                    "notional": null,
+                    "marginMode": "cross",
+                    "liquidationPrice": null,
+                    "entryPrice": 95.18,
+                    "unrealizedPnl": null,
+                    "realizedPnl": 102.89,
+                    "percentage": null,
+                    "contracts": 30,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": 1732693017000,
+                    "datetime": "2024-11-27T07:36:57.000Z",
+                    "lastUpdateTimestamp": 1733310292000,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": 6,
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null

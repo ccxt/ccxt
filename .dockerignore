@@ -2,5 +2,6 @@
 .dockerignore
 Dockerfile
 node_modules
+vendor
 *.swp
 *.pyc

@@ -10,6 +10,7 @@ git checkout HEAD cs/tests/Generated
 git checkout HEAD cs/ccxt/wrappers/
 git checkout HEAD cs/ccxt/base/Exchange.Wrappers.cs
 git checkout HEAD cs/ccxt/base/Exchange.BaseMethods.cs
+git checkout HEAD cs/ccxt/base/Exchange.MetaData.cs
 git checkout HEAD ts/ccxt.ts
 git checkout HEAD ts/src/abstract
 git checkout HEAD python

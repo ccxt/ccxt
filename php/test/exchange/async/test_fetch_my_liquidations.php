@@ -19,7 +19,7 @@ function test_fetch_my_liquidations($exchange, $skipped_properties, $code) {
             return;
         }
         $items = Async\await($exchange->fetch_my_liquidations($code));
-        assert(gettype($items) === 'array' && array_keys($items) === array_keys(array_keys($items)), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
+        assert(gettype($items) === 'array' && array_is_list($items), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($items); $i++) {
             test_liquidation($exchange, $skipped_properties, $method, $items[$i], $code);

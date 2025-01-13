@@ -9,7 +9,7 @@ import (
 
 func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
 	var desc bool
-	var defaultValue interface{} = ""
+	var defaultValue interface{} = "a"
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
 	}
@@ -42,10 +42,31 @@ func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...int
 			} else {
 				b = defaultValue
 			}
+			// return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			switch aVal := a.(type) {
+			case int:
+				if bVal, ok := b.(int); ok {
+					return aVal < bVal
+				}
+			case float64:
+				if bVal, ok := b.(float64); ok {
+					return aVal < bVal
+				}
+			case string:
+				if bVal, ok := b.(string); ok {
+					return aVal < bVal
+				}
+			}
+
+			// Fallback to string comparison
 			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
 		})
 		if desc {
-			for i := len(list)/2 - 1; i >= 0; i-- {
+			// for i := len(list)/2 - 1; i >= 0; i-- {
+			// 	opp := len(list) - 1 - i
+			// 	list[i], list[opp] = list[opp], list[i]
+			// }
+			for i := 0; i < len(list)/2; i++ {
 				opp := len(list) - 1 - i
 				list[i], list[opp] = list[opp], list[i]
 			}
@@ -176,20 +197,69 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	return outObj.(map[string]interface{})
 }
 
-func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
-	if list2 == nil {
+// func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
+// 	if list2 == nil {
+// 		return false
+// 	}
+// 	if reflect.TypeOf(list2).Kind() == reflect.Slice {
+// 		list := list2.([]interface{})
+// 		for _, v := range list {
+// 			if v == elem {
+// 				return true
+// 			}
+// 		}
+// 	}
+// 	return false
+// }
+
+func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
+	// Ensure the list is not nil and is of a slice type
+	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
 	}
-	if reflect.TypeOf(list2).Kind() == reflect.Slice {
-		list := list2.([]interface{})
-		for _, v := range list {
-			if v == elem {
+
+	// Use reflection to iterate over the slice
+	listValue := reflect.ValueOf(list)
+	for i := 0; i < listValue.Len(); i++ {
+		listElem := listValue.Index(i).Interface()
+
+		// Handle number comparison
+		switch e := elem.(type) {
+		case int, int8, int16, int32, int64, float32, float64:
+			switch l := listElem.(type) {
+			case int, int8, int16, int32, int64, float32, float64:
+				// Convert both to float64 for comparison
+				if ToFloat64(e) == ToFloat64(l) {
+					return true
+				}
+			}
+		default:
+			// For non-numeric values, use DeepEqual
+			if reflect.DeepEqual(listElem, elem) {
 				return true
 			}
 		}
 	}
+
 	return false
 }
+
+// func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
+// 	// Ensure the list is not nil and is of a slice type
+// 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
+// 		return false
+// 	}
+
+// 	// Use reflection to iterate over the slice
+// 	listValue := reflect.ValueOf(list)
+// 	for i := 0; i < listValue.Len(); i++ {
+// 		if reflect.DeepEqual(listValue.Index(i).Interface(), elem) {
+// 			return true
+// 		}
+// 	}
+
+// 	return false
+// }
 
 func (this *Exchange) IsArray(a interface{}) bool {
 	return reflect.TypeOf(a).Kind() == reflect.Slice
@@ -208,8 +278,8 @@ func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interf
 	for _, elem := range targetX {
 		if reflect.TypeOf(elem).Kind() == reflect.Map {
 			elem2 := elem.(map[string]interface{})
-			if val, ok := elem2[key2.(string)]; ok {
-				outDict[val.(string)] = elem2
+			if val, ok := elem2[ToString(key2)]; ok {
+				outDict[ToString(val)] = elem2
 			}
 		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
 			index := key2.(int)
@@ -266,15 +336,13 @@ func (this *Exchange) OmitZero(value interface{}) interface{} {
 }
 
 func (this *Exchange) Sum(args ...interface{}) interface{} {
-	res := 0.0
+	var res interface{} = 0.0
 	for _, arg := range args {
 		res = this.sumValues(res, arg)
 	}
 	return res
 }
 
-func (this *Exchange) sumValues(a, b interface{}) float64 {
-	af := reflect.ValueOf(a).Float()
-	bf := reflect.ValueOf(b).Float()
-	return af + bf
+func (this *Exchange) sumValues(a, b interface{}) interface{} {
+	return Add(a, b)
 }

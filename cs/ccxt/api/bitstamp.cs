@@ -126,6 +126,11 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("privatePostCryptoTransactions",parameters);
     }
 
+    public async Task<object> privatePostOpenOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenOrder",parameters);
+    }
+
     public async Task<object> privatePostOpenOrdersAll (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenOrdersAll",parameters);

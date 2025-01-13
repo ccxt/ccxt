@@ -31,12 +31,14 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		return defVal
 	}
 
+	objType := reflect.TypeOf(obj).Kind()
+
 	// Convert array to slice if needed
-	if reflect.TypeOf(obj).Kind() == reflect.Array {
+	if objType == reflect.Array {
 		obj = reflect.ValueOf(obj).Slice(0, reflect.ValueOf(obj).Len()).Interface()
 	}
 
-	switch reflect.TypeOf(obj).Kind() {
+	switch objType {
 	case reflect.Map:
 		if dict, err := ConvertToDictionaryOfStringObject(obj); err == nil {
 			for _, key := range keys {
@@ -45,7 +47,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 				}
 				keyStr := fmt.Sprintf("%v", key)
 				if value, found := dict[keyStr]; found {
-					if value != nil {
+					if value != nil && value != "" {
 						return value
 					}
 				}
@@ -53,6 +55,46 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		}
 	case reflect.Slice:
 		if list, ok := obj.([]interface{}); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]string); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]int64); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]int32); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]float64); ok {
 			for _, key := range keys {
 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 					if keyInt >= 0 && keyInt < len(list) {
@@ -75,6 +117,9 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 
 	switch v := value.(type) {
 	case string:
+		if v == "" {
+			return defaultValue
+		}
 		return v
 	case int:
 		return strconv.Itoa(v)
@@ -89,6 +134,22 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	default:
 		return defaultValue
 	}
+}
+
+func (this *Exchange) SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
+	var defVal interface{} = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
+	return SafeStringUpperN(obj, keys, defVal)
+}
+
+func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+	value := SafeStringN(obj, keys, defaultValue)
+	if value == nil {
+		return defaultValue
+	}
+	return strings.ToUpper(value.(string))
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
@@ -230,7 +291,7 @@ func SafeIntegerProduct2(obj interface{}, key1, key2 interface{}, multiplier int
 }
 
 // SafeBool retrieves a boolean value from a nested structure
-func SafeBool(obj interface{}, key interface{}, defaultValue bool) bool {
+func SafeBool(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	value := SafeValueN(obj, []interface{}{key}, defaultValue)
 	if value == nil {
 		return defaultValue
@@ -259,7 +320,7 @@ func (this *Exchange) SafeStringUpper(obj interface{}, key interface{}, defaultV
 	if res != nil {
 		return strings.ToUpper(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
@@ -268,7 +329,7 @@ func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultV
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
@@ -277,7 +338,7 @@ func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 in
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
@@ -286,7 +347,7 @@ func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 in
 	if res != "" && res != nil {
 		return strings.ToUpper(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {

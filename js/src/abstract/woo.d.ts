@@ -41,6 +41,7 @@ interface Exchange {
     v1PrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPositionSymbol(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTransactionHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetClientFuturesLeverage(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrderCancelAllAfter(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetMainSubTransfer(params?: {}): Promise<implicitReturnType>;
@@ -51,6 +52,8 @@ interface Exchange {
     v1PrivatePostClientAccountMode(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostClientPositionMode(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostClientLeverage(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostClientFuturesLeverage(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostClientIsolatedMargin(params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteClientOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;

@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -44,7 +44,7 @@ function example_with_watch_trades() {
         $collected_bars = [];
         while (true) {
             $ws_trades = Async\await($exch->watch_trades($symbol, $since, $limit, array()));
-            $collected_trades = $collected_trades->concat($ws_trades);
+            $collected_trades = array_merge($collected_trades, $ws_trades);
             $generated_bars = $exch->build_ohlcvc($collected_trades, $timeframe, $since, $limit);
             // Note: first bar would be partially constructed bar and its 'open' & 'high' & 'low' prices (except 'close' price) would probably have different values compared to real bar on chart, because the first obtained trade timestamp might be somewhere in the middle of timeframe period, so the pre-period would be missing because we would not have trades data. To fix that, you can get older data with `fetchTrades` to fill up bars till start bar.
             for ($i = 0; $i < count($generated_bars); $i++) {

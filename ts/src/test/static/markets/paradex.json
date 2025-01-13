@@ -1,0 +1,327 @@
+{
+    "BTC/USD:USDC": {
+        "id": "BTC-USD-PERP",
+        "symbol": "BTC/USD:USDC",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 100
+            },
+            "price": {},
+            "cost": {
+                "min": 500
+            }
+        },
+        "info": {
+            "symbol": "BTC-USD-PERP",
+            "base_currency": "BTC",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.001",
+            "price_tick_size": "0.1",
+            "min_notional": "500",
+            "open_at": "1696431006398",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "100",
+            "price_bands_width": "0.05",
+            "max_open_orders": "100",
+            "max_funding_rate": "0.02",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.02",
+                "imf_shift": "180000",
+                "imf_factor": "0.00007",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "100",
+            "max_funding_rate_change": "0.0002",
+            "max_tob_spread": "0.1",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005"
+        }
+    },
+    "SOL/USD:USDC": {
+        "id": "SOL-USD-PERP",
+        "symbol": "SOL/USD:USDC",
+        "base": "SOL",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "SOL",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 10000
+            },
+            "price": {},
+            "cost": {
+                "min": 200
+            }
+        },
+        "info": {
+            "symbol": "SOL-USD-PERP",
+            "base_currency": "SOL",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.1",
+            "price_tick_size": "0.001",
+            "min_notional": "200",
+            "open_at": "1697783400000",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "20000",
+            "price_bands_width": "0.1",
+            "max_open_orders": "100",
+            "max_funding_rate": "0.05",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.05",
+                "imf_shift": "200000",
+                "imf_factor": "0.0002",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "10000",
+            "max_funding_rate_change": "0.0002",
+            "max_tob_spread": "0.1",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005"
+        }
+    },
+    "ETH/USD:USDC": {
+        "id": "ETH-USD-PERP",
+        "symbol": "ETH/USD:USDC",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 1000
+            },
+            "price": {},
+            "cost": {
+                "min": 500
+            }
+        },
+        "info": {
+            "symbol": "ETH-USD-PERP",
+            "base_currency": "ETH",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.001",
+            "price_tick_size": "0.01",
+            "min_notional": "500",
+            "open_at": "1692576000000",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "2000",
+            "price_bands_width": "0.05",
+            "max_open_orders": "100",
+            "max_funding_rate": "0.02",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.02",
+                "imf_shift": "180000",
+                "imf_factor": "0.00007",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "1000",
+            "max_funding_rate_change": "0.0002",
+            "max_tob_spread": "0.1",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005"
+        }
+    },
+    "TON/USD:USDC": {
+        "id": "TON-USD-PERP",
+        "symbol": "TON/USD:USDC",
+        "base": "TON",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "TON",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 90000
+            },
+            "price": {},
+            "cost": {
+                "min": 200
+            }
+        },
+        "info": {
+            "symbol": "TON-USD-PERP",
+            "base_currency": "TON",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "0.1",
+            "price_tick_size": "0.0001",
+            "min_notional": "200",
+            "open_at": "1714374000000",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "350000",
+            "price_bands_width": "0.1",
+            "max_open_orders": "50",
+            "max_funding_rate": "0.05",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.1",
+                "imf_shift": "180000",
+                "imf_factor": "0.00035",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "AFJXXYuniABNnoEE7DLtkxwqLDkcda4xG5k2F4FB86hj",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "90000",
+            "max_funding_rate_change": "0.0005",
+            "max_tob_spread": "0.2",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005"
+        }
+    },
+    "XRP/USD:USDC": {
+        "id": "XRP-USD-PERP",
+        "symbol": "XRP/USD:USDC",
+        "base": "XRP",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "XRP",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0003,
+        "maker": -0.00005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "max": 1000000
+            },
+            "price": {},
+            "cost": {
+                "min": 200
+            }
+        },
+        "info": {
+            "symbol": "XRP-USD-PERP",
+            "base_currency": "XRP",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC",
+            "order_size_increment": "1",
+            "price_tick_size": "0.00001",
+            "min_notional": "200",
+            "open_at": "1715925600000",
+            "expiry_at": "0",
+            "asset_kind": "PERP",
+            "market_kind": "cross",
+            "position_limit": "1000000",
+            "price_bands_width": "0.1",
+            "max_open_orders": "50",
+            "max_funding_rate": "0.05",
+            "delta1_cross_margin_params": {
+                "imf_base": "0.1",
+                "imf_shift": "180000",
+                "imf_factor": "0.00035",
+                "mmf_factor": "0.5"
+            },
+            "price_feed_id": "Guffb8DAAxNH6kdoawYjPXTbwUhjmveh8R4LM6uEqRV1",
+            "oracle_ewma_factor": "0.20000046249626113",
+            "max_order_size": "1000000",
+            "max_funding_rate_change": "0.0005",
+            "max_tob_spread": "0.2",
+            "interest_rate": "0.0001",
+            "clamp_rate": "0.0005"
+        }
+    }
+}

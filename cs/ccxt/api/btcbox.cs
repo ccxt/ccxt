@@ -26,6 +26,11 @@ public partial class btcbox : Exchange
         return await this.callAsync ("publicGetTicker",parameters);
     }
 
+    public async Task<object> publicGetTickers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickers",parameters);
+    }
+
     public async Task<object> privatePostBalance (object parameters = null)
     {
         return await this.callAsync ("privatePostBalance",parameters);

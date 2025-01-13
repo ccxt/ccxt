@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,14 +13,45 @@ import (
 )
 
 func Add(a interface{}, b interface{}) interface{} {
+	if (a == nil) || (b == nil) {
+		return nil
+	}
 	switch aType := a.(type) {
 	case int:
 		if bType, ok := b.(int); ok {
 			return aType + bType // Add as integers
 		}
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+
+		res := aFloat + bFloat
+
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
+	case int64:
+		if bType, ok := b.(int64); ok {
+			return aType + bType // Add as integers
+		}
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+
+		res := aFloat + bFloat
+
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
+
 	case float64:
-		if bType, ok := b.(float64); ok {
-			return aType + bType // Add as floats
+		bType := ToFloat64(b)
+		if bType == math.NaN() {
+			return nil
+		}
+		res := aType + bType
+		if IsInteger(res) {
+			return ParseInt(res)
 		}
 	case string:
 		if bType, ok := b.(string); ok {
@@ -63,13 +95,35 @@ func EvalTruthy(val interface{}) bool {
 	return true // Consider non-nil complex types as truthy
 }
 
+// func IsInteger(value interface{}) bool {
+// 	switch value.(type) {
+// 	case int, int8, int16, int32, int64:
+// 		return true
+// 	case uint, uint8, uint16, uint32, uint64:
+// 		return true
+// 	default:
+// 		return false
+// 	}
+// }
+
 func IsInteger(value interface{}) bool {
-	switch value.(type) {
+	switch v := value.(type) {
 	case int, int8, int16, int32, int64:
 		return true
 	case uint, uint8, uint16, uint32, uint64:
 		return true
+	case float32, float64:
+		// Check if the float has no fractional part
+		return v == math.Trunc(v.(float64))
 	default:
+		// Handle other numeric types, including when value is a pointer to an int type
+		val := reflect.ValueOf(value)
+		if val.Kind() == reflect.Ptr {
+			elem := val.Elem()
+			if elem.IsValid() && elem.Kind() >= reflect.Int && elem.Kind() <= reflect.Float64 {
+				return float64(elem.Float()) == math.Trunc(elem.Float())
+			}
+		}
 		return false
 	}
 }
@@ -107,10 +161,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 	switch reflectValue.Kind() {
 	case reflect.Slice, reflect.Array:
 		// Handle slice or array: key should be an integer index.
-		index, ok := key.(int)
-		if !ok {
+		index2 := ParseInt(key)
+		if index2 == math.MinInt64 {
 			return nil // Key is not an int, invalid index
 		}
+		index := int(index2)
 		if index < 0 || index >= reflectValue.Len() {
 			return nil // Index out of bounds
 		}
@@ -118,7 +173,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 
 	case reflect.Map:
 		// Handle map: key needs to be appropriate for the map
-		reflectKeyValue := reflect.ValueOf(key)
+		keyStr, ok := key.(string)
+		if !ok {
+			return nil // Key is not a string, invalid key
+		}
+		reflectKeyValue := reflect.ValueOf(keyStr)
 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
 			return reflectValue.MapIndex(reflectKeyValue).Interface()
 		}
@@ -131,6 +190,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 }
 
 func Multiply(a, b interface{}) interface{} {
+
+	if (a == nil) || (b == nil) {
+		return nil
+	}
+
 	aVal := reflect.ValueOf(a)
 	bVal := reflect.ValueOf(b)
 
@@ -149,13 +213,24 @@ func Multiply(a, b interface{}) interface{} {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return aValConverted.Uint() * bVal.Uint()
 	case reflect.Float32, reflect.Float64:
-		return aValConverted.Float() * bVal.Float()
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+		res := aFloat * bFloat
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
 	default:
 		return nil
 	}
 }
 
 func Divide(a, b interface{}) interface{} {
+
+	if a == nil || b == nil {
+		return nil
+	}
+
 	aVal := reflect.ValueOf(a)
 	bVal := reflect.ValueOf(b)
 
@@ -177,35 +252,60 @@ func Divide(a, b interface{}) interface{} {
 		}
 		return aValConverted.Uint() / bVal.Uint()
 	case reflect.Float32, reflect.Float64:
-		if bVal.Float() == 0.0 {
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+		if bFloat == 0.0 {
 			return nil // Avoid division by zero
 		}
-		return aValConverted.Float() / bVal.Float()
+		res := aFloat / bFloat
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
 	default:
 		return nil
 	}
 }
 
 func Subtract(a, b interface{}) interface{} {
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
 
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+	if a == nil || b == nil {
 		return nil
 	}
 
-	aValConverted := aVal.Convert(bVal.Type())
+	// aVal := reflect.ValueOf(a)
+	// bVal := reflect.ValueOf(b)
 
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return aValConverted.Int() - bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return aValConverted.Uint() - bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		return aValConverted.Float() - bVal.Float()
-	default:
-		return nil
+	aFloat := ToFloat64(a)
+	bFloat := ToFloat64(b)
+	res := aFloat - bFloat
+	if IsInteger(res) {
+		return ParseInt(res)
 	}
+	return res
+
+	// if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+	// 	return nil
+	// }
+
+	// aValConverted := aVal.Convert(bVal.Type())
+
+	// switch bVal.Kind() {
+	// case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	// 	return aValConverted.Int() - bVal.Int()
+	// case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	// 	return aValConverted.Uint() - bVal.Uint()
+	// case reflect.Float32, reflect.Float64:
+	// 	aFloat := ToFloat64(a)
+	// 	bFloat := ToFloat64(b)
+	// 	res := aFloat - bFloat
+	// 	if IsInteger(res) {
+	// 		return ParseInt(res)
+	// 	}
+	// 	return res
+	// default:
+	// 	return nil
+	// }
 }
 
 type Dict map[string]interface{}
@@ -279,12 +379,23 @@ func Mod(a, b interface{}) interface{} {
 		return nil
 	}
 
-	aVal, bVal, ok := NormalizeAndConvert(a, b)
-	if !ok || bVal.Float() == 0 {
+	aFloat := ToFloat64(a)
+	bFloat := ToFloat64(b)
+
+	if aFloat == math.NaN() || bFloat == math.NaN() {
 		return nil
 	}
+	res := math.Mod(aFloat, bFloat)
+	if IsInteger(res) {
+		return ParseInt(res)
+	}
+	return res
+	// aVal, bVal, ok := NormalizeAndConvert(a, b)
+	// if !ok || bVal.Float() == 0 {
+	// 	return nil
+	// }
 
-	return float64(int(aVal.Float()) % int(bVal.Float()))
+	// return float64(int(aVal.Float()) % int(bVal.Float()))
 }
 
 // IsEqual checks for equality of a and b with dynamic type support
@@ -340,7 +451,7 @@ func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) 
 }
 
 func ToFloat64(v interface{}) float64 {
-	var result float64
+	var result float64 = math.NaN()
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int64:
@@ -348,7 +459,10 @@ func ToFloat64(v interface{}) float64 {
 	case reflect.Float64:
 		result = val.Float()
 	case reflect.String:
-		result = 0 // Convert string to float64, example implementation
+		result, err := strconv.ParseFloat(val.String(), 64)
+		if err == nil {
+			return result
+		}
 	}
 	return result
 }
@@ -431,9 +545,25 @@ func PlusEqual(a, value interface{}) interface{} {
 	}
 }
 
+// func AppendToArray(slicePtr *interface{}, element interface{}) {
+// 	array := (*slicePtr).([]interface{})
+// 	*slicePtr = append(array, element)
+// }
+
 func AppendToArray(slicePtr *interface{}, element interface{}) {
-	array := (*slicePtr).([]interface{})
-	*slicePtr = append(array, element)
+	switch array := (*slicePtr).(type) {
+	case []interface{}:
+		*slicePtr = append(array, element)
+	case []string:
+		if strElement, ok := element.(string); ok {
+			*slicePtr = append(array, strElement)
+		} else {
+			// Handle the case where the element is not a string if needed
+			// fmt.Println("Error: element is not a string")
+		}
+	default:
+		// fmt.Println("Error: Unsupported slice type")
+	}
 }
 
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
@@ -458,7 +588,13 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
 		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
 		// }
-		val.SetMapIndex(key, valueVal)
+		// fmt.Println("key", key.Interface())
+		// fmt.Println("value", valueVal.Interface())
+		if !valueVal.IsValid() {
+			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+		} else {
+			val.SetMapIndex(key, valueVal)
+		}
 	default:
 		// return fmt.Errorf("unsupported type: %s", val.Kind())
 	}
@@ -471,6 +607,10 @@ func InOp(dict interface{}, key interface{}) bool {
 		return false
 	}
 	if key == nil {
+		return false
+	}
+
+	if IsNumber(key) {
 		return false
 	}
 	dictVal := reflect.ValueOf(dict)
@@ -524,33 +664,57 @@ func GetIndexOf(str interface{}, target interface{}) int {
 
 // IsBool checks if the input is a boolean
 func IsBool(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	_, ok := v.(bool)
 	return ok
 }
 
 // IsDictionary checks if the input is a map (dictionary in Python)
 func IsDictionary(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	return reflect.TypeOf(v).Kind() == reflect.Map
 }
 
 // IsString checks if the input is a string
 func IsString(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	_, ok := v.(string)
 	return ok
 }
 
 // IsInt checks if the input is an integer
 func IsInt(v interface{}) bool {
-	_, ok := v.(int)
-	return ok
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case int, int8, int16, int32, int64:
+		return true
+	case uint, uint8, uint16, uint32, uint64:
+		return true
+	default:
+		return false
+	}
 }
 
 // IsFunction checks if the input is a function
 func IsFunction(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	return reflect.TypeOf(v).Kind() == reflect.Func
 }
 
 func IsNumber(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	switch v.(type) {
 	case int, int8, int16, int32, int64:
 		return true
@@ -564,6 +728,9 @@ func IsNumber(v interface{}) bool {
 }
 
 func IsObject(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
 	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
@@ -612,6 +779,12 @@ func MathCeil(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Ceil(num)
 	}
+	if num, ok := v.(int); ok {
+		return math.Ceil(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Ceil(float64(num))
+	}
 	return 0
 }
 
@@ -619,6 +792,12 @@ func MathCeil(v interface{}) float64 {
 func MathRound(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Round(num)
+	}
+	if num, ok := v.(int); ok {
+		return math.Round(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Round(float64(num))
 	}
 	return 0
 }
@@ -676,11 +855,42 @@ func ToString(v interface{}) string {
 	case uint, uint8, uint16, uint32, uint64:
 		return fmt.Sprintf("%d", v)
 	case float32, float64:
+		convertedValue := ToFloat64(v)
+		if convertedValue == math.Trunc(convertedValue) {
+			return fmt.Sprintf("%d", int(convertedValue))
+		}
 		return fmt.Sprintf("%f", v)
 	case bool:
 		return fmt.Sprintf("%t", v)
 	default:
-		return fmt.Sprintf("%v", v)
+		// Handle maps, slices, and functions using reflection
+		val := reflect.ValueOf(v)
+		switch val.Kind() {
+		case reflect.Map:
+			result := "{"
+			for _, key := range val.MapKeys() {
+				result += fmt.Sprintf("%v: %v, ", ToString(key.Interface()), ToString(val.MapIndex(key).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "}"
+			return result
+		case reflect.Slice, reflect.Array:
+			result := "["
+			for i := 0; i < val.Len(); i++ {
+				result += fmt.Sprintf("%v, ", ToString(val.Index(i).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "]"
+			return result
+		case reflect.Func:
+			return fmt.Sprintf("Function: %v", val.Type().String())
+		default:
+			return fmt.Sprintf("%v", v)
+		}
 	}
 }
 
@@ -798,6 +1008,10 @@ func Pop(slice interface{}) (interface{}, interface{}) {
 	return sliceVal[:len(sliceVal)-1], sliceVal[len(sliceVal)-1]
 }
 
+func CastToSlice(slice interface{}) ([]interface{}, bool) {
+	return castToSlice(slice)
+}
+
 // Helper function to cast interface{} to []interface{}
 func castToSlice(slice interface{}) ([]interface{}, bool) {
 	val := reflect.ValueOf(slice)
@@ -820,7 +1034,8 @@ func Replace(input interface{}, old interface{}, new interface{}) string {
 }
 
 // PadEnd pads the input string on the right with padStr until it reaches the specified length
-func PadEnd(input interface{}, length int, padStr interface{}) string {
+func PadEnd(input interface{}, length2 interface{}, padStr interface{}) string {
+	length := int(ParseInt(length2))
 	str := ToString(input)
 	pad := ToString(padStr)
 	for len(str) < length {
@@ -830,7 +1045,8 @@ func PadEnd(input interface{}, length int, padStr interface{}) string {
 }
 
 // PadStart pads the input string on the left with padStr until it reaches the specified length
-func PadStart(input interface{}, length int, padStr interface{}) string {
+func PadStart(input interface{}, length2 interface{}, padStr interface{}) string {
+	length := int(ParseInt(length2))
 	str := ToString(input)
 	pad := ToString(padStr)
 	for len(str) < length {
@@ -856,11 +1072,38 @@ func GetLength(v interface{}) int {
 	}
 }
 
+func IsNil(x interface{}) bool {
+	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+	if x == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(x)
+	kind := value.Kind()
+
+	switch kind {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
+}
+
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	if len(v) <= index {
 		return def
 	}
-	return v[index]
+	val := v[index]
+
+	if val == nil {
+		return def
+	}
+
+	if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
+		return def
+	}
+
+	return val
 }
 
 func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
@@ -872,6 +1115,22 @@ func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{}
 
 func IsInstance(value interface{}, typ interface{}) bool {
 	// Get the reflect.Type of the value and the type
+
+	if s, ok := value.(string); ok {
+		isError := strings.HasPrefix(s, "panic")
+		if isError {
+			value := reflect.ValueOf(typ)
+			funcName := ""
+			if value.Kind() == reflect.Func {
+				funcName = runtime.FuncForPC(value.Pointer()).Name()
+				// Extract only the function name by removing the package path
+				parts := strings.Split(funcName, ".")
+				funcName = parts[len(parts)-1]
+			}
+			return strings.Contains(s, funcName)
+		}
+	}
+
 	valueType := reflect.TypeOf(value)
 	typeType := reflect.TypeOf(typ)
 
@@ -884,13 +1143,14 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 		return ""
 	}
 	str := str2.(string)
-	start := -1
+	var start int64 = -1
 	if idx1 != nil {
-		start = idx1.(int)
+		start = ParseInt(idx1)
 	}
+	var lenStr int64 = int64(len(str))
 	if idx2 == nil {
 		if start < 0 {
-			innerStart := len(str) + start
+			innerStart := lenStr + start
 			if innerStart < 0 {
 				innerStart = 0
 			}
@@ -898,15 +1158,15 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 		}
 		return str[start:]
 	} else {
-		end := idx2.(int)
+		end := ParseInt(idx2)
 		if start < 0 {
-			start = len(str) + start
+			start = lenStr + start
 		}
 		if end < 0 {
-			end = len(str) + end
+			end = lenStr + end
 		}
-		if end > len(str) {
-			end = len(str)
+		if end > lenStr {
+			end = lenStr
 		}
 		return str[start:end]
 	}
@@ -914,11 +1174,18 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 
 type Task func() interface{}
 
-func promiseAll(tasksInterface interface{}) <-chan []interface{} {
-	ch := make(chan []interface{})
+func PromiseAll(tasksInterface interface{}) <-chan interface{} {
+	return promiseAll(tasksInterface)
+}
+
+func promiseAll(tasksInterface interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	panicChan := make(chan interface{}, 1) // Separate channel for panics
+	var once sync.Once                     // Ensure only one message is sent to ch
 
 	go func() {
 		defer close(ch)
+		defer ReturnPanicError(ch)
 
 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
 		tasks, ok := tasksInterface.([]interface{})
@@ -935,6 +1202,15 @@ func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 			go func(i int, task interface{}) {
 				defer wg.Done()
 
+				// Capture panic and send to panicChan directly
+				defer func() {
+					if r := recover(); r != nil {
+						if r != "break" {
+							once.Do(func() { ch <- "panic:" + ToString(r) })
+						}
+					}
+				}()
+
 				// Assert the task is a channel
 				if chanTask, ok := task.(<-chan interface{}); ok {
 					// Receive the result from the channel
@@ -948,13 +1224,185 @@ func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 
 		// Wait for all tasks to complete
 		wg.Wait()
+		close(panicChan)
 
-		// Once all tasks are done, send the results
-		ch <- results
+		// If no panics occurred, send the results
+		once.Do(func() { ch <- results })
 	}()
 
 	return ch
 }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+// 	panicChan := make(chan interface{}, 1) // Separate channel for panics
+
+// 	go func() {
+// 		defer close(ch)
+
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer ReturnPanicError(panicChan)
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+// 		close(panicChan)
+
+// 		// Check if any panics occurred and report the first one
+// 		select {
+// 		case panicMsg := <-panicChan:
+// 			ch <- panicMsg // Send the panic message
+// 		default:
+// 			ch <- results // No panics, send results
+// 		}
+// 	}()
+
+// 	return ch
+// }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer close(ch)
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				if r != "break" {
+// 					ch <- "panic:" + ToString(r)
+// 				}
+// 			}
+// 		}()
+
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		// A separate channel to capture panics
+// 		panicChan := make(chan string, len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer func() {
+// 					if r := recover(); r != nil {
+// 						if r != "break" {
+// 							panicChan <- "panic:" + ToString(r)
+// 						}
+// 					}
+// 				}()
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+// 		close(panicChan)
+
+// 		// Check if any panics occurred and report the first one
+// 		select {
+// 		case panicMsg := <-panicChan:
+// 			ch <- panicMsg // Send the panic message
+// 		default:
+// 			ch <- results // No panics, send results
+// 		}
+// 	}()
+
+// 	return ch
+// }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer close(ch)
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				if r != "break" {
+// 					ch <- "panic:" + ToString(r)
+// 				}
+// 			}
+// 		}()
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer func() {
+// 					if r := recover(); r != nil {
+// 						if r != "break" {
+// 							ch <- "panic:" + ToString(r)
+// 						}
+// 					}
+// 				}()
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+
+// 		// Once all tasks are done, send the results
+// 		ch <- results
+// 	}()
+
+// 	return ch
+// }
+
 func ParseInt(number interface{}) int64 {
 	switch v := number.(type) {
 	case int:
@@ -988,59 +1436,80 @@ func ParseInt(number interface{}) int64 {
 			return i
 		}
 	}
-	return 0 // Default value if conversion is not possible
+	return math.MinInt64 // Default value if conversion is not possible
+}
+
+func MathMin(a, b interface{}) interface{} {
+	return mathMin(a, b)
 }
 
 func mathMin(a, b interface{}) interface{} {
-	switch a := a.(type) {
-	case int:
-		b := b.(int)
-		if a < b {
-			return a
-		}
-		return b
-	case float64:
-		b := b.(float64)
-		if a < b {
-			return a
-		}
-		return b
-	case string:
-		b := b.(string)
-		if a < b {
-			return a
-		}
-		return b
-	default:
+
+	if a == nil || b == nil {
 		return nil
 	}
+
+	af := ToFloat64(a)
+	bf := ToFloat64(b)
+
+	if af == math.NaN() || bf == math.NaN() {
+		return nil
+	}
+
+	if af < bf {
+		return af
+	}
+
+	return bf
+
+	// switch a := a.(type) {
+	// case int:
+	// 	b := b.(int)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// case float64:
+	// 	b := b.(float64)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// case string:
+	// 	b := b.(string)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// default:
+	// 	return nil
+	// }
+}
+
+func MathMax(a, b interface{}) interface{} {
+	return mathMax(a, b)
 }
 
 // mathMax returns the maximum of two values of the same type.
 // It supports int, float64, and string types.
 func mathMax(a, b interface{}) interface{} {
-	switch a := a.(type) {
-	case int:
-		b := b.(int)
-		if a > b {
-			return a
-		}
-		return b
-	case float64:
-		b := b.(float64)
-		if a > b {
-			return a
-		}
-		return b
-	case string:
-		b := b.(string)
-		if a > b {
-			return a
-		}
-		return b
-	default:
+
+	if a == nil || b == nil {
 		return nil
 	}
+
+	af := ToFloat64(a)
+	bf := ToFloat64(b)
+
+	if af == math.NaN() || bf == math.NaN() {
+		return nil
+	}
+
+	if af > bf {
+		return af
+	}
+
+	return bf
 }
 
 // parseInt tries to convert various types of input to an int
@@ -1118,27 +1587,77 @@ func ParseFloat(input interface{}) interface{} {
 }
 
 func ParseJSON(input interface{}) interface{} {
-	jsonString := fmt.Sprintf("%v", input)
-	// var result interface{}
-
-	if jsonString[0] == '[' {
-		var arrayResult []map[string]interface{}
-		err := json.Unmarshal([]byte(jsonString), &arrayResult)
-		if err != nil {
-			return nil
-		}
-		return arrayResult
+	jsonString, ok := input.(string)
+	if !ok {
+		return nil
 	}
 
-	var mapResult map[string]interface{}
-	err := json.Unmarshal([]byte(jsonString), &mapResult)
+	// // var result interface{}
+
+	// if jsonString[0] == '[' {
+	// 	var arrayResult []map[string]interface{}
+	// 	err := json.Unmarshal([]byte(jsonString), &arrayResult)
+	// 	if err != nil {
+	// 		return nil
+	// 	}
+	// 	return arrayResult
+	// }
+
+	// var mapResult map[string]interface{}
+	// err := json.Unmarshal([]byte(jsonString), &mapResult)
+	// if err != nil {
+	// 	return nil
+	// }
+	// return mapResult
+
+	var result interface{}
+
+	decoder := json.NewDecoder(strings.NewReader(jsonString))
+	decoder.UseNumber() // Ensures large numbers are handled correctly
+
+	err := decoder.Decode(&result)
 	if err != nil {
 		return nil
 	}
-	return mapResult
+	convertNumbers(result) //convert json.Number to int64
+	return result
+}
+
+func convertNumbers(data interface{}) {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			if number, ok := value.(json.Number); ok {
+				// Try to convert the json.Number to int64
+				if intVal, err := number.Int64(); err == nil {
+					v[key] = intVal
+				} else {
+					v[key] = number.String() // Preserve the string if not convertible to int64
+				}
+			} else {
+				convertNumbers(value) // Recurse for nested maps
+			}
+		}
+	case []interface{}:
+		for i, value := range v {
+			if number, ok := value.(json.Number); ok {
+				// Try to convert the json.Number to int64
+				if intVal, err := number.Int64(); err == nil {
+					v[i] = intVal
+				} else {
+					v[i] = number.String() // Preserve the string if not convertible to int64
+				}
+			} else {
+				convertNumbers(value) // Recurse for nested arrays
+			}
+		}
+	}
 }
 
 func throwDynamicException(exceptionType interface{}, message interface{}) {
+	functionError := exceptionType.(func(...interface{}) error)
+	errorMsg := functionError(message)
+	panic(errorMsg)
 	// to do implement
 	// // exceptionTypeStr, ok := exceptionType.(string)
 	// if !ok {
@@ -1241,4 +1760,480 @@ func Capitalize(s string) string {
 	firstLetter := strings.ToUpper(string(s[0]))
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
+}
+
+func SetDefaults(p interface{}) {
+	setDefaults(p)
+}
+
+func setDefaults(p interface{}) {
+	// Get the value of the pointer to struct
+	val := reflect.ValueOf(p).Elem()
+	typ := val.Type()
+
+	// Iterate over the fields of the struct using reflection
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+		if value, ok := fieldType.Tag.Lookup("default"); ok {
+			switch field.Kind() {
+			case reflect.String:
+				if field.String() == "" {
+					field.SetString(value)
+				}
+			case reflect.Int:
+				if field.Int() == 0 {
+					if intValue, err := strconv.Atoi(value); err == nil {
+						field.SetInt(int64(intValue))
+					}
+				}
+				// Add other types as necessary
+			}
+		}
+	}
+}
+
+func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+	name := Capitalize(name2)
+	baseValue := reflect.ValueOf(itf)
+	baseType := baseValue.Type()
+
+	ch := make(chan interface{})
+	go func() {
+
+		// Error handling
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+				close(ch)
+			}
+		}()
+
+		for i := 0; i < baseType.NumMethod(); i++ {
+			method := baseType.Method(i)
+			if name == method.Name {
+				methodValue := baseValue.MethodByName(name)
+				methodType := method.Type
+				numIn := methodType.NumIn()
+				isVariadic := methodType.IsVariadic()
+
+				var in []reflect.Value
+
+				// Handle fixed arguments for both regular and variadic functions
+				for k := 0; k < numIn-1; k++ {
+					if k < len(args) {
+						if args[k] == nil {
+							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+						} else {
+							in = append(in, reflect.ValueOf(args[k]))
+						}
+					} else {
+						// paramType := methodType.In(k)
+						in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+						// in = append(in, reflect.Zero(paramType))
+					}
+				}
+
+				// Properly handle the variadic arguments
+				if isVariadic {
+					variadicArgs := []reflect.Value{}
+					// variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
+					for k := numIn - 1; k < len(args); k++ {
+						if args[k] == nil {
+							variadicArgs = append(variadicArgs, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+						} else {
+							variadicArgs = append(variadicArgs, reflect.ValueOf(args[k]))
+						}
+					}
+					in = append(in, variadicArgs...)
+				} else if len(args) >= numIn-1 {
+					// Handle non-variadic arguments beyond fixed ones
+					for k := numIn - 1; k < len(args); k++ {
+						if args[k] == nil {
+							// paramType := methodType.In(k)
+							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+						} else {
+							in = append(in, reflect.ValueOf(args[k]))
+						}
+					}
+				}
+
+				// Call the method with the constructed arguments
+				res := methodValue.Call(in)
+
+				// Handle the result
+				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+					resultChan := res[0]
+					go func() {
+						for {
+							val, ok := resultChan.Recv()
+							if !ok {
+								break // result channel is closed
+							}
+							ch <- val.Interface() // pass the value to the output channel
+						}
+						close(ch) // close the output channel after all values are received
+					}()
+					return
+				} else if len(res) > 0 {
+					ch <- res[0].Interface()
+				} else {
+					ch <- nil
+				}
+				close(ch)
+				return
+			}
+		}
+
+		// If no method is found, return nil
+		ch <- nil
+		close(ch)
+	}()
+	return ch
+}
+
+// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseValue := reflect.ValueOf(itf)
+// 	baseType := baseValue.Type()
+
+// 	ch := make(chan interface{})
+// 	go func() {
+
+// 		// Error handling
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+// 				close(ch)
+// 			}
+// 		}()
+
+// 		for i := 0; i < baseType.NumMethod(); i++ {
+// 			method := baseType.Method(i)
+// 			if name == method.Name {
+// 				methodValue := baseValue.MethodByName(name)
+// 				methodType := method.Type
+// 				numIn := methodType.NumIn()
+// 				isVariadic := methodType.IsVariadic()
+
+// 				var in []reflect.Value
+// 				// Fixed argument handling for both regular and variadic functions
+// 				for k := 0; k < numIn-1; k++ {
+// 					if k < len(args) {
+// 						if args[k] == nil {
+// 							paramType := methodType.In(k + 1) // Account for receiver not being part of args
+// 							in = append(in, reflect.Zero(paramType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					} else {
+// 						paramType := methodType.In(k + 1) // Account for receiver not being part of args
+// 						in = append(in, reflect.Zero(paramType))
+// 					}
+// 				}
+
+// 				// Handle the variadic arguments
+// 				if isVariadic && len(args) >= numIn-1 {
+// 					variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							in = append(in, reflect.Zero(variadicType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				}
+
+// 				// Call the method with the constructed arguments
+// 				res := methodValue.Call(in)
+
+// 				// Handle the result
+// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+// 					resultChan := res[0]
+// 					go func() {
+// 						for {
+// 							val, ok := resultChan.Recv()
+// 							if !ok {
+// 								break // result channel is closed
+// 							}
+// 							ch <- val.Interface() // pass the value to the output channel
+// 						}
+// 						close(ch) // close the output channel after all values are received
+// 					}()
+// 					return
+// 				} else if len(res) > 0 {
+// 					ch <- res[0].Interface()
+// 				} else {
+// 					ch <- nil
+// 				}
+// 				close(ch)
+// 				return
+// 			}
+// 		}
+
+// 		// If no method is found, return nil
+// 		ch <- nil
+// 		close(ch)
+// 	}()
+// 	return ch
+// }
+
+// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseValue := reflect.ValueOf(itf)
+// 	baseType := baseValue.Type()
+
+// 	ch := make(chan interface{})
+// 	go func() {
+
+// 		// Error handling
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+// 				close(ch)
+// 			}
+// 		}()
+
+// 		for i := 0; i < baseType.NumMethod(); i++ {
+// 			method := baseType.Method(i)
+// 			if name == method.Name {
+// 				methodValue := baseValue.MethodByName(name)
+// 				methodType := method.Type
+// 				numIn := methodType.NumIn()
+// 				isVariadic := methodType.IsVariadic()
+
+// 				var in []reflect.Value
+// 				// Fixed argument handling for both regular and variadic functions
+// 				for k := 0; k < numIn-1; k++ {
+// 					if k < len(args) {
+// 						if args[k] == nil {
+// 							paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(paramType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					} else {
+// 						paramType := methodType.In(k)
+// 						in = append(in, reflect.Zero(paramType))
+// 					}
+// 				}
+
+// 				// Handle the variadic arguments
+// 				if isVariadic && len(args) >= numIn-1 {
+// 					variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							in = append(in, reflect.Zero(variadicType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				} else if len(args) >= numIn-1 {
+// 					// Handle non-variadic arguments beyond fixed ones
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(paramType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				}
+
+// 				// Call the method with the constructed arguments
+// 				res := methodValue.Call(in)
+
+// 				// Handle the result
+// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+// 					resultChan := res[0]
+// 					go func() {
+// 						for {
+// 							val, ok := resultChan.Recv()
+// 							if !ok {
+// 								break // result channel is closed
+// 							}
+// 							ch <- val.Interface() // pass the value to the output channel
+// 						}
+// 						close(ch) // close the output channel after all values are received
+// 					}()
+// 					return
+// 				} else if len(res) > 0 {
+// 					ch <- res[0].Interface()
+// 				} else {
+// 					ch <- nil
+// 				}
+// 				close(ch)
+// 				return
+// 			}
+// 		}
+
+// 		// If no method is found, return nil
+// 		ch <- nil
+// 		close(ch)
+// 	}()
+// 	return ch
+// }
+
+// original version not working for createExpiredEtc..
+// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseType := reflect.TypeOf(itf)
+
+// 	ch := make(chan interface{})
+// 	go func() {
+
+// 		// error handling
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				// panic(r)
+// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+// 			}
+// 		}()
+
+// 		for i := 0; i < baseType.NumMethod(); i++ {
+// 			method := baseType.Method(i)
+// 			if name == method.Name {
+// 				methodType := method.Type
+// 				numIn := methodType.NumIn()
+// 				isVariadic := methodType.IsVariadic()
+
+// 				var in []reflect.Value
+// 				if isVariadic {
+// 					// Handle fixed arguments
+// 					for k := 0; k < numIn-1; k++ {
+// 						if k < len(args) {
+// 							if args[k] == nil {
+// 								in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 							} else {
+// 								in = append(in, reflect.ValueOf(args[k]))
+// 							}
+// 						} else {
+// 							// paramType := methodType.In(k)
+// 							// in = append(in, reflect.Zero(paramType))
+// 							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						}
+// 					}
+
+// 					// Handle variadic arguments
+// 					// variadicType := methodType.In(numIn - 1).Elem()
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				} else {
+// 					for k := 0; k < numIn; k++ {
+// 						if k < len(args) {
+// 							if args[k] == nil {
+// 								paramType := methodType.In(k)
+// 								in = append(in, reflect.Zero(paramType))
+// 							} else {
+// 								in = append(in, reflect.ValueOf(args[k]))
+// 							}
+// 						} else {
+// 							paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(paramType))
+// 						}
+// 					}
+// 				}
+
+// 				// Call the method
+// 				res := reflect.ValueOf(itf).MethodByName(name).Call(in)
+
+// 				// Check if the result is a channel
+// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+// 					resultChan := res[0]
+// 					// Read values from the returned channel and pass them to ch
+// 					go func() {
+// 						for {
+// 							val, ok := resultChan.Recv()
+// 							if !ok {
+// 								break // result channel is closed
+// 							}
+// 							valInt := val.Interface()
+// 							ch <- valInt // pass the value to the output channel
+// 						}
+// 						close(ch) // close the output channel after all values are received
+// 					}()
+// 					// // Don't close `ch` yet, as it will be closed after the resultChan is read
+// 					return
+// 				} else if len(res) > 0 {
+// 					// Directly return the first result if it's not a channel
+// 					val := res[0].Interface()
+// 					ch <- val
+// 				} else {
+// 					// Return nil if no results
+// 					ch <- nil
+// 				}
+// 				close(ch)
+// 				return
+// 			}
+// 		}
+// 		// If no method is found, return nil
+// 		ch <- nil
+// 		close(ch)
+// 	}()
+// 	return ch
+// }
+
+func PanicOnError(msg interface{}) {
+	caller := getCallerName()
+	switch v := msg.(type) {
+	case string:
+		if strings.HasPrefix(v, "panic:") {
+			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
+			// panic(v)
+		}
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
+				// panic(fmt.Sprintf("panic:%v:%v", caller, str))
+				panic(str)
+			} else if nestedSlice, ok := item.([]interface{}); ok {
+				// Handle nested []interface{} cases recursively
+				PanicOnError(nestedSlice)
+			}
+		}
+	default:
+		return
+	}
+}
+
+func ReturnPanicError(ch chan interface{}) {
+	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
+	if r := recover(); r != nil {
+		if r != "break" {
+			strErr := ToString(r)
+			if !strings.HasPrefix(strErr, "panic:") {
+				ch <- "panic:" + strErr
+			} else {
+				ch <- strErr
+			}
+		}
+	}
+}
+
+func GetCallerName() string {
+	return getCallerName()
+}
+
+func getCallerName() string {
+	// Skip 2 levels to get the name of the caller of the function that called this one
+	pc, _, _, ok := runtime.Caller(3)
+	if !ok {
+		return "Unknown"
+	}
+
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "Unknown"
+	}
+
+	return fn.Name()
+}
+
+func Print(v interface{}) {
+	fmt.Println(v)
 }

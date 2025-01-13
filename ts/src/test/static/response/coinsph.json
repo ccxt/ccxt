@@ -35,7 +35,7 @@
                         "price": 73247.3,
                         "amount": 0.0066912,
                         "cost": 490.11233376,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "price": "73247.300000000000000000",
                             "id": "1640734866998845445",
@@ -96,9 +96,11 @@
                     "previousClose": 71824.57,
                     "change": 1042.15,
                     "percentage": 1.44,
-                    "average": 72716.535,
+                    "average": 72716.53,
                     "baseVolume": 2.6547329,
                     "quoteVolume": 191180.95,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTCUSDT",
                         "priceChange": "1042.15",

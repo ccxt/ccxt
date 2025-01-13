@@ -2,17 +2,23 @@
     "BTC": {
         "id": "BTC",
         "info": {
-            "code": "1",
             "currency": "BTC",
+            "name": "Bitcoin",
+            "code": "1",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Bitcoin",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "BTC",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "BTC",
         "name": "Bitcoin",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -27,17 +33,23 @@
     "USDT": {
         "id": "USDT",
         "info": {
-            "code": "3",
             "currency": "USDT",
+            "name": "TetherUS",
+            "code": "3",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "TetherUS",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "USDT",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "2",
+            "stableCoin": "1",
+            "assetsPrecision": "8"
         },
         "code": "USDT",
         "name": "TetherUS",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -52,17 +64,23 @@
     "USD": {
         "id": "USD",
         "info": {
-            "code": "2",
             "currency": "USD",
+            "name": "USD",
+            "code": "2",
             "valueScale": "4",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "USD",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "USD",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "2"
         },
         "code": "USD",
         "name": "USD",
+        "active": true,
         "precision": 0.0001,
         "limits": {
             "amount": {
@@ -77,17 +95,23 @@
     "LTC": {
         "id": "LTC",
         "info": {
-            "code": "8",
             "currency": "LTC",
+            "name": "Litecoin",
+            "code": "8",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Litecoin",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "LTC",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "LTC",
         "name": "Litecoin",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -102,17 +126,23 @@
     "ETH": {
         "id": "ETH",
         "info": {
-            "code": "4",
             "currency": "ETH",
+            "name": "Ethereum",
+            "code": "4",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Ethereum",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "ETH",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "ETH",
         "name": "Ethereum",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -127,17 +157,23 @@
     "ADA": {
         "id": "ADA",
         "info": {
-            "code": "10",
             "currency": "ADA",
+            "name": "Cardano",
+            "code": "10",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Cardano",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "ADA",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "ADA",
         "name": "Cardano",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -152,17 +188,23 @@
     "XRP": {
         "id": "XRP",
         "info": {
-            "code": "5",
             "currency": "XRP",
+            "name": "Ripple",
+            "code": "5",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Ripple",
+            "needAddrTag": "1",
+            "status": "Listed",
             "displayCurrency": "XRP",
-            "needAddrTag": "1"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "XRP",
         "name": "Ripple",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -177,17 +219,23 @@
     "USDC": {
         "id": "USDC",
         "info": {
-            "code": "57",
             "currency": "USDC",
+            "name": "USD Coin",
+            "code": "57",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "USD Coin",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "USDC",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "6"
         },
         "code": "USDC",
         "name": "USD Coin",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {
@@ -202,17 +250,23 @@
     "SOL": {
         "id": "SOL",
         "info": {
-            "code": "41",
             "currency": "SOL",
+            "name": "Solana",
+            "code": "41",
             "valueScale": "8",
             "minValueEv": "1",
             "maxValueEv": "5000000000000000000",
-            "name": "Solana",
+            "needAddrTag": "0",
+            "status": "Listed",
             "displayCurrency": "SOL",
-            "needAddrTag": "0"
+            "inAssetsDisplay": "1",
+            "perpetual": "0",
+            "stableCoin": "0",
+            "assetsPrecision": "8"
         },
         "code": "SOL",
         "name": "Solana",
+        "active": true,
         "precision": 1e-8,
         "limits": {
             "amount": {

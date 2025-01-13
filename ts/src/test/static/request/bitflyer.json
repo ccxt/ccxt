@@ -1,0 +1,18 @@
+{
+    "exchange": "bitflyer",
+    "skipKeys": [
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "Fetch Funding Rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitflyer.com/v1/getfundingrate?product_code=FX_BTC_JPY",
+                "input": [
+                  "BTC/JPY:JPY"
+                ]
+            }
+        ]
+    }
+}

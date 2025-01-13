@@ -461,7 +461,15 @@ public partial class Exchange
     public object eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
-        var msg = Encoding.UTF8.GetBytes((string)request);
+        byte[] msg;
+        if (request is string)
+        {
+            msg = Encoding.UTF8.GetBytes((string)request);
+        }
+        else
+        {
+            msg = request as byte[];
+        }
         var signer = new Ed25519Signer();
         var privateKey = (secret is string) ? ReadEDDSAPrivateKeyFromPem(secret as string) : new Ed25519PrivateKeyParameters(secret as byte[]);
         signer.Init(true, privateKey);
@@ -640,22 +648,19 @@ public partial class Exchange
 
     public static byte[] SignP256(object msg, string pemPrivateKey, string hashName, out int recoveryId)
     {
-
-        string algoDelegate() => hashName as string;
+        // Create the ECDSA signer
         var curveParams = NistNamedCurves.GetByName("P-256");
-        var rawBytes = Encoding.UTF8.GetBytes((string)msg);
         var ecPrivateKeyParameters = ReadPemPrivateKey(pemPrivateKey, curveParams);
         ECDsa ecdsa = ConvertToECDsa(ecPrivateKeyParameters);
+
+        // Sign the message
+        var rawBytes = Encoding.UTF8.GetBytes((string)msg);
         byte[] signature = ecdsa.SignData(rawBytes, HashAlgorithmName.SHA256);
 
-        var hashed = HashBytes(msg, algoDelegate);
-        var signer = new ECDsaSigner();
-
         recoveryId = 0; // check this later;
-        var r = signature.Take(32).ToArray();
-        var s = signature.Skip(32).ToArray();
         return signature;
     }
+
     private static ECPrivateKeyParameters ReadPemPrivateKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
     {
         using (TextReader textReader = new StringReader(pemContents))
@@ -727,19 +732,15 @@ public partial class Exchange
     private static ECDsa ConvertToECDsa(ECPrivateKeyParameters privateKeyParameters)
     {
         // Use BouncyCastle to convert to .NET's ECDsa
-        var q = privateKeyParameters.Parameters.G.Multiply(privateKeyParameters.D);
-        var domainParameters = privateKeyParameters.Parameters;
-        var curve = domainParameters.Curve;
-        var point = curve.DecodePoint(domainParameters.G.GetEncoded()).Normalize();
-
+        var q = privateKeyParameters.Parameters.G.Multiply(privateKeyParameters.D).Normalize();
         ECDsa ecdsa = ECDsa.Create(new ECParameters
         {
             Curve = ECCurve.NamedCurves.nistP256, // Ensure this matches your key's curve
             D = privateKeyParameters.D.ToByteArrayUnsigned(),
             Q = new ECPoint
             {
-                X = point.AffineXCoord.GetEncoded(),
-                Y = point.AffineYCoord.GetEncoded()
+                X = q.AffineXCoord.GetEncoded(),
+                Y = q.AffineYCoord.GetEncoded()
             }
         });
 

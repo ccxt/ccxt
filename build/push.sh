@@ -60,10 +60,15 @@ git commit -m "${COMMIT_MESSAGE}" -m '[ci skip]' || exit 0
 if [ "$SHOULD_TAG" = "true" ]; then
     git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]";
 fi
+echo "Before removing origin" # debug
 git remote remove origin
+echo "before adding origin" # debug
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
-node build/cleanup-old-tags --limit
+echo "before cleaning tags" # debug
+npm run cleanup-old-tags --limit
+echo "after cleaning tags" # debug
 git push origin --tags HEAD:master
+echo "after pushing tags" # debug
 if [ "$SHOULD_TAG" = "true" ]; then
     echo "Creating github release..."
     gh release create "${COMMIT_MESSAGE}" --generate-notes --verify-tag

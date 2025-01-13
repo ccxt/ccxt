@@ -6,6 +6,26 @@
     ],
     "outputType": "json",
     "methods": {
+    "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://www.deribit.com/api/v2/private/get_account_summaries",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch balance with code",
+                "method": "fetchBalance",
+                "url": "https://www.deribit.com/api/v2/private/get_account_summary?currency=USDC",
+                "input": [
+                    {
+                        "code": "USDC"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "Spot fetch trades",

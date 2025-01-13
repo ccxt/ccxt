@@ -10,6 +10,7 @@ var rsa = require('./lib/jsbn/rsa.js');
 var jsbn = require('./lib/jsbn/jsbn.js');
 var asn11_0 = require('./lib/jsrsasign/asn1-1.0.js');
 
+// ----------------------------------------------------------------------------
 /**
  * Create a new JSEncryptRSAKey that extends Tom Wu's RSA key object.
  * This object is just a decorator for parsing the key parameter

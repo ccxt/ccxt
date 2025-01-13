@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order.php';
 function test_fetch_orders($exchange, $skipped_properties, $symbol) {
     $method = 'fetchOrders';
     $orders = $exchange->fetch_orders($symbol);
-    assert(gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($orders));
+    assert(gettype($orders) === 'array' && array_is_list($orders), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($orders));
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $orders, $symbol);
     $now = $exchange->milliseconds();
     for ($i = 0; $i < count($orders); $i++) {

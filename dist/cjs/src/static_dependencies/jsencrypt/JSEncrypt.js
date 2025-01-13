@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var base64 = require('./lib/jsbn/base64.js');
 var JSEncryptRSAKey = require('./JSEncryptRSAKey.js');
 
+// ----------------------------------------------------------------------------
 const version = typeof process !== 'undefined'
     ? process.env?.npm_package_version
     : undefined;

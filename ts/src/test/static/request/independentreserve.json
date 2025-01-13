@@ -44,6 +44,20 @@
                 ],
                 "output": "{\"apiKey\":\"key\",\"nonce\":1708428106,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\"}"
             }
+        ],
+        "withdraw": [
+            {
+                "description": "Withdraw",
+                "method": "withdraw",
+                "url": "https://api.independentreserve.com/Private/WithdrawDigitalCurrency",
+                "input": [
+                  "XRP",
+                  35.03221,
+                  "rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2",
+                  376382
+                ],
+                "output": "{\"apiKey\":\"23974850e-39kd-393d-393d-12038540\",\"nonce\":1721298323,\"signature\":\"AALSDKJFLKJEKLJLKJLKAWJLKJJLKASJLDKGJALSKDJ\",\"primaryCurrencyCode\":\"Xrp\",\"withdrawalAddress\":\"rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2\",\"amount\":\"35.03221\",\"destinationTag\":376382}"
+            }
         ]
     }
 }

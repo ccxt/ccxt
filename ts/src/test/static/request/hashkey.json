@@ -1,0 +1,636 @@
+{
+    "exchange": "hashkey",
+    "skipKeys": ["timestamp", "signature", "clientOrderId", "timeInForce"],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://api-glb.hashkey.com/api/v1/ping",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
+                "input": []
+            },
+            {
+                "description": "Fetch markets for one symbol",
+                "method": "fetchMarkets",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo?symbol=ETHUSDT",
+                "input": [
+                    {
+                        "symbol": "ETHUSDT"
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api-glb.hashkey.com/quote/v1/depth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://api-glb.hashkey.com/quote/v1/depth?symbol=BTCUSDT&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades with a since timestamp argument",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit argument",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit argument for swap",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT-PERPETUAL&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721909422123,
+                    2
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades for spot",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1722860399498&symbol=ETHUSDT&signature=ec8c3ebd2b0220ccc008a17137672dd5b39585c61820f68369fc86fd13bcef73",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/userTrades?timestamp=1722860478301&symbol=ETHUSDT-PERPETUAL&signature=f2e893c275facc965ef484cfb9f7b68a421fe7b830c6b66415fb43c4c6b9b015",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for spot with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1722860817329&startTime=1722076468643&limit=2&symbol=ETHUSDT&signature=59aa29ee7f8b56192d11711d4b914e85efea45920f799c3e6beff3f85dab0379",
+                "input": [
+                    "ETH/USDT",
+                    1722076468643,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/userTrades?timestamp=1722860554037&startTime=1722429951648&limit=2&symbol=ETHUSDT-PERPETUAL&signature=95c69acaffc7f47abe261b88accf0519ce6aceeffd2b116d55402a87f4117ba8",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1722429951648,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch my trades with until parameter",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1724060553645&startTime=1722076468643&limit=1&endTime=1723081474391&symbol=ETHUSDT&signature=1bfa0e1ca9216cf82b42c98dfae5368e36d4a60f481c898ecd8a5ddad6c5b628",
+                "input": [
+                  "ETH/USDT",
+                  1722076468643,
+                  1,
+                  {
+                    "until": "1723081474391"
+                  }
+                ]
+            },
+            {
+                "description": "Fetch my trades wtih client order ID parameter",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1724061295792&symbol=ETHUSDT&clientOrderId=1723072777879337&signature=5435596717773141611fbf8c30a656fa3849e36d246a6e6571cf0547d04a38e0",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    null,
+                    {
+                        "clientOrderId": "1723072777879337"
+                    }
+                ]
+              }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT&interval=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT-PERPETUAL&interval=1m",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch candles with timeframe, since and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT-PERPETUAL&interval=3m&startTime=1721909580000&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "3m",
+                    1721909580000,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch candles with until parameter",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT&interval=5m&startTime=1724061300000&limit=1&endTime=1724361300000",
+                "input": [
+                    "BTC/USDT",
+                    "5m",
+                    1724061300000,
+                    1,
+                    {
+                        "until": "1724361300000"
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/24hr?symbol=BTCUSDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "test",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "Fetch last prices",
+                "method": "test",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/price",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api-glb.hashkey.com/api/v1/account?timestamp=1721996915813&signature=51ea76c19a9aaf6a471e3b75aa0a81f328d4233472447c75210bc3aace7db1eb",
+                "input": []
+            },
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/balance?timestamp=1724062289420&signature=bcc85735a365cbbd14831de0d62b952bf430a81754a3450ef8015964b0ddad93",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDT with default network",
+                "method": "fetchDepositAddress",
+                "url": "https://api-glb.hashkey.com/api/v1/account/deposit/address?timestamp=1721997123699&coin=USDT&chainType=ETH&signature=38058a1fcfa1283535d96d88a7fc19b1f5c113cb0e31595cec7c9f34921a7602",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "Fetch deposit address for USD with network arbitrum",
+                "method": "fetchDepositAddress",
+                "url": "https://api-glb.hashkey.com/api/v1/account/deposit/address?timestamp=1721997228074&coin=USDT&chainType=Arbitrum&signature=b33150365094a3e65bae2214e578f5dce109a82c7e2e12c343f1630f92d1868f",
+                "input": [
+                  "USDT",
+                    {
+                        "network": "ARB"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api-glb.hashkey.com/api/v1/account/depositOrders?timestamp=1724062690579&signature=c1098a05ed6e74eb7da9cec0e6ebf7f37fd9dafd81c0f9e377eaff6e7d504374",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-glb.hashkey.com/api/v1/account/withdrawOrders?timestamp=1724062755660&signature=c5f38ee4e9ab8233f04767dcf0a741a7ba1069767547de4f7e2edcf7d72f8f19",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from main account to sub account",
+                "method": "transfer",
+                "url": "https://api-glb.hashkey.com/api/v1/account/assetTransfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "1732885739589466112",
+                    "1743748690940626432"
+                ],
+                "output": "timestamp=1722862228807&coin=USDT&quantity=1&fromAccountId=1732885739589466112&toAccountId=1743748690940626432&signature=b9ec4f0c218ea24ee6bf3bd3474e9fe65d380a9d598e4b045fb81e09754712ee"
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api-glb.hashkey.com/api/v1/account/type?timestamp=1722862043255&signature=46b94fffffe287badc3975118587eeb12963b0899fa8588ba0627eba13e78c71",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api-glb.hashkey.com/api/v1/account/balanceFlow?timestamp=1722862735789&startTime=1722239052000&limit=2&endTime=1722411852000&signature=3dac63f4e95be61cc62b61574a731b5718adaff2a02f7363bc878c276c98a91f",
+                "input": [
+                    "USDT",
+                    1722239052000,
+                    2,
+                    {
+                        "until": 1722411852000
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1.1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.001,
+                    2500
+                ],
+                "output": "timestamp=1722864923025&symbol=ETHUSDT&side=BUY&type=MARKET&quantity=0.001&price=2500&signature=faac71cb2a73b77363c03ee4902ca14d86b67fc474256e2a7939b3bd631ff84b"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    2500
+                ],
+                "output": "timestamp=1722865041994&symbol=ETHUSDT&side=BUY&type=LIMIT&quantity=0.001&price=2500&signature=2cf20548fbbace1fcaac2713c8c4f586c4facd56d1fb6dd6612ca9e35f264ca6"
+            },
+            {
+                "description": "Spot limit sell",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    2500
+                ],
+                "output": "timestamp=1722865170914&symbol=ETHUSDT&side=SELL&type=LIMIT&quantity=0.001&price=2500&signature=f1f154b58475e6688082c3750898216212fb38d5a6e97d92359f468d04a588e1"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": "timestamp=1722865281675&symbol=ETHUSDT&side=SELL&type=MARKET&quantity=0.001&signature=f65bebbf58e09541b5c9cf1ddb4ceff94d2c7572406955ab9cb3220fd2025b39"
+            },
+            {
+                "description": "Spot market sell with create order id",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    2500,
+                    {
+                        "createOrderId": "2345689"
+                    }
+                ],
+                "output": "timestamp=1722865424846&symbol=ETHUSDT&side=SELL&type=MARKET&quantity=0.001&price=2500&createOrderId=2345689&signature=0e09ecc44edccd394ecf20dd9c54e6a3471f20d79fc06262925f538a2101f42a"
+            },
+            {
+                "description": "Spot limit sell with post only set to true",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    2500,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "timestamp=1722865598586&symbol=ETHUSDT&side=SELL&type=LIMIT_MAKER&quantity=0.001&price=2500&signature=a5140d9efb386580af44aae7a014fe1469606cfc800f038bc2f406c1e9beb128"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    2000
+                ],
+                "output": "timestamp=1722865818744&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&priceType=INPUT&price=2000&side=BUY_OPEN&clientOrderId=1722865818243&signature=d7f58a664099765de21646418fe9ce093fb6f1eee33a880638f595ea5281fede"
+            },
+            {
+                "description": "Swap limit buy",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    2000
+                ],
+                "output": "timestamp=1722865933722&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&price=2000&priceType=INPUT&side=BUY_OPEN&clientOrderId=1722865933221&signature=6f81c7464883f06dec6255d033464d6cfbe924eecbaf3acaac2bf449dfba9755"
+            },
+            {
+                "description": "Swap limit buy with trigger price",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    2000,
+                    {
+                        "triggerPrice": 2500
+                    }
+                ],
+                "output": "timestamp=1722866056829&symbol=ETHUSDT-PERPETUAL&type=STOP&quantity=1&price=2000&priceType=INPUT&side=BUY_OPEN&clientOrderId=1722866056328&stopPrice=2500&triggerPrice=2500&signature=9fea0852198fcf831713a79e130a2391c2428cc67cc4b30fa1af216c1825b691"
+            },
+            {
+                "description": "Swap limit sell with post only set to true",
+                "method": "createOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    3500,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "timestamp=1722866300832&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&price=3500&priceType=INPUT&side=SELL_OPEN&timeInForce=LIMIT_MAKER&clientOrderId=1722866300331&postOnly=true&signature=6d2ca8d4da7b756b2935c00140a9e3628a8744c9d5788db2881eb7fc7d0f71fc"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
+                "input": [
+                    "1745924911208100608"
+                ],
+                "output": "timestamp=1722866635723&orderId=1745924911208100608&signature=3256ae23611a8c4a75e9b493b60d173013736908f27f35a1336b0162c40a6b26"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/openOrders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "timestamp=1722866808957&symbol=ETHUSDT&signature=04bf0a90f66a4f7ee0919afac7a39b65fed1a8a14c367e00467ae122c1b142b9"
+            },
+            {
+                "description": "Cancel all swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/batchOrders",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "timestamp=1722866896903&symbol=ETHUSDT-PERPETUAL&signature=d184cbbb421bb8d96f7ddf385aa0e3a5b1c8ea06d44d97d9c2f9df1a32ad1b6f"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/order?timestamp=1722867018133&orderId=1745929313600004864&signature=384fa2b8e30e84279480c75e49851d120898daf5decc49f465ee0d7a6b9827c4",
+                "input": [
+                    "1745929313600004864"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/openOrders?timestamp=1722867141131&symbol=ETHUSDT&signature=661a3fec2c254367c7c86539ce8b0e8cca20a1216c73cec8e03d8684114ef7ad",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch open orders for swap",
+                "method": "fetchOpenOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/openOrders?timestamp=1724063449035&symbol=ETHUSDT-PERPETUAL&type=LIMIT&signature=a8f0a167b3803e3545be0b9e66ec662162c55b56ddbcc8a9137d2f3593f4abc9",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/spot/tradeOrders?timestamp=1722867306703&symbol=ETHUSDT&signature=e21e3d423e23ac88b99773d72bedc9bdd3cd0b2d80d7b3297c15cc24b6d32e9d",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch canceled and closed orders for swap",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/historyOrders?timestamp=1724063618895&limit=1&symbol=ETHUSDT-PERPETUAL&type=LIMIT&signature=bbb35a2c4fcb61aa4db5619a17972eab089cd82a25c36913bbbba70b398d050a",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/fundingRate?symbol=ETHUSDT-PERPETUAL&timestamp=1722867387447",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/historyFundingRate?symbol=ETHUSDT-PERPETUAL&limit=2",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1722672000000,
+                    2
+                ]
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "Fetch positions for symbol",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/positions?timestamp=1722867673006&symbol=ETHUSDT-PERPETUAL&signature=be03ed5fee67ab12949b4a29a313dfe4cdfc3e7e0bc4c2e062c41cfeb621e3d4",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/leverage?timestamp=1722867781569&symbol=ETHUSDT-PERPETUAL&signature=14e80bc184ee278dfc5adf60a48067a5383182513044f9833d24e13f6ac188da",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage to 5",
+                "method": "setLeverage",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/leverage",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "timestamp=1722867878129&leverage=5&symbol=ETHUSDT-PERPETUAL&signature=f84182add630860e4e2a40b7ad5812822e4887758e56637918808f3f51101e39"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/commissionRate?timestamp=1722867967281&symbol=ETHUSDT-PERPETUAL&signature=db09d4aed4c506ae544869b6933e04b081da943244b844b65e95013e7cc24a87",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}

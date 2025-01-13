@@ -5,6 +5,8 @@ export default class Client {
     disconnected: ReturnType<typeof Future>;
     futures: Dictionary<any>;
     rejections: Dictionary<any>;
+    messageQueue: Dictionary<any>;
+    useMessageQueue: boolean;
     keepAlive: number;
     connection: any;
     connectionTimeout: any;

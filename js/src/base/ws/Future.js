@@ -5,6 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // @ts-nocheck
+import { Unpromise } from "../../static_dependencies/watchable/src/unpromise.js";
 export function Future() {
     let resolve = undefined, reject = undefined;
     const p = new Promise((resolve_, reject_) => {
@@ -31,4 +32,4 @@ function wrapFuture(aggregatePromise) {
     aggregatePromise.then(p.resolve, p.reject);
     return p;
 }
-Future.race = (futures) => wrapFuture(Promise.race(futures));
+Future.race = (futures) => wrapFuture(Unpromise.race(futures));

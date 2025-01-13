@@ -47,6 +47,7 @@ interface Exchange {
     publicGetRubikStatTakerVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatMarginLoanRatio(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
+    publicGetRubikStatContractsLongShortAccountRatioContract(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolumeRatio(params?: {}): Promise<implicitReturnType>;
@@ -66,6 +67,7 @@ interface Exchange {
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiSolApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceFixedLoanLendingOffers(params?: {}): Promise<implicitReturnType>;
@@ -78,6 +80,7 @@ interface Exchange {
     publicGetCopytradingPublicPreferenceCurrency(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetSupportAnnouncementsTypes(params?: {}): Promise<implicitReturnType>;
     privateGetRfqCounterparties(params?: {}): Promise<implicitReturnType>;
     privateGetRfqMakerInstrumentSettings(params?: {}): Promise<implicitReturnType>;
     privateGetRfqMmpConfig(params?: {}): Promise<implicitReturnType>;
@@ -120,12 +123,14 @@ interface Exchange {
     privateGetAssetConvertCurrencyPair(params?: {}): Promise<implicitReturnType>;
     privateGetAssetConvertHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAssetMonthlyStatement(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountInstruments(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositions(params?: {}): Promise<implicitReturnType>;
     privateGetAccountPositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountAccountPositionRisk(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBills(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBillsArchive(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountBillsHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privateGetAccountConfig(params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxSize(params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxAvailSize(params?: {}): Promise<implicitReturnType>;
@@ -150,6 +155,9 @@ interface Exchange {
     privateGetAccountFixedLoanBorrowingLimit(params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingQuote(params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingOrdersList(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotManualBorrowRepay(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSetAutoRepay(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotBorrowRepayHistory(params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances(params?: {}): Promise<implicitReturnType>;
@@ -182,6 +190,9 @@ interface Exchange {
     privateGetFinanceStakingDefiOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthProductInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiSolPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;
@@ -206,6 +217,7 @@ interface Exchange {
     privateGetBrokerFdIfRebate(params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviteeDetail(params?: {}): Promise<implicitReturnType>;
     privateGetUsersPartnerIfRebate(params?: {}): Promise<implicitReturnType>;
+    privateGetSupportAnnouncements(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchRfqs(params?: {}): Promise<implicitReturnType>;
@@ -266,6 +278,7 @@ interface Exchange {
     privatePostAccountFixedLoanAmendBorrowingOrder(params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanManualReborrow(params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanRepayBorrowingOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBillsHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey(params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut(params?: {}): Promise<implicitReturnType>;
@@ -300,6 +313,8 @@ interface Exchange {
     privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiEthRedeem(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolPurchase(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiSolRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments(params?: {}): Promise<implicitReturnType>;

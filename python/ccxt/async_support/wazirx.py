@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -50,34 +50,51 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -89,6 +106,7 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -99,6 +117,8 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayCrossMargin': False,
@@ -201,7 +221,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://docs.wazirx.com/#exchange-info
+
+        https://docs.wazirx.com/#exchange-info
+
         retrieves data on all markets for wazirx
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -310,7 +332,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.wazirx.com/#kline-candlestick-data
+
+        https://docs.wazirx.com/#kline-candlestick-data
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
@@ -358,7 +382,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.wazirx.com/#order-book
+
+        https://docs.wazirx.com/#order-book
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -391,7 +417,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs.wazirx.com/#24hr-ticker-price-change-statistics
+
+        https://docs.wazirx.com/#24hr-ticker-price-change-statistics
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -422,7 +450,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://docs.wazirx.com/#24hr-tickers-price-change-statistics
+
+        https://docs.wazirx.com/#24hr-tickers-price-change-statistics
+
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -457,7 +487,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.wazirx.com/#recent-trades-list
+
+        https://docs.wazirx.com/#recent-trades-list
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -528,7 +560,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_status(self, params={}):
         """
-        :see: https://docs.wazirx.com/#system-status
+
+        https://docs.wazirx.com/#system-status
+
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
@@ -551,7 +585,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_time(self, params={}):
         """
-        :see: https://docs.wazirx.com/#check-server-time
+
+        https://docs.wazirx.com/#check-server-time
+
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -628,7 +664,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs.wazirx.com/#fund-details-user_data
+
+        https://docs.wazirx.com/#fund-details-user_data
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -648,7 +686,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.wazirx.com/#all-orders-user_data
+
+        https://docs.wazirx.com/#all-orders-user_data
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -703,7 +743,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.wazirx.com/#current-open-orders-user_data
+
+        https://docs.wazirx.com/#current-open-orders-user_data
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -750,7 +792,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
+
+        https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
+
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -786,7 +830,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.wazirx.com/#cancel-order-trade
+
+        https://docs.wazirx.com/#cancel-order-trade
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -806,7 +852,9 @@ class wazirx(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://docs.wazirx.com/#new-order-trade
+
+        https://docs.wazirx.com/#new-order-trade
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -911,7 +959,9 @@ class wazirx(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.wazirx.com/#all-coins-39-information-user_data
+
+        https://docs.wazirx.com/#all-coins-39-information-user_data
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1049,10 +1099,12 @@ class wazirx(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+
+        https://docs.wazirx.com/#deposit-address-supporting-network-user_data
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code, you can get network from fetchCurrencies
@@ -1077,17 +1129,19 @@ class wazirx(Exchange, ImplicitAPI):
         #     }
         #
         return {
+            'info': response,
             'currency': code,
+            'network': self.network_code_to_id(networkCode, code),
             'address': self.safe_string(response, 'address'),
             'tag': None,
-            'network': self.network_code_to_id(networkCode, code),
-            'info': response,
         }
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+
+        https://docs.wazirx.com/#withdraw-history-supporting-network-user_data
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve

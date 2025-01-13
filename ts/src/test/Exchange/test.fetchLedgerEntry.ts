@@ -14,6 +14,7 @@ async function testFetchLedgerEntry (exchange: Exchange, skippedProperties: obje
         const now = exchange.milliseconds ();
         testLedgerEntry (exchange, skippedProperties, method, item, code, now);
     }
+    return true;
 }
 
 export default testFetchLedgerEntry;

@@ -13,7 +13,7 @@ var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
@@ -156,4 +156,5 @@ exports.extractParams = misc.extractParams;
 exports.implodeParams = misc.implodeParams;
 exports.parseTimeframe = misc.parseTimeframe;
 exports.roundTimeframe = misc.roundTimeframe;
+exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;

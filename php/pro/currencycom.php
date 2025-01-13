@@ -55,7 +55,7 @@ class currencycom extends \ccxt\async\currencycom {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // custom ping-pong
         $requestId = (string) $this->request_id();
         return array(

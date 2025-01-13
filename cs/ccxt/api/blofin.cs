@@ -131,6 +131,66 @@ public partial class blofin : Exchange
         return await this.callAsync ("privateGetAffiliateBasic",parameters);
     }
 
+    public async Task<object> privateGetCopytradingInstruments (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingInstruments",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountBalance",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountPositionsByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountPositionsByOrder",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountPositionsDetailsByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountPositionsDetailsByOrder",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountPositionsByContract (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountPositionsByContract",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountPositionMode",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingAccountLeverageInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingAccountLeverageInfo",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingTradeOrdersPending (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingTradeOrdersPending",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingTradePendingTpslByContract (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingTradePendingTpslByContract",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingTradePositionHistoryByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingTradePositionHistoryByOrder",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingTradeOrdersHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingTradeOrdersHistory",parameters);
+    }
+
+    public async Task<object> privateGetCopytradingTradePendingTpslByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetCopytradingTradePendingTpslByOrder",parameters);
+    }
+
     public async Task<object> privatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostTradeOrder",parameters);
@@ -174,6 +234,56 @@ public partial class blofin : Exchange
     public async Task<object> privatePostAssetTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostAssetTransfer",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingAccountSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingAccountSetPositionMode",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingAccountSetLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingAccountSetLeverage",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradePlaceOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradePlaceOrder",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradeCancelOrder",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradePlaceTpslByContract (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradePlaceTpslByContract",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradeCancelTpslByContract (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradeCancelTpslByContract",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradePlaceTpslByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradePlaceTpslByOrder",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradeCancelTpslByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradeCancelTpslByOrder",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradeClosePositionByOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradeClosePositionByOrder",parameters);
+    }
+
+    public async Task<object> privatePostCopytradingTradeClosePositionByContract (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCopytradingTradeClosePositionByContract",parameters);
     }
 
 }

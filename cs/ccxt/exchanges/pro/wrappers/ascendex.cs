@@ -6,10 +6,16 @@ namespace ccxt.pro;
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
 public partial class ascendex
 {
+    public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPublicMultiple(messageHashes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-pro-api/#channel-bar-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +49,7 @@ public partial class ascendex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-pro-api/#channel-market-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -73,9 +80,50 @@ public partial class ascendex
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// get the list of most recent trades for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-pro-api/#channel-market-trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -102,6 +150,7 @@ public partial class ascendex
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

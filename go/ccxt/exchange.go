@@ -6,13 +6,17 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+	"sync"
 )
 
 type Exchange struct {
+	marketsMutex 		sync.Mutex
 	Itf                 interface{}
 	Version             string
 	Id                  string
@@ -26,14 +30,18 @@ type Exchange struct {
 	Currencies_by_id    map[string]interface{}
 	Currencies          map[string]interface{}
 	RequiredCredentials map[string]interface{}
+	HttpExceptions      map[string]interface{}
 	MarketsById         map[string]interface{}
 	Timeframes          map[string]interface{}
+	Features            map[string]interface{}
 	Exceptions          map[string]interface{}
 	Precision           map[string]interface{}
 	Urls                interface{}
 	UserAgents          map[string]interface{}
 	Timeout             int64
 	RateLimit           float64
+	TokenBucket         map[string]interface{}
+	Throttler           Throttler
 	NewUpdates          bool
 	Alias               bool
 	Verbose             bool
@@ -82,17 +90,17 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	HttpProxy            string
-	HttpsProxy           string
-	Http_proxy           string
-	Https_proxy          string
-	Proxy                string
-	ProxyUrl             string
+	HttpProxy            interface{}
+	HttpsProxy           interface{}
+	Http_proxy           interface{}
+	Https_proxy          interface{}
+	Proxy                interface{}
+	ProxyUrl             interface{}
 	ProxyUrlCallback     interface{}
-	Proxy_url            string
+	Proxy_url            interface{}
 	Proxy_url_callback   interface{}
-	SocksProxy           string
-	Socks_proxy          string
+	SocksProxy           interface{}
+	Socks_proxy          interface{}
 	SocksProxyCallback   interface{}
 	Socks_proxy_callback interface{}
 
@@ -116,43 +124,107 @@ type Exchange struct {
 
 	Twofa interface{}
 
+	//WS
+	Ohlcvs     interface{}
+	Trades     interface{}
+	Tickers    interface{}
+	Orders     interface{}
+	MyTrades   interface{}
+	Orderbooks interface{}
+
 	PaddingMode int
+
+	MinFundingAddressLength int
+	MaxEntriesPerRequest    int
+
+	// tests only
+	FetchResponse interface{}
+
+	IsSandboxModeEnabled bool
 }
 
-var DECIMAL_PLACES int = 2
-var SIGNIFICANT_DIGITS int = 3
-var TICK_SIZE int = 4
+const DECIMAL_PLACES int = 2
+const SIGNIFICANT_DIGITS int = 3
+const TICK_SIZE int = 4
 
-var TRUNCATE int = 0
+const TRUNCATE int = 0
 
-var NO_PADDING = 5
-var PAD_WITH_ZERO int = 6
+const NO_PADDING = 5
+const PAD_WITH_ZERO int = 6
 
 // var ROUND int = 0
 
-func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
+func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
 	// var properties = this.describe()
+	if userConfig == nil {
+		userConfig = map[string]interface{}{}
+	}
 	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
-	// this.Id = this.id
-	//this.itf = itf
+	// this.Id = this.id333
+	// this.itf = itf
 	this.initializeProperties(extendedProperties)
+	this.InitRestRateLimiter()
+	this.AfterConstruct()
+
+	if (this.Markets != nil) && (len(this.Markets) > 0) {
+		this.SetMarkets(this.Markets, nil)
+	}
 
 	this.transformApiNew(this.Api)
 
 	// fmt.Println(this.TransformedApi)
 }
 
-func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
+func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
+}
+
+func NewExchange() IExchange {
+	exchange := &Exchange{}
+	exchange.Init(map[string]interface{}{})
+	return exchange
+}
+
+func (this *Exchange) InitRestRateLimiter() {
+	if this.RateLimit == -1 {
+		panic("this.RateLimit is not set")
+	}
+
+	refillRate := math.MaxFloat64
+	if this.RateLimit > 0 {
+		refillRate = 1 / this.RateLimit
+	}
+	this.TokenBucket = map[string]interface{}{
+		"delay":       0.001,
+		"capacity":    1,
+		"cost":        1,
+		"maxCapacity": 1000,
+		"refillRate":  refillRate,
+	}
+
+	this.Throttler = NewThrottler(this.TokenBucket)
+}
+
+func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
+	
 	go func() {
 		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
 		if this.Markets != nil && len(this.Markets) > 0 {
 			if this.Markets_by_id == nil && len(this.Markets) > 0 {
-				ch <- this.SetMarkets(this.Markets, nil)
+				// Only lock when writing
+				this.marketsMutex.Lock()
+				result := this.SetMarkets(this.Markets, nil)
+				this.marketsMutex.Unlock()
+				ch <- result
 				return
 			}
 			ch <- this.Markets
@@ -160,11 +232,21 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		}
 
 		var currencies interface{} = nil
-		if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
-			currencies = <-this.callInternal("fetchCurrencies")
+		var defaultParams = map[string]interface{}{}
+		hasFetchCurrencies := this.Has["fetchCurrencies"]
+		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
+			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
-		markets := <-this.callInternal("fetchMarkets")
-		ch <- this.SetMarkets(markets, currencies)
+		
+		markets := <-this.callInternal("fetchMarkets", defaultParams)
+		PanicOnError(markets)
+		
+		// Lock only for writing
+		this.marketsMutex.Lock()
+		result := this.SetMarkets(markets, currencies)
+		this.marketsMutex.Unlock()
+		
+		ch <- result
 	}()
 	return ch
 }
@@ -172,11 +254,81 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	// to do
 	ch := make(chan interface{})
-	go func() interface{} {
+	go func() {
 		defer close(ch)
-		return nil
+		task := <-this.Throttler.Throttle(cost)
+		ch <- task
 	}()
 	return ch
+}
+
+func (this *Exchange) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		// defer close(ch)
+		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
+		// return markets
+		return this.Markets
+	}()
+	return ch
+}
+
+func (this *Exchange) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
+		// return markets
+		return this.Currencies
+	}()
+	return ch
+}
+
+func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
+	var duration time.Duration
+
+	// Type assertion to handle various types for milliseconds
+	ch := make(chan bool)
+	go func() interface{} {
+		switch v := milliseconds.(type) {
+		case int:
+			duration = time.Duration(v) * time.Millisecond
+		case float64:
+			duration = time.Duration(v * float64(time.Millisecond))
+		case time.Duration:
+			// If already a time.Duration, use it directly
+			duration = v
+		default:
+			return false
+		}
+
+		// Sleep for the specified duration
+		time.Sleep(duration)
+		return true
+	}()
+	return ch
+}
+
+func Unique(obj interface{}) []string {
+	// Type assertion to check if obj is of type []string
+	strList, ok := obj.([]string)
+	if !ok {
+		return nil
+	}
+
+	// Use a map to ensure uniqueness
+	uniqueMap := make(map[string]struct{})
+	var result []string
+
+	for _, str := range strList {
+		// Check if the string is already in the map
+		if _, exists := uniqueMap[str]; !exists {
+			uniqueMap[str] = struct{}{}
+			result = append(result, str)
+		}
+	}
+
+	return result
 }
 
 func (this *Exchange) Log(args ...interface{}) {
@@ -185,37 +337,91 @@ func (this *Exchange) Log(args ...interface{}) {
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
-	endpoint := endpoint2.(string)
-	if val, ok := this.TransformedApi[endpoint]; ok {
-		endPointData := val.(map[string]interface{})
-		// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
-		method := endPointData["method"].(string)
-		path := endPointData["path"].(string)
-		api := endPointData["api"]
-		var cost float64 = 1
-		if valCost, ok := endPointData["cost"]; ok {
-			cost = valCost.(float64)
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		endpoint := endpoint2.(string)
+		if val, ok := this.TransformedApi[endpoint]; ok {
+			endPointData := val.(map[string]interface{})
+			// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
+			method := endPointData["method"].(string)
+			path := endPointData["path"].(string)
+			api := endPointData["api"]
+			var cost float64 = 1
+			if valCost, ok := endPointData["cost"]; ok {
+				cost = valCost.(float64)
+			}
+			res := <-this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
+			PanicOnError(res)
+			ch <- res
 		}
-		res := this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
-		return res
+		ch <- nil
+	}()
+	return ch
+}
+
+// error related functions
+
+type Error struct {
+	Type    string
+	Message string
+	Stack   string
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("[ccxtError]::[%s]::[%s]\nStack:\n%s", e.Type, e.Message, e.Stack)
+}
+
+func NewError(errType interface{}, message ...interface{}) error {
+	typeErr := ToString(errType)
+	msg := ""
+	stack := ""
+	if len(message) > 0 {
+		msg = ToString(message[0])
+		if len(message) > 1 {
+			stack = ToString(message[1])
+		}
 	}
-	return nil
+	return &Error{Type: typeErr, Message: msg, Stack: stack}
 }
 
-func NewError(err interface{}, v ...interface{}) string {
-	str := ToString(err)
-	// for i := 0; i < len(v); i++ {
-	// 	if i > 0 {
-	// 		str = str.ToString() + " "
-	// 	}
-	// 	str += str + ToString(v[i])
-	// } // to do check this out later
-	return str
-}
-
-func Exception(v ...interface{}) interface{} {
+func Exception(v ...interface{}) error {
 	return NewError("Exception", v...)
 }
+
+func IsError(res interface{}) bool {
+	resStr, ok := res.(string)
+	if ok {
+		return strings.HasPrefix(resStr, "panic:")
+	}
+	return false
+}
+
+func CreateReturnError(res interface{}) error {
+	resStr := res.(string)
+	resStr = strings.ReplaceAll(resStr, "panic:", "")
+	if strings.Contains(resStr, "ccxtError") {
+		// resStr = strings.ReplaceAll(resStr, "ccxtError", "")
+		splitted := strings.Split(resStr, "::")
+		s1 := splitted[1]
+		s2 := splitted[2]
+		exceptionName := s1[1 : len(s1)-1]
+		message := s2[1 : len(s2)-1]
+		return CreateError(exceptionName, message, res)
+
+	}
+	return Exception(resStr)
+}
+
+// emd of error related functions
 
 func ToSafeFloat(v interface{}) (float64, error) {
 	switch v := v.(type) {
@@ -244,6 +450,13 @@ func (this *Exchange) Json(object interface{}) interface{} {
 }
 
 func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
+	if (v == nil) || (v == "") {
+		// return default value if exists
+		if len(a) > 0 {
+			return a[0]
+		}
+		return nil
+	}
 	f, err := ToSafeFloat(v)
 	if err == nil {
 		return f
@@ -255,9 +468,8 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
-func callDynamically(args ...interface{}) chan interface{} {
-	// to do
-	return nil
+func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2.(string), args...)
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
@@ -344,7 +556,7 @@ func (e *exampleArrayCache) ToArray() []interface{} {
 	return e.data
 }
 
-func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
+func (this *Exchange) ParseTimeframe(timeframe interface{}) interface{} {
 	str, ok := timeframe.(string)
 	if !ok {
 		return nil
@@ -381,11 +593,7 @@ func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
 	}
 
 	result := amount * scale
-	return &result
-}
-
-func (this *Exchange) CheckAddress(add interface{}) bool {
-	return true
+	return result
 }
 
 func Totp(secret interface{}) string {
@@ -556,7 +764,11 @@ func (this *Exchange) CheckRequiredDependencies() {
 }
 
 func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
-	return a.(string) // to do
+	aStr := a.(string)
+	aStr = strings.ReplaceAll(aStr, "\\", "")
+	aStr = strings.ReplaceAll(aStr, "\"{", "{")
+	aStr = strings.ReplaceAll(aStr, "}\"", "}")
+	return aStr
 }
 
 func (this *Exchange) IsEmpty(a interface{}) bool {
@@ -578,102 +790,27 @@ func (this *Exchange) IsEmpty(a interface{}) bool {
 	}
 }
 
-func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {
-	name := Capitalize(name2)
-	baseType := reflect.TypeOf(this.Itf)
-
-	ch := make(chan interface{})
-	go func() {
-		for i := 0; i < baseType.NumMethod(); i++ {
-			method := baseType.Method(i)
-			if name == method.Name {
-				methodType := method.Type
-				numIn := methodType.NumIn()
-				isVariadic := methodType.IsVariadic()
-
-				var in []reflect.Value
-				if isVariadic {
-					// Handle fixed arguments
-					for k := 0; k < numIn-1; k++ {
-						if k < len(args) {
-							in = append(in, reflect.ValueOf(args[k]))
-						} else {
-							paramType := methodType.In(k)
-							in = append(in, reflect.Zero(paramType))
-						}
-					}
-
-					// Handle variadic arguments
-					variadicType := methodType.In(numIn - 1).Elem()
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							in = append(in, reflect.Zero(variadicType))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					}
-				} else {
-					for k := 0; k < numIn; k++ {
-						if k < len(args) {
-							if args[k] == nil {
-								paramType := methodType.In(k)
-								in = append(in, reflect.Zero(paramType))
-							} else {
-								in = append(in, reflect.ValueOf(args[k]))
-							}
-						} else {
-							paramType := methodType.In(k)
-							in = append(in, reflect.Zero(paramType))
-						}
-					}
-				}
-
-				// Call the method
-				res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-
-				// Check if the result is a channel
-				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-					resultChan := res[0]
-					// Read values from the returned channel and pass them to ch
-					go func() {
-						for {
-							val, ok := resultChan.Recv()
-							if !ok {
-								break // result channel is closed
-							}
-							ch <- val.Interface() // pass the value to the output channel
-						}
-						close(ch) // close the output channel after all values are received
-					}()
-					// Don't close `ch` yet, as it will be closed after the resultChan is read
-					return
-				} else if len(res) > 0 {
-					// Directly return the first result if it's not a channel
-					val := res[0].Interface()
-					ch <- val
-				} else {
-					// Return nil if no results
-					ch <- nil
-				}
-				close(ch)
-				return
-			}
-		}
-		// If no method is found, return nil
-		ch <- nil
-		close(ch)
-	}()
-	return ch
+func (this *Exchange) CallInternal(name2 string, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2, args...)
 }
 
-func Capitalize(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	// Convert the first letter to uppercase
-	firstLetter := strings.ToUpper(string(s[0]))
-	// Combine the uppercase first letter with the rest of the string
-	return firstLetter + s[1:]
+func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				if r != "break" {
+					ch <- "panic:" + ToString(r)
+				}
+			}
+		}()
+		res := <-CallInternalMethod(this.Itf, name2, args...)
+		ch <- res
+	}()
+	// res := <-CallInternalMethod(this.Itf, name2, args...)
+	// return res
+	return ch
 }
 
 func (this *Exchange) RandomBytes(length interface{}) string {
@@ -740,6 +877,101 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 	return chars
 }
 
+func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	market := this.Markets[symbol]
+	return NewMarketInterface(market)
+}
+
+func (this *Exchange) GetMarketsList() []MarketInterface {
+	var markets []MarketInterface
+	for _, market := range this.Markets {
+		markets = append(markets, NewMarketInterface(market))
+	}
+	return markets
+}
+
+func (this *Exchange) GetCurrency(currency string) Currency {
+	market := this.Currencies[currency]
+	return NewCurrency(market)
+}
+
+func (this *Exchange) GetCurrenciesList() []Currency {
+	var currencies []Currency
+	for _, currency := range this.Currencies {
+		currencies = append(currencies, NewCurrency(currency))
+	}
+	return currencies
+}
+
+func (this *Exchange) SetProperty(obj interface{}, property interface{}, defaultValue interface{}) {
+	// Convert property to string
+	propName, ok := property.(string)
+	if !ok {
+		// fmt.Println("Property should be a string")
+		return
+	}
+
+	// Get the reflection object for the obj
+	val := reflect.ValueOf(obj).Elem()
+
+	// Get the field by name
+	field := val.FieldByName(propName)
+
+	// Check if the field exists and is settable
+	if field.IsValid() && field.CanSet() {
+		// Set the field with the default value, casting it to the right type
+		field.Set(reflect.ValueOf(defaultValue))
+	} else {
+		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
+	}
+}
+
+func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
+	// Convert property to string
+	propName, ok := property.(string)
+	if !ok {
+		// fmt.Println("Property should be a string")
+		return nil
+	}
+
+	// Get the reflection object for the obj
+	val := reflect.ValueOf(obj).Elem()
+
+	// Get the field by name
+	field := val.FieldByName(propName)
+
+	// Check if the field exists and can be accessed
+	if field.IsValid() && field.CanInterface() {
+		// Return the field value as an interface{}
+		return field.Interface()
+	} else {
+		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		return nil
+	}
+}
+
+func (this *Exchange) Unique(obj interface{}) []string {
+	// Type assertion to check if obj is a slice of strings
+	if list, ok := obj.([]string); ok {
+		// Create a map to track unique strings
+		uniqueMap := make(map[string]bool)
+		var uniqueList []string
+
+		// Iterate over the list and add only unique elements
+		for _, item := range list {
+			if !uniqueMap[item] {
+				uniqueMap[item] = true
+				uniqueList = append(uniqueList, item)
+			}
+		}
+
+		return uniqueList
+	}
+
+	// If obj is not a []string, return an empty slice
+	return []string{}
+}
+
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
@@ -777,4 +1009,25 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 // 		}
 // 	}
 // 	return nil
+// }
+
+func (this *Exchange) RetrieveStarkAccount(sig interface{}, account interface{}, hash interface{}) interface{} {
+	return nil // to do
+}
+
+func (this *Exchange) StarknetEncodeStructuredData(a interface{}, b interface{}, c interface{}, d interface{}) interface{} {
+	return nil // to do
+}
+
+func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
+	return nil // to do
+}
+
+func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
+	options := options2.(map[string]interface{})
+	extended := this.Extend(this.Options, options)
+	this.Options = extended
+}
+
+// func (this *Exchange) Init(userConfig map[string]interface{}) {
 // }
