@@ -3602,7 +3602,7 @@ class delta extends Exchange {
                 'timestamp' => $timestamp,
             );
             $auth = $method . $timestamp . $requestPath;
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ($method === 'GET') {
                 if ($query) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;
