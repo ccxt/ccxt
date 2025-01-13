@@ -3420,7 +3420,7 @@ class delta(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
             }
             auth = method + timestamp + requestPath
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 if query:
                     queryString = '?' + self.urlencode(query)
                     auth += queryString
