@@ -400,6 +400,8 @@ class testMainClass {
                         }
                         // output the message
                         const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                        exchange.httpProxy = undefined;
+                        exchange.httpsProxy = undefined;
                         const res = await exchange.fetch('https://api.ipify.org/');
                         dump (failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', res, ' | ' , exchange.id, methodName, argsStringified, exceptionMessage (e));
                         return returnSuccess;

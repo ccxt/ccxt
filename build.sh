@@ -36,14 +36,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      npm run live-tests -- --js --python-async --php-async --csharp $rest_args &
+      npm run live-tests -- binance --js --python-async --php-async --csharp $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      npm run live-tests -- --js --python-async --php-async --csharp --ws $ws_args &
+      npm run live-tests -- binance --js --python-async --php-async --csharp --ws $ws_args &
       local ws_pid=$!
     fi
   fi
