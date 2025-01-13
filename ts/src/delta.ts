@@ -227,7 +227,7 @@ export default class delta extends Exchange {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true, // todo implement
-                         // todo implement
+                        // todo implement
                         'triggerPriceType': {
                             'last': true,
                             'mark': true,
