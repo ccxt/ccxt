@@ -925,10 +925,10 @@ class defx(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         oid = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string_lower(trade, 'role')
-        buyerMaker = self.safe_string(trade, 'buyerMaker')
+        buyerMaker = self.safe_bool(trade, 'buyerMaker')
         side = self.safe_string_lower(trade, 'side')
         if buyerMaker is not None:
-            if buyerMaker == 'true':
+            if buyerMaker:
                 side = 'sell'
             else:
                 side = 'buy'
@@ -1618,8 +1618,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'OPEN'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'OPEN',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1634,8 +1636,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'FILLED'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'FILLED',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1650,8 +1654,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'CANCELED'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'CANCELED',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """

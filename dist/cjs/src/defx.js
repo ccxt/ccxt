@@ -6,7 +6,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var errors = require('./base/errors.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class defx
@@ -934,10 +934,10 @@ class defx extends defx$1 {
         const id = this.safeString(trade, 'id');
         const oid = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeStringLower(trade, 'role');
-        const buyerMaker = this.safeString(trade, 'buyerMaker');
+        const buyerMaker = this.safeBool(trade, 'buyerMaker');
         let side = this.safeStringLower(trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             }
             else {
@@ -1660,8 +1660,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1676,8 +1678,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1692,8 +1696,10 @@ class defx extends defx$1 {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method

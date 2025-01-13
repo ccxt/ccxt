@@ -295,11 +295,9 @@ class bitmex extends Exchange {
                             'trailing' => true,
                             'marketBuyRequiresPrice' => false,
                             'marketBuyByCost' => false,
-                            // exchange-supported features
-                            // 'selfTradePrevention' => true,
-                            // 'twap' => false,
-                            // 'iceberg' => false,
-                            // 'oco' => false,
+                            'leverage' => false,
+                            'selfTradePrevention' => false,
+                            'iceberg' => true, // todo
                         ),
                         'createOrders' => null,
                         'fetchMyTrades' => array(
@@ -330,7 +328,7 @@ class bitmex extends Exchange {
                         'fetchClosedOrders' => array(
                             'marginMode' => false,
                             'limit' => 500,
-                            'daysBackClosed' => null,
+                            'daysBack' => null,
                             'daysBackCanceled' => null,
                             'untilDays' => 1000000,
                             'trigger' => false,
@@ -2624,8 +2622,7 @@ class bitmex extends Exchange {
             }
         }
         $symbols = $this->market_symbols($symbols);
-        $result = $this->parse_funding_rates($filteredResponse);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($filteredResponse, $symbols);
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

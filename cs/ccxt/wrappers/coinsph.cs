@@ -356,7 +356,7 @@ public partial class coinsph
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#query-order-user_data"/>  <br/>
+    /// See <see href="https://coins-docs.github.io/rest-api/#current-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

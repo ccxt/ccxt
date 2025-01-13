@@ -941,10 +941,10 @@ class defx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $oid = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string_lower($trade, 'role');
-        $buyerMaker = $this->safe_string($trade, 'buyerMaker');
+        $buyerMaker = $this->safe_bool($trade, 'buyerMaker');
         $side = $this->safe_string_lower($trade, 'side');
         if ($buyerMaker !== null) {
-            if ($buyerMaker === 'true') {
+            if ($buyerMaker) {
                 $side = 'sell';
             } else {
                 $side = 'buy';
@@ -1677,8 +1677,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'OPEN';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'OPEN',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1694,8 +1696,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'FILLED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'FILLED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1711,8 +1715,10 @@ class defx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $params['statuses'] = 'CANCELED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $req = array(
+            'statuses' => 'CANCELED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($req, $params));
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {

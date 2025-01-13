@@ -405,6 +405,11 @@ public partial class kraken : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", true },
+                        { "iceberg", true },
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
@@ -428,7 +433,7 @@ public partial class kraken : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 100000 },
                         { "trigger", false },
@@ -660,7 +665,7 @@ public partial class kraken : Exchange
             {
                 if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
                 {
-                    if (!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))))
+                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
                     {
                         currencyId = slice(currencyId, 1, null);
                     }
@@ -1579,8 +1584,10 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", side, 1, null, this.extend(req, parameters));
     }
 
     /**

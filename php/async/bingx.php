@@ -391,9 +391,23 @@ class bingx extends Exchange {
                             'get' => array(
                                 'uid' => 1,
                                 'apiKey/query' => 2,
+                                'account/apiPermissions' => 5,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 1,
+                            ),
+                        ),
+                    ),
+                    'transfer' => array(
+                        'v1' => array(
+                            'private' => array(
+                                'get' => array(
+                                    'subAccount/asset/transferHistory' => 1,
+                                ),
+                                'post' => array(
+                                    'subAccount/transferAsset/supportCoins' => 1,
+                                    'subAccount/transferAsset' => 1,
+                                ),
                             ),
                         ),
                     ),
@@ -543,7 +557,7 @@ class bingx extends Exchange {
                                 'mark' => true,
                                 'index' => true,
                             ),
-                            'limitPrice' => true,
+                            'price' => true,
                         ),
                         'timeInForce' => array(
                             'IOC' => true,
@@ -553,6 +567,11 @@ class bingx extends Exchange {
                         ),
                         'hedged' => true,
                         'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 5,
@@ -585,7 +604,7 @@ class bingx extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
                         'trigger' => false,
@@ -609,7 +628,7 @@ class bingx extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
                         'trigger' => false,
@@ -1582,8 +1601,7 @@ class bingx extends Exchange {
             $symbols = $this->market_symbols($symbols, 'swap', true);
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($params)));
             $data = $this->safe_list($response, 'data', array());
-            $result = $this->parse_funding_rates($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 
@@ -2771,8 +2789,10 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            $params['quoteOrderQty'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'quoteOrderQty' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2785,8 +2805,10 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            $params['quoteOrderQty'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+            $req = array(
+                'quoteOrderQty' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2799,8 +2821,10 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
-            $params['quoteOrderQty'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
+            $req = array(
+                'quoteOrderQty' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -6550,14 +6574,20 @@ class bingx extends Exchange {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if ($type === 'spot' && $version === 'v3') {
-            $url .= '/api';
-        } else {
-            $url .= '/' . $type;
-        }
-        $url .= '/' . $version . '/';
         $path = $this->implode_params($path, $params);
-        $url .= $path;
+        if ($version === 'transfer') {
+            $type = 'account/transfer';
+            $version = $section[2];
+            $access = $section[3];
+        }
+        if ($path !== 'account/apiPermissions') {
+            if ($type === 'spot' && $version === 'v3') {
+                $url .= '/api';
+            } else {
+                $url .= '/' . $type;
+            }
+        }
+        $url .= '/' . $version . '/' . $path;
         $params = $this->omit($params, $this->extract_params($path));
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
@@ -6567,7 +6597,7 @@ class bingx extends Exchange {
             }
         } elseif ($access === 'private') {
             $this->check_required_credentials();
-            $isJsonContentType = (($type === 'subAccount') && ($method === 'POST'));
+            $isJsonContentType = ((($type === 'subAccount') || ($type === 'account/transfer')) && ($method === 'POST'));
             $parsedParams = $this->parse_params($params);
             $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
             $headers = array(

@@ -3896,6 +3896,11 @@ public partial class binanceus : binance
         return await this.callAsync ("papiGetCmSymbolConfig",parameters);
     }
 
+    public async Task<object> papiGetRateLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("papiGetRateLimitOrder",parameters);
+    }
+
     public async Task<object> papiPostUmOrder (object parameters = null)
     {
         return await this.callAsync ("papiPostUmOrder",parameters);
@@ -4069,6 +4074,11 @@ public partial class binanceus : binance
     public async Task<object> papiDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("papiDeleteListenKey",parameters);
+    }
+
+    public async Task<object> papiV2GetUmAccount (object parameters = null)
+    {
+        return await this.callAsync ("papiV2GetUmAccount",parameters);
     }
 
 }

@@ -8,7 +8,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -266,7 +266,9 @@ class paradex extends paradex$1 {
                     '40111': errors.AuthenticationError,
                     '40112': errors.PermissionDenied, // Geo IP blocked
                 },
-                'broad': {},
+                'broad': {
+                    'missing or malformed jwt': errors.AuthenticationError,
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {},
@@ -1029,7 +1031,8 @@ class paradex extends paradex$1 {
             }
         }
         const account = await this.retrieveAccount();
-        const expires = now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',

@@ -1012,11 +1012,11 @@ class kucoin extends Exchange {
                         ),
                         'hedged' => false,
                         'trailing' => false,
-                        // exchange-supported features
-                        // 'iceberg' => true,
-                        // 'selfTradePrevention' => true,
-                        // 'twap' => false,
-                        // 'oco' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => true, // todo implement
                     ),
                     'createOrders' => array(
                         'max' => 5,
@@ -1042,7 +1042,7 @@ class kucoin extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => true,
                         'limit' => 500,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
                         'trigger' => true,
@@ -2372,8 +2372,10 @@ class kucoin extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params)));
         }) ();
     }
 

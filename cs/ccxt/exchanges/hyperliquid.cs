@@ -218,7 +218,6 @@ public partial class hyperliquid : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "GTC", true },
                             { "IOC", true },
                             { "FOK", false },
                             { "PO", true },
@@ -226,6 +225,11 @@ public partial class hyperliquid : Exchange
                         } },
                         { "hedged", false },
                         { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 1000 },
@@ -258,7 +262,7 @@ public partial class hyperliquid : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 2000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
                         { "trigger", false },
@@ -1001,8 +1005,7 @@ public partial class hyperliquid : Exchange
             object data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             ((IList<object>)result).Add(data);
         }
-        object funding_rates = this.parseFundingRates(result);
-        return this.filterByArray(funding_rates, "symbol", symbols);
+        return this.parseFundingRates(result, symbols);
     }
 
     public override object parseFundingRate(object info, object market = null)
@@ -2068,6 +2071,10 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },
@@ -2444,7 +2451,7 @@ public partial class hyperliquid : Exchange
             market = this.safeMarket(marketId, market);
         }
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "timestamp", "statusTimestamp");
+        object timestamp = this.safeInteger(entry, "timestamp");
         object status = this.safeString2(order, "status", "ccxtStatus");
         order = this.omit(order, new List<object>() {"ccxtStatus"});
         object side = this.safeString(entry, "side");
@@ -2461,7 +2468,7 @@ public partial class hyperliquid : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(order, "statusTimestamp") },
             { "symbol", symbol },
             { "type", this.parseOrderType(this.safeStringLower(entry, "orderType")) },
             { "timeInForce", this.safeStringUpper(entry, "tif") },
@@ -3564,8 +3571,7 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object swapMarkets = await this.fetchSwapMarkets();
-        object result = this.parseOpenInterests(swapMarkets);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseOpenInterests(swapMarkets, symbols);
     }
 
     /**

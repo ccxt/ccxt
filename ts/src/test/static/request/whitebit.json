@@ -379,7 +379,19 @@
                 ]
             }
         ],
-        "fetchTickers": [
+    "fetchTickers": [
+            {
+                "description": "fetchTickers using v2",
+                "method": "fetchTickers",
+                "url": "https://whitebit.com/api/v2/public/ticker",
+                "input": [
+                    null,
+                    {
+                        "method": "v2PublicGetTicker"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",

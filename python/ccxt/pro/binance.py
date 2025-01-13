@@ -3975,7 +3975,8 @@ class binance(ccxt.async_support.binance):
         if not rejected:
             client.reject(message, id)
         # reset connection if 5xx error
-        if self.safe_string(code, 0) == '5':
+        codeString = self.safe_string(error, 'code')
+        if (codeString is not None) and (codeString[0] == '5'):
             client.reset(message)
 
     def handle_message(self, client: Client, message):

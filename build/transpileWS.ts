@@ -242,8 +242,12 @@ class CCXTProTranspiler extends Transpiler {
         }
             // createFolderRecursively (python2Folder)
         if (!transpilingSingleExchange) {
-            createFolderRecursively (phpAsyncFolder)
-            createFolderRecursively (python3Folder)
+            if (this.buildPython) {
+                createFolderRecursively (python3Folder)
+            }
+            if (this.buildPHP) {
+                createFolderRecursively (phpAsyncFolder)
+            }
         }
 
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
@@ -304,14 +308,23 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const child = process.argv.includes ('--child')
+
+    const pythonOnly = process.argv.includes ('--python');
+    const phpOnly = process.argv.includes ('--php');
+    if (phpOnly) {
+        transpiler.buildPython = false // it's easier to handle the language to build this way instead of doing something like (build python only)
+    }
+    if (pythonOnly) {
+        transpiler.buildPHP = false
+    }
     if (!child && !multiprocess) {
         log.bright.green ('isForceTranspile', force)
     }
     if (test) {
         transpiler.transpileWsTests ()
-    } 
+    }
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws, undefined, force)
+        parallelizeTranspiling (exchanges.ws, undefined, force, pythonOnly, phpOnly)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

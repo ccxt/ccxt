@@ -255,7 +255,9 @@ public partial class paradex : Exchange
                     { "40111", typeof(AuthenticationError) },
                     { "40112", typeof(PermissionDenied) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "missing or malformed jwt", typeof(AuthenticationError) },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {} },
@@ -1093,7 +1095,8 @@ public partial class paradex : Exchange
             }
         }
         object account = await this.retrieveAccount();
-        object expires = add(now, multiply(86400, 7));
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        object expires = add(now, 180);
         object req = new Dictionary<string, object>() {
             { "method", "POST" },
             { "path", "/v1/auth" },

@@ -1058,8 +1058,7 @@ class oxfun extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $result = $this->parse_funding_rates($data);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($data, $symbols);
         }) ();
     }
 

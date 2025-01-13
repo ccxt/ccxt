@@ -937,10 +937,10 @@ export default class defx extends Exchange {
         const id = this.safeString(trade, 'id');
         const oid = this.safeString(trade, 'orderId');
         const takerOrMaker = this.safeStringLower(trade, 'role');
-        const buyerMaker = this.safeString(trade, 'buyerMaker');
+        const buyerMaker = this.safeBool(trade, 'buyerMaker');
         let side = this.safeStringLower(trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             }
             else {
@@ -1663,8 +1663,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1679,8 +1681,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method
@@ -1695,8 +1699,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders(symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, params));
     }
     /**
      * @method

@@ -377,9 +377,23 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "uid", 1 },
                                 { "apiKey/query", 2 },
+                                { "account/apiPermissions", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 1 },
+                            } },
+                        } },
+                    } },
+                    { "transfer", new Dictionary<string, object>() {
+                        { "v1", new Dictionary<string, object>() {
+                            { "private", new Dictionary<string, object>() {
+                                { "get", new Dictionary<string, object>() {
+                                    { "subAccount/asset/transferHistory", 1 },
+                                } },
+                                { "post", new Dictionary<string, object>() {
+                                    { "subAccount/transferAsset/supportCoins", 1 },
+                                    { "subAccount/transferAsset", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -529,7 +543,7 @@ public partial class bingx : Exchange
                                 { "mark", true },
                                 { "index", true },
                             } },
-                            { "limitPrice", true },
+                            { "price", true },
                         } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
@@ -539,6 +553,11 @@ public partial class bingx : Exchange
                         } },
                         { "hedged", true },
                         { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 5 },
@@ -571,7 +590,7 @@ public partial class bingx : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 7 },
                         { "trigger", false },
@@ -595,7 +614,7 @@ public partial class bingx : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
-                        { "daysBackClosed", null },
+                        { "daysBack", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 7 },
                         { "trigger", false },
@@ -1606,8 +1625,7 @@ public partial class bingx : Exchange
         symbols = this.marketSymbols(symbols, "swap", true);
         object response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2664,8 +2682,10 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
-        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "quoteOrderQty", cost },
+        };
+        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2680,8 +2700,10 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "quoteOrderQty", cost },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2696,8 +2718,10 @@ public partial class bingx : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["quoteOrderQty"] = cost;
-        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "quoteOrderQty", cost },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -5969,16 +5993,24 @@ public partial class bingx : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
         }
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
-        {
-            url = add(url, "/api");
-        } else
-        {
-            url = add(url, add("/", type));
-        }
-        url = add(url, add(add("/", version), "/"));
         path = this.implodeParams(path, parameters);
-        url = add(url, path);
+        if (isTrue(isEqual(version, "transfer")))
+        {
+            type = "account/transfer";
+            version = getValue(section, 2);
+            access = getValue(section, 3);
+        }
+        if (isTrue(!isEqual(path, "account/apiPermissions")))
+        {
+            if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(version, "v3"))))
+            {
+                url = add(url, "/api");
+            } else
+            {
+                url = add(url, add("/", type));
+            }
+        }
+        url = add(url, add(add(add("/", version), "/"), path));
         parameters = this.omit(parameters, this.extractParams(path));
         ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
         parameters = this.keysort(parameters);
@@ -5991,7 +6023,7 @@ public partial class bingx : Exchange
         } else if (isTrue(isEqual(access, "private")))
         {
             this.checkRequiredCredentials();
-            object isJsonContentType = (isTrue((isEqual(type, "subAccount"))) && isTrue((isEqual(method, "POST"))));
+            object isJsonContentType = (isTrue((isTrue((isEqual(type, "subAccount"))) || isTrue((isEqual(type, "account/transfer"))))) && isTrue((isEqual(method, "POST"))));
             object parsedParams = this.parseParams(parameters);
             object signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {

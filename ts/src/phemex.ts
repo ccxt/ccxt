@@ -292,6 +292,109 @@ export default class phemex extends Exchange {
                     'maker': this.parseNumber ('0.001'),
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo
+                        'triggerPriceType': {
+                            'mark': true,
+                            'last': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'untilDays': 2, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 100000,
+                        'untilDays': 2,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerDirection': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'mark': true,
+                                'last': true,
+                                'index': true,
+                            },
+                            'price': true,
+                        },
+                        'hedged': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -3655,6 +3758,7 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USD is the default
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
@@ -3662,7 +3766,8 @@ export default class phemex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let subType = undefined;
-        let code = this.safeString (params, 'currency');
+        let code = this.safeString2 (params, 'currency', 'code', 'USD');
+        params = this.omit (params, [ 'currency', 'code' ]);
         let settle = undefined;
         let market = undefined;
         const firstSymbol = this.safeString (symbols, 0);
@@ -3671,16 +3776,16 @@ export default class phemex extends Exchange {
             settle = market['settle'];
             code = market['settle'];
         } else {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', code);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
         const isUSDTSettled = settle === 'USDT';
         if (isUSDTSettled) {
             code = 'USDT';
+        } else if (settle === 'BTC') {
+            code = 'BTC';
         } else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
-        } else {
-            params = this.omit (params, 'code');
         }
         const currency = this.currency (code);
         const request: Dict = {

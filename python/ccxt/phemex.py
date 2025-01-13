@@ -306,6 +306,109 @@ class phemex(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0.001'),
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo
+                        'triggerPriceType': {
+                            'mark': True,
+                            'last': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'untilDays': 2,  # todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 100000,
+                        'untilDays': 2,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerDirection': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'mark': True,
+                                'last': True,
+                                'index': True,
+                            },
+                            'price': True,
+                        },
+                        'hedged': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -3462,13 +3565,15 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USD is the default
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        code = self.safe_string(params, 'currency')
+        code = self.safe_string_2(params, 'currency', 'code', 'USD')
+        params = self.omit(params, ['currency', 'code'])
         settle = None
         market = None
         firstSymbol = self.safe_string(symbols, 0)
@@ -3477,15 +3582,15 @@ class phemex(Exchange, ImplicitAPI):
             settle = market['settle']
             code = market['settle']
         else:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USD')
+            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', code)
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
         isUSDTSettled = settle == 'USDT'
         if isUSDTSettled:
             code = 'USDT'
+        elif settle == 'BTC':
+            code = 'BTC'
         elif code is None:
             code = 'USD' if (subType == 'linear') else 'BTC'
-        else:
-            params = self.omit(params, 'code')
         currency = self.currency(code)
         request: dict = {
             'currency': currency['id'],

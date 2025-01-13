@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
@@ -994,7 +994,7 @@ class okx extends okx$1 {
                     'BHP': 'BHP',
                     'APT': 'Aptos',
                     'ARBONE': 'Arbitrum One',
-                    'AVAXC': 'Avalanche C',
+                    'AVAXC': 'Avalanche C-Chain',
                     'AVAXX': 'Avalanche X-Chain',
                     'ARK': 'ARK',
                     'AR': 'Arweave',
@@ -1180,7 +1180,6 @@ class okx extends okx$1 {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'default': {
                     'sandbox': true,
                     'createOrder': {
@@ -1200,7 +1199,7 @@ class okx extends okx$1 {
                                 'mark': true,
                                 'index': true,
                             },
-                            'limitPrice': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
@@ -1209,12 +1208,12 @@ class okx extends okx$1 {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
-                        'selfTradePrevention': true,
                         'trailing': true,
-                        'twap': true,
                         'iceberg': true,
-                        'oco': true,
+                        'leverage': false,
+                        'selfTradePrevention': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
                     },
                     'createOrders': {
                         'max': 20,
@@ -1240,7 +1239,7 @@ class okx extends okx$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBackClosed': 90,
+                        'daysBack': 90,
                         'daysBackCanceled': 1 / 12,
                         'untilDays': undefined,
                         'trigger': true,
@@ -1627,7 +1626,7 @@ class okx extends okx$1 {
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
-            'strike': strikePrice,
+            'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
@@ -1804,8 +1803,8 @@ class okx extends okx$1 {
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
-                    const parts = networkId.split('-');
-                    const chainPart = this.safeString(parts, 1, networkId);
+                    const parts = networkId.split('-').slice(1);
+                    const chainPart = parts.join('-');
                     const networkCode = this.networkIdToCode(chainPart, currency['code']);
                     const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
@@ -1834,7 +1833,7 @@ class okx extends okx$1 {
             }
             const firstChain = this.safeDict(chains, 0, {});
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': this.safeString(firstChain, 'name'),
@@ -2801,9 +2800,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -2821,9 +2822,11 @@ class okx extends okx$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder(symbol, 'market', 'sell', cost, undefined, this.extend(req, params));
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);

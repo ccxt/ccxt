@@ -265,7 +265,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 },
             },
             'features': {
-                'spot': {
+                'default': {
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': False,
@@ -284,6 +284,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         },
                         'hedged': False,
                         'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': True,  # todo: implement
+                        'iceberg': False,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -309,21 +314,20 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                         'limit': 300,
                     },
                 },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'spot',
+                        'extends': 'default',
                     },
                 },
                 'future': {
-                    'linear': {
-                        'extends': 'spot',
-                    },
-                    'inverse': {
-                        'extends': 'spot',
-                    },
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })

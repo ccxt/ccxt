@@ -521,11 +521,11 @@ export default class coinex extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
-                        // 'marketBuyRequiresPrice': true,
-                        // 'marketBuyByCost': true,
-                        // 'selfTradePrevention': true,
-                        // 'iceberg': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': true, // todo: implement
+                        'iceberg': true, // todo implement
                     },
                     'createOrders': {
                         'max': 5,
@@ -551,7 +551,7 @@ export default class coinex extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 1000,
-                        'daysBackClosed': undefined,
+                        'daysBack': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
                         'trigger': true,
@@ -4770,8 +4770,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseFundingRates (data, market);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (data, symbols);
     }
 
     /**

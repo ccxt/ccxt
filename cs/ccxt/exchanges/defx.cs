@@ -960,11 +960,11 @@ public partial class defx : Exchange
         object id = this.safeString(trade, "id");
         object oid = this.safeString(trade, "orderId");
         object takerOrMaker = this.safeStringLower(trade, "role");
-        object buyerMaker = this.safeString(trade, "buyerMaker");
+        object buyerMaker = this.safeBool(trade, "buyerMaker");
         object side = this.safeStringLower(trade, "side");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
-            if (isTrue(isEqual(buyerMaker, "true")))
+            if (isTrue(buyerMaker))
             {
                 side = "sell";
             } else
@@ -1760,8 +1760,10 @@ public partial class defx : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "OPEN";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "OPEN" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**
@@ -1779,8 +1781,10 @@ public partial class defx : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "FILLED";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "FILLED" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**
@@ -1798,8 +1802,10 @@ public partial class defx : Exchange
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["statuses"] = "CANCELED";
-        return await this.fetchOrders(symbol, since, limit, parameters);
+        object req = new Dictionary<string, object>() {
+            { "statuses", "CANCELED" },
+        };
+        return await this.fetchOrders(symbol, since, limit, this.extend(req, parameters));
     }
 
     /**

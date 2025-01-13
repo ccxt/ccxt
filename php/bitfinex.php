@@ -417,8 +417,12 @@ class bitfinex extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true, // todo => unify
-                        // todo => leverage unify
+                        'trailing' => true, // todo => implement
+                        'leverage' => true, // todo => implement
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 75,
@@ -444,7 +448,7 @@ class bitfinex extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'daysBackClosed' => null,
+                        'daysBack' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 100000,
                         'trigger' => false,
@@ -3152,7 +3156,7 @@ class bitfinex extends Exchange {
         //       )
         //   )
         //
-        return $this->parse_funding_rates($response);
+        return $this->parse_funding_rates($response, $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3389,8 +3393,7 @@ class bitfinex extends Exchange {
         //         )
         //     )
         //
-        $result = $this->parse_open_interests($response);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_open_interests($response, $symbols);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

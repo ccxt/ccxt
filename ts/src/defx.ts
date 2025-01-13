@@ -946,10 +946,10 @@ export default class defx extends Exchange {
         const id = this.safeString (trade, 'id');
         const oid = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeStringLower (trade, 'role');
-        const buyerMaker = this.safeString (trade, 'buyerMaker');
+        const buyerMaker = this.safeBool (trade, 'buyerMaker');
         let side = this.safeStringLower (trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             } else {
                 side = 'buy';
@@ -1682,8 +1682,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**
@@ -1699,8 +1701,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**
@@ -1716,8 +1720,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**

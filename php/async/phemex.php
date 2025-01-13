@@ -296,6 +296,109 @@ class phemex extends Exchange {
                     'maker' => $this->parse_number('0.001'),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'last' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'untilDays' => 2, // todo implement
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 100000,
+                        'untilDays' => 2,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerDirection' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'mark' => true,
+                                'last' => true,
+                                'index' => true,
+                            ),
+                            'price' => true,
+                        ),
+                        'hedged' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
@@ -3689,13 +3792,15 @@ class phemex extends Exchange {
              *
              * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USD is the default
              * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $subType = null;
-            $code = $this->safe_string($params, 'currency');
+            $code = $this->safe_string_2($params, 'currency', 'code', 'USD');
+            $params = $this->omit($params, array( 'currency', 'code' ));
             $settle = null;
             $market = null;
             $firstSymbol = $this->safe_string($symbols, 0);
@@ -3704,16 +3809,16 @@ class phemex extends Exchange {
                 $settle = $market['settle'];
                 $code = $market['settle'];
             } else {
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', 'USD');
+                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $code);
             }
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
             $isUSDTSettled = $settle === 'USDT';
             if ($isUSDTSettled) {
                 $code = 'USDT';
+            } elseif ($settle === 'BTC') {
+                $code = 'BTC';
             } elseif ($code === null) {
                 $code = ($subType === 'linear') ? 'USD' : 'BTC';
-            } else {
-                $params = $this->omit($params, 'code');
             }
             $currency = $this->currency($code);
             $request = array(

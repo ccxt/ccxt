@@ -8,7 +8,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lbank
@@ -1274,8 +1274,7 @@ class lbank extends lbank$1 {
         //     "success": True,
         // }
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method

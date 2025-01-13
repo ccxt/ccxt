@@ -310,11 +310,9 @@ class bitmex(Exchange, ImplicitAPI):
                             'trailing': True,
                             'marketBuyRequiresPrice': False,
                             'marketBuyByCost': False,
-                            # exchange-supported features
-                            # 'selfTradePrevention': True,
-                            # 'twap': False,
-                            # 'iceberg': False,
-                            # 'oco': False,
+                            'leverage': False,
+                            'selfTradePrevention': False,
+                            'iceberg': True,  # todo
                         },
                         'createOrders': None,
                         'fetchMyTrades': {
@@ -345,7 +343,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'fetchClosedOrders': {
                             'marginMode': False,
                             'limit': 500,
-                            'daysBackClosed': None,
+                            'daysBack': None,
                             'daysBackCanceled': None,
                             'untilDays': 1000000,
                             'trigger': False,
@@ -2504,8 +2502,7 @@ class bitmex(Exchange, ImplicitAPI):
             if swap:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)
-        result = self.parse_funding_rates(filteredResponse)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(filteredResponse, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # see response sample under "fetchMarkets" because same endpoint is being used here

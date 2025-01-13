@@ -7,7 +7,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var totp = require('./base/functions/totp.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmex
@@ -299,11 +299,9 @@ class bitmex extends bitmex$1 {
                             'trailing': true,
                             'marketBuyRequiresPrice': false,
                             'marketBuyByCost': false,
-                            // exchange-supported features
-                            // 'selfTradePrevention': true,
-                            // 'twap': false,
-                            // 'iceberg': false,
-                            // 'oco': false,
+                            'leverage': false,
+                            'selfTradePrevention': false,
+                            'iceberg': true, // todo
                         },
                         'createOrders': undefined,
                         'fetchMyTrades': {
@@ -334,7 +332,7 @@ class bitmex extends bitmex$1 {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBackClosed': undefined,
+                            'daysBack': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,
@@ -2610,8 +2608,7 @@ class bitmex extends bitmex$1 {
             }
         }
         symbols = this.marketSymbols(symbols);
-        const result = this.parseFundingRates(filteredResponse);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(filteredResponse, symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
