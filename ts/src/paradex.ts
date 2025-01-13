@@ -1055,7 +1055,7 @@ export default class paradex extends Exchange {
         }
         const account = await this.retrieveAccount ();
         // https://docs.paradex.trade/api-reference/general-information/authentication
-        const expires = now + 90;
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
