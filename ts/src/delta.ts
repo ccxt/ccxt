@@ -249,7 +249,7 @@ export default class delta extends Exchange {
                         },
                         'hedged': false,
                         'selfTradePrevention': false,
-                        'trailing': false,
+                        'trailing': false, // todo: implement
                         'iceberg': false,
                         'leverage': false,
                         'marketBuyByCost': false,
