@@ -283,16 +283,24 @@ export default class delta extends Exchange {
                         'limit': 2000, // todo: recheck
                     },
                 },
-                'spot': undefined,
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
-                        'extends': 'forDerivatives',
+                        'extends': 'default',
                     },
-                    'inverse': undefined,
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
                 'future': {
-                    'linear': undefined,
-                    'inverse': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
