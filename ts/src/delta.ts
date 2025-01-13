@@ -3534,7 +3534,7 @@ export default class delta extends Exchange {
                 'timestamp': timestamp,
             };
             let auth = method + timestamp + requestPath;
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (method === 'GET') {
                 if (Object.keys (query).length) {
                     const queryString = '?' + this.urlencode (query);
                     auth += queryString;
