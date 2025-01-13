@@ -158,7 +158,7 @@ export default class independentreserve extends Exchange {
                     'USDC': 'Ethereum',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'ETH': 'Ethereum', 
+                    'ETH': 'Ethereum',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
                     'ZRX': 'Ethereum',
