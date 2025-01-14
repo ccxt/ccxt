@@ -33,6 +33,32 @@ jobs:
         echo "REST files: ${{ env.rest_files }}"
         echo "WS files: ${{ env.ws_files }}"
         cat shared_env.txt
+    - name: Check ref
+      run: echo $GITHUB_REF
+    - name: Pre-transpile and transpile TS
+      if: env.important_modified == 'true'
+      run: npm run pre-transpile-js
+    - name: Pre-transpile and transpile TS (Simplified)
+      if: env.important_modified == 'false'
+      run: npm run pre-transpile-js-simple
+    - name: Lint Rest (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run eslint "ts/src/$exchange.ts"
+        done
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+
+    - name: Upload Js Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-files
+        path: js/
 
   live-tests:
     needs: build
