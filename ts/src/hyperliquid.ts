@@ -706,7 +706,7 @@ export default class hyperliquid extends Exchange {
         const isDelisted = this.safeBool (market, 'isDelisted');
         let active = true;
         if (isDelisted !== undefined) {
-            active = (isDelisted === false);
+            active = !isDelisted;
         }
         return this.safeMarketStructure ({
             'id': baseId,
