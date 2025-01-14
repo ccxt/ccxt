@@ -23,6 +23,16 @@ jobs:
         cache: 'npm'
     - name: Install npm dependencies
       run: npm ci --include=dev
+    - name: Debug files changes
+      run: git diff --name-only HEAD^1 HEAD
+    - name: Determine modified files
+      run: ./utils/init_actions.sh
+    - name: Debug output
+      run: |
+        echo "Important files modified: ${{ env.important_modified }}"
+        echo "REST files: ${{ env.rest_files }}"
+        echo "WS files: ${{ env.ws_files }}"
+        cat shared_env.txt
 
   live-tests:
     needs: build
