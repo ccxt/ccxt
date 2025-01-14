@@ -947,6 +947,8 @@ class htx extends Exchange {
                         'inverse' => true,
                     ),
                 ),
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchOHLCV' => array(
                     'useHistoricalEndpointForSpot' => true,
                 ),
@@ -1766,6 +1768,9 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $types = null;
         list($types, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'types', array());
         $allMarkets = array();
@@ -7269,6 +7274,10 @@ class htx extends Exchange {
         );
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -7282,7 +7291,7 @@ class htx extends Exchange {
             $url .= '/' . $this->implode_params($path, $params);
             if ($api === 'private' || $api === 'v2Private') {
                 $this->check_required_credentials();
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',
@@ -7357,7 +7366,7 @@ class htx extends Exchange {
                         }
                     }
                 }
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+                $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
                     'SignatureMethod' => 'HmacSHA256',
                     'SignatureVersion' => '2',

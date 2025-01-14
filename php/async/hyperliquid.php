@@ -710,6 +710,11 @@ class hyperliquid extends Exchange {
         $price = $this->safe_number($market, 'markPx', 0);
         $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
         $pricePrecisionStr = $this->number_to_string($pricePrecision);
+        $isDelisted = $this->safe_bool($market, 'isDelisted');
+        $active = true;
+        if ($isDelisted !== null) {
+            $active = !$isDelisted;
+        }
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -725,7 +730,7 @@ class hyperliquid extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => true,
+            'active' => $active,
             'contract' => $contract,
             'linear' => true,
             'inverse' => false,

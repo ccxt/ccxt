@@ -637,6 +637,8 @@ public partial class gate : Exchange
                 { "X-Gate-Channel-Id", "ccxt" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "sandboxMode", false },
                 { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
@@ -1098,6 +1100,10 @@ public partial class gate : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
@@ -7167,6 +7173,11 @@ public partial class gate : Exchange
         };
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
@@ -7255,7 +7266,8 @@ public partial class gate : Exchange
             }
             object bodyPayload = ((bool) isTrue((isEqual(body, null)))) ? "" : body;
             object bodySignature = this.hash(this.encode(bodyPayload), sha512);
-            object timestamp = this.seconds();
+            object nonce = this.nonce();
+            object timestamp = this.parseToInt(divide(nonce, 1000));
             object timestampString = ((object)timestamp).ToString();
             object signaturePath = add(add("/api/", this.version), entirePath);
             object payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, queryString, bodySignature, timestampString};
