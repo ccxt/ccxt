@@ -914,7 +914,15 @@ ${caseStatements.join('\n')}
     }
 }`
 
-        const goBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n'
+    const constStatements = errorNames.map(error => {
+        return`   ${error}ErrType ErrorType = "${error}"`;
+    })
+
+    const constDecl =` const (
+${constStatements.join('\n')}
+)`
+
+        const goBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n' + constDecl + '\n';
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense)

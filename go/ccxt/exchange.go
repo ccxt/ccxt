@@ -402,8 +402,10 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 
 // error related functions
 
+type ErrorType string
+
 type Error struct {
-	Type    string
+	Type    ErrorType
 	Message string
 	Stack   string
 }
@@ -422,7 +424,7 @@ func NewError(errType interface{}, message ...interface{}) error {
 			stack = ToString(message[1])
 		}
 	}
-	return &Error{Type: typeErr, Message: msg, Stack: stack}
+	return &Error{Type: ErrorType(string(typeErr)), Message: msg, Stack: stack}
 }
 
 func Exception(v ...interface{}) error {

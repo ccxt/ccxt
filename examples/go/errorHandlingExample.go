@@ -27,7 +27,7 @@ func CreateOrderWithErrorHandling() {
 
 	if err != nil {
 		if ccxtError, ok := err.(*ccxt.Error); ok {
-			if ccxtError.Type == "InvalidOrder" {
+			if ccxtError.Type == ccxt.InvalidOrderErrType {
 				fmt.Println("Invalid order")
 				fmt.Println(ccxtError.Message)
 				fmt.Println(ccxtError.Stack)
