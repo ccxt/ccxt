@@ -11,11 +11,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Exchange struct {
 	Itf                 interface{}
+	methodCache         sync.Map
+	cacheLoaded 		bool
 	Version             string
 	Id                  string
 	Name                string
@@ -163,7 +166,15 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
 	// this.itf = itf
+
+	// warmup itf cache
+
 	this.initializeProperties(extendedProperties)
+	// beforeNs := time.Now().UnixNano()
+	// this.WarmUpCache(this.Itf)
+	// afterNs := time.Now().UnixNano()
+	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
+
 	this.InitRestRateLimiter()
 	this.AfterConstruct()
 
@@ -206,6 +217,38 @@ func (this *Exchange) InitRestRateLimiter() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+func (this *Exchange) WarmUpCache() {
+	// itf fields
+	if this.cacheLoaded {
+		return
+	}
+	this.cacheLoaded = true
+	itf := this.Itf
+	baseValue := reflect.ValueOf(itf)
+	baseType := baseValue.Type()
+
+	for i := 0; i < baseType.NumMethod(); i++ {
+		method := baseType.Method(i)
+		name := method.Name
+		cacheKey := fmt.Sprintf("%s", name)
+
+		methodValue := baseValue.MethodByName(name)
+		methodType := method.Type
+		numIn := methodType.NumIn()
+		isVariadic := methodType.IsVariadic()
+
+		cacheValue := map[string]interface{}{
+			"method":      method,
+			"methodValue": methodValue,
+			"methodType":  methodType,
+			"numIn":       numIn,
+			"isVariadic":  isVariadic,
+		}
+
+		this.methodCache.Store(cacheKey, cacheValue)
+	}
+}
+
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	// to do
 	ch := make(chan interface{})
@@ -216,6 +259,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 				ch <- "panic:" + ToString(r)
 			}
 		}()
+		this.WarmUpCache()
 		if this.Markets != nil && len(this.Markets) > 0 {
 			if this.Markets_by_id == nil && len(this.Markets) > 0 {
 				ch <- this.SetMarkets(this.Markets, nil)
@@ -793,7 +837,10 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 				}
 			}
 		}()
-		res := <-CallInternalMethod(this.Itf, name2, args...)
+
+		this.WarmUpCache()
+		
+		res := <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
 		ch <- res
 	}()
 	// res := <-CallInternalMethod(this.Itf, name2, args...)

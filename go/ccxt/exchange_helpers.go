@@ -1793,7 +1793,179 @@ func setDefaults(p interface{}) {
 	}
 }
 
-func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseValue := reflect.ValueOf(itf)
+// 	baseType := baseValue.Type()
+
+// 	ch := make(chan interface{})
+// 	go func() {
+
+// 		// Error handling
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+// 				close(ch)
+// 			}
+// 		}()
+
+// 		for i := 0; i < baseType.NumMethod(); i++ {
+// 			method := baseType.Method(i)
+// 			if name == method.Name {
+// 				methodValue := baseValue.MethodByName(name)
+// 				methodType := method.Type
+// 				numIn := methodType.NumIn()
+// 				isVariadic := methodType.IsVariadic()
+
+// 				var in []reflect.Value
+
+// 				// Handle fixed arguments for both regular and variadic functions
+// 				for k := 0; k < numIn-1; k++ {
+// 					if k < len(args) {
+// 						if args[k] == nil {
+// 							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					} else {
+// 						// paramType := methodType.In(k)
+// 						in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						// in = append(in, reflect.Zero(paramType))
+// 					}
+// 				}
+
+// 				// Properly handle the variadic arguments
+// 				if isVariadic {
+// 					variadicArgs := []reflect.Value{}
+// 					// variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							variadicArgs = append(variadicArgs, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						} else {
+// 							variadicArgs = append(variadicArgs, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 					in = append(in, variadicArgs...)
+// 				} else if len(args) >= numIn-1 {
+// 					// Handle non-variadic arguments beyond fixed ones
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							// paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				}
+
+// 				// Call the method with the constructed arguments
+// 				res := methodValue.Call(in)
+
+// 				// Handle the result
+// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+// 					resultChan := res[0]
+// 					go func() {
+// 						for {
+// 							val, ok := resultChan.Recv()
+// 							if !ok {
+// 								break // result channel is closed
+// 							}
+// 							ch <- val.Interface() // pass the value to the output channel
+// 						}
+// 						close(ch) // close the output channel after all values are received
+// 					}()
+// 					return
+// 				} else if len(res) > 0 {
+// 					ch <- res[0].Interface()
+// 				} else {
+// 					ch <- nil
+// 				}
+// 				close(ch)
+// 				return
+// 			}
+// 		}
+
+// 		// If no method is found, return nil
+// 		ch <- nil
+// 		close(ch)
+// 	}()
+// 	return ch
+// }
+
+// var methodCache = sync.Map{}
+
+// func CallInternalMethodCache(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseValue := reflect.ValueOf(itf)
+// 	baseType := baseValue.Type()
+
+// 	// Cache key to avoid redundant reflection
+// 	cacheKey := fmt.Sprintf("%T.%s", itf, name)
+// 	cachedMethod, found := methodCache.Load(cacheKey)
+
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+// 			}
+// 			close(ch)
+// 		}()
+
+// 		var method reflect.Method
+// 		if found {
+// 			method = cachedMethod.(reflect.Method)
+// 		} else {
+// 			for i := 0; i < baseType.NumMethod(); i++ {
+// 				if baseType.Method(i).Name == name {
+// 					method = baseType.Method(i)
+// 					methodCache.Store(cacheKey, method)
+// 					break
+// 				}
+// 			}
+// 			if method.Name == "" {
+// 				ch <- nil
+// 				return
+// 			}
+// 		}
+
+// 		methodValue := baseValue.MethodByName(name)
+// 		methodType := method.Type
+// 		numIn := methodType.NumIn()
+// 		// isVariadic := methodType.IsVariadic()
+
+// 		in := make([]reflect.Value, 0, numIn)
+
+// 		// Handle arguments
+// 		for k := 0; k < numIn; k++ {
+// 			if k < len(args) {
+// 				if args[k] == nil {
+// 					in = append(in, reflect.Zero(methodType.In(k)))
+// 				} else {
+// 					in = append(in, reflect.ValueOf(args[k]))
+// 				}
+// 			} else {
+// 				in = append(in, reflect.Zero(methodType.In(k)))
+// 			}
+// 		}
+
+// 		// Call method
+// 		res := methodValue.Call(in)
+
+// 		// Return result
+// 		if len(res) > 0 {
+// 			ch <- res[0].Interface()
+// 		} else {
+// 			ch <- nil
+// 		}
+// 	}()
+
+// 	return ch
+// }
+
+// original imp
+func CallInternalMethod3(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
 	name := Capitalize(name2)
 	baseValue := reflect.ValueOf(itf)
 	baseType := baseValue.Type()
@@ -1892,91 +2064,103 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 	return ch
 }
 
-// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
-// 	name := Capitalize(name2)
-// 	baseValue := reflect.ValueOf(itf)
-// 	baseType := baseValue.Type()
+func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+	name := Capitalize(name2)
+	// baseValue := reflect.ValueOf(itf)
+	// baseType := baseValue.Type()
+	// if !this.cacheLoaded {
+	// 	this.cacheLoaded = true
+	// 	this.WarmUpCache()
+	// }
+	ch := make(chan interface{})
+	go func() {
 
-// 	ch := make(chan interface{})
-// 	go func() {
+		// Error handling
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
+				close(ch)
+			}
+		}()
 
-// 		// Error handling
-// 		defer func() {
-// 			if r := recover(); r != nil {
-// 				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-// 				close(ch)
-// 			}
-// 		}()
+		cacheKey := fmt.Sprintf("%s", name)
+		cachedMethod, found := methodCache.Load(cacheKey)
 
-// 		for i := 0; i < baseType.NumMethod(); i++ {
-// 			method := baseType.Method(i)
-// 			if name == method.Name {
-// 				methodValue := baseValue.MethodByName(name)
-// 				methodType := method.Type
-// 				numIn := methodType.NumIn()
-// 				isVariadic := methodType.IsVariadic()
+		if !found {
+			panic(name + " :method not found")
+		}
 
-// 				var in []reflect.Value
-// 				// Fixed argument handling for both regular and variadic functions
-// 				for k := 0; k < numIn-1; k++ {
-// 					if k < len(args) {
-// 						if args[k] == nil {
-// 							paramType := methodType.In(k + 1) // Account for receiver not being part of args
-// 							in = append(in, reflect.Zero(paramType))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					} else {
-// 						paramType := methodType.In(k + 1) // Account for receiver not being part of args
-// 						in = append(in, reflect.Zero(paramType))
-// 					}
-// 				}
+		cachedMap := cachedMethod.(map[string]interface{})
 
-// 				// Handle the variadic arguments
-// 				if isVariadic && len(args) >= numIn-1 {
-// 					variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
-// 					for k := numIn - 1; k < len(args); k++ {
-// 						if args[k] == nil {
-// 							in = append(in, reflect.Zero(variadicType))
-// 						} else {
-// 							in = append(in, reflect.ValueOf(args[k]))
-// 						}
-// 					}
-// 				}
+		// var method reflect.Method
+		// for i := 0; i < baseType.NumMethod(); i++ {
+		// 	method = baseType.Method(i)
+		// 	if name == method.Name {
+		// 		break
+		// 	}
+		// }
 
-// 				// Call the method with the constructed arguments
-// 				res := methodValue.Call(in)
+		// method := cachedMap["method"].(reflect.Method)
+		methodValue := cachedMap["methodValue"].(reflect.Value)
+		methodType := cachedMap["methodType"].(reflect.Type)
+		numIn := cachedMap["numIn"].(int)
+		isVariadic := cachedMap["isVariadic"].(bool)
 
-// 				// Handle the result
-// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-// 					resultChan := res[0]
-// 					go func() {
-// 						for {
-// 							val, ok := resultChan.Recv()
-// 							if !ok {
-// 								break // result channel is closed
-// 							}
-// 							ch <- val.Interface() // pass the value to the output channel
-// 						}
-// 						close(ch) // close the output channel after all values are received
-// 					}()
-// 					return
-// 				} else if len(res) > 0 {
-// 					ch <- res[0].Interface()
-// 				} else {
-// 					ch <- nil
-// 				}
-// 				close(ch)
-// 				return
-// 			}
-// 		}
+		var in []reflect.Value
+		// Fixed argument handling for both regular and variadic functions
+		for k := 0; k < numIn-1; k++ {
+			if k < len(args) {
+				if args[k] == nil {
+					paramType := methodType.In(k + 1) // Account for receiver not being part of args
+					in = append(in, reflect.Zero(paramType))
+				} else {
+					in = append(in, reflect.ValueOf(args[k]))
+				}
+			} else {
+				paramType := methodType.In(k + 1) // Account for receiver not being part of args
+				in = append(in, reflect.Zero(paramType))
+			}
+		}
 
-// 		// If no method is found, return nil
-// 		ch <- nil
-// 		close(ch)
-// 	}()
-// 	return ch
-// }
+		if isVariadic && len(args) >= numIn-1 {
+			variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
+			for k := numIn - 1; k < len(args); k++ {
+				if args[k] == nil {
+					in = append(in, reflect.Zero(variadicType))
+				} else {
+					in = append(in, reflect.ValueOf(args[k]))
+				}
+			}
+		}
+
+		// Call the method with the constructed arguments
+		res := methodValue.Call(in)
+
+		// Handle the result
+		if len(res) > 0 && res[0].Kind() == reflect.Chan {
+			resultChan := res[0]
+			go func() {
+				for {
+					val, ok := resultChan.Recv()
+					if !ok {
+						break // result channel is closed
+					}
+					ch <- val.Interface() // pass the value to the output channel
+				}
+				close(ch) // close the output channel after all values are received
+			}()
+			return
+		} else if len(res) > 0 {
+			ch <- res[0].Interface()
+		} else {
+			ch <- nil
+		}
+
+		ch <- nil
+		close(ch)
+	}()
+	return ch
+}
 
 // func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
 // 	name := Capitalize(name2)

@@ -332,7 +332,7 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 
 	this.TransformedApi = map[string]interface{}{}
 	this.Version = SafeString(extendedProperties, "version", "").(string)
-
+	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
 	this.RequiredCredentials = reqCred.(map[string]interface{})
 	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)

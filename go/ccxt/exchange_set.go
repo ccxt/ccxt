@@ -1,5 +1,7 @@
 package ccxt
 
+import "sync"
+
 func (this *Exchange) GetSymbols() []string {
 	return this.Symbols
 }
@@ -134,4 +136,12 @@ func (this *Exchange) SetFetchResponse(fetchResponse interface{}) {
 
 func (this *Exchange) SetVerbose(verbose interface{}) {
 	this.Verbose = verbose.(bool)
+}
+
+func (this *Exchange) GetCache() *sync.Map {
+	return &this.methodCache
+}
+
+func (this *Exchange) GetItf() interface{} {
+	return this.Itf
 }

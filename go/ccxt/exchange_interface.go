@@ -1,5 +1,7 @@
 package ccxt
 
+import "sync"
+
 // Exchange interface based on the methods from binance.go
 type IExchange interface {
 	ExtendExchangeOptions(options interface{})
@@ -9,6 +11,7 @@ type IExchange interface {
 	GetAlias() interface{}
 	GetTimeframes() map[string]interface{}
 	GetFeatures() map[string]interface{}
+	GetCache() *sync.Map
 	GetRequiredCredentials() map[string]interface{}
 	SetTimeout(timeout interface{})
 	SetHttpsProxy(httpsProxy interface{})
@@ -161,4 +164,6 @@ type IExchange interface {
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
 	SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{}
 	CallInternal(name2 string, args ...interface{}) <-chan interface{}
+	WarmUpCache()
+	GetItf() interface{}
 }
