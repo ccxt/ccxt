@@ -2108,7 +2108,6 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions
-		beforeCheckArgs := time.Now().UnixNano()
 		for k := 0; k < numIn-1; k++ {
 			if k < len(args) {
 				if args[k] == nil {
@@ -2123,8 +2122,6 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 			}
 		}
 
-		afterCheckArgs := time.Now().UnixNano()
-
 		if isVariadic && len(args) >= numIn-1 {
 			variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
 			for k := numIn - 1; k < len(args); k++ {
@@ -2136,16 +2133,8 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 			}
 		}
 
-		afterVariadicArgs := time.Now().UnixNano()
-
-		fmt.Println("CheckArgs", name, "time:", afterCheckArgs-beforeCheckArgs)
-		fmt.Println("VariadicArgs", name, "time:", afterVariadicArgs-afterCheckArgs)
-
 		// Call the method with the constructed arguments
-		beforeNs := time.Now().UnixNano()
 		res := methodValue.Call(in)
-		afterNs := time.Now().UnixNano()
-		fmt.Println("Call(in)", name, "time:", afterNs-beforeNs)
 
 		// Handle the result
 		if len(res) > 0 && res[0].Kind() == reflect.Chan {
