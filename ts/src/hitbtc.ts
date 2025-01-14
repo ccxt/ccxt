@@ -334,13 +334,14 @@ export default class hitbtc extends Exchange {
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': 100000, // todo
                         'daysBackCanceled': 1, // todo
                         'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
+                        'marketType': true,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
