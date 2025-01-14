@@ -703,6 +703,11 @@ export default class hyperliquid extends Exchange {
         const price = this.safeNumber (market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision (price, amountPrecision, 6);
         const pricePrecisionStr = this.numberToString (pricePrecision);
+        const isDelisted = this.safeBool (market, 'isDelisted');
+        let active = true;
+        if (isDelisted !== undefined) {
+            active = (isDelisted === false);
+        }
         return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
@@ -718,7 +723,7 @@ export default class hyperliquid extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': true,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
