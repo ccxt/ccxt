@@ -11,10 +11,10 @@ function run_all {
     # Run the command twice in the background
     echo "Running all 'npm run live-tests $lang' Rest and WS tests in parallel..."
 
-    npm run live-tests -- $lang &
+    npm run live-tests -- binance $lang &
     PID1=$! # Store the PID of the first background process
 
-    npm run live-tests-ws -- $lang &
+    npm run live-tests-ws -- binance $lang &
     PID2=$! # Store the PID of the second background process
 
     wait $PID1
@@ -56,14 +56,14 @@ function run_specific_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      npm run live-tests -- $lang $rest_args &
+      npm run live-tests -- binance $lang $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      npm run live-tests -- $lang --ws $ws_args &
+      npm run live-tests -- binance $lang --ws $ws_args &
       local ws_pid=$!
     fi
   fi
