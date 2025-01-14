@@ -1293,6 +1293,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.${baseClass}.Init(this.DeepExtend(this.Describe(), userConfig))
+    this.Itf = this
 }\n`
         }
 
