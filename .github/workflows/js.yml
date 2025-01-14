@@ -11,6 +11,8 @@ permissions:
   contents: read
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
   live-tests:
     needs: build
     runs-on: ubuntu-latest
