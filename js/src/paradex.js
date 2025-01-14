@@ -269,7 +269,9 @@ export default class paradex extends Exchange {
                     '40111': AuthenticationError,
                     '40112': PermissionDenied, // Geo IP blocked
                 },
-                'broad': {},
+                'broad': {
+                    'missing or malformed jwt': AuthenticationError,
+                },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {},
@@ -1032,7 +1034,8 @@ export default class paradex extends Exchange {
             }
         }
         const account = await this.retrieveAccount();
-        const expires = now + 86400 * 7;
+        // https://docs.paradex.trade/api-reference/general-information/authentication
+        const expires = now + 180;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',

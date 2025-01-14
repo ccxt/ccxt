@@ -693,6 +693,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         price = self.safe_number(market, 'markPx', 0)
         pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
         pricePrecisionStr = self.number_to_string(pricePrecision)
+        isDelisted = self.safe_bool(market, 'isDelisted')
+        active = True
+        if isDelisted is not None:
+            active = not isDelisted
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -708,7 +712,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': True,
+            'active': active,
             'contract': contract,
             'linear': True,
             'inverse': False,
@@ -1857,6 +1861,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
         request: dict = {
             'type': 'fundingHistory',

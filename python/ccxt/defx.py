@@ -257,6 +257,87 @@ class defx(Exchange, ImplicitAPI):
             'options': {
                 'sandboxMode': False,
             },
+            'features': {
+                'spot': None,
+                'forDerivatives': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        # todo implement
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -1618,8 +1699,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'OPEN'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'OPEN',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1634,8 +1717,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'FILLED'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'FILLED',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1650,8 +1735,10 @@ class defx(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['statuses'] = 'CANCELED'
-        return self.fetch_orders(symbol, since, limit, params)
+        req = {
+            'statuses': 'CANCELED',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(req, params))
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """

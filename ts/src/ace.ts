@@ -484,7 +484,7 @@ export default class ace extends Exchange {
         //     }
         //
         const orderBook = this.safeDict (response, 'attachment');
-        return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
+        return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks', 1, 0);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

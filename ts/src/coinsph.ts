@@ -293,6 +293,72 @@ export default class coinsph extends Exchange {
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo implement
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             // https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -1245,7 +1311,7 @@ export default class coinsph extends Exchange {
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve

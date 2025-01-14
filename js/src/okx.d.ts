@@ -37,6 +37,7 @@ export default class okx extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
+    nonce(): number;
     /**
      * @method
      * @name okx#fetchMarkets

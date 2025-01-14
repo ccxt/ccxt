@@ -4332,8 +4332,10 @@ class bitget extends bitget$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(req, params));
     }
     /**
      * @method

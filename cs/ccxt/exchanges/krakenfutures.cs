@@ -2714,23 +2714,27 @@ public partial class krakenfutures : Exchange
         object marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
+        if (isTrue(isEqual(marginLevels, null)))
+        {
+            return tiers;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);
             object initialMargin = this.safeString(tier, "initialMargin");
-            object notionalFloor = this.safeNumber(tier, "contracts");
+            object minNotional = this.safeNumber(tier, "numNonContractUnits");
             if (isTrue(!isEqual(i, 0)))
             {
                 object tiersLength = getArrayLength(tiers);
                 object previousTier = getValue(tiers, subtract(tiersLength, 1));
-                ((IDictionary<string,object>)previousTier)["notionalCap"] = notionalFloor;
+                ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
-                { "notionalFloor", notionalFloor },
-                { "notionalCap", null },
+                { "minNotional", minNotional },
+                { "maxNotional", null },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)) },
                 { "info", tier },

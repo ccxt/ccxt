@@ -705,6 +705,12 @@ public partial class hyperliquid : Exchange
         object price = this.safeNumber(market, "markPx", 0);
         object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         object pricePrecisionStr = this.numberToString(pricePrecision);
+        object isDelisted = this.safeBool(market, "isDelisted");
+        object active = true;
+        if (isTrue(!isEqual(isDelisted, null)))
+        {
+            active = !isTrue(isDelisted);
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
@@ -720,7 +726,7 @@ public partial class hyperliquid : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", true },
+            { "active", active },
             { "contract", contract },
             { "linear", true },
             { "inverse", false },
@@ -2071,6 +2077,10 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },

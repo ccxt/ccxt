@@ -523,6 +523,8 @@ class bitmart extends Exchange {
                 'defaultNetworks' => array(
                     'USDT' => 'ERC20',
                 ),
+                'timeDifference' => 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'ERC20' => 'ERC20',
                     'SOL' => 'SOL',
@@ -1137,6 +1139,9 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $spot = $this->fetch_spot_markets($params);
         $contract = $this->fetch_contract_markets($params);
         return $this->array_concat($spot, $contract);
@@ -5277,7 +5282,7 @@ class bitmart extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -5298,7 +5303,7 @@ class bitmart extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTxBitmart000');
             $headers = array(
                 'X-BM-KEY' => $this->apiKey,

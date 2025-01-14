@@ -216,6 +216,88 @@ class delta extends Exchange {
                     'BEP20' => 'BEP20(BSC)',
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo implement
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => true,
+                        ),
+                        // todo implementation
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false, // todo => implement
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000, // todo => recheck
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -3523,7 +3605,7 @@ class delta extends Exchange {
                 'timestamp' => $timestamp,
             );
             $auth = $method . $timestamp . $requestPath;
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ($method === 'GET') {
                 if ($query) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;

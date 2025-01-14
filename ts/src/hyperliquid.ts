@@ -703,6 +703,11 @@ export default class hyperliquid extends Exchange {
         const price = this.safeNumber (market, 'markPx', 0);
         const pricePrecision = this.calculatePricePrecision (price, amountPrecision, 6);
         const pricePrecisionStr = this.numberToString (pricePrecision);
+        const isDelisted = this.safeBool (market, 'isDelisted');
+        let active = true;
+        if (isDelisted !== undefined) {
+            active = !isDelisted;
+        }
         return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
@@ -718,7 +723,7 @@ export default class hyperliquid extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': true,
+            'active': active,
             'contract': contract,
             'linear': true,
             'inverse': false,
@@ -1947,6 +1952,9 @@ export default class hyperliquid extends Exchange {
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'fundingHistory',

@@ -296,6 +296,109 @@ class phemex extends Exchange {
                     'maker' => $this->parse_number('0.001'),
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        // todo
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'last' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'untilDays' => 2, // todo implement
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 100000,
+                        'untilDays' => 2,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerDirection' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'mark' => true,
+                                'last' => true,
+                                'index' => true,
+                            ),
+                            'price' => true,
+                        ),
+                        'hedged' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,

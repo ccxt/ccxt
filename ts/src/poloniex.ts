@@ -273,6 +273,67 @@ export default class poloniex extends Exchange {
                     'futures': 'future',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true, // todo
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo, only for non-trigger orders
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 2000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {

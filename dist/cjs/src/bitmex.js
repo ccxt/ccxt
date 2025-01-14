@@ -299,9 +299,11 @@ class bitmex extends bitmex$1 {
                             'trailing': true,
                             'marketBuyRequiresPrice': false,
                             'marketBuyByCost': false,
-                            'leverage': false,
-                            'selfTradePrevention': false,
-                            'iceberg': true, // todo
+                            // exchange-supported features
+                            // 'selfTradePrevention': true,
+                            // 'twap': false,
+                            // 'iceberg': false,
+                            // 'oco': false,
                         },
                         'createOrders': undefined,
                         'fetchMyTrades': {
@@ -332,7 +334,7 @@ class bitmex extends bitmex$1 {
                         'fetchClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': undefined,
+                            'daysBackClosed': undefined,
                             'daysBackCanceled': undefined,
                             'untilDays': 1000000,
                             'trigger': false,
@@ -2608,7 +2610,8 @@ class bitmex extends bitmex$1 {
             }
         }
         symbols = this.marketSymbols(symbols);
-        return this.parseFundingRates(filteredResponse, symbols);
+        const result = this.parseFundingRates(filteredResponse);
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here

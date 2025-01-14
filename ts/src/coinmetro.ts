@@ -213,6 +213,74 @@ export default class coinmetro extends Exchange {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': undefined,
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true, // todo implement
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': false,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': undefined,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 100000,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 // https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
                 'exact': {

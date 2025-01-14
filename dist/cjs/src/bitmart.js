@@ -526,6 +526,8 @@ class bitmart extends bitmart$1 {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'networks': {
                     'ERC20': 'ERC20',
                     'SOL': 'SOL',
@@ -1140,6 +1142,9 @@ class bitmart extends bitmart$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const spot = await this.fetchSpotMarkets(params);
         const contract = await this.fetchContractMarkets(params);
         return this.arrayConcat(spot, contract);
@@ -5300,7 +5305,7 @@ class bitmart extends bitmart$1 {
         return this.filterBySinceLimit(sorted, since, limit);
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const parts = path.split('/');
@@ -5320,7 +5325,7 @@ class bitmart extends bitmart$1 {
         }
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const timestamp = this.milliseconds().toString();
+            const timestamp = this.nonce().toString();
             const brokerId = this.safeString(this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,

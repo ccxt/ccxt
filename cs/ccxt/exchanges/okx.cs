@@ -1042,6 +1042,8 @@ public partial class okx : Exchange
                 { "createOrder", "privatePostTradeBatchOrders" },
                 { "createMarketBuyOrderRequiresPrice", false },
                 { "fetchMarkets", new List<object>() {"spot", "future", "swap", "option"} },
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "defaultType", "spot" },
                 { "fetchLedger", new Dictionary<string, object>() {
                     { "method", "privateGetAccountBills" },
@@ -1434,6 +1436,11 @@ public partial class okx : Exchange
         return result;
     }
 
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1445,6 +1452,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object types = this.safeList(this.options, "fetchMarkets", new List<object>() {});
         object promises = new List<object>() {};
         object result = new List<object>() {};
@@ -2861,9 +2872,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2885,9 +2898,11 @@ public partial class okx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() supports spot markets only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        ((IDictionary<string,object>)parameters)["tgtCcy"] = "quote_ccy";
-        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "createMarketBuyOrderRequiresPrice", false },
+            { "tgtCcy", "quote_ccy" },
+        };
+        return await this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -6483,7 +6498,7 @@ public partial class okx : Exchange
                     }
                 }
             }
-            object timestamp = this.iso8601(this.milliseconds());
+            object timestamp = this.iso8601(this.nonce());
             headers = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },

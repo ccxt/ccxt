@@ -1115,6 +1115,8 @@ export default class okx extends Exchange {
                 'createOrder': 'privatePostTradeBatchOrders', // or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
@@ -1493,6 +1495,10 @@ export default class okx extends Exchange {
         return result;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     /**
      * @method
      * @name okx#fetchMarkets
@@ -1502,6 +1508,9 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const types = this.safeList (this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
@@ -2809,9 +2818,11 @@ export default class okx extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -2830,9 +2841,11 @@ export default class okx extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot markets only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        params['tgtCcy'] = 'quote_ccy';
-        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
+        const req = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, this.extend (req, params));
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -6168,7 +6181,7 @@ export default class okx extends Exchange {
                     }
                 }
             }
-            const timestamp = this.iso8601 (this.milliseconds ());
+            const timestamp = this.iso8601 (this.nonce ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
                 'OK-ACCESS-PASSPHRASE': this.password,

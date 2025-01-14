@@ -21,6 +21,10 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Composer install
@@ -104,6 +108,10 @@ jobs:
           path: php/
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Composer install
