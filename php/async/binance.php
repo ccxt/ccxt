@@ -9769,10 +9769,10 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -9822,21 +9822,26 @@ class binance extends Exchange {
             //         "fundingTime" => "1621267200000",
             //     }
             //
-            $rates = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $timestamp = $this->safe_integer($entry, 'fundingTime');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
-                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+            return $this->parse_funding_rate_histories($response, $market, $since, $limit);
         }) ();
+    }
+
+    public function parse_funding_rate_history($contract, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.00063521",
+        //         "fundingTime" => "1621267200000",
+        //     }
+        //
+        $timestamp = $this->safe_integer($contract, 'fundingTime');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($this->safe_string($contract, 'symbol'), null, null, 'swap'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
