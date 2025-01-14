@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"sync"
 )
 
 type Exchange struct {
