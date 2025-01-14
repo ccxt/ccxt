@@ -400,7 +400,10 @@ class testMainClass {
                         }
                         // output the message
                         const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump (failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ' , exchange.id, methodName, argsStringified, exceptionMessage (e));
+                        exchange.httpProxy = undefined;
+                        exchange.httpsProxy = undefined;
+                        const res = await exchange.fetch('https://api.ipify.org/');
+                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', res, ' | ', exchange.id, methodName, argsStringified, exceptionMessage(e));
                         return returnSuccess;
                     }
                     else {
