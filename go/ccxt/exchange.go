@@ -13,9 +13,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"sync"
 )
 
 type Exchange struct {
+	marketsMutex 		sync.Mutex
 	Itf                 interface{}
 	methodCache         sync.Map
 	cacheLoaded 		bool
@@ -250,8 +252,8 @@ func (this *Exchange) WarmUpCache() {
 }
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
-	// to do
 	ch := make(chan interface{})
+	
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -262,7 +264,11 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		this.WarmUpCache()
 		if this.Markets != nil && len(this.Markets) > 0 {
 			if this.Markets_by_id == nil && len(this.Markets) > 0 {
-				ch <- this.SetMarkets(this.Markets, nil)
+				// Only lock when writing
+				this.marketsMutex.Lock()
+				result := this.SetMarkets(this.Markets, nil)
+				this.marketsMutex.Unlock()
+				ch <- result
 				return
 			}
 			ch <- this.Markets
@@ -271,14 +277,20 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 		var currencies interface{} = nil
 		var defaultParams = map[string]interface{}{}
-		// func (this *Exchange) Describe()
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
+		
 		markets := <-this.callInternal("fetchMarkets", defaultParams)
 		PanicOnError(markets)
-		ch <- this.SetMarkets(markets, currencies)
+		
+		// Lock only for writing
+		this.marketsMutex.Lock()
+		result := this.SetMarkets(markets, currencies)
+		this.marketsMutex.Unlock()
+		
+		ch <- result
 	}()
 	return ch
 }
