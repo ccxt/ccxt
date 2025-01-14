@@ -356,7 +356,9 @@ func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}
 				}
 			}
 		}()
-		res := <-CallInternalMethod(exchange, methodName2.(string), arg...)
+		exchangeType := exchange.(ccxt.IExchange)
+		exchangeType.WarmUpCache()
+		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
 		PanicOnError(res)
 		ch <- res
 	}()

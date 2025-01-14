@@ -4,6 +4,7 @@ import (
 	"ccxt/go/ccxt"
 	"fmt"
 	"reflect"
+	"sync"
 )
 
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
@@ -298,8 +299,8 @@ func Capitalize(s string) string {
 	return ccxt.Capitalize(s)
 }
 
-func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
-	return ccxt.CallInternalMethod(itf, name2, args...)
+func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 
 func PanicOnError(msg interface{}) {
