@@ -1708,6 +1708,7 @@ public partial class Exchange
     {
         object values = new List<object>() {};
         this.markets_by_id = new Dictionary<string, object>() {};
+        this.market_symbol_aliases = new List<string, object>() {};
         // handle marketId conflicts
         // we insert spot markets first
         object marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
