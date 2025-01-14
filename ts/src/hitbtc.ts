@@ -320,7 +320,7 @@ export default class hitbtc extends Exchange {
                         'marketType': true,
                     },
                     'fetchOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                         'marketType': true,
@@ -355,7 +355,16 @@ export default class hitbtc extends Exchange {
                     'createOrder': {
                         'marginMode': true,
                     },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
                     'fetchMyTrades': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
                         'marginMode': false,
                     },
                 },
