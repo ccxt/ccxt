@@ -647,6 +647,8 @@ export default class gate extends Exchange {
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and exchange clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'sandboxMode': false,
                 'unifiedAccount': undefined,
                 'createOrder': {
@@ -1165,6 +1167,9 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let rawPromises = [
             this.fetchContractMarkets (params),
@@ -6632,6 +6637,10 @@ export default class gate extends Exchange {
         } as BorrowInterest;
     }
 
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
@@ -6701,7 +6710,8 @@ export default class gate extends Exchange {
             }
             const bodyPayload = (body === undefined) ? '' : body;
             const bodySignature = this.hash (this.encode (bodyPayload), sha512);
-            const timestamp = this.seconds ();
+            const nonce = this.nonce ();
+            const timestamp = this.parseToInt (nonce / 1000);
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
