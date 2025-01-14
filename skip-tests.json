@@ -52,8 +52,6 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://188.34.194.190:8911",
-        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
