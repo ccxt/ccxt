@@ -1125,7 +1125,7 @@ export default class derive extends Exchange {
      * @method
      * @name derive#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.derive.xyz/reference/post_private-get-account
+     * @see https://docs.derive.xyz/reference/post_private-get-all-portfolios
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -1134,15 +1134,78 @@ export default class derive extends Exchange {
         const request = {
             'wallet': this.walletAddress,
         };
-        const response = await this.privatePostGetAccount (this.extend (request, params));
+        const response = await this.privatePostGetAllPortfolios (this.extend (request, params));
         //
+        // {
+        //     "result": [{
+        //             "subaccount_id": 130837,
+        //             "label": "",
+        //             "currency": "all",
+        //             "margin_type": "SM",
+        //             "is_under_liquidation": false,
+        //             "positions_value": "0",
+        //             "collaterals_value": "318.0760325000001103035174310207366943359375",
+        //             "subaccount_value": "318.0760325000001103035174310207366943359375",
+        //             "positions_maintenance_margin": "0",
+        //             "positions_initial_margin": "0",
+        //             "collaterals_maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //             "collaterals_initial_margin": "190.845619500000083235136116854846477508544921875",
+        //             "maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //             "initial_margin": "190.845619500000083235136116854846477508544921875",
+        //             "open_orders_margin": "0",
+        //             "projected_margin_change": "0",
+        //             "open_orders": [],
+        //             "positions": [],
+        //             "collaterals": [
+        //                 {
+        //                     "asset_type": "erc20",
+        //                     "asset_name": "ETH",
+        //                     "currency": "ETH",
+        //                     "amount": "0.1",
+        //                     "mark_price": "3180.760325000000438272",
+        //                     "mark_value": "318.0760325000001103035174310207366943359375",
+        //                     "cumulative_interest": "0",
+        //                     "pending_interest": "0",
+        //                     "initial_margin": "190.845619500000083235136116854846477508544921875",
+        //                     "maintenance_margin": "238.557024375000082727638073265552520751953125",
+        //                     "realized_pnl": "0",
+        //                     "average_price": "3184.891931",
+        //                     "unrealized_pnl": "-0.413161",
+        //                     "total_fees": "0",
+        //                     "average_price_excl_fees": "3184.891931",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "unrealized_pnl_excl_fees": "-0.413161",
+        //                     "open_orders_margin": "0",
+        //                     "creation_timestamp": 1736860533493
+        //                 }
+        //             ]
+        //     }],
+        //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
+        // }
         //
-        const data = this.safeDict (response, 'data');
-        return this.parseBalance (data);
+        const result = this.safeList (response, 'result');
+        return this.parseBalance (result);
     }
 
     parseBalance (response): Balances {
-        return this.safeBalance (response);
+        const result: Dict = {
+            'info': response,
+        };
+        // TODO:
+        // checked multiple subaccounts
+        // checked balance after open orders / positions
+        for (let i = 0; i < response.length; i++) {
+            const subaccount = response[i];
+            const collaterals = this.safeList (subaccount, 'collaterals', []);
+            for (let i = 0; i < collaterals.length; i++) {
+                const balance = collaterals[i];
+                const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
+                const account = this.account ();
+                account['total'] = this.safeString (balance, 'amount');
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
@@ -1167,8 +1230,8 @@ export default class derive extends Exchange {
             };
             if (api === 'private') {
                 this.checkRequiredCredentials ();
-                const now = this.now ();
-                const signature = this.signMessage (now.toString (), this.privateKey);
+                const now = this.now ().toString ();
+                const signature = this.signMessage (now, this.privateKey);
                 headers['X-LyraWallet'] = this.walletAddress;
                 headers['X-LyraTimestamp'] = now;
                 headers['X-LyraSignature'] = signature;
