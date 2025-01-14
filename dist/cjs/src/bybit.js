@@ -3333,7 +3333,12 @@ class bybit extends bybit$1 {
                             account['free'] = free;
                         }
                         else {
-                            account['used'] = this.safeString(coinEntry, 'locked');
+                            const locked = this.safeString(coinEntry, 'locked', '0');
+                            const totalPositionIm = this.safeString(coinEntry, 'totalPositionIM', '0');
+                            const totalOrderIm = this.safeString(coinEntry, 'totalOrderIM', '0');
+                            let totalUsed = Precise["default"].stringAdd(locked, totalPositionIm);
+                            totalUsed = Precise["default"].stringAdd(totalUsed, totalOrderIm);
+                            account['used'] = totalUsed;
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString(coinEntry, 'coin');

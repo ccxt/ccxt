@@ -3445,7 +3445,12 @@ public partial class bybit : Exchange
                             ((IDictionary<string,object>)account)["free"] = free;
                         } else
                         {
-                            ((IDictionary<string,object>)account)["used"] = this.safeString(coinEntry, "locked");
+                            object locked = this.safeString(coinEntry, "locked", "0");
+                            object totalPositionIm = this.safeString(coinEntry, "totalPositionIM", "0");
+                            object totalOrderIm = this.safeString(coinEntry, "totalOrderIM", "0");
+                            object totalUsed = Precise.stringAdd(locked, totalPositionIm);
+                            totalUsed = Precise.stringAdd(totalUsed, totalOrderIm);
+                            ((IDictionary<string,object>)account)["used"] = totalUsed;
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         object currencyId = this.safeString(coinEntry, "coin");
