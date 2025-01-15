@@ -496,6 +496,8 @@ export default class derive extends Exchange {
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
+            'taker': this.safeNumber (market, 'taker_fee_rate'),
+            'maker': this.safeNumber (market, 'maker_fee_rate'),
             'strike': undefined,
             'optionType': undefined,
             'precision': {
