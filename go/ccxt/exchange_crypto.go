@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	secp256k1Hash "github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"golang.org/x/crypto/sha3"
 	// "golang.org/x/crypto/sha3"
 )
 
@@ -189,17 +190,20 @@ func signMD5(data string) []byte {
 }
 
 func signKeccak(data interface{}) []byte {
-	var msg []byte
-	// switch v := data.(type) {
-	// case string:
-	// 	msg = []byte(v)
-	// case []byte:
-	// 	msg = v
-	// }
-	// h := sha3.New256()
-	// h.Write(msg)
-	// to do implement keccak
-	return msg
+	var input []byte
+
+	switch v := data.(type) {
+	case string:
+		input = []byte(v)
+	case []byte:
+		input = v
+	default:
+		return []byte{}
+	}
+
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(input)
+	return hash.Sum(nil)
 }
 
 func Jwt(data interface{}, secret interface{}, hash func() string, optionalArgs ...interface{}) string {
