@@ -323,7 +323,7 @@ export default class lbank extends Exchange {
                         'marketBuyRequiresPrice': false,
                         'iceberg': false,
                     },
-                    'createOrders': undefined, //todo
+                    'createOrders': undefined, // todo
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
