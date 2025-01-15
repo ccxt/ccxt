@@ -6483,7 +6483,12 @@ export default class bingx extends Exchange {
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             const isJsonContentType = (((type === 'subAccount') || (type === 'account/transfer')) && (method === 'POST'));
-            const parsedParams = this.parseParams (params);
+            let parsedParams = undefined;
+            if (isJsonContentType) {
+                parsedParams = params;
+            } else {
+                parsedParams = this.parseParams (params);
+            }
             const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
