@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { BadRequest, InvalidOrder, Precise } from '../ccxt.js';
+import { BadRequest, InvalidOrder, Precise, ExchangeError } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -286,8 +286,13 @@ export default class derive extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '11011': InvalidOrder, // {"code":11011,"message":"Invalid signature expiry","data":"Order must expire in 300 sec or more"}
+                    '11013': InvalidOrder, // {"code":"11013","message":"Invalid limit price","data":{"limit":"10000","bandwidth":"92530"}}
+                    '11023': InvalidOrder, // {"code":"11023","message":"Max fee order param is too low","data":"signed max_fee must be >= 194.420835871999983091712000000000000000"}
                     '14000': BadRequest, // {"code": 14000, "message": "Account not found"}
                     '14001': InvalidOrder, // {"code": 14001, "message": "Subaccount not found"}
+                    '14014': InvalidOrder, // {"code":"14014","message":"Signature invalid for message or transaction","data":"Signature does not match data"}
+                    '14023': InvalidOrder, // {"code":"14023","message":"Signer in on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"}
                 },
                 'broad': {
                 },
@@ -903,21 +908,16 @@ export default class derive extends Exchange {
     }
 
     hashOrderMessage (binaryMessage) {
-        // takes a binary encoded message
-        // const binaryMessage = this.encode (message);
         const DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105';
-        const binaryDomainSeparator = this.base16ToBinary (this.remove0xPrefix (DOMAIN_SEPARATOR));
-        const prefix = this.encode ('\x1901');
+        const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
+        const prefix = this.base16ToBinary('1901');
         return '0x' + this.hash (this.binaryConcat (prefix, binaryDomainSeparator, binaryMessage), keccak, 'hex');
     }
 
     signOrder (order, privateKey) {
-        // const accountHash = this.binaryToBase16 (this.ethAbiEncode ([
-        //     'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
-        // ], order));
-        const accountHash = this.ethAbiEncode ([
+        const accountHash = this.hash(this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
-        ], order);
+        ], order), keccak, 'binary');
         const signature = ecdsa (this.hashOrderMessage (accountHash).slice (-64), privateKey.slice (-64), secp256k1, undefined);
         return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (27, signature['v']));
     }
@@ -966,11 +966,12 @@ export default class derive extends Exchange {
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const subaccountId = this.safeInteger (params, 'subaccount_id', 0);
         const maxFee = this.safeNumber (params, 'max_fee', 0);
-        const signatureExpiry = 86400;
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
+        const test = this.safeBool (params, 'test', false);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'test' ]);
         const orderType = type.toLowerCase ();
         const orderSide = side.toLowerCase ();
         const nonce = this.now ();
+        const signatureExpiry = this.safeNumber (params, 'signature_expiry_sec', nonce + 600000); // 10 minutes
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = '0x4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17';
         const TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be';
@@ -1009,7 +1010,12 @@ export default class derive extends Exchange {
         };
         request['signature'] = signature;
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
-        const response = await this.privatePostOrderDebug (this.extend (request, params));
+        let response = undefined;
+        if (test) {
+            response = await this.privatePostOrderDebug (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrder (this.extend (request, params));
+        }
         //
         // {
         //     "result": {
@@ -1217,6 +1223,7 @@ export default class derive extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
